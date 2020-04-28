@@ -11,11 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-file(GLOB TEST_SOURCES
-    "*.cpp"
-)
 
-register_tests(
-    TARGET yakushima
-    SOURCES ${TEST_SOURCES}
-)
+if (NOT Doxygen_FOUND)
+    message(FATAL_ERROR "doxygen was not installed, please configure with -DBUILD_DOCUMENTS=OFF to skip doxygen")
+endif()
+
+set(doxyfile_in ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
+set(doxyfile ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+
+configure_file(${doxyfile_in} ${doxyfile} @ONLY)
+
+add_custom_target(doxygen
+    COMMAND ${DOXYGEN_EXECUTABLE} ${doxyfile}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Generating API documentation with Doxygen"
+    VERBATIM)

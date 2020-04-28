@@ -11,11 +11,5 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-file(GLOB TEST_SOURCES
-    "*.cpp"
-)
 
-register_tests(
-    TARGET yakushima
-    SOURCES ${TEST_SOURCES}
-)
+add_subdirectory(googletest EXCLUDE_FROM_ALL)
