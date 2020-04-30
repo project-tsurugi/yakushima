@@ -15,16 +15,16 @@ namespace yakushima {
 struct border_node {
 public:
 private:
-  uint32_t version;
-  uint8_t nremoved;
-  uint8_t keylen[15];
-  uint64_t permutation;
-  uint64_t keyslice[15];
-  link_or_value lv[15];
-  border_node *next;
-  border_node *prev;
-  interior_node* parent;
-  keysuffix_t keysuffixes;
+  node_version64 version_;
+  uint8_t nremoved_;
+  uint8_t keylen[15]_;
+  uint64_t permutation_;
+  uint64_t keyslice[15]_;
+  link_or_value lv[15]_;
+  border_node *next_;
+  border_node *prev_;
+  interior_node* parent_;
+  keysuffix_t keysuffixes_;
 };
 } // namespace yakushima
 

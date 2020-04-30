@@ -14,8 +14,21 @@ protected:
   ~mt_version_test() {}
 };
 
-TEST_F(mt_version_test, constructor) {
+TEST_F(mt_version_test, version_bitwise_operation) {
+  // about static function
+  std::uint64_t num(0);
+  ASSERT_EQ(node_version64::check_lock_bit(num), false);
+  node_version64::set_lock_bit(num);
+  ASSERT_EQ(true, true);
+  ASSERT_EQ(node_version64::check_lock_bit(num), true);
+
+  // about member function
   node_version64 ver;
+  ASSERT_EQ(ver.get_version(), 0);
+  ASSERT_EQ(ver.check_lock_bit(), false);
+  ver.lock();
+  ASSERT_EQ(true, true);
+  ASSERT_EQ(ver.check_lock_bit(), true);
 }
 
 }  // namespace yakushima::testing

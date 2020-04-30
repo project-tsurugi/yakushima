@@ -15,11 +15,11 @@ namespace yakushima {
 struct interior_node {
 public:
 private:
-  uint32_t version;
-  uint8_t nkeys;
-  uint64_t keyslice[15];
-  border_node *child[16];
-  interior_node *parent;
+  node_version64 version_;
+  uint8_t nkeys_;
+  uint64_t keyslice[15]_;
+  border_node *child[16]_;
+  interior_node *parent_;
 };
 
 } // namespace yakushima

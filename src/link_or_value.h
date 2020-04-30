@@ -8,8 +8,8 @@ template <class NODE>
 class link_or_value {
 public:
   union {
-    NODE* next_layer;
-    char* value;
+    NODE* next_layer_;
+    char* value_;
   };
 private:
 };
