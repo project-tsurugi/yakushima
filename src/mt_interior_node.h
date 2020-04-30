@@ -12,20 +12,12 @@
 struct border_node;
 
 namespace yakushima {
-struct interior_node {
-public:
-  [[nodiscard]] uint64_t get_stable_version() &{
-    return version_.get_stable_version();
-  }
-
+class interior_node : private base_node {
 private:
-  node_version64 version_;
   uint8_t nkeys_;
-  uint64_t keyslice[15]
   _;
   border_node *child[16]
   _;
-  interior_node *parent_;
 };
 
 } // namespace yakushima

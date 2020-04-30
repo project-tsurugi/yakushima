@@ -1,8 +1,25 @@
-//
-// Created by thawk on 2020/04/30.
-//
+/**
+ * @file mt_base_node.h
+ */
 
-#ifndef YAKUSHIMA_MT_BASE_NODE_H
-#define YAKUSHIMA_MT_BASE_NODE_H
+#pragma once
 
-#endif //YAKUSHIMA_MT_BASE_NODE_H
+#include "cpu.h"
+#include "mt_interior_node.h"
+
+namespace yakushima {
+
+class base_node {
+public:
+  [[nodiscard]] uint64_t get_stable_version() & {
+    return version_.get_stable_version();
+  }
+
+private:
+  alignas(CACHE_LINE_SIZE)
+  node_version64 version_;
+  interior_node *parent;
+  uint64_t key_slice[15];
+};
+
+} // namespace yakushima

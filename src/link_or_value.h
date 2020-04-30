@@ -11,5 +11,7 @@ public:
     NODE* next_layer_;
     char* value_;
   };
+
 private:
+  std::size_t value_length;
 };

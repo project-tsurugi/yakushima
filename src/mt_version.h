@@ -113,6 +113,7 @@ public:
   void unlock() & {
     uint64_t new_ver(version_.load(std::memory_order_acquire));
 #if 0
+    // todo
     if (check_inserting_bit(new_ver))
       set_vinsert(get_vinsert() + 1);
     if (check_splitting_bit((new_ver)))
