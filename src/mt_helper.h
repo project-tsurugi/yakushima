@@ -6,5 +6,4 @@
 #pragma once
 
 namespace yakushima {
-
 } // namespace yakushima

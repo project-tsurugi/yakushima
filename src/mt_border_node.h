@@ -14,6 +14,10 @@ struct interior_node;
 namespace yakushima {
 struct border_node {
 public:
+  [[nodiscard]] uint64_t get_stable_version() & {
+    return version_.get_stable_version();
+  }
+
 private:
   node_version64 version_;
   uint8_t nremoved_;

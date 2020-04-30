@@ -10,8 +10,8 @@ namespace yakushima::testing {
 
 class mt_version_test : public ::testing::Test {
 protected:
-  mt_version_test() {}
-  ~mt_version_test() {}
+  mt_version_test() = default;
+  ~mt_version_test() = default;
 };
 
 TEST_F(mt_version_test, version_bitwise_operation) {

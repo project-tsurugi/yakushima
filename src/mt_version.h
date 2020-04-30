@@ -56,28 +56,46 @@ public:
 
   node_version64() : version_(0) {}
 
+  node_version64(std::uint64_t ver) : version_(ver) {}
+
+  [[nodiscard]] static bool check_inserting_bit(std::uint64_t v) {
+    return (v & static_cast<std::uint64_t>(node_version_params64::inserting_bit)) ==
+           static_cast<std::uint64_t>(node_version_params64::inserting_bit);
+  }
+
   [[nodiscard]] static bool check_lock_bit(std::uint64_t v) {
     return (v & static_cast<std::uint64_t>(node_version_params64::lock_bit)) ==
            static_cast<std::uint64_t>(node_version_params64::lock_bit);
   }
 
-  [[nodiscard]] bool check_lock_bit() & {
+  [[nodiscard]] bool check_lock_bit() &{
     return (version_.load(std::memory_order_acquire) & static_cast<std::uint64_t>(node_version_params64::lock_bit)) ==
            static_cast<std::uint64_t>(node_version_params64::lock_bit);
+  }
+
+  [[nodiscard]] static bool check_splitting_bit(std::uint64_t v) {
+    return (v & static_cast<std::uint64_t>(node_version_params64::splitting_bit)) ==
+           static_cast<std::uint64_t>(node_version_params64::splitting_bit);
   }
 
   [[nodiscard]] uint64_t get_version() const &{
     return version_.load(std::memory_order_acquire);
   }
 
-  static void set_lock_bit(std::uint64_t& v) {
-    v = v | static_cast<std::uint64_t>(node_version_params64::lock_bit);
+  [[nodiscard]] uint64_t get_stable_version() const &{
+    for (;;) {
+      uint64_t ver(version_.load(std::memory_order_acquire));
+      if (check_lock_bit(ver) == false &&
+          check_splitting_bit(ver) == false)
+        return ver;
+      else continue;
+    }
   }
 
-  void lock() & {
+  void lock() &{
     uint64_t expected(version_.load(std::memory_order_acquire)), desired;
     for (;;) {
-      if(check_lock_bit(expected)) {
+      if (check_lock_bit(expected)) {
         expected = version_.load(std::memory_order_acquire);
         continue;
       }
@@ -86,6 +104,36 @@ public:
       if (version_.compare_exchange_strong(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
         break;
     }
+  }
+
+  static void set_lock_bit(std::uint64_t &v) {
+    v = v | static_cast<std::uint64_t>(node_version_params64::lock_bit);
+  }
+
+  void unlock() & {
+    uint64_t new_ver(version_.load(std::memory_order_acquire));
+#if 0
+    if (check_inserting_bit(new_ver))
+      set_vinsert(get_vinsert() + 1);
+    if (check_splitting_bit((new_ver)))
+      set_vsplit(get_vsplit() + 1);
+#endif
+    unset_inserting_bit(new_ver);
+    unset_lock_bit(new_ver);
+    unset_splitting_bit(new_ver);
+    version_.store(new_ver, std::memory_order_release);
+  }
+
+  static void unset_inserting_bit(uint64_t& v) {
+    v = v ^ static_cast<std::uint64_t>(node_version_params64::inserting_bit);
+  }
+
+  static void unset_lock_bit(uint64_t& v) {
+    v = v ^ static_cast<std::uint64_t>(node_version_params64::lock_bit);
+  }
+
+  static void unset_splitting_bit(uint64_t& v) {
+    v = v ^ static_cast<std::uint64_t>(node_version_params64::splitting_bit);
   }
 
 private:
