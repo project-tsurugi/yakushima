@@ -53,6 +53,42 @@ public:
     return unused;
   }
 
+  void set_locked(bool new_locked) & {
+    locked = new_locked;
+  }
+
+  void set_inserting(bool new_inserting) & {
+    inserting = new_inserting;
+  }
+
+  void set_splitting(bool new_splitting) & {
+    splitting = new_splitting;
+  }
+
+  void set_deleted(bool new_deleted) & {
+    deleted = new_deleted;
+  }
+
+  void set_root(bool new_root) & {
+    root = new_root;
+  }
+
+  void set_leaf(bool new_leaf) & {
+    leaf = new_leaf;
+  }
+
+  void set_vinsert(std::uint32_t new_vinsert) & {
+    vinsert = new_vinsert;
+  }
+
+  void set_vsplit(std::uint32_t new_vsplit) & {
+    vsplit = new_vsplit;
+  }
+
+  void set_unused(bool new_unused) & {
+    unused = new_unused;
+  }
+
 private:
   bool locked: 1;
   bool inserting: 1;
