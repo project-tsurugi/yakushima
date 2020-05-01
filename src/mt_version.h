@@ -10,7 +10,6 @@
 #include <cmath>
 #include <cstdint>
 
-#include "atomic_wrapper.h"
 #include "cpu.h"
 
 namespace yakushima {
