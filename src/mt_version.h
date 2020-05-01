@@ -6,6 +6,7 @@
 #pragma once
 
 #include <atomic>
+#include <bitset>
 #include <cstdint>
 
 namespace yakushima {
@@ -92,6 +93,10 @@ public:
     }
   }
 
+  /**
+   * @brief lock
+   * tanabe : この関数は並行に呼び出されたらまずい？そこまで実装してみないと未来のことは良くわからない．
+   */
   void lock() &{
     uint64_t expected(version_.load(std::memory_order_acquire)), desired;
     for (;;) {
@@ -108,6 +113,21 @@ public:
 
   static void set_lock_bit(std::uint64_t &v) {
     v = v | static_cast<std::uint64_t>(node_version_params64::lock_bit);
+  }
+
+  /**
+   * @brief set_vinsert
+   * @pre This function can't be called concurrently.
+   * @param rvinsert
+   * @return void
+   */
+  void set_vinsert(std::uint64_t rvinsert) & {
+    std::bitset<64> bs(rvinsert);
+    // vinsert is 16 bits, so it delete more than 16 bits.
+    bs <<= (64 - 16);
+    // it repair bits position correctly.
+    bs >>= (64 - (static_cast<uint64_t>(node_version_params64::vinsert_topbit) / 2) - 1);
+    version_.store(version_.load(std::memory_order_acquire) ^ bs.to_ullong(), std::memory_order_release);
   }
 
   void unlock() & {
