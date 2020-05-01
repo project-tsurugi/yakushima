@@ -14,6 +14,12 @@
 
 namespace yakushima {
 
+/**
+ * @brief Teh body of node_version64.
+ * @details This class is designed to be able to be wrapped by std::atomic,
+ * so it can't declare default constructor. Therefore, it should use init function to initialize
+ * before using this class object.
+ */
 class node_version64_body {
 public:
   [[nodiscard]] bool get_locked() const {
@@ -112,8 +118,19 @@ private:
   bool unused: 1;
 };
 
+/**
+ * @brief The class which has atomic<node_version>
+ */
 class node_version64 {
 public:
+  /**
+   * @details Basically, it should use this default constructor to use init func.
+   * Of course, it can use this class without default constructor if it use init function().
+   */
+  node_version64() {
+    init();
+  }
+
   node_version64_body get_body() const {
     return body_.load(std::memory_order_acquire);
   }
