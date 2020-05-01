@@ -7,6 +7,7 @@
 
 #include <atomic>
 #include <bitset>
+#include <cmath>
 #include <cstdint>
 
 namespace yakushima {
@@ -126,8 +127,17 @@ public:
     // vinsert is 16 bits, so it delete more than 16 bits.
     bs <<= (64 - 16);
     // it repair bits position correctly.
-    bs >>= (64 - (static_cast<uint64_t>(node_version_params64::vinsert_topbit) / 2) - 1);
-    version_.store(version_.load(std::memory_order_acquire) ^ bs.to_ullong(), std::memory_order_release);
+    bs >>= (64 - (static_cast<std::uint64_t>(node_version_params64::vinsert_topbit) / 2) - 1);
+    // start : clearing original vinsert
+    std::bitset<64> vinsert_mask(powl(2,16) - 1);
+    vinsert_mask <<= (static_cast<std::uint64_t>(node_version_params64::vinsert_lowbit) / 2);
+    std::uint64_t newver = version_.load(std::memory_order_acquire);
+    newver = newver & (~vinsert_mask.to_ullong());
+    // end : clearing original vinsert
+    // create new version value including new vinsert.
+    newver = newver | bs.to_ullong();
+    // assign
+    version_.store(newver, std::memory_order_release);
   }
 
   void unlock() & {
