@@ -52,6 +52,18 @@ public:
     return unused;
   }
 
+  void init() {
+    locked = false;
+    inserting = false;
+    splitting = false;
+    deleted = false;
+    root = false;
+    leaf = false;
+    vinsert = 0;
+    vsplit = 0;
+    unused = false;
+  }
+
   void set_locked(bool new_locked) & {
     locked = new_locked;
   }
@@ -104,6 +116,25 @@ class node_version64 {
 public:
   node_version64_body get_body() const {
     return body_.load(std::memory_order_acquire);
+  }
+
+  void increment_vinsert() {
+    node_version64_body expected(body_.load(std::memory_order_acquire)), desired;
+    for (;;) {
+      desired = expected;
+      desired.set_vinsert(desired.get_vinsert() + 1);
+      if (body_.compare_exchange_strong(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
+        break;
+    }
+  }
+
+  /**
+   * @pre This function is called by only single thread.
+   */
+  void init() {
+    node_version64_body verbody;
+    verbody.init();
+    body_.store(verbody, std::memory_order_release);
   }
 
   void set(node_version64_body newv) &{
