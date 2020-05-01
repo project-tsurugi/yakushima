@@ -1,9 +1,5 @@
 # yakushima - Masstree Storage Engine.
 
-shirakami engine からコピーしてきて少し修正したものです．
-開発が落ち着いてきたら再度文章を手直しします．
-最終的には，google test (test directory) をビルドするのに cmake は使う予定です．
-
 ## Requirements
 
 * CMake `>= 3.10`
@@ -57,8 +53,8 @@ Dump the coverage information into html files with the following steps:
 ```
 cd build
 mkdir gcovr-html
-GCOVR_COMMON_OPTION='-e ../third_party/ -e ../.*/test.* -e ../.*/examples.* -e ../.local/.*'
-gcovr  -r .. --html --html-details  ${GCOVR_COMMON_OPTION} -o gcovr-html/shirakami-gcovr.html
+GCOVR_COMMON_OPTION='-e ../third_party/ -e ../test/'
+gcovr  -r .. --html --html-details  ${GCOVR_COMMON_OPTION} -o gcovr-html/yakushima-gcovr.html
 ```
 Open gcovr-html/shirakami-gcovr.html to see the coverage report.
 
