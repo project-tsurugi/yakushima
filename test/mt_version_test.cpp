@@ -29,7 +29,7 @@ TEST_F(mt_version_test, basic_node_version_test) {
     ASSERT_EQ(ver.get_body().get_locked(), false);
     verbody = ver.get_body();
     verbody.set_locked(true);
-    ver.set(verbody);
+    ver.set_body(verbody);
     ASSERT_EQ(ver.get_body().get_locked(), true);
 }
 
@@ -38,7 +38,7 @@ TEST_F(mt_version_test, basic_node_version_test) {
   node_version64 ver;
   auto vinsert_inc_100 = [&ver]() {
     for (auto i = 0; i < 100; ++i) {
-      ver.increment_vinsert();
+      ver.atomic_increment_vinsert();
     }
   };
   vinsert_inc_100();
@@ -50,7 +50,7 @@ TEST_F(mt_version_test, basic_node_version_test) {
   node_version64 ver;
   auto vinsert_inc_100 = [&ver]() {
     for (auto i = 0; i < 100; ++i) {
-      ver.increment_vinsert();
+      ver.atomic_increment_vinsert();
     }
   };
   std::future<void> f = std::async(std::launch::async, vinsert_inc_100);

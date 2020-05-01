@@ -22,28 +22,32 @@ namespace yakushima {
  */
 class node_version64_body {
 public:
-  [[nodiscard]] bool get_locked() const {
-    return locked;
+  [[nodiscard]] bool get_deleted() const {
+    return deleted;
   }
 
   [[nodiscard]] bool get_inserting() const {
     return inserting;
   }
 
-  [[nodiscard]] bool get_splitting() const {
-    return splitting;
+  [[nodiscard]] bool get_leaf() const {
+    return leaf;
   }
 
-  [[nodiscard]] bool get_deleted() const {
-    return deleted;
+  [[nodiscard]] bool get_locked() const {
+    return locked;
   }
 
   [[nodiscard]] bool get_root() const {
     return root;
   }
 
-  [[nodiscard]] bool get_leaf() const {
-    return leaf;
+  [[nodiscard]] bool get_splitting() const {
+    return splitting;
+  }
+
+  [[nodiscard]] bool get_unused() const {
+    return unused;
   }
 
   [[nodiscard]] std::uint32_t get_vinsert() const {
@@ -52,10 +56,6 @@ public:
 
   [[nodiscard]] std::uint64_t get_vsplit() const {
     return vsplit;
-  }
-
-  [[nodiscard]] bool get_unused() const {
-    return unused;
   }
 
   void init() {
@@ -70,28 +70,32 @@ public:
     unused = false;
   }
 
-  void set_locked(bool new_locked) & {
-    locked = new_locked;
+  void set_deleted(bool new_deleted) & {
+    deleted = new_deleted;
   }
 
   void set_inserting(bool new_inserting) & {
     inserting = new_inserting;
   }
 
-  void set_splitting(bool new_splitting) & {
-    splitting = new_splitting;
+  void set_leaf(bool new_leaf) & {
+    leaf = new_leaf;
   }
 
-  void set_deleted(bool new_deleted) & {
-    deleted = new_deleted;
+  void set_locked(bool new_locked) & {
+    locked = new_locked;
   }
 
   void set_root(bool new_root) & {
     root = new_root;
   }
 
-  void set_leaf(bool new_leaf) & {
-    leaf = new_leaf;
+  void set_splitting(bool new_splitting) & {
+    splitting = new_splitting;
+  }
+
+  void set_unused(bool new_unused) & {
+    unused = new_unused;
   }
 
   void set_vinsert(std::uint32_t new_vinsert) & {
@@ -100,10 +104,6 @@ public:
 
   void set_vsplit(std::uint32_t new_vsplit) & {
     vsplit = new_vsplit;
-  }
-
-  void set_unused(bool new_unused) & {
-    unused = new_unused;
   }
 
 private:
@@ -131,11 +131,51 @@ public:
     init();
   }
 
-  node_version64_body get_body() const {
+  [[nodiscard]] node_version64_body get_body() const {
     return body_.load(std::memory_order_acquire);
   }
 
-  void increment_vinsert() {
+  [[nodiscard]] bool get_deleted() const {
+    return get_body().get_deleted();
+  }
+
+  [[nodiscard]] bool get_inserting() const {
+    return get_body().get_inserting();
+  }
+
+  [[nodiscard]] bool get_leaf() const {
+    return get_body().get_leaf();
+  }
+
+  [[nodiscard]] bool get_locked() const {
+    return get_body().get_locked();
+  }
+
+  [[nodiscard]] bool get_root() const {
+    return get_body().get_root();
+  }
+
+  [[nodiscard]] bool get_splitting() const {
+    return get_body().get_splitting();
+  }
+
+  [[nodiscard]] bool get_unused() const {
+    return get_body().get_unused();
+  }
+
+  [[nodiscard]] bool get_vinsert() const {
+    return get_body().get_vinsert();
+  }
+
+  [[nodiscard]] bool get_vsplit() const {
+    return get_body().get_vsplit();
+  }
+
+  /**
+   * @details This is atomic increment.
+   * If you use "setter(getter + 1)", that is not atomic increment.
+   */
+  void atomic_increment_vinsert() {
     node_version64_body expected(body_.load(std::memory_order_acquire)), desired;
     for (;;) {
       desired = expected;
@@ -154,8 +194,62 @@ public:
     body_.store(verbody, std::memory_order_release);
   }
 
-  void set(node_version64_body newv) &{
+  void set_body(node_version64_body newv) &{
     body_.store(newv, std::memory_order_release);
+  }
+
+  void set_deleted(bool new_deleted) & {
+    node_version64_body new_body = get_body();
+    new_body.set_deleted(new_deleted);
+    set_body(new_body);
+  }
+
+  void set_inserting(bool new_inserting) & {
+    node_version64_body new_body = get_body();
+    new_body.set_inserting(new_inserting);
+    set_body(new_body);
+  }
+
+  void set_leaf(bool new_leaf) & {
+    node_version64_body new_body = get_body();
+    new_body.set_leaf(new_leaf);
+    set_body(new_body);
+  }
+
+  void set_locked(bool new_locked) & {
+    node_version64_body new_body = get_body();
+    new_body.set_locked(new_locked);
+    set_body(new_body);
+  }
+
+  void set_root(bool new_root) & {
+    node_version64_body new_body = get_body();
+    new_body.set_root(new_root);
+    set_body(new_body);
+  }
+
+  void set_splitting(bool new_splitting) & {
+    node_version64_body new_body = get_body();
+    new_body.set_splitting(new_splitting);
+    set_body(new_body);
+  }
+
+  void set_unused(bool new_unused) & {
+    node_version64_body new_body = get_body();
+    new_body.set_unused(new_unused);
+    set_body(new_body);
+  }
+
+  void set_vinsert(bool new_vinsert) & {
+    node_version64_body new_body = get_body();
+    new_body.set_vinsert(new_vinsert);
+    set_body(new_body);
+  }
+
+  void set_vsplit(bool new_vsplit) & {
+    node_version64_body new_body = get_body();
+    new_body.set_vsplit(new_vsplit);
+    set_body(new_body);
   }
 
 private:
