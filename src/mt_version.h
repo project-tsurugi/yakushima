@@ -16,6 +16,44 @@
 namespace yakushima {
 
 class node_version64_body {
+public:
+  [[nodiscard]] bool get_locked() const {
+    return locked;
+  }
+
+  [[nodiscard]] bool get_inserting() const {
+    return inserting;
+  }
+
+  [[nodiscard]] bool get_splitting() const {
+    return splitting;
+  }
+
+  [[nodiscard]] bool get_deleted() const {
+    return deleted;
+  }
+
+  [[nodiscard]] bool get_root() const {
+    return root;
+  }
+
+  [[nodiscard]] bool get_leaf() const {
+    return leaf;
+  }
+
+  [[nodiscard]] std::uint32_t get_vinsert() const {
+    return vinsert;
+  }
+
+  [[nodiscard]] std::uint64_t get_vsplit() const {
+    return vsplit;
+  }
+
+  [[nodiscard]] bool get_unused() const {
+    return unused;
+  }
+
+private:
   bool locked: 1;
   bool inserting: 1;
   bool splitting: 1;
