@@ -15,6 +15,7 @@ namespace yakushima {
 class border_node : private base_node {
 public:
 private:
+  // first member of base_node is aligned along with cache line size.
   uint8_t nremoved_;
   uint8_t keylen[15]_;
   uint64_t permutation_;
