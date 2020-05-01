@@ -21,6 +21,15 @@ protected:
   ~mt_version_test() = default;
 };
 
+TEST_F(mt_version_test, operator_node_version64_body_test) {
+  node_version64_body b1, b2;
+  b1.init();
+  b2.init();
+  ASSERT_EQ(b1, b2);
+  b1.set_locked(!b1.get_locked());
+  ASSERT_NE(b1, b2);
+}
+
 TEST_F(mt_version_test, basic_node_version_test) {
 // basic member test.
 {
