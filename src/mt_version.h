@@ -22,6 +22,22 @@ namespace yakushima {
  */
 class node_version64_body {
 public:
+  bool operator==(const node_version64_body& rhs) const {
+    return locked == rhs.get_locked()
+           && inserting == rhs.get_inserting()
+           && splitting == rhs.get_splitting()
+           && deleted == rhs.get_deleted()
+           && root == rhs.get_root()
+           && leaf == rhs.get_leaf()
+           && vinsert == rhs.get_vinsert()
+           && vsplit == rhs.get_vsplit()
+           && unused == rhs.get_unused();
+  }
+
+  bool operator!=(const node_version64_body& rhs) const {
+    return !(*this == rhs);
+  }
+
   [[nodiscard]] bool get_deleted() const {
     return deleted;
   }
@@ -131,6 +147,10 @@ public:
     init();
   }
 
+  node_version64(node_version64 const &rv) {
+    body_.store(rv.get_body(), std::memory_order_release);
+  }
+
   [[nodiscard]] node_version64_body get_body() const {
     return body_.load(std::memory_order_acquire);
   }
@@ -159,6 +179,13 @@ public:
     return get_body().get_splitting();
   }
 
+  [[nodiscard]] node_version64_body get_stable_version() const {
+    for (;;) {
+      node_version64_body sv = get_body();
+      if (sv.get_inserting() == false && sv.get_splitting() == false)
+        return sv;
+    }
+  }
   [[nodiscard]] bool get_unused() const {
     return get_body().get_unused();
   }
