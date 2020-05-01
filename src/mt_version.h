@@ -107,22 +107,8 @@ public:
     body_.store(newv, std::memory_order_release);
   }
 
-  /**
-   * @pre This function may be interrupted by other writer.
-   * So it must use atomic function.
-   * @return std::uint64_t
-   */
   node_version64_body get_body() const {
     return body_.load(std::memory_order_acquire);
-  }
-
-  /**
-   * @pre This function may be interrupted by other writer.
-   * So it must use atomic function.
-   * @return std::uint64_t
-   */
-  void get_locked() const {
-    // todo
   }
 
 private:
