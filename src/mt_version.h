@@ -102,12 +102,12 @@ private:
 
 class node_version64 {
 public:
-  void set(node_version64_body newv) &{
-    body_.store(newv, std::memory_order_release);
-  }
-
   node_version64_body get_body() const {
     return body_.load(std::memory_order_acquire);
+  }
+
+  void set(node_version64_body newv) &{
+    body_.store(newv, std::memory_order_release);
   }
 
 private:
