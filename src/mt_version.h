@@ -35,9 +35,9 @@ private:
       bool deleted: 1;
       bool root: 1;
       bool leaf: 1;
-      bool unused: 1;
       std::uint32_t vinsert: 16;
       std::uint64_t vsplit: 41;
+      bool unused: 1;
     };
   };
 };
