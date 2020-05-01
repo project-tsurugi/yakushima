@@ -33,9 +33,34 @@ TEST_F(mt_version_test, basic_node_version_test) {
     ASSERT_EQ(ver.get_body().get_locked(), true);
 }
 
+  // single update test.
+{
+  node_version64 ver;
+  ver.init();
+  auto vinsert_inc_100 = [&ver]() {
+    for (auto i = 0; i < 100; ++i) {
+      ver.increment_vinsert();
+    }
+  };
+  vinsert_inc_100();
+  ASSERT_EQ(ver.get_body().get_vinsert(), 100);
+}
+
+#if 0
 // concurrent update test.
 {
+  node_version64 ver;
+  auto vinsert_inc_100 = [&ver]() {
+    for (auto i = 0; i < 100; ++i) {
+      ver.increment_vinsert();
+    }
+  };
+  std::future<void> f = std::async(std::launch::async, vinsert_inc_100);
+  vinsert_inc_100();
+  f.wait();
+  ASSERT_EQ(ver.get_body().get_vinsert(), 200);
 }
+#endif
 
 }
 
