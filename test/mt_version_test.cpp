@@ -1,3 +1,10 @@
+/**
+ * @file mt_version_test.cpp
+ */
+
+#include <future>
+#include <thread>
+
 #include "gtest/gtest.h"
 
 #include "mt_version.h"
@@ -14,23 +21,22 @@ protected:
   ~mt_version_test() = default;
 };
 
-TEST_F(mt_version_test, version_bitwise_operation) {
-#if 0
-  // about static function
-  std::uint64_t num(0);
-  ASSERT_EQ(node_version64::check_lock_bit(num), false);
-  node_version64::set_lock_bit(num);
-  ASSERT_EQ(true, true);
-  ASSERT_EQ(node_version64::check_lock_bit(num), true);
+TEST_F(mt_version_test, basic_node_version_test) {
+// basic member test.
+{
+    node_version64 ver;
+    node_version64_body verbody;
+    ASSERT_EQ(ver.get_body().get_locked(), false);
+    verbody = ver.get_body();
+    verbody.set_locked(true);
+    ver.set(verbody);
+    ASSERT_EQ(ver.get_body().get_locked(), true);
+}
 
-  // about member function
-  node_version64 ver;
-  ASSERT_EQ(ver.get_version(), 0);
-  ASSERT_EQ(ver.check_lock_bit(), false);
-  ver.lock();
-  ASSERT_EQ(true, true);
-  ASSERT_EQ(ver.check_lock_bit(), true);
-#endif
+// concurrent update test.
+{
+}
+
 }
 
 }  // namespace yakushima::testing
