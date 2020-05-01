@@ -26,6 +26,7 @@ TEST_F(mt_version_test, basic_node_version_test) {
 {
     node_version64 ver;
     node_version64_body verbody;
+    ver.init();
     ASSERT_EQ(ver.get_body().get_locked(), false);
     verbody = ver.get_body();
     verbody.set_locked(true);
@@ -46,10 +47,10 @@ TEST_F(mt_version_test, basic_node_version_test) {
   ASSERT_EQ(ver.get_body().get_vinsert(), 100);
 }
 
-#if 0
 // concurrent update test.
 {
   node_version64 ver;
+  ver.init();
   auto vinsert_inc_100 = [&ver]() {
     for (auto i = 0; i < 100; ++i) {
       ver.increment_vinsert();
@@ -60,7 +61,6 @@ TEST_F(mt_version_test, basic_node_version_test) {
   f.wait();
   ASSERT_EQ(ver.get_body().get_vinsert(), 200);
 }
-#endif
 
 }
 
