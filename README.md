@@ -56,7 +56,7 @@ mkdir gcovr-html
 GCOVR_COMMON_OPTION='-e ../third_party/ -e ../test/'
 gcovr  -r .. --html --html-details  ${GCOVR_COMMON_OPTION} -o gcovr-html/yakushima-gcovr.html
 ```
-Open gcovr-html/shirakami-gcovr.html to see the coverage report.
+Open gcovr-html/yakushima-gcovr.html to see the coverage report.
 
 ## License
 
