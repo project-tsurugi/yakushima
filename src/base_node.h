@@ -5,7 +5,7 @@
 #pragma once
 
 #include "cpu.h"
-#include "mt_version.h"
+#include "version.h"
 
 namespace yakushima {
 

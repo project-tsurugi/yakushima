@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "mt_border_node.h"
+#include "border_node.h"
 
 namespace yakushima {
 

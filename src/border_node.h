@@ -6,7 +6,7 @@
 
 #include <cstdint>
 
-#include "mt_interior_node.h"
+#include "interior_node.h"
 
 // forward declaration
 struct interior_node;

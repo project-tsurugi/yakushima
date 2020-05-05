@@ -4,8 +4,8 @@
 
 #include "gtest/gtest.h"
 
-#include "mt_base_node.h"
-#include "mt_version.h"
+#include "base_node.h"
+#include "version.h"
 
 using namespace yakushima;
 using std::cout;

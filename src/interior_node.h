@@ -6,8 +6,8 @@
 
 #include <cstdint>
 
-#include "mt_base_node.h"
-#include "mt_border_node.h"
+#include "base_node.h"
+#include "border_node.h"
 
 // forward declaration
 class border_node;
