@@ -37,6 +37,36 @@ public:
     return version_;
   }
 
+  /**
+   * @brief It locks this node.
+   * @pre It didn't lock by myself.
+   * @return void
+   */
+  void lock() & {
+    version_.atomic_lock();
+  }
+
+  /**
+   * @pre This function is called by split.
+   */
+  base_node* lock_parent()  & {
+    for (;;) {
+      base_node* p = parent_.load(std::memory_order_acquire);
+      p->lock();
+      if (p != parent_.load(std::memory_order_acquire)) p->unlock();
+      else return p;
+    }
+  }
+
+  /**
+   * @brief It unlocks this node.
+   * @pre This node was already locked.
+   * @return void
+   */
+  void unlock() & {
+    version_.set_locked(false);
+  }
+
 private:
   alignas(CACHE_LINE_SIZE)
   node_version64 version_;

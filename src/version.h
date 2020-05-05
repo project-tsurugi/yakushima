@@ -9,6 +9,7 @@
 #include <bitset>
 #include <cmath>
 #include <cstdint>
+#include <xmmintrin.h>
 
 #include "cpu.h"
 
@@ -151,6 +152,39 @@ public:
     body_.store(rv.get_body(), std::memory_order_release);
   }
 
+  /**
+   * @details This is atomic increment.
+   * If you use "setter(getter + 1)", that is not atomic increment.
+   */
+  void atomic_increment_vinsert() {
+    node_version64_body expected(body_.load(std::memory_order_acquire)), desired;
+    for (;;) {
+      desired = expected;
+      desired.set_vinsert(desired.get_vinsert() + 1);
+      if (body_.compare_exchange_strong(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
+        break;
+    }
+  }
+
+  /**
+   * @details This function locks atomically.
+   * @return void
+   */
+  void atomic_lock() {
+    node_version64_body expected(body_.load(std::memory_order_acquire)), desired;
+    for (;;) {
+      if (expected.get_locked()) {
+        _mm_pause();
+        expected = body_.load(std::memory_order_acquire);
+        continue;
+      }
+      desired = expected;
+      desired.set_locked(true);
+      if (body_.compare_exchange_strong(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
+        break;
+    }
+  }
+
   [[nodiscard]] node_version64_body get_body() const {
     return body_.load(std::memory_order_acquire);
   }
@@ -196,20 +230,6 @@ public:
 
   [[nodiscard]] bool get_vsplit() const {
     return get_body().get_vsplit();
-  }
-
-  /**
-   * @details This is atomic increment.
-   * If you use "setter(getter + 1)", that is not atomic increment.
-   */
-  void atomic_increment_vinsert() {
-    node_version64_body expected(body_.load(std::memory_order_acquire)), desired;
-    for (;;) {
-      desired = expected;
-      desired.set_vinsert(desired.get_vinsert() + 1);
-      if (body_.compare_exchange_strong(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
-        break;
-    }
   }
 
   /**

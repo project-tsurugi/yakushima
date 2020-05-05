@@ -34,6 +34,7 @@ private:
  * @details
  * It should declare real object in 1 source files due to single static global object.
  */
-extern masstree_kvs::root_;
+extern template <ValueType>
+masstree_kvs<ValueType>::root_;
 
 } // namespace yakushima

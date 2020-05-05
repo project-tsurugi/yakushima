@@ -4,14 +4,11 @@
 
 #pragma once
 
-template <class NODE>
+template <class Node, class ValueType>
 class link_or_value {
 public:
-  union {
-    NODE* next_layer_;
-    char* value_;
-  };
-
 private:
-  std::size_t value_length;
+  Node* next_layer_;
+  ValueType* value_ptr_;
+  std::size_t value_length_;
 };
