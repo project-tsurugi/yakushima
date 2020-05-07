@@ -168,7 +168,7 @@ public:
    * @details This function locks atomically.
    * @return void
    */
-  void atomic_lock() {
+  void lock() {
     node_version64_body expected(body_.load(std::memory_order_acquire)), desired;
     for (;;) {
       if (expected.get_locked()) {
@@ -187,15 +187,17 @@ public:
    * @details This function unlocks atomically.
    * @pre The caller already succeeded acquiring lock.
    */
-  void atomic_unlock() & {
+  void unlock() & {
     node_version64_body desired(body_.load(std::memory_order_acquire));
-    if (desired.get_inserting())
+    if (desired.get_inserting()) {
       desired.set_vinsert(desired.get_vinsert() + 1);
-    else if (desired.get_splitting())
+      desired.set_inserting(false);
+    }
+    if (desired.get_splitting()) {
       desired.set_vsplit(desired.get_vsplit() + 1);
+      desired.set_splitting(false);
+    }
     desired.set_locked(false);
-    desired.set_inserting(false);
-    desired.set_splitting(false);
     body_.store(desired, std::memory_order_release);
   }
 

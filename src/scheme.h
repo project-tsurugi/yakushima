@@ -9,6 +9,10 @@ namespace yakushima {
 
 enum class status : std::int32_t {
   /**
+   * @brief Warning of mistaking usage.
+   */
+   WARN_BAD_USAGE,
+  /**
    * @brief Warning
    * @details
    * (insert/put/get/delete) No corresponding value in masstree.

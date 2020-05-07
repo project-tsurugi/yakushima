@@ -6,67 +6,54 @@
 #pragma once
 
 #include <atomic>
+#include <array>
 #include <bitset>
 #include <cmath>
 #include <cstdint>
 #include <xmmintrin.h>
 
+#include "base_node.h"
+#include "scheme.h"
+
 namespace yakushima {
-
-/**
- * @brief Masstree Permutation
- * @details The permutation compactly represents the correct key order
- * plus the current number of keys.
- */
-class permutation_body {
-public:
-  void init() {
-    cko_ = 0;
-    cnk_ = 0;
-  }
-
-  uint8_t get_cnk() & {
-    return cnk_;
-  }
-
-  void set_cnk(uint8_t new_cnk) & {
-    cnk_ = new_cnk;
-  }
-private:
-  /**
-   * @brief Correct key order
-   * @details 1 element is 4 bits, so there are 15 elements.
-   */
-  std::uint64_t cko_ : 60;
-  std::uint8_t cnk_ : 4;
-};
 
 class permutation {
 public:
+  static constexpr std::size_t cnk_mask = 0b1111;
+  static constexpr std::size_t cnk_size = 4; // bits
+
   permutation() {
     init();
   }
 
-  permutation_body get_body() & {
+  std::uint64_t get_body() &{
     return body_.load(std::memory_order_acquire);
   }
 
-  uint8_t get_cnk() & {
-    permutation_body perbody(body_.load(std::memory_order_acquire));
-    return perbody.get_cnk();
+  uint8_t get_cnk() &{
+    std::uint64_t per_body(body_.load(std::memory_order_acquire));
+    return per_body & cnk_mask;
   }
 
-  void init() & {
-    permutation_body perbody;
-    perbody.init();
-    body_.store(perbody, std::memory_order_release);
+  void init() &{
+    body_.store(0, std::memory_order_release);
   }
 
-  void set_body(permutation_body new_body) & {
+  void set_body(std::uint64_t new_body) &{
     body_.store(new_body, std::memory_order_release);
   }
+
+  status set_cnk(uint8_t new_cnk) & {
+    if (powl(2, cnk_size) <= new_cnk) return status::WARN_BAD_USAGE;
+    std::uint64_t body = body_.load(std::memory_order_acquire);
+    body &= ~cnk_mask;
+    body |= new_cnk;
+    body_.store(body, std::memory_order_release);
+    return status::OK;
+  }
+
 private:
-  std::atomic<permutation_body> body_;
+  std::atomic<uint64_t> body_;
 };
 
 } // namespace yakushima

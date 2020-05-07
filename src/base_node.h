@@ -43,7 +43,7 @@ public:
    * @return void
    */
   void lock() & {
-    version_.atomic_lock();
+    version_.lock();
   }
 
   /**
@@ -52,9 +52,13 @@ public:
   base_node* lock_parent()  & {
     for (;;) {
       base_node* p = parent_.load(std::memory_order_acquire);
-      p->lock();
-      if (p != parent_.load(std::memory_order_acquire)) p->unlock();
-      else return p;
+      if (p == nullptr) return p;
+       p->lock();
+      if (p == parent_.load(std::memory_order_acquire)) {
+        return p;
+      } else {
+        p->unlock();
+      }
     }
   }
 
@@ -64,18 +68,19 @@ public:
    * @return void
    */
   void unlock() & {
-    version_.atomic_unlock();
+    version_.unlock();
   }
 
 private:
   alignas(CACHE_LINE_SIZE)
-  node_version64 version_;
+  node_version64 version_{};
   /**
    * @details Member parent_ is a type "std::atomic<interior_node*>" essentially,
    * but declare a type "std::atomic<base_node*>" due to including file order.
+   * @attention This member is protected by its parent's lock.
    */
-  std::atomic<base_node*> parent_;
-  uint64_t key_slice_[key_slice_length];
+  std::atomic<base_node*> parent_{nullptr};
+  uint64_t key_slice_[key_slice_length]{};
 };
 
 } // namespace yakushima

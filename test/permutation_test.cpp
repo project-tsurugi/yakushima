@@ -25,15 +25,12 @@ protected:
 TEST_F(permutation_test, basic_permutation_test) {
 // basic member test.
   permutation per{};
-  permutation_body perbody;
-  perbody.init();
   ASSERT_EQ(true, true); // test ending of function which returns void.
   ASSERT_EQ(per.get_cnk(), 0);
-  perbody.set_cnk(1);
-  ASSERT_EQ(true, true); // test ending of function which returns void.
-  per.set_body(perbody);
-  ASSERT_EQ(true, true); // test ending of function which returns void.
+  ASSERT_EQ(per.set_cnk(1), status::OK);
   ASSERT_EQ(per.get_cnk(), 1);
+  ASSERT_EQ(per.set_cnk(16), status::WARN_BAD_USAGE);
+  ASSERT_EQ(per.get_cnk(), 1); // check invariant.
 }
 
 }  // namespace yakushima::testing

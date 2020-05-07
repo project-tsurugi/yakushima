@@ -5,23 +5,32 @@
 
 #pragma once
 
-#include "border_node.h"
+#include "base_node.h"
+#include "scheme.h"
 
 namespace yakushima {
 
-template <class ValueType>
 class masstree_kvs {
 public:
-  static status remove(std::string key) {}
+  static status get([[maybe_unused]]std::string key) {
+    return status::OK;
+  }
 
-  static status get(std::string key) {}
+  static base_node *get_root() {
+    return root_.load(std::memory_order_acquire);
+  }
 
-  static init_kvs() {
+  static void init_kvs() {
     root_.store(nullptr, std::memory_order_release);
   }
 
-  static status put(std::string key, ValueType value) {
+  template<class ValueType>
+  static status put([[maybe_unused]]std::string key, [[maybe_unused]]ValueType value) {
+    return status::OK;
+  }
 
+  static status remove([[maybe_unused]]std::string key) {
+    return status::OK;
   }
 
 private:
@@ -29,14 +38,7 @@ private:
    * @details
    * Todo : It will be container to be able to switch database.
    */
-  static std::atomic<base_node<ValueType>*> root_;
+  static std::atomic<base_node *> root_;
 };
-
-/**
- * @details
- * It should declare real object in 1 source files due to single static global object.
- */
-extern template <ValueType>
-masstree_kvs<ValueType>::root_;
 
 } // namespace yakushima
