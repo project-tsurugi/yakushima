@@ -1,5 +1,5 @@
 /**
- * @file mt_base_node_test.cpp
+ * @file base_node_test.cpp
  */
 
 #include "gtest/gtest.h"
@@ -13,13 +13,13 @@ using std::endl;
 
 namespace yakushima::testing {
 
-class mt_base_node_test : public ::testing::Test {
+class base_node_test : public ::testing::Test {
 protected:
-  mt_base_node_test() = default;
-  ~mt_base_node_test() = default;
+  base_node_test() = default;
+  ~base_node_test() = default;
 };
 
-TEST_F(mt_base_node_test, constructor_base_node) {
+TEST_F(base_node_test, constructor_base_node) {
   node_version64 ver;
   ver.init();
   base_node bn;

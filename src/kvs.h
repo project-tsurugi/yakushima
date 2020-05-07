@@ -16,11 +16,13 @@ public:
 
   static status get(std::string key) {}
 
-  static init_kvs() {}
+  static init_kvs() {
+    root_.store(nullptr, std::memory_order_release);
+  }
 
-  static status insert(std::string key, ValueType value) {}
+  static status put(std::string key, ValueType value) {
 
-  static status put(std::string key, ValueType value) {}
+  }
 
 private:
   /**

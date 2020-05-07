@@ -1,5 +1,5 @@
 /**
- * @file mt_version_test.cpp
+ * @file version_test.cpp
  */
 
 #include <future>
@@ -15,13 +15,13 @@ using std::endl;
 
 namespace yakushima::testing {
 
-class mt_version_test : public ::testing::Test {
+class version_test : public ::testing::Test {
 protected:
-  mt_version_test() = default;
-  ~mt_version_test() = default;
+  version_test() = default;
+  ~version_test() = default;
 };
 
-TEST_F(mt_version_test, operator_node_version64_body_test) {
+TEST_F(version_test, operator_node_version64_body_test) {
   node_version64_body b1, b2;
   b1.init();
   b2.init();
@@ -30,7 +30,7 @@ TEST_F(mt_version_test, operator_node_version64_body_test) {
   ASSERT_NE(b1, b2);
 }
 
-TEST_F(mt_version_test, basic_node_version_test) {
+TEST_F(version_test, basic_node_version_test) {
 // basic member test.
 {
     node_version64 ver;

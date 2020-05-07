@@ -64,7 +64,7 @@ public:
    * @return void
    */
   void unlock() & {
-    version_.set_locked(false);
+    version_.atomic_unlock();
   }
 
 private:

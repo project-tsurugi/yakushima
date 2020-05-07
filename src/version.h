@@ -11,8 +11,6 @@
 #include <cstdint>
 #include <xmmintrin.h>
 
-#include "cpu.h"
-
 namespace yakushima {
 
 /**
@@ -183,6 +181,22 @@ public:
       if (body_.compare_exchange_strong(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
         break;
     }
+  }
+
+  /**
+   * @details This function unlocks atomically.
+   * @pre The caller already succeeded acquiring lock.
+   */
+  void atomic_unlock() & {
+    node_version64_body desired(body_.load(std::memory_order_acquire));
+    if (desired.get_inserting())
+      desired.set_vinsert(desired.get_vinsert() + 1);
+    else if (desired.get_splitting())
+      desired.set_vsplit(desired.get_vsplit() + 1);
+    desired.set_locked(false);
+    desired.set_inserting(false);
+    desired.set_splitting(false);
+    body_.store(desired, std::memory_order_release);
   }
 
   [[nodiscard]] node_version64_body get_body() const {
