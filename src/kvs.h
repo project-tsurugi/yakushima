@@ -39,14 +39,14 @@ public:
     root_.store(nullptr, std::memory_order_release);
   }
 
-  static status put([[maybe_unused]]std::string key, [[maybe_unused]]ValueType value) {
+  static status put([[maybe_unused]]std::string key, [[maybe_unused]]ValueType *value, std::size_t value_length) {
     base_node* root = root_.load(std::memory_order_acquire);
     if (root == nullptr) {
       /**
        * root is nullptr, so put single border nodes.
        */
       border_node<ValueType> *new_root = new border_node<ValueType>();
-      new_root->set_as_root(key, value);
+      new_root->set_as_root(key, value, value_length);
       for (;;) {
         if (root_.compare_exchange_weak(root, new_root, std::memory_order_acq_rel, std::memory_order_acquire)) {
           return status::OK;

@@ -47,7 +47,7 @@ public:
    * @param key
    * @param value
    */
-  void set_as_root(std::string key, ValueType value) {
+  void set_as_root(std::string key, ValueType *value, std::size_t value_length) {
     set_version_root(true);
     set_version_leaf(true);
     uint64_t key_slice;
@@ -56,8 +56,12 @@ public:
     memcpy(&key_slice, key.data(), key.size());
     set_key_slice(0, key_slice);
     set_key_length(0, key.size());
+    set_lv(0, value, value_length);
     permutation_.inc_key_num();
     permutation_.rearrange(get_key_slice(), get_key_length());
+    next_ = nullptr;
+    prev_ = nullptr;
+    key_suffix_ = key;
   }
 
   void set_key_length(std::size_t index, uint8_t length) {
@@ -65,16 +69,21 @@ public:
   }
 
 private:
+
+  void set_lv(std::size_t index, ValueType *value, std::size_t value_length) {
+    lv_[index].set_value(value, value_length);
+  }
+
   // first member of base_node is aligned along with cache line size.
   uint8_t nremoved_{};
   uint8_t key_length_[node_fanout]{};
   permutation permutation_{};
   link_or_value<ValueType> lv_[node_fanout]{};
-  border_node *next_{};
+  border_node *next_{nullptr};
   /**
    * @attention This is protected by its previous sibling's lock.
    */
-  border_node *prev_{};
+  border_node *prev_{nullptr};
   std::string key_suffix_{};
 };
 } // namespace yakushima
