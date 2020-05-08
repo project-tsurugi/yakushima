@@ -22,9 +22,9 @@ public:
   border_node()
           : base_node{},
             nremoved_{},
-            key_length{},
+            key_length_{},
             permutation_{},
-            lv{},
+            lv_{},
             next_{nullptr},
             prev_{nullptr},
             key_suffix_{} {}
@@ -36,6 +36,10 @@ public:
     /**
      * todo : Call destroy of all children.
      */
+  }
+
+  [[nodiscard]] uint8_t *get_key_length() {
+    return key_length_;
   }
 
   /**
@@ -53,19 +57,19 @@ public:
     set_key_slice(0, key_slice);
     set_key_length(0, key.size());
     permutation_.inc_key_num();
-    // todo : rearrange permutation.
+    permutation_.rearrange(get_key_slice(), get_key_length());
   }
 
   void set_key_length(std::size_t index, uint8_t length) {
-    key_length[index] = length;
+    key_length_[index] = length;
   }
 
 private:
   // first member of base_node is aligned along with cache line size.
   uint8_t nremoved_{};
-  uint8_t key_length[node_fanout]{};
+  uint8_t key_length_[node_fanout]{};
   permutation permutation_{};
-  link_or_value<ValueType> lv[node_fanout]{};
+  link_or_value<ValueType> lv_[node_fanout]{};
   border_node *next_{};
   /**
    * @attention This is protected by its previous sibling's lock.
