@@ -10,6 +10,8 @@ namespace yakushima {
 enum class status : std::int32_t {
   /**
    * @brief Warning of mistaking usage.
+   * @details
+   * (create_empty_border_node_as_root()) Root is not nullptr.
    */
    WARN_BAD_USAGE,
   /**

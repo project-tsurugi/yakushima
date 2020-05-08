@@ -17,6 +17,15 @@ class interior_node : private base_node {
 public:
   static constexpr std::size_t child_length = 16;
 
+  /**
+   * @brief release all heap objects and clean up.
+   */
+  void destroy() override {
+    /**
+     * todo : Call destroy of all children.
+     */
+  }
+
 private:
   // first member of base_node is aligned along with cache line size.
   uint8_t nkeys_;
