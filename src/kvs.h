@@ -48,7 +48,7 @@ public:
       border_node<ValueType> *new_root = new border_node<ValueType>();
       new_root->set_as_root(key, value);
       for (;;) {
-        if (root_.compare_exchange_strong(root, new_root, std::memory_order_acq_rel, std::memory_order_acquire)) {
+        if (root_.compare_exchange_weak(root, new_root, std::memory_order_acq_rel, std::memory_order_acquire)) {
           return status::OK;
         } else {
           if (root != nullptr) {
