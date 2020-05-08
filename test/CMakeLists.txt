@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 file(GLOB TEST_SOURCES
-    "*.cpp"
-)
+        "*.cpp"
+        )
 
 register_tests(
-    TARGET yakushima
-    SOURCES ${TEST_SOURCES}
+        TARGET yakushima
+        SOURCES ${TEST_SOURCES}
 )

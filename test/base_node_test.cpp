@@ -16,6 +16,7 @@ namespace yakushima::testing {
 class base_node_test : public ::testing::Test {
 protected:
   base_node_test() = default;
+
   ~base_node_test() = default;
 };
 

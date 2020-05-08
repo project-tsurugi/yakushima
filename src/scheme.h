@@ -13,7 +13,7 @@ enum class status : std::int32_t {
    * @details
    * (create_empty_border_node_as_root()) Root is not nullptr.
    */
-   WARN_BAD_USAGE,
+  WARN_BAD_USAGE,
   /**
    * @brief Warning
    * @details

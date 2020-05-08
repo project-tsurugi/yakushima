@@ -18,6 +18,7 @@ namespace yakushima::testing {
 class version_test : public ::testing::Test {
 protected:
   version_test() = default;
+
   ~version_test() = default;
 };
 
@@ -32,7 +33,7 @@ TEST_F(version_test, operator_node_version64_body_test) {
 
 TEST_F(version_test, basic_node_version_test) {
 // basic member test.
-{
+  {
     node_version64 ver;
     node_version64_body verbody;
     ASSERT_EQ(ver.get_body().get_locked(), false);
@@ -40,33 +41,33 @@ TEST_F(version_test, basic_node_version_test) {
     verbody.set_locked(true);
     ver.set_body(verbody);
     ASSERT_EQ(ver.get_body().get_locked(), true);
-}
+  }
 
   // single update test.
-{
-  node_version64 ver;
-  auto vinsert_inc_100 = [&ver]() {
-    for (auto i = 0; i < 100; ++i) {
-      ver.atomic_increment_vinsert();
-    }
-  };
-  vinsert_inc_100();
-  ASSERT_EQ(ver.get_body().get_vinsert(), 100);
-}
+  {
+    node_version64 ver;
+    auto vinsert_inc_100 = [&ver]() {
+      for (auto i = 0; i < 100; ++i) {
+        ver.atomic_increment_vinsert();
+      }
+    };
+    vinsert_inc_100();
+    ASSERT_EQ(ver.get_body().get_vinsert(), 100);
+  }
 
 // concurrent update test.
-{
-  node_version64 ver;
-  auto vinsert_inc_100 = [&ver]() {
-    for (auto i = 0; i < 100; ++i) {
-      ver.atomic_increment_vinsert();
-    }
-  };
-  std::future<void> f = std::async(std::launch::async, vinsert_inc_100);
-  vinsert_inc_100();
-  f.wait();
-  ASSERT_EQ(ver.get_body().get_vinsert(), 200);
-}
+  {
+    node_version64 ver;
+    auto vinsert_inc_100 = [&ver]() {
+      for (auto i = 0; i < 100; ++i) {
+        ver.atomic_increment_vinsert();
+      }
+    };
+    std::future<void> f = std::async(std::launch::async, vinsert_inc_100);
+    vinsert_inc_100();
+    f.wait();
+    ASSERT_EQ(ver.get_body().get_vinsert(), 200);
+  }
 
 }
 

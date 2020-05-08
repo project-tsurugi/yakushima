@@ -43,7 +43,7 @@ public:
     body_.store(new_body, std::memory_order_release);
   }
 
-  status set_cnk(uint8_t new_cnk) & {
+  status set_cnk(uint8_t new_cnk) &{
     if (powl(2, cnk_size) <= new_cnk) return status::WARN_BAD_USAGE;
     std::uint64_t body = body_.load(std::memory_order_acquire);
     body &= ~cnk_mask;

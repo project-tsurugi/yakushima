@@ -57,7 +57,7 @@ private:
    * @return status::WARN_BAD_USAGE Root is not nullptr.
    */
   static status create_empty_border_node_as_root() {
-    base_node* root(root_.load(std::memory_order_acquire));
+    base_node *root(root_.load(std::memory_order_acquire));
     for (;;) {
       if (root == nullptr) return status::WARN_BAD_USAGE;
     }
