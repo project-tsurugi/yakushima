@@ -46,7 +46,10 @@ public:
         if (root_.compare_exchange_strong(nullptr, new_root, std::memory_order_acq_rel, std::memory_order_acquire)) {
           return status::OK;
         } else {
-          if (root_.load(std::memory_order_acquire) != nullptr) break;
+          if (root_.load(std::memory_order_acquire) != nullptr) {
+            delete new_root;
+            break;
+          }
         }
       }
     }
