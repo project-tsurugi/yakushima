@@ -41,7 +41,8 @@ public:
 
   static status put([[maybe_unused]]std::string key, [[maybe_unused]]ValueType value) {
     if (root_.load(std::memory_order_acquire) == nullptr) {
-      border_node<ValueType> *new_root = new border_node<ValueType>(key, value);
+      border_node<ValueType> *new_root = new border_node<ValueType>();
+      new_root->set_as_root(key, value);
       for (;;) {
         if (root_.compare_exchange_strong(nullptr, new_root, std::memory_order_acq_rel, std::memory_order_acquire)) {
           return status::OK;

@@ -11,7 +11,7 @@ namespace yakushima {
 
 class base_node {
 public:
-  static constexpr std::size_t key_slice_length = 15;
+  static constexpr std::size_t node_fanout = 15;
 
   base_node()
           : parent_{nullptr},
@@ -26,8 +26,12 @@ public:
    */
   virtual void destroy() {}
 
+  [[nodiscard]] uint64_t* get_key_slice() {
+    return key_slice_;
+  }
+
   [[nodiscard]] uint64_t get_key_slice_at(std::size_t index) {
-    if (index > static_cast<std::size_t>(key_slice_length)) {
+    if (index > static_cast<std::size_t>(node_fanout)) {
       std::abort();
     }
     return key_slice_[index];
@@ -70,6 +74,19 @@ public:
     }
   }
 
+  void set_version_leaf(bool tf) {
+    version_.set_leaf(tf);
+  }
+
+  void set_version_root(bool tf) {
+    version_.set_root(tf);
+  }
+
+  void set_key_slice(std::size_t index, std::uint64_t key_slice) {
+    if (index >= node_fanout) std::abort();
+    key_slice_[index] = key_slice;
+  }
+
   /**
    * @brief It unlocks this node.
    * @pre This node was already locked.
@@ -78,6 +95,7 @@ public:
   void unlock() &{
     version_.unlock();
   }
+
 
 private:
   alignas(CACHE_LINE_SIZE)
@@ -88,7 +106,7 @@ private:
    * @attention This member is protected by its parent's lock.
    */
   std::atomic<base_node *> parent_{nullptr};
-  uint64_t key_slice_[key_slice_length]{};
+  uint64_t key_slice_[node_fanout]{};
 };
 
 } // namespace yakushima

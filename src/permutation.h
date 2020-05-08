@@ -19,6 +19,9 @@ namespace yakushima {
 
 class permutation {
 public:
+  /**
+   * cnk ... current number of keys.
+   */
   static constexpr std::size_t cnk_mask = 0b1111;
   static constexpr std::size_t cnk_size = 4; // bits
 
@@ -33,6 +36,20 @@ public:
   uint8_t get_cnk() &{
     std::uint64_t per_body(body_.load(std::memory_order_acquire));
     return per_body & cnk_mask;
+  }
+
+  /**
+   * @brief increment key number.
+   */
+  void inc_key_num() {
+    std::uint64_t per_body(body_.load(std::memory_order_acquire));
+    // increment key number
+    std::size_t cnk = per_body & cnk_mask;
+    if (cnk >= pow(2, cnk_size) -1) std::abort();
+    ++cnk;
+    per_body &= ~cnk_mask;
+    per_body |= cnk;
+    body_.store(per_body, std::memory_order_release);
   }
 
   void init() &{
