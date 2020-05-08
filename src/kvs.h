@@ -11,6 +11,7 @@
 
 namespace yakushima {
 
+template<class ValueType>
 class masstree_kvs {
 public:
   /**
@@ -25,7 +26,6 @@ public:
    * @param res [out] The result status.
    * @return ValueType*
    */
-  template<class ValueType>
   [[nodiscard]] static ValueType *get([[maybe_unused]]std::string key, [[maybe_unused]]status &res) {
     res = status::OK;
     return nullptr;
@@ -39,10 +39,22 @@ public:
     root_.store(nullptr, std::memory_order_release);
   }
 
-  template<class ValueType>
   static status put([[maybe_unused]]std::string key, [[maybe_unused]]ValueType value) {
     if (root_.load(std::memory_order_acquire) == nullptr) {
+      border_node<ValueType> *new_root = new border_node<ValueType>(key, value);
+      for (;;) {
+        if (root_.compare_exchange_strong(nullptr, new_root, std::memory_order_acq_rel, std::memory_order_acquire)) {
+          return status::OK;
+        } else {
+          if (root_.load(std::memory_order_acquire) != nullptr) break;
+        }
+      }
     }
+    /**
+     * here, root is not empty.
+     * process put for existing tree.
+     */
+
     return status::OK;
   }
 
@@ -56,7 +68,9 @@ private:
    * Todo : It will be container to be able to switch database.
    */
   static std::atomic<base_node *> root_;
-  static bool end_init_kvs_;
 };
+
+template<class ValueType>
+std::atomic<base_node *> masstree_kvs<ValueType>::root_ = nullptr;
 
 } // namespace yakushima

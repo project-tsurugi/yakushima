@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstdint>
+#include <iostream>
 
 #include "interior_node.h"
 #include "link_or_value.h"
@@ -28,8 +29,14 @@ public:
             lv{},
             next_{nullptr},
             prev_{nullptr},
-            key_suffix_{} {
-  }
+            key_suffix_{} {}
+
+  /**
+   * todo : implement.
+   * @param key
+   * @param value
+   */
+  border_node(std::string key, ValueType value) {}
 
   /**
    * @brief release all heap objects and clean up.

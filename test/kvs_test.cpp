@@ -25,8 +25,9 @@ protected:
 };
 
 TEST_F(kvs_test, init) {
-  masstree_kvs::init_kvs();
-  ASSERT_EQ(masstree_kvs::get_root(), nullptr);
+  using vt = std::uint64_t;
+  masstree_kvs<vt>::init_kvs();
+  ASSERT_EQ(masstree_kvs<vt>::get_root(), nullptr);
 }
 
 }  // namespace yakushima::testing

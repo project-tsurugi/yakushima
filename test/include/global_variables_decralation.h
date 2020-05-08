@@ -8,6 +8,6 @@
 
 namespace yakushima {
 
-std::atomic<base_node *> masstree_kvs::root_{nullptr};
+masstree_kvs<std::uint64_t> mt_kvs;
 
 } // namespace yakushima
