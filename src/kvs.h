@@ -40,24 +40,32 @@ public:
   }
 
   static status put([[maybe_unused]]std::string key, [[maybe_unused]]ValueType value) {
-    if (root_.load(std::memory_order_acquire) == nullptr) {
+    base_node* root = root_.load(std::memory_order_acquire);
+    if (root == nullptr) {
+      /**
+       * root is nullptr, so put single border nodes.
+       */
       border_node<ValueType> *new_root = new border_node<ValueType>();
       new_root->set_as_root(key, value);
       for (;;) {
-        if (root_.compare_exchange_strong(nullptr, new_root, std::memory_order_acq_rel, std::memory_order_acquire)) {
+        if (root_.compare_exchange_strong(root, new_root, std::memory_order_acq_rel, std::memory_order_acquire)) {
           return status::OK;
         } else {
-          if (root_.load(std::memory_order_acquire) != nullptr) {
+          if (root != nullptr) {
+            // root is not nullptr;
             delete new_root;
             break;
           }
+          // root is nullptr.
         }
       }
     }
     /**
-     * here, root is not empty.
+     * here, root is not nullptr.
      * process put for existing tree.
      */
+    // std::tuple<node_base*, nodeversion64_body> node_and_v
+    // = findborder(root, key);
 
     return status::OK;
   }
