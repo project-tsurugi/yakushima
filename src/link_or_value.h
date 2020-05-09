@@ -24,7 +24,7 @@ public:
     }
     next_layer_ = nullptr;
     try {
-      value_ptr_ = new ValueType[value_length];
+        value_ptr_ = new ValueType(value_length);
     } catch (std::bad_alloc& e) {
       std::cout << e.what() << std::endl;
     }
