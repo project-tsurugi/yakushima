@@ -24,7 +24,7 @@ public:
     }
     next_layer_ = nullptr;
     try {
-      value_ptr_ = static_cast<ValueType*>(malloc(value_length));
+        value_ptr_ = ::operator new(value_length);
     } catch (std::bad_alloc& e) {
       std::cout << e.what() << std::endl;
     }
