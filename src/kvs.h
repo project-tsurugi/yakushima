@@ -26,27 +26,23 @@ public:
    * @param res [out] The result status.
    * @return ValueType*
    */
-  [[nodiscard]] static ValueType *get([[maybe_unused]]std::string key, [[maybe_unused]]status &res) {
+  [[nodiscard]] static ValueType &get_ref([[maybe_unused]]std::string key, [[maybe_unused]]status &res) {
     res = status::OK;
     return nullptr;
-  }
-
-  static base_node *get_root() {
-    return root_.load(std::memory_order_acquire);
   }
 
   static void init_kvs() {
     root_.store(nullptr, std::memory_order_release);
   }
 
-  static status put([[maybe_unused]]std::string key, [[maybe_unused]]ValueType *value, std::size_t value_length) {
+  static status put([[maybe_unused]]std::string key, [[maybe_unused]]ValueType &value) {
     base_node* root = root_.load(std::memory_order_acquire);
     if (root == nullptr) {
       /**
        * root is nullptr, so put single border nodes.
        */
       border_node<ValueType> *new_root = new border_node<ValueType>();
-      new_root->set_as_root(key, value, value_length);
+      new_root->set_as_root(key, value);
       for (;;) {
         if (root_.compare_exchange_weak(root, new_root, std::memory_order_acq_rel, std::memory_order_acquire)) {
           return status::OK;
@@ -75,6 +71,10 @@ public:
   }
 
 private:
+  static base_node *get_root() {
+    return root_.load(std::memory_order_acquire);
+  }
+
   /**
    * @details
    * Todo : It will be container to be able to switch database.

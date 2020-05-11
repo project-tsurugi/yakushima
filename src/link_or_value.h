@@ -13,29 +13,37 @@ template<class ValueType>
 class link_or_value {
 public:
   void destroy() {
-    free(value_ptr_);
+    delete value_ptr_;
+    value_ptr_ = nullptr;
+    need_delete_value_ = false;
   }
 
-  void set_value(ValueType *value, std::size_t value_length) {
+  void set_value(ValueType &value) {
     if (need_delete_value_) {
       delete value_ptr_;
-    } else {
-      need_delete_value_ = true;
     }
     next_layer_ = nullptr;
     try {
-        value_ptr_ = ::operator new(value_length);
-    } catch (std::bad_alloc& e) {
+      /**
+       * @details Use copy constructor, so ValueType must be copy-constructable.
+       */
+      value_ptr_ = ::new ValueType(value);
+      need_delete_value_ = true;
+    } catch (std::bad_alloc &e) {
       std::cout << e.what() << std::endl;
     }
-    memcpy(value_ptr_, value, value_length);
-    value_length_ = value_length;
+  }
+
+  void set_next_layer(base_node* next_layer) {
+    next_layer_ = next_layer;
+    if (need_delete_value_) {
+      destroy();
+    }
   }
 
 private:
   base_node *next_layer_{nullptr};
   ValueType *value_ptr_{nullptr};
-  std::size_t value_length_{};
   bool need_delete_value_{false};
 };
 
