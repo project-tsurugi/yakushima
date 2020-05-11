@@ -60,8 +60,7 @@ public:
      * here, root is not nullptr.
      * process put for existing tree.
      */
-    // std::tuple<node_base*, nodeversion64_body> node_and_v
-    // = findborder(root, key);
+    std::tuple<base_node *, node_version64_body> node_and_v = find_border(key);
 
     return status::OK;
   }
@@ -70,9 +69,23 @@ public:
     return status::OK;
   }
 
+protected:
 private:
   static base_node *get_root() {
     return root_.load(std::memory_order_acquire);
+  }
+
+  static std::tuple<base_node *, node_version64_body> find_border(std::string key) {
+#if 0
+    retry:
+    base_node* n = get_root();
+    node_version64_body v = n->get_stable_version();
+    if (n != get_root()) goto retry;
+    descend:
+    if (typeid(n) == typeid(border_node<ValueType>*))
+#endif
+      node_version64_body empty;
+      return std::make_tuple(nullptr, empty);
   }
 
   /**
