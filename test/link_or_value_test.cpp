@@ -22,7 +22,7 @@ protected:
 };
 
 TEST_F(link_or_value_test, link_or_value_test) {
-  link_or_value<std::uint64_t> lv;
+  link_or_value lv;
 }
 
 }  // namespace yakushima::testing

@@ -8,6 +8,6 @@
 
 namespace yakushima {
 
-masstree_kvs<std::uint64_t> mt_kvs;
+masstree_kvs mt_kvs;
 
 } // namespace yakushima

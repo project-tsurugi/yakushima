@@ -25,8 +25,7 @@ protected:
 };
 
 TEST_F(kvs_test, init) {
-  using vt = std::uint64_t;
-  masstree_kvs<vt>::init_kvs();
+  masstree_kvs::init_kvs();
   ASSERT_EQ(true, true); // test ending of function which returns void.
 }
 

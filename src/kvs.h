@@ -11,7 +11,6 @@
 
 namespace yakushima {
 
-template<class ValueType>
 class masstree_kvs {
 public:
   /**
@@ -23,31 +22,34 @@ public:
 
   /**
    * @param key [in] The key.
-   * @param res [out] The result status.
    * @return ValueType*
    */
-  [[nodiscard]] static ValueType &get_ref([[maybe_unused]]std::string key, [[maybe_unused]]status &res) {
-    res = status::OK;
-    return nullptr;
+  template<class ValueType>
+  [[nodiscard]] static std::tuple<ValueType *, std::size_t>
+  get([[maybe_unused]]std::string key) {
+    return std::make_tuple(nullptr, 0);
   }
 
   static void init_kvs() {
     root_.store(nullptr, std::memory_order_release);
   }
 
-  static status put(std::string key, ValueType *value, std::size_t value_length) {
-    base_node* root = root_.load(std::memory_order_acquire);
-    if (root == nullptr) {
+  template<class ValueType>
+  static status put(std::string key, ValueType *value,
+                    std::size_t arg_value_length = sizeof(ValueType),
+                    std::size_t value_align = alignof(ValueType)) {
+    base_node *expected = root_.load(std::memory_order_acquire);
+    if (expected == nullptr) {
       /**
        * root is nullptr, so put single border nodes.
        */
-      border_node<ValueType> *new_root = new border_node<ValueType>();
-      new_root->set_as_root(key, value, value_length);
+      border_node *new_root = new border_node();
+      new_root->set_as_root(key, value, arg_value_length, value_align);
       for (;;) {
-        if (root_.compare_exchange_weak(root, new_root, std::memory_order_acq_rel, std::memory_order_acquire)) {
+        if (root_.compare_exchange_weak(expected, new_root, std::memory_order_acq_rel, std::memory_order_acquire)) {
           return status::OK;
         } else {
-          if (root != nullptr) {
+          if (expected != nullptr) {
             // root is not nullptr;
             delete new_root;
             break;
@@ -75,7 +77,7 @@ private:
     return root_.load(std::memory_order_acquire);
   }
 
-  static std::tuple<base_node *, node_version64_body> find_border(std::string key) {
+  static std::tuple<base_node *, node_version64_body> find_border([[maybe_unused]]std::string key) {
 #if 0
     retry:
     base_node* n = get_root();
@@ -95,7 +97,6 @@ private:
   static std::atomic<base_node *> root_;
 };
 
-template<class ValueType>
-std::atomic<base_node *> masstree_kvs<ValueType>::root_ = nullptr;
+std::atomic<base_node *> masstree_kvs::root_ = nullptr;
 
 } // namespace yakushima
