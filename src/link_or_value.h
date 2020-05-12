@@ -12,36 +12,58 @@ namespace yakushima {
 template<class ValueType>
 class link_or_value {
 public:
+  link_or_value() = default;
+  link_or_value(const link_or_value<ValueType>&) = default;
+  link_or_value(link_or_value<ValueType>&&) = default;
+  link_or_value<ValueType>& operator=(const link_or_value&) = default;
+  link_or_value<ValueType>& operator=(link_or_value<ValueType>&&) = default;
+  ~link_or_value() = default;
+
+  /**
+   * @details release heap objects.
+   */
   void destroy() {
-    delete v_or_vp_;
+    delete static_cast<ValueType>(v_or_vp_);
     v_or_vp_ = nullptr;
     need_delete_value_ = false;
   }
 
-  void set_value(ValueType *value, std::size_t value_length) {
+  /**
+   * @pre @a arg_value_length is divisible by sizeof(ValueType).
+   * @param value The pointer to source value object.
+   * @param arg_value_length The byte size of value.
+   */
+  void set_value(ValueType *value, std::size_t arg_value_length) {
     if (need_delete_value_) {
-      delete v_or_vp_;
+      delete static_cast<ValueType>(v_or_vp_);
+      need_delete_value_ = false;
     }
     next_layer_ = nullptr;
+    value_length_ = arg_value_length;
     try {
       /**
        * @details It use copy assign, so ValueType must be copy-assignable.
        */
-       if (sizeof(ValueType) == value_length) {
-         v_or_vp_ = ::operator new(sizeof(ValueType), static_cast<std::align_val_t>(alignof(std::max_align_t)));
-         *static_cast<ValueType>(v_or_vp_) = *value;
+       if (sizeof(ValueType) == arg_value_length) {
+         if (arg_value_length <= sizeof(void*)) {
+           memcpy(v_or_vp_, value, arg_value_length);
+           need_delete_value_ = false;
+         } else {
+           v_or_vp_ = ::operator new(sizeof(ValueType), static_cast<std::align_val_t>(alignof(ValueType)));
+           *static_cast<ValueType>(v_or_vp_) = *value;
+           need_delete_value_ = true;
+         }
        } else {
          /**
           * Value is variable-length.
           */
-         v_or_vp_ = ::operator new(sizeof(value_length), static_cast<std::align_val_t>(alignof(std::max_align_t)));
-         ValueType* vp = value;
-         for (auto i = 0; i < value_length / sizeof(ValueType); ++i) {
-           vp[i] = value[i];
+         v_or_vp_ = ::operator new(sizeof(arg_value_length), static_cast<std::align_val_t>(alignof(ValueType)));
+         need_delete_value_ = true;
+         ValueType* vp = static_cast<ValueType*>(v_or_vp_);
+         for (auto i = 0; i < arg_value_length / sizeof(ValueType); ++i) {
+           memcpy(&vp[i], &value[i], sizeof(ValueType));
          }
        }
-
-      need_delete_value_ = true;
     } catch (std::bad_alloc &e) {
       std::cout << e.what() << std::endl;
     }
@@ -59,8 +81,8 @@ private:
   /**
    * @details This variable is stored value body whose size is less than pointer or pointer to value.
    */
-  alignas(std::max_align_t) char v_or_vp_[sizeof(ValueType*)];
-  std::size_t value_length;
+  void* v_or_vp_{nullptr};
+  std::size_t value_length_{0};
   bool need_delete_value_{false};
 };
 
