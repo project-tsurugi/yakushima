@@ -29,5 +29,5 @@ endif ()
 
 function(set_compile_options target_name)
   target_compile_options(${target_name}
-  PRIVATE -Wall -Wextra -Werror)
+  PRIVATE -Wall -Wextra -Werror -Wstrict-aliasing)
 endfunction(set_compile_options)
