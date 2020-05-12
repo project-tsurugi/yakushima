@@ -13,21 +13,34 @@ template<class ValueType>
 class link_or_value {
 public:
   void destroy() {
-    delete value_ptr_;
-    value_ptr_ = nullptr;
+    delete v_or_vp_;
+    v_or_vp_ = nullptr;
     need_delete_value_ = false;
   }
 
-  void set_value(ValueType &value) {
+  void set_value(ValueType *value, std::size_t value_length) {
     if (need_delete_value_) {
-      delete value_ptr_;
+      delete v_or_vp_;
     }
     next_layer_ = nullptr;
     try {
       /**
-       * @details Use copy constructor, so ValueType must be copy-constructable.
+       * @details It use copy assign, so ValueType must be copy-assignable.
        */
-      value_ptr_ = ::new ValueType(value);
+       if (sizeof(ValueType) == value_length) {
+         v_or_vp_ = ::operator new(sizeof(ValueType), static_cast<std::align_val_t>(alignof(std::max_align_t)));
+         *static_cast<ValueType>(v_or_vp_) = *value;
+       } else {
+         /**
+          * Value is variable-length.
+          */
+         v_or_vp_ = ::operator new(sizeof(value_length), static_cast<std::align_val_t>(alignof(std::max_align_t)));
+         ValueType* vp = value;
+         for (auto i = 0; i < value_length / sizeof(ValueType); ++i) {
+           vp[i] = value[i];
+         }
+       }
+
       need_delete_value_ = true;
     } catch (std::bad_alloc &e) {
       std::cout << e.what() << std::endl;
@@ -43,7 +56,11 @@ public:
 
 private:
   base_node *next_layer_{nullptr};
-  ValueType *value_ptr_{nullptr};
+  /**
+   * @details This variable is stored value body whose size is less than pointer or pointer to value.
+   */
+  alignas(std::max_align_t) char v_or_vp_[sizeof(ValueType*)];
+  std::size_t value_length;
   bool need_delete_value_{false};
 };
 

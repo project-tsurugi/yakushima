@@ -47,7 +47,7 @@ public:
    * @param key
    * @param value
    */
-  void set_as_root(std::string key, ValueType &value) {
+  void set_as_root(std::string key, ValueType *value, std::size_t value_length) {
     set_version_root(true);
     set_version_leaf(true);
     uint64_t key_slice;
@@ -56,7 +56,7 @@ public:
     memcpy(&key_slice, key.data(), key.size());
     set_key_slice(0, key_slice);
     set_key_length(0, key.size());
-    set_lv(0, value);
+    set_lv(0, value, value_length);
     permutation_.inc_key_num();
     permutation_.rearrange(get_key_slice(), get_key_length());
     next_ = nullptr;
