@@ -11,6 +11,8 @@ namespace yakushima {
 
 class link_or_value {
 public:
+  using lv_type = void*;
+
   link_or_value() = default;
 
   link_or_value(const link_or_value &) = default;
@@ -29,6 +31,13 @@ public:
   void destroy() {
     ::operator delete(v_or_vp_);
     v_or_vp_ = nullptr;
+    need_delete_value_ = false;
+  }
+
+  void init_lv() {
+    next_layer_ = nullptr;
+    v_or_vp_ = nullptr;
+    value_length_ = 0;
     need_delete_value_ = false;
   }
 

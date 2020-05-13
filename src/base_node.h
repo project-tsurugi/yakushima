@@ -13,10 +13,17 @@ namespace yakushima {
 class base_node {
 public:
   static constexpr std::size_t node_fanout = 15;
+  using key_slice_type = std::uint64_t;
 
   base_node() = default;
 
   ~base_node() = default;
+
+  /**
+   * A virtual function is defined because I want to distinguish the child class of the contents
+   * by typeid using polymorphism.
+   */
+  virtual void destroy() {}
 
   /**
    * copy/move assign/constructor can not declare due to atomic member @a parent_
@@ -49,9 +56,12 @@ public:
     return version_;
   }
 
-  void init() {
+  void init_base() {
     version_.init();
     parent_.store(nullptr, std::memory_order_release);
+    for (std::size_t i = 0; i < node_fanout; ++i) {
+      key_slice_[i] = 0;
+    }
   }
 
   /**
@@ -79,10 +89,6 @@ public:
         p = check;
       }
     }
-  }
-
-  void set_version_leaf(bool tf) {
-    version_.set_leaf(tf);
   }
 
   void set_version_root(bool tf) {
@@ -123,7 +129,7 @@ private:
   /**
    * @attention This variable is read/written concurrently.
    */
-  uint64_t key_slice_[node_fanout]{};
+  key_slice_type key_slice_[node_fanout]{};
 };
 
 } // namespace yakushima

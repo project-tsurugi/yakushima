@@ -27,7 +27,6 @@ public:
            && splitting == rhs.get_splitting()
            && deleted == rhs.get_deleted()
            && root == rhs.get_root()
-           && leaf == rhs.get_leaf()
            && vinsert == rhs.get_vinsert()
            && vsplit == rhs.get_vsplit()
            && unused == rhs.get_unused();
@@ -43,10 +42,6 @@ public:
 
   [[nodiscard]] bool get_inserting() const {
     return inserting;
-  }
-
-  [[nodiscard]] bool get_leaf() const {
-    return leaf;
   }
 
   [[nodiscard]] bool get_locked() const {
@@ -79,7 +74,6 @@ public:
     splitting = false;
     deleted = false;
     root = false;
-    leaf = false;
     vinsert = 0;
     vsplit = 0;
     unused = false;
@@ -91,10 +85,6 @@ public:
 
   void set_inserting(bool new_inserting) &{
     inserting = new_inserting;
-  }
-
-  void set_leaf(bool new_leaf) &{
-    leaf = new_leaf;
   }
 
   void set_locked(bool new_locked) &{
@@ -127,7 +117,6 @@ private:
   bool splitting: 1;
   bool deleted: 1;
   bool root: 1;
-  bool leaf: 1;
   std::uint32_t vinsert: 16;
   std::uint64_t vsplit: 41;
   bool unused: 1;
@@ -213,10 +202,6 @@ public:
     return get_body().get_inserting();
   }
 
-  [[nodiscard]] bool get_leaf() const {
-    return get_body().get_leaf();
-  }
-
   [[nodiscard]] bool get_locked() const {
     return get_body().get_locked();
   }
@@ -271,12 +256,6 @@ public:
   void set_inserting(bool new_inserting) &{
     node_version64_body new_body = get_body();
     new_body.set_inserting(new_inserting);
-    set_body(new_body);
-  }
-
-  void set_leaf(bool new_leaf) &{
-    node_version64_body new_body = get_body();
-    new_body.set_leaf(new_leaf);
     set_body(new_body);
   }
 

@@ -3,6 +3,7 @@
  */
 
 #include <memory>
+#include <typeinfo>
 
 #include "gtest/gtest.h"
 

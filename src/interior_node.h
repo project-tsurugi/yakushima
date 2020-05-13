@@ -11,7 +11,7 @@
 #include "border_node.h"
 
 namespace yakushima {
-class interior_node : public base_node {
+class interior_node final : public base_node {
 public:
   static constexpr std::size_t child_length = 16;
 
@@ -23,12 +23,9 @@ public:
    * @brief release all heap objects and clean up.
    * @pre This function is called by single thread.
    */
-  void destroy_interior() {
+  void destroy() final {
     for (auto i = 0; i < nkeys_; ++i) {
-      if (typeid(*child[i]) == typeid(interior_node))
-        static_cast<interior_node *>(child[i])->destroy_interior();
-      else if (typeid(*child[i]) == typeid(border_node))
-        static_cast<border_node *>(child[i])->destroy_border();
+      child[i]->destroy();
     }
   }
 

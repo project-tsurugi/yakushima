@@ -18,16 +18,9 @@ public:
    * @brief release all heap objects and clean up.
    * @pre This function is called by single thread.
    * @return status::OK
-   * @return status::ERR_UNKNOWN_ROOT The root is not both interior and border.
    */
   static status destroy() {
-    base_node *local_root = root_.load(std::memory_order_acquire);
-    if (typeid(*local_root) == typeid(interior_node))
-      static_cast<interior_node *>(local_root)->destroy_interior();
-    else if (typeid(*local_root) == typeid(border_node))
-      static_cast<border_node *>(local_root)->destroy_border();
-    else
-      return status::ERR_UNKNOWN_ROOT;
+    root_.load(std::memory_order_acquire)->destroy();
     return status::OK;
   }
 
@@ -55,7 +48,7 @@ public:
        * root is nullptr, so put single border nodes.
        */
       border_node *new_root = new border_node();
-      new_root->set_as_root(key_view, value, arg_value_length, value_align);
+      new_root->set(key_view, value, true, arg_value_length, value_align);
       for (;;) {
         if (root_.compare_exchange_weak(expected, dynamic_cast<base_node *>(new_root), std::memory_order_acq_rel,
                                         std::memory_order_acquire)) {

@@ -12,7 +12,7 @@
 
 namespace yakushima {
 
-class border_node : public base_node {
+class border_node final : public base_node {
 public:
   border_node() = default;
 
@@ -21,44 +21,70 @@ public:
   /**
    * @brief release all heap objects and clean up.
    */
-  void destroy_border() {
+  void destroy() final {
     /**
      * todo : Call destroy of all children.
      */
-     return;
+    return;
   }
 
   [[nodiscard]] uint8_t *get_key_length() {
     return key_length_;
   }
 
+  void init_border() {
+    nremoved_ = 0;
+    for (std::size_t i = 0; i < node_fanout; ++i) {
+      key_length_[i] = 0;
+      lv_[i].init_lv();
+    }
+    permutation_.init();
+    next_ = nullptr;
+    prev_.store(nullptr, std::memory_order_relaxed);
+  }
+
   /**
-   * @pre This function is called by put function when the tree is empty.
+   * @pre This function is called by put function.
    * @pre @a arg_value_length is divisible by sizeof( @a ValueType ).
-   * @param key
-   * @param value
+   * @pre This function can not be called for updating existing nodes.
+   * @details This function inits border node by using arguments.
+   * @param key_view
+   * @param value_ptr
    */
   template<class ValueType>
-  void set_as_root(std::string_view key_view,
-                   ValueType *value,
-                   std::size_t arg_value_length = sizeof(ValueType),
-                   std::size_t value_align = alignof(ValueType)) {
-    set_version_root(true);
-    set_version_leaf(true);
-    uint64_t key_slice;
-    /**
-     * firstly, it assumes key length less than 8.
-     * todo : adapt that key is larger than 8.
-     */
-    memcpy(&key_slice, key_view.data(), key_view.size());
-    set_key_slice(0, key_slice);
-    set_key_length(0, key_view.size());
-    set_lv(0, value, arg_value_length, value_align);
-    permutation_.inc_key_num();
-    permutation_.rearrange(get_key_slice(), get_key_length());
+  void set(std::string_view key_view,
+           ValueType *value_ptr,
+           bool root,
+           std::size_t arg_value_length = sizeof(ValueType),
+           std::size_t value_align = alignof(ValueType)) {
+    init_base();
+    init_border();
+    set_version_root(root);
     next_ = nullptr;
     prev_ = nullptr;
-    memcpy(&key_suffix_, key_view.data(), key_view.size());
+
+    base_node::key_slice_type key_slice;
+    if (key_view.size() > sizeof(base_node::key_slice_type)) {
+      /**
+       * Create multiple border nodes.
+       */
+      memcpy(&key_slice, key_view.data(), sizeof(base_node::key_slice_type));
+      set_key_slice(0, key_slice);
+      set_key_length(0, sizeof(base_node::key_slice_type));
+      permutation_.inc_key_num();
+      permutation_.rearrange(get_key_slice(), get_key_length());
+      border_node *next_layer_border = new border_node();
+      set_lv_next_layer(0, next_layer_border);
+      key_view.remove_prefix(sizeof(key_slice_type));
+      static_cast<border_node*>(next_layer_border)->set(key_view, value_ptr, false, arg_value_length, value_align);
+    } else {
+      memcpy(&key_slice, key_view.data(), key_view.size());
+      set_key_slice(0, key_slice);
+      set_key_length(0, key_view.size());
+      permutation_.inc_key_num();
+      permutation_.rearrange(get_key_slice(), get_key_length());
+      set_lv_value(0, value_ptr, arg_value_length, value_align);
+    }
   }
 
   void set_key_length(std::size_t index, uint8_t length) {
@@ -68,11 +94,15 @@ public:
 private:
 
   template<class ValueType>
-  void set_lv(std::size_t index,
-              ValueType *value,
-              std::size_t arg_value_length = sizeof(ValueType),
-              std::size_t value_align = alignof(ValueType)) {
+  void set_lv_value(std::size_t index,
+                    ValueType *value,
+                    std::size_t arg_value_length = sizeof(ValueType),
+                    std::size_t value_align = alignof(ValueType)) {
     lv_[index].set_value(value, arg_value_length, value_align);
+  }
+
+  void set_lv_next_layer(std::size_t index, base_node *next_layer) {
+    lv_[index].set_next_layer(next_layer);
   }
 
   // first member of base_node is aligned along with cache line size.
@@ -82,6 +112,11 @@ private:
   uint8_t nremoved_{};
   /**
    * @attention This variable is read/written concurrently.
+   * @details This is used for distinguishing the identity of link or value and same slices.
+   * For example,
+   * key 1 : \0, key 2 : \0\0, ... , key 8 : \0\0\0\0\0\0\0\0.
+   * These keys have same key_slices (0) but different key_length.
+   * If the length is more than 8, the lv points out to next layer.
    */
   uint8_t key_length_[node_fanout]{};
   /**
@@ -103,8 +138,9 @@ private:
   /**
    * @attention This variable is read concurrently.
    * This variable is updated only at initialization.
+   * tanabe : I don't know this variable's value. There is a  no purpose (details) in the original paper.
    */
-  std::uint64_t key_suffix_{};
+  std::uint64_t key_suffix_[node_fanout]{};
 };
 } // namespace yakushima
 
