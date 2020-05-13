@@ -68,14 +68,16 @@ public:
    * @pre This function is called by split.
    */
   base_node *lock_parent() &{
+    base_node *p = parent_.load(std::memory_order_acquire);
     for (;;) {
-      base_node *p = parent_.load(std::memory_order_acquire);
-      if (p == nullptr) return p;
+      if (p == nullptr) return nullptr;
       p->lock();
-      if (p == parent_.load(std::memory_order_acquire)) {
+      base_node *check = parent_.load(std::memory_order_acquire);
+      if (p == check) {
         return p;
       } else {
         p->unlock();
+        p = check;
       }
     }
   }
