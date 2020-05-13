@@ -86,12 +86,29 @@ public:
   }
 
 private:
+  /**
+   * @attention
+   * This variable is read concurrently.
+   * This variable is updated at initialization and destruction.
+   */
   base_node *next_layer_{nullptr};
   /**
-   * @details This variable is stored value body whose size is less than pointer or pointer to value.
+   * @details
+   * This variable is stored value body whose size is less than pointer or pointer to value.
+   * This variable is read concurrently.
    */
   void *v_or_vp_{nullptr};
+  /**
+   * @attention
+   * This variable is read concurrently.
+   * This variable is updated at initialization and destruction.
+   */
   std::size_t value_length_{0};
+  /**
+   * @attention
+   * This variable is read concurrently.
+   * This variable is updated at initialization and destruction.
+   */
   bool need_delete_value_{false};
 };
 

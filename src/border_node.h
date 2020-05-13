@@ -76,15 +76,34 @@ private:
   }
 
   // first member of base_node is aligned along with cache line size.
+  /**
+   * @attention This variable is read/written concurrently.
+   */
   uint8_t nremoved_{};
+  /**
+   * @attention This variable is read/written concurrently.
+   */
   uint8_t key_length_[node_fanout]{};
+  /**
+   * @attention This variable is read/written concurrently.
+   */
   permutation permutation_{};
+  /**
+   * @attention This variable is read/written concurrently.
+   */
   link_or_value lv_[node_fanout]{};
+  /**
+   * @attention This variable is read/written concurrently.
+   */
   border_node *next_{nullptr};
   /**
    * @attention This is protected by its previous sibling's lock.
    */
   std::atomic<border_node *> prev_{nullptr};
+  /**
+   * @attention This variable is read concurrently.
+   * This variable is updated only at initialization.
+   */
   std::uint64_t key_suffix_{};
 };
 } // namespace yakushima

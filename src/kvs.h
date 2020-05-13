@@ -99,8 +99,7 @@ private:
     return root_.load(std::memory_order_acquire);
   }
 
-  static std::tuple<base_node *, node_version64_body>
-  find_border(std::uint64_t key_slice) {
+  static std::tuple<base_node *, node_version64_body> find_border(std::uint64_t key_slice) {
 retry:
     base_node *n = get_root();
     node_version64_body v = n->get_stable_version();

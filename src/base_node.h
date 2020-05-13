@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "atomic_wrapper.h"
 #include "cpu.h"
 #include "version.h"
 
@@ -29,7 +30,7 @@ public:
     if (index > static_cast<std::size_t>(node_fanout)) {
       std::abort();
     }
-    return key_slice_[index];
+    return loadAcquire(key_slice_[index]);
   }
 
   [[nodiscard]] node_version64_body get_stable_version() &{
@@ -100,6 +101,9 @@ public:
 
 
 private:
+  /**
+   * @attention This variable is read/written concurrently.
+   */
   alignas(CACHE_LINE_SIZE)
   node_version64 version_{};
   /**
@@ -109,8 +113,12 @@ private:
    * In the original paper, Fig 2 tells that parent's type is interior_node*,
    * however, at Fig 1, parent's type is interior_node or border_node both
    * interior's view and border's view.
+   * This variable is read/written concurrently.
    */
   std::atomic<base_node *> parent_{nullptr};
+  /**
+   * @attention This variable is read/written concurrently.
+   */
   uint64_t key_slice_[node_fanout]{};
 };
 
