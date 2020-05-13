@@ -13,12 +13,13 @@ class base_node {
 public:
   static constexpr std::size_t node_fanout = 15;
 
-  base_node()
-          : parent_{nullptr},
-            key_slice_{} {
-    version_.init();
-    parent_.store(nullptr, std::memory_order_release);
-  }
+  base_node() = default;
+
+  ~base_node() = default;
+
+  /**
+   * copy/move assign/constructor can not declare due to atomic member @a parent_
+   */
 
   /**
    * @brief release all heap objects and clean up.
@@ -26,7 +27,7 @@ public:
    */
   virtual void destroy() {}
 
-  [[nodiscard]] uint64_t* get_key_slice() {
+  [[nodiscard]] uint64_t *get_key_slice() {
     return key_slice_;
   }
 
@@ -47,6 +48,11 @@ public:
 
   [[nodiscard]] node_version64 get_version() &{
     return version_;
+  }
+
+  void init() {
+    version_.init();
+    parent_.store(nullptr, std::memory_order_release);
   }
 
   /**

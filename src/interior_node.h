@@ -17,6 +17,10 @@ class interior_node : private base_node {
 public:
   static constexpr std::size_t child_length = 16;
 
+  interior_node() = default;
+
+  ~interior_node() = default;
+
   /**
    * @brief release all heap objects and clean up.
    */

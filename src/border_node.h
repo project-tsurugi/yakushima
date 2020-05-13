@@ -19,6 +19,7 @@ namespace yakushima {
 class border_node : private base_node {
 public:
   border_node() = default;
+
   ~border_node() = default;
 
   /**
@@ -85,7 +86,7 @@ private:
   /**
    * @attention This is protected by its previous sibling's lock.
    */
-  border_node *prev_{nullptr};
+  std::atomic<border_node *> prev_{nullptr};
   std::string key_suffix_{};
 };
 } // namespace yakushima
