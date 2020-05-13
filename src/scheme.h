@@ -23,6 +23,10 @@ enum class status : std::int32_t {
    * @biref success status
    */
   OK,
+  /**
+   * @brief root is not both interior and border.
+   */
+   ERR_UNKNOWN_ROOT,
 };
 
 } // namespace yakushima

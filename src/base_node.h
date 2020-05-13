@@ -21,12 +21,6 @@ public:
    * copy/move assign/constructor can not declare due to atomic member @a parent_
    */
 
-  /**
-   * @brief release all heap objects and clean up.
-   * @details This function is redefined by the inherited class.
-   */
-  virtual void destroy() {}
-
   [[nodiscard]] uint64_t *get_key_slice() {
     return key_slice_;
   }
@@ -112,6 +106,9 @@ private:
    * @details Member parent_ is a type "std::atomic<interior_node*>" essentially,
    * but declare a type "std::atomic<base_node*>" due to including file order.
    * @attention This member is protected by its parent's lock.
+   * In the original paper, Fig 2 tells that parent's type is interior_node*,
+   * however, at Fig 1, parent's type is interior_node or border_node both
+   * interior's view and border's view.
    */
   std::atomic<base_node *> parent_{nullptr};
   uint64_t key_slice_[node_fanout]{};

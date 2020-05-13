@@ -7,6 +7,7 @@
 
 #include "base_node.h"
 #include "border_node.h"
+#include "interior_node.h"
 #include "scheme.h"
 
 namespace yakushima {
@@ -15,9 +16,19 @@ class masstree_kvs {
 public:
   /**
    * @brief release all heap objects and clean up.
+   * @pre This function is called by single thread.
+   * @return status::OK
+   * @return status::ERR_UNKNOWN_ROOT The root is not both interior and border.
    */
-  static void destroy() {
-    root_.load(std::memory_order_acquire)->destroy();
+  static status destroy() {
+    base_node *local_root = root_.load(std::memory_order_acquire);
+    if (typeid(*local_root) == typeid(interior_node))
+      static_cast<interior_node *>(local_root)->destroy_interior();
+    else if (typeid(*local_root) == typeid(border_node))
+      static_cast<border_node *>(local_root)->destroy_border();
+    else
+      return status::ERR_UNKNOWN_ROOT;
+    return status::OK;
   }
 
   /**
@@ -35,7 +46,7 @@ public:
   }
 
   template<class ValueType>
-  static status put(std::string key, ValueType *value,
+  static status put(std::string_view key_view, ValueType *value,
                     std::size_t arg_value_length = sizeof(ValueType),
                     std::size_t value_align = alignof(ValueType)) {
     base_node *expected = root_.load(std::memory_order_acquire);
@@ -44,9 +55,10 @@ public:
        * root is nullptr, so put single border nodes.
        */
       border_node *new_root = new border_node();
-      new_root->set_as_root(key, value, arg_value_length, value_align);
+      new_root->set_as_root(key_view, value, arg_value_length, value_align);
       for (;;) {
-        if (root_.compare_exchange_weak(expected, new_root, std::memory_order_acq_rel, std::memory_order_acquire)) {
+        if (root_.compare_exchange_weak(expected, dynamic_cast<base_node *>(new_root), std::memory_order_acq_rel,
+                                        std::memory_order_acquire)) {
           return status::OK;
         } else {
           if (expected != nullptr) {
@@ -62,7 +74,17 @@ public:
      * here, root is not nullptr.
      * process put for existing tree.
      */
-    std::tuple<base_node *, node_version64_body> node_and_v = find_border(key);
+    bool final_slice{false};
+    std::size_t slice_index{0};
+retry:
+    std::uint64_t key_slice{0};
+    if (key_view.size() > sizeof(std::uint64_t)) {
+      memcpy(&key_slice, key_view.data(), sizeof(std::uint64_t));
+    } else {
+      memcpy(&key_slice, key_view.data(), key_view.size());
+      final_slice = true;
+    }
+    std::tuple<base_node *, node_version64_body> node_and_v = find_border(key_slice);
 
     return status::OK;
   }
@@ -77,17 +99,21 @@ private:
     return root_.load(std::memory_order_acquire);
   }
 
-  static std::tuple<base_node *, node_version64_body> find_border([[maybe_unused]]std::string key) {
-#if 0
-    retry:
-    base_node* n = get_root();
+  static std::tuple<base_node *, node_version64_body>
+  find_border(std::uint64_t key_slice) {
+retry:
+    base_node *n = get_root();
     node_version64_body v = n->get_stable_version();
     if (n != get_root()) goto retry;
-    descend:
-    if (typeid(n) == typeid(border_node<ValueType>*))
-#endif
-      node_version64_body empty;
-      return std::make_tuple(nullptr, empty);
+[[maybe_unused]]descend:
+    if (typeid(*n) == typeid(border_node))
+      return std::make_tuple(n, v);
+    /**
+     * @a n points to a interior_node object.
+     */
+    [[maybe_unused]]base_node *n_child = static_cast<interior_node *>(n)->get_child(key_slice);
+    node_version64_body empty;
+    return std::make_tuple(nullptr, empty);
   }
 
   /**
