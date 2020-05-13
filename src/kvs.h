@@ -104,15 +104,46 @@ retry:
     base_node *n = get_root();
     node_version64_body v = n->get_stable_version();
     if (n != get_root()) goto retry;
-[[maybe_unused]]descend:
+descend:
+    /**
+     * The caller checks whether it has been deleted.
+     */
     if (typeid(*n) == typeid(border_node))
       return std::make_tuple(n, v);
     /**
      * @a n points to a interior_node object.
      */
     [[maybe_unused]]base_node *n_child = static_cast<interior_node *>(n)->get_child(key_slice);
-    node_version64_body empty;
-    return std::make_tuple(nullptr, empty);
+    node_version64_body v_child = n_child->get_stable_version();
+    node_version64_body v_check = n->get_stable_version();
+    if (v == v_check) {
+      /**
+       * This check is different with original paper's check.
+       * Original paper approach merely check whether it is locked now.
+       */
+      n = n_child;
+      v = v_child;
+      goto descend;
+    }
+    /**
+     * In Original paper, v'' = stableversion(n).
+     * But it is redundant that checks global current value (n.version) and loads that here.
+     */
+
+    /**
+     * If the value of vsplit is different, the read location may be inappropriate.
+     * Split propagates upward. It have to start from root.
+     */
+    if (v.get_vsplit() != v_check.get_vsplit())
+      goto retry;
+    /**
+     * If the vsplit values ​​match, it can continue.
+     * Even if it is inserted, the slot value is invariant and the order is controlled by @a permutation.
+     * However, the value corresponding to the key that could not be detected may have been inserted,
+     * so re-start from this node.
+     */
+     v = v_check;
+     goto descend;
   }
 
   /**

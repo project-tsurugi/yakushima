@@ -33,6 +33,10 @@ public:
     return loadAcquire(key_slice_[index]);
   }
 
+  [[nodiscard]] bool get_lock() & {
+    return version_.get_locked();
+  }
+
   [[nodiscard]] node_version64_body get_stable_version() &{
     return version_.get_stable_version();
   }
