@@ -2,8 +2,11 @@
  * @file link_or_vlaue.h
  */
 
+#include "atomic_wrapper.h"
 #include "cpu.h"
 #include "base_node.h"
+
+#include <typeinfo>
 
 #pragma once
 
@@ -11,7 +14,7 @@ namespace yakushima {
 
 class link_or_value {
 public:
-  using lv_type = void*;
+  using value_size_type = std::size_t;
 
   link_or_value() = default;
 
@@ -29,20 +32,47 @@ public:
    * @details release heap objects.
    */
   void destroy() {
-    ::operator delete(v_or_vp_);
-    v_or_vp_ = nullptr;
-    need_delete_value_ = false;
+    if (get_need_delete_value()) {
+      ::operator delete(v_or_vp_);
+    }
+    set_need_delete_value(false);
+    set_next_layer(nullptr);
+    set_v_or_vp(nullptr);
+    set_value_length(0);
+  }
+
+  [[nodiscard]] bool get_need_delete_value() {
+    return loadAcquire(need_delete_value_);
+  }
+
+  [[nodiscard]] const base_node *get_next_layer() {
+    return loadAcquire(next_layer_);
+  }
+
+  [[nodiscard]] const std::type_info *get_lv_type() {
+    if (get_next_layer() != nullptr) {
+      return &typeid(get_next_layer());
+    } else if (get_v_or_vp_() != nullptr) {
+      return &typeid(get_v_or_vp_());
+    } else {
+      return &typeid(nullptr);
+    }
+  }
+
+  [[nodiscard]] void *get_v_or_vp_() {
+    return loadAcquire(v_or_vp_);
   }
 
   void init_lv() {
-    next_layer_ = nullptr;
-    v_or_vp_ = nullptr;
-    value_length_ = 0;
-    need_delete_value_ = false;
+    set_need_delete_value(false);
+    set_next_layer(nullptr);
+    set_v_or_vp(nullptr);
+    set_value_length(0);
   }
 
   /**
    * @pre @a arg_value_length is divisible by sizeof( @a ValueType ).
+   * @pre This function called at initialization.
    * @param vptr The pointer to source value object.
    * @param arg_value_size The byte size of value.
    * @param value_align The alignment of value.
@@ -87,35 +117,47 @@ public:
     }
   }
 
-  void set_next_layer(base_node* next_layer) {
-    next_layer_ = next_layer;
-    if (need_delete_value_) {
-      destroy();
-    }
+  /**
+   * @pre This function called at initialization.
+   * @param [in] next_layer
+   */
+  void set_next_layer(base_node *new_next_layer) {
+    storeRelease(next_layer_, new_next_layer);
+  }
+
+  void set_v_or_vp(void *new_v_or_vp) {
+    storeRelease(v_or_vp_, new_v_or_vp);
+  }
+
+  void set_value_length(value_size_type new_value_length) {
+    storeRelease(value_length_, new_value_length);
+  }
+
+  void set_need_delete_value(bool new_need_delete_value) {
+    storeRelease(need_delete_value_, new_need_delete_value);
   }
 
 private:
   /**
    * @attention
-   * This variable is read concurrently.
-   * This variable is updated at initialization and destruction.
+   * This variable is read/write concurrently.
    */
   base_node *next_layer_{nullptr};
   /**
    * @details
    * This variable is stored value body whose size is less than pointer or pointer to value.
-   * This variable is read concurrently.
+   * This variable is read/write concurrently.
    */
   void *v_or_vp_{nullptr};
   /**
    * @attention
-   * This variable is read concurrently.
+   * This variable is read/write concurrently.
    * This variable is updated at initialization and destruction.
    */
-  std::size_t value_length_{0};
+  value_size_type value_length_{0};
   /**
    * @attention
-   * This variable is read concurrently.
+   * This variable is read/write concurrently.
    * This variable is updated at initialization and destruction.
    */
   bool need_delete_value_{false};

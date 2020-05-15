@@ -69,15 +69,33 @@ public:
      */
     bool final_slice{false};
     std::size_t slice_index{0};
+    std::string_view traverse_key_view{key_view};
 retry:
-    std::uint64_t key_slice{0};
-    if (key_view.size() > sizeof(std::uint64_t)) {
-      memcpy(&key_slice, key_view.data(), sizeof(std::uint64_t));
+    base_node::key_slice_type key_slice{0};
+    if (traverse_key_view.size() > sizeof(base_node::key_slice_type)) {
+      memcpy(&key_slice, traverse_key_view.data(), sizeof(std::uint64_t));
+      final_slice = false;
     } else {
-      memcpy(&key_slice, key_view.data(), key_view.size());
+      memcpy(&key_slice, traverse_key_view.data(), traverse_key_view.size());
       final_slice = true;
     }
-    std::tuple<base_node *, node_version64_body> node_and_v = find_border(key_slice);
+    std::tuple<border_node *, node_version64_body> node_and_v = find_border(key_slice);
+    constexpr std::size_t tuple_node_index = 0;
+    constexpr std::size_t tuple_v_index = 1;
+    std::get<tuple_node_index>(node_and_v)->lock();
+    /**
+     * Here, get<tuple_v_index>(node_and_v) is stable version at ending of find_border.
+     * If node is not full, try split.
+     */
+    /**
+     * Else, insert new node.
+     */
+forward:
+    if (std::get<tuple_v_index>(node_and_v).get_deleted()) {
+      goto retry;
+    }
+    link_or_value* lv  = std::get<tuple_node_index>(node_and_v)->get_lv_of(key_slice);
+
 
     return status::OK;
   }
@@ -92,7 +110,13 @@ private:
     return root_.load(std::memory_order_acquire);
   }
 
-  static std::tuple<base_node *, node_version64_body> find_border(std::uint64_t key_slice) {
+  /**
+   *
+   * @param key_slice
+   * @return std::tuple<base_node*, node_version64_body>
+   * node_version64_body is stable version of base_node*.
+   */
+  static std::tuple<border_node *, node_version64_body> find_border(base_node::key_slice_type key_slice) {
 retry:
     base_node *n = get_root();
     node_version64_body v = n->get_stable_version();
@@ -102,13 +126,16 @@ descend:
      * The caller checks whether it has been deleted.
      */
     if (typeid(*n) == typeid(border_node))
-      return std::make_tuple(n, v);
+      return std::make_tuple(static_cast<border_node *>(n), v);
     /**
      * @a n points to a interior_node object.
      */
-    [[maybe_unused]]base_node *n_child = static_cast<interior_node *>(n)->get_child(key_slice);
-    node_version64_body v_child = n_child->get_stable_version();
+    [[maybe_unused]]base_node *n_child = static_cast<interior_node *>(n)->get_child_of(key_slice);
+    /**
+     * As soon as you it finished operating the contents of node, read version (v_check).
+     */
     node_version64_body v_check = n->get_stable_version();
+    node_version64_body v_child = n_child->get_stable_version();
     if (v == v_check) {
       /**
        * This check is different with original paper's check.
@@ -135,8 +162,8 @@ descend:
      * However, the value corresponding to the key that could not be detected may have been inserted,
      * so re-start from this node.
      */
-     v = v_check;
-     goto descend;
+    v = v_check;
+    goto descend;
   }
 
   /**

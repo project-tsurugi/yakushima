@@ -70,7 +70,7 @@ public:
     [[maybe_unused]] constexpr std::size_t key_slice_index = 0;
     [[maybe_unused]] constexpr std::size_t key_length_index = 1;
     constexpr std::size_t key_pos = 2;
-    std::vector<std::tuple<std::uint64_t, std::uint8_t, std::uint8_t>> vec;
+    std::vector<std::tuple<base_node::key_slice_type, std::uint8_t, std::uint8_t>> vec;
     vec.reserve(cnk);
     for (std::uint8_t i = 0; i < cnk; ++i) {
       vec.emplace_back(key_slice[i], key_length[i], i);

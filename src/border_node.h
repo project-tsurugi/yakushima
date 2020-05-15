@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <iostream>
 
+#include "atomic_wrapper.h"
 #include "link_or_value.h"
 #include "permutation.h"
 
@@ -14,6 +15,9 @@ namespace yakushima {
 
 class border_node final : public base_node {
 public:
+  using key_length_type = std::uint8_t;
+  using n_removed_type = std::uint8_t;
+
   border_node() = default;
 
   ~border_node() = default;
@@ -28,12 +32,36 @@ public:
     return;
   }
 
+  [[nodiscard]] link_or_value *get_lv_at(std::size_t index) {
+    return &lv_[index];
+  }
+
+  [[nodiscard]] link_or_value *get_lv_of(base_node::key_slice_type key_slice) {
+    node_version64_body v = get_stable_version();
+    for (;;) {
+      /**
+       * It loads cnk atomically by get_cnk func.
+       */
+      std::size_t cnk = permutation_.get_cnk();
+      link_or_value *ret_lv{nullptr};
+      for (std::size_t i = 0; i < cnk; ++i) {
+        if (key_slice == get_key_slice_at(i)) {
+          ret_lv = get_lv_at(i);
+          break;
+        }
+      }
+      node_version64_body v_check = get_stable_version();
+      if (v == v_check) return ret_lv;
+      else v = v_check;
+    }
+  }
+
   [[nodiscard]] uint8_t *get_key_length() {
     return key_length_;
   }
 
   void init_border() {
-    nremoved_ = 0;
+    n_removed_ = 0;
     for (std::size_t i = 0; i < node_fanout; ++i) {
       key_length_[i] = 0;
       lv_[i].init_lv();
@@ -109,7 +137,7 @@ private:
   /**
    * @attention This variable is read/written concurrently.
    */
-  uint8_t nremoved_{};
+  n_removed_type n_removed_{};
   /**
    * @attention This variable is read/written concurrently.
    * @details This is used for distinguishing the identity of link or value and same slices.
@@ -118,7 +146,7 @@ private:
    * These keys have same key_slices (0) but different key_length.
    * If the length is more than 8, the lv points out to next layer.
    */
-  uint8_t key_length_[node_fanout]{};
+  key_length_type key_length_[node_fanout]{};
   /**
    * @attention This variable is read/written concurrently.
    */
