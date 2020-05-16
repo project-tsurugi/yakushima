@@ -12,7 +12,7 @@ namespace yakushima {
 
 class base_node {
 public:
-  static constexpr std::size_t node_fanout = 15;
+  static constexpr std::size_t key_slice_length = 15;
   using key_slice_type = std::uint64_t;
 
   base_node() = default;
@@ -34,7 +34,7 @@ public:
   }
 
   [[nodiscard]] uint64_t get_key_slice_at(std::size_t index) {
-    if (index > static_cast<std::size_t>(node_fanout)) {
+    if (index > static_cast<std::size_t>(key_slice_length)) {
       std::abort();
     }
     return loadAcquire(key_slice_[index]);
@@ -59,7 +59,7 @@ public:
   void init_base() {
     version_.init();
     parent_.store(nullptr, std::memory_order_release);
-    for (std::size_t i = 0; i < node_fanout; ++i) {
+    for (std::size_t i = 0; i < key_slice_length; ++i) {
       key_slice_[i] = 0;
     }
   }
@@ -96,7 +96,7 @@ public:
   }
 
   void set_key_slice(std::size_t index, std::uint64_t key_slice) {
-    if (index >= node_fanout) std::abort();
+    if (index >= key_slice_length) std::abort();
     key_slice_[index] = key_slice;
   }
 
@@ -129,7 +129,7 @@ private:
   /**
    * @attention This variable is read/written concurrently.
    */
-  key_slice_type key_slice_[node_fanout]{};
+  key_slice_type key_slice_[key_slice_length]{};
 };
 
 } // namespace yakushima

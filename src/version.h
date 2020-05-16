@@ -217,7 +217,13 @@ public:
   [[nodiscard]] node_version64_body get_stable_version() const {
     for (;;) {
       node_version64_body sv = get_body();
-      if (sv.get_inserting() == false && sv.get_splitting() == false)
+      /**
+       * In the original paper, lock is not checked.
+       * However, if the lock is acquired, the member of that node can be changed.
+       * Even if the locked version is immutable, the members read at that time may be broken.
+       * Therefore, you have to check the lock.
+       */
+      if (sv.get_inserting() == false && sv.get_locked() == false && sv.get_splitting() == false)
         return sv;
     }
   }

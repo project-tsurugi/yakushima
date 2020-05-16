@@ -62,7 +62,7 @@ public:
 
   void init_border() {
     n_removed_ = 0;
-    for (std::size_t i = 0; i < node_fanout; ++i) {
+    for (std::size_t i = 0; i < key_slice_length; ++i) {
       key_length_[i] = 0;
       lv_[i].init_lv();
     }
@@ -146,7 +146,7 @@ private:
    * These keys have same key_slices (0) but different key_length.
    * If the length is more than 8, the lv points out to next layer.
    */
-  key_length_type key_length_[node_fanout]{};
+  key_length_type key_length_[key_slice_length]{};
   /**
    * @attention This variable is read/written concurrently.
    */
@@ -154,7 +154,7 @@ private:
   /**
    * @attention This variable is read/written concurrently.
    */
-  link_or_value lv_[node_fanout]{};
+  link_or_value lv_[key_slice_length]{};
   /**
    * @attention This variable is read/written concurrently.
    */
@@ -168,7 +168,7 @@ private:
    * This variable is updated only at initialization.
    * tanabe : I don't know this variable's value. There is a  no purpose (details) in the original paper.
    */
-  std::uint64_t key_suffix_[node_fanout]{};
+  std::uint64_t key_suffix_[key_slice_length]{};
 };
 } // namespace yakushima
 

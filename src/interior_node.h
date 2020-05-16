@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <string.h>
+
 #include <cstdint>
 
 #include "atomic_wrapper.h"
@@ -13,7 +15,11 @@
 namespace yakushima {
 class interior_node final : public base_node {
 public:
-  static constexpr std::size_t child_length = 16;
+  /**
+   * @details The structure is "ptr, key, ptr, key, ..., ptr".
+   * So the child_length is key_slice_length plus 1.
+   */
+  static constexpr std::size_t child_length = base_node::key_slice_length + 1;
   using n_keys_body_type = std::uint8_t;
   using n_keys_type = std::atomic<n_keys_body_type>;
 
@@ -45,21 +51,31 @@ public:
       n_keys_body_type n_key = get_n_keys();
       base_node *ret_child{nullptr};
       for (auto i = 0; i < n_key; ++i) {
-        ret_child = get_child_at(i);
         /**
          * It loads key_slice atomically by get_key_slice_at func.
          */
-        if (ret_child != nullptr && key_slice == get_key_slice_at(i))
+         base_node::key_slice_type slice_at_index = get_key_slice_at(i);
+        if (memcmp(&key_slice, &slice_at_index, sizeof(base_node::key_slice_type)) < 0) {
+          /**
+           * The key_slice must be left direction of the index.
+           */
+          ret_child = get_child_at(i);
           break;
-        else
-          ret_child = nullptr;
+        } else {
+          /**
+           * The key_slice must be right direction of the index.
+           */
+           if (i == n_key -1) {
+             ret_child = get_child_at(i+1);
+             break;
+           }
+        }
       }
       node_version64_body check = get_stable_version();
       if (v == check) return ret_child;
       else v = check;
     }
   }
-
 
 private:
   /**
