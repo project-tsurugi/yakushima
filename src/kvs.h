@@ -135,14 +135,18 @@ descend:
      * As soon as you it finished operating the contents of node, read version (v_check).
      */
     node_version64_body v_check = n->get_stable_version();
-    node_version64_body v_child = n_child->get_stable_version();
     if (v == v_check) {
       /**
        * This check is different with original paper's check.
        * Original paper approach merely check whether it is locked now.
        */
       n = n_child;
-      v = v_child;
+      /**
+       * In the original paper, this line is done outside of if scope.
+       * However,  It is never used after that scope.
+       * Therefore, this can execute within if scope.
+       */
+      v = n_child->get_stable_version();
       goto descend;
     }
     /**
