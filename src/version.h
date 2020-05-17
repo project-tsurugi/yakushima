@@ -27,6 +27,7 @@ public:
            && splitting == rhs.get_splitting()
            && deleted == rhs.get_deleted()
            && root == rhs.get_root()
+           && border == rhs.get_border()
            && vinsert == rhs.get_vinsert()
            && vsplit == rhs.get_vsplit()
            && unused == rhs.get_unused();
@@ -34,6 +35,10 @@ public:
 
   bool operator!=(const node_version64_body &rhs) const {
     return !(*this == rhs);
+  }
+
+  [[nodiscard]] bool get_border() const {
+    return border;
   }
 
   [[nodiscard]] bool get_deleted() const {
@@ -74,9 +79,14 @@ public:
     splitting = false;
     deleted = false;
     root = false;
+    border = false;
     vinsert = 0;
     vsplit = 0;
     unused = false;
+  }
+
+  void set_border(bool new_border) &{
+    border = new_border;
   }
 
   void set_deleted(bool new_deleted) &{
@@ -112,13 +122,42 @@ public:
   }
 
 private:
+  /**
+   * These details is based on original paper Fig. 3.
+   */
+  /**
+   * @details It is claimed by update or insert.
+   */
   bool locked: 1;
+  /**
+   * @details It is a dirty bit set during inserting.
+   */
   bool inserting: 1;
+  /**
+   * @details It is a dirty bit set during splitting.
+   */
   bool splitting: 1;
   bool deleted: 1;
+  /**
+   * @details It tells whether the node is the root of some B+-tree.
+   */
   bool root: 1;
+  /**
+   * @details It tells whether the node is interior or border.
+   */
+  bool border: 1;
+  /**
+   * @details It is a counter incremented after inserting.
+   */
   std::uint32_t vinsert: 16;
+  /**
+   * @details It is a counter incremented after splitting.
+   */
   std::uint64_t vsplit: 41;
+  /**
+   * @details It allows more efficient operations on the version number.
+   * tanabe : Is variables's details is nothing in original paper?
+   */
   bool unused: 1;
 };
 
@@ -194,6 +233,10 @@ public:
     return body_.load(std::memory_order_acquire);
   }
 
+  [[nodiscard]] bool get_border() const {
+    return get_body().get_border();
+  }
+
   [[nodiscard]] bool get_deleted() const {
     return get_body().get_deleted();
   }
@@ -251,6 +294,12 @@ public:
 
   void set_body(node_version64_body newv) &{
     body_.store(newv, std::memory_order_release);
+  }
+
+  void set_border(bool new_border) &{
+    node_version64_body new_body = get_body();
+    new_body.set_border(new_border);
+    set_body(new_body);
   }
 
   void set_deleted(bool new_deleted) &{
