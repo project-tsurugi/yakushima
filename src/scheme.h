@@ -18,6 +18,12 @@ enum class status : std::int32_t {
    */
   WARN_NOT_FOUND,
   /**
+   * @brief Warning
+   * @details Masstree originally has a unique key constraint.
+   * todo (optional): This constraint is removed.
+   */
+  WARN_UNIQUE_RESTRICTION,
+  /**
    * @biref success status
    */
   OK,

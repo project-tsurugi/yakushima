@@ -95,38 +95,36 @@ retry_find_border:
      */
     link_or_value *child = std::get<tuple_node_index>(node_and_v)->get_lv_of(key_slice);
     /**
-     * if child == nullptr && final_slice == false : create next_layer.
-     * else if child == nullptr && final_slice == true : insert node into this border_node.
-     * else if child == next_layer && final_slice == false : root = child; advance key; goto retry_find_border;
+     * if child == nullptr && final_slice == true : insert node into this border_node.
+     * else if child == nullptr && final_slice == false : create next_layer.
+     * else if child == value (next_layer == nullptr) : return status::WARN_UNIQUE_RESTRICTION.
      * else if child ==  next_layer && final_slice == true : return status::WARN_UNIQUE_RESTRICTION.
-     * else if child == value : return status::WARN_UNIQUE_RESTRICTION.
+     * else if child == next_layer && final_slice == false : root = child; advance key; goto retry_find_border;
      * else unreachable; std::abort();
      */
-#if 0
-    /**
-     * Here, get<tuple_v_index>(node_and_v) is stable version at ending of find_border.
-     */
-    std::get<tuple_node_index>(node_and_v)->lock();
-    if (std::get<tuple_node_index>(node_and_v)->get_version_vsplit() !=
-        std::get<tuple_v_index>(node_and_v).get_vsplit()) {
+    if (child == nullptr) {
+      if (final_slice) {
+        /**
+         * insert node into this border_node.
+         */
+      } else {
+        /**
+         * create next_layer.
+         */
+      }
+    } else if (child->get_next_layer() == nullptr ||
+               (child->get_next_layer() != nullptr && final_slice)) {
+      return status::WARN_UNIQUE_RESTRICTION;
+    } else if (child->get_next_layer() != nullptr && !final_slice) {
       /**
-       * Splitting was occurred between find_border and lock.
+       * root = child; advance key; goto retry_find_border;
        */
-      std::get<tuple_node_index>(node_and_v)->unlock();
-      goto retry_find_border;
+    } else {
+      /**
+      * unreachable
+      */
+      std::abort();
     }
-    /**
-     * If node is not full, try split.
-     * Else, insert new node.
-     */
-forward:
-    if (std::get<tuple_v_index>(node_and_v).get_deleted()) {
-      goto retry;
-    }
-    link_or_value *lv = std::get<tuple_node_index>(node_and_v)->get_lv_of(key_slice);
-#endif
-
-    return status::OK;
   }
 
   static status remove([[maybe_unused]]std::string key) {
