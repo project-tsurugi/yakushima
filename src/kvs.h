@@ -66,37 +66,65 @@ public:
     }
     /**
      * here, root is not nullptr.
-     * process put for existing tree.
+     * Prepare key for traversing tree.
      */
     bool final_slice{false};
-    std::size_t slice_index{0};
     std::string_view traverse_key_view{key_view};
+    base_node *root = get_root();
 retry:
+    /**
+     * prepare key_slice
+     */
     base_node::key_slice_type key_slice{0};
     if (traverse_key_view.size() > sizeof(base_node::key_slice_type)) {
-      memcpy(&key_slice, traverse_key_view.data(), sizeof(std::uint64_t));
+      memcpy(&key_slice, traverse_key_view.data(), sizeof(base_node::key_slice_type));
       final_slice = false;
     } else {
       memcpy(&key_slice, traverse_key_view.data(), traverse_key_view.size());
       final_slice = true;
     }
-    std::tuple<border_node *, node_version64_body> node_and_v = find_border(key_slice);
+retry_find_border:
+    /**
+     * traverse tree to border node.
+     */
+    std::tuple<border_node *, node_version64_body> node_and_v = find_border(root, key_slice);
     constexpr std::size_t tuple_node_index = 0;
     constexpr std::size_t tuple_v_index = 1;
-    std::get<tuple_node_index>(node_and_v)->lock();
+    /**
+     * check whether it should insert into this node.
+     */
+    link_or_value *child = std::get<tuple_node_index>(node_and_v)->get_lv_of(key_slice);
+    /**
+     * if child == nullptr && final_slice == false : create next_layer.
+     * else if child == nullptr && final_slice == true : insert node into this border_node.
+     * else if child == next_layer && final_slice == false : root = child; advance key; goto retry_find_border;
+     * else if child ==  next_layer && final_slice == true : return status::WARN_UNIQUE_RESTRICTION.
+     * else if child == value : return status::WARN_UNIQUE_RESTRICTION.
+     * else unreachable; std::abort();
+     */
+#if 0
     /**
      * Here, get<tuple_v_index>(node_and_v) is stable version at ending of find_border.
-     * If node is not full, try split.
      */
+    std::get<tuple_node_index>(node_and_v)->lock();
+    if (std::get<tuple_node_index>(node_and_v)->get_version_vsplit() !=
+        std::get<tuple_v_index>(node_and_v).get_vsplit()) {
+      /**
+       * Splitting was occurred between find_border and lock.
+       */
+      std::get<tuple_node_index>(node_and_v)->unlock();
+      goto retry_find_border;
+    }
     /**
+     * If node is not full, try split.
      * Else, insert new node.
      */
 forward:
     if (std::get<tuple_v_index>(node_and_v).get_deleted()) {
       goto retry;
     }
-    link_or_value* lv  = std::get<tuple_node_index>(node_and_v)->get_lv_of(key_slice);
-
+    link_or_value *lv = std::get<tuple_node_index>(node_and_v)->get_lv_of(key_slice);
+#endif
 
     return status::OK;
   }
@@ -117,11 +145,15 @@ private:
    * @return std::tuple<base_node*, node_version64_body>
    * node_version64_body is stable version of base_node*.
    */
-  static std::tuple<border_node *, node_version64_body> find_border(base_node::key_slice_type key_slice) {
+  static std::tuple<border_node *, node_version64_body>
+  find_border(base_node *root, base_node::key_slice_type key_slice) {
 retry:
-    base_node *n = get_root();
+    base_node *n = root;
     node_version64_body v = n->get_stable_version();
-    if (n != get_root()) goto retry;
+    if (n != get_root()) {
+      root = root->get_parent();
+      goto retry;
+    }
 descend:
     /**
      * The caller checks whether it has been deleted.

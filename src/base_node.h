@@ -51,7 +51,7 @@ public:
   }
 
   [[nodiscard]] base_node *get_parent() &{
-    return parent_.load(std::memory_order_acquire);
+    return loadAcquire(parent_);
   }
 
   [[nodiscard]] node_version64 get_version() &{
@@ -62,9 +62,13 @@ public:
     return version_.get_border();
   }
 
+  [[nodiscard]] std::size_t get_version_vsplit() {
+    return version_.get_vsplit();
+  }
+
   void init_base() {
     version_.init();
-    parent_.store(nullptr, std::memory_order_release);
+    set_parent(nullptr);
     for (std::size_t i = 0; i < key_slice_length; ++i) {
       key_slice_[i] = 0;
     }
@@ -83,11 +87,11 @@ public:
    * @pre This function is called by split.
    */
   base_node *lock_parent() &{
-    base_node *p = parent_.load(std::memory_order_acquire);
+    base_node *p = get_parent();
     for (;;) {
       if (p == nullptr) return nullptr;
       p->lock();
-      base_node *check = parent_.load(std::memory_order_acquire);
+      base_node *check = get_parent();
       if (p == check) {
         return p;
       } else {
@@ -97,17 +101,21 @@ public:
     }
   }
 
+  void set_key_slice(std::size_t index, std::uint64_t key_slice) {
+    if (index >= key_slice_length) std::abort();
+    key_slice_[index] = key_slice;
+  }
+
+  void set_parent(base_node* new_parent) {
+    storeRelease(parent_, new_parent);
+  }
+
   void set_version_border(bool tf) {
     version_.set_border(tf);
   }
 
   void set_version_root(bool tf) {
     version_.set_root(tf);
-  }
-
-  void set_key_slice(std::size_t index, std::uint64_t key_slice) {
-    if (index >= key_slice_length) std::abort();
-    key_slice_[index] = key_slice;
   }
 
   /**
@@ -135,7 +143,7 @@ private:
    * interior's view and border's view.
    * This variable is read/written concurrently.
    */
-  std::atomic<base_node *> parent_{nullptr};
+  base_node * parent_{nullptr};
   /**
    * @attention This variable is read/written concurrently.
    */

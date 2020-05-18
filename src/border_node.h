@@ -78,9 +78,12 @@ public:
    * @pre This function is called by put function.
    * @pre @a arg_value_length is divisible by sizeof( @a ValueType ).
    * @pre This function can not be called for updating existing nodes.
+   * @pre If this function is used for node creation, link after set because
+   * set function does not execute lock function.
    * @details This function inits border node by using arguments.
    * @param key_view
    * @param value_ptr
+   * @param[in] root is the root node of the layer.
    */
   template<class ValueType>
   void set(std::string_view key_view,
@@ -106,7 +109,10 @@ public:
       border_node *next_layer_border = new border_node();
       set_lv_next_layer(0, next_layer_border);
       key_view.remove_prefix(sizeof(key_slice_type));
-      static_cast<border_node*>(next_layer_border)->set(key_view, value_ptr, false, arg_value_length, value_align);
+      /**
+       * @attention next_layer_border is the root of next layer.
+       */
+      static_cast<border_node*>(next_layer_border)->set(key_view, value_ptr, true, arg_value_length, value_align);
     } else {
       memcpy(&key_slice, key_view.data(), key_view.size());
       set_key_slice(0, key_slice);

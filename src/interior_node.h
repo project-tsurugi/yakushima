@@ -80,6 +80,15 @@ public:
     }
   }
 
+  void init_interior() {
+    init_base();
+    set_version_border(true);
+    for (std::size_t i = 0; i < child_length; ++i) {
+      child[i] = nullptr;
+    }
+    n_keys_ = 0;
+  }
+
 private:
   /**
    * first member of base_node is aligned along with cache line size.
