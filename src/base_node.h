@@ -62,6 +62,10 @@ public:
     return version_.get_border();
   }
 
+  [[nodiscard]] bool get_version_deleted() {
+    return version_.get_deleted();
+  }
+
   [[nodiscard]] std::size_t get_version_vsplit() {
     return version_.get_vsplit();
   }
@@ -114,8 +118,15 @@ public:
     version_.set_border(tf);
   }
 
+  void set_version_inserting(bool tf) {
+    version_.set_inserting(tf);
+  }
+
   void set_version_root(bool tf) {
     version_.set_root(tf);
+  }
+  void set_version_splitting(bool tf) {
+    version_.set_splitting(tf);
   }
 
   /**

@@ -19,6 +19,11 @@ enum class status : std::int32_t {
   WARN_NOT_FOUND,
   /**
    * @brief Warning
+   * @details This status tells that find_border must retry from root of all tree.
+   */
+  WARN_ROOT_DELETED,
+  /**
+   * @brief Warning
    * @details Masstree originally has a unique key constraint.
    * todo (optional): This constraint is removed.
    */

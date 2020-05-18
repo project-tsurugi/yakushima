@@ -54,7 +54,7 @@ public:
     return loadAcquire(need_delete_value_);
   }
 
-  [[nodiscard]] const base_node *get_next_layer() {
+  [[nodiscard]] base_node *get_next_layer() {
     return loadAcquire(next_layer_);
   }
 

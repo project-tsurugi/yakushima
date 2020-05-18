@@ -48,7 +48,7 @@ public:
        * root is nullptr, so put single border nodes.
        */
       border_node *new_border = new border_node();
-      new_border->set(key_view, value, true, arg_value_length, value_align);
+      new_border->init_border(key_view, value, true, arg_value_length, value_align);
       for (;;) {
         if (root_.compare_exchange_weak(expected, dynamic_cast<base_node *>(new_border), std::memory_order_acq_rel,
                                         std::memory_order_acquire)) {
@@ -64,6 +64,7 @@ public:
         }
       }
     }
+retry:
     /**
      * here, root is not nullptr.
      * Prepare key for traversing tree.
@@ -71,7 +72,7 @@ public:
     bool final_slice{false};
     std::string_view traverse_key_view{key_view};
     base_node *root = get_root();
-retry:
+retry_find_border:
     /**
      * prepare key_slice
      */
@@ -83,42 +84,60 @@ retry:
       memcpy(&key_slice, traverse_key_view.data(), traverse_key_view.size());
       final_slice = true;
     }
-retry_find_border:
     /**
      * traverse tree to border node.
      */
-    std::tuple<border_node *, node_version64_body> node_and_v = find_border(root, key_slice);
+    status special_status;
+    std::tuple<border_node *, node_version64_body> node_and_v = find_border(root, key_slice, special_status);
+    if (special_status == status::WARN_ROOT_DELETED) goto retry;
     constexpr std::size_t tuple_node_index = 0;
     constexpr std::size_t tuple_v_index = 1;
+    border_node *target_border = std::get<tuple_node_index>(node_and_v);
+    node_version64_body v_at_fb = std::get<tuple_v_index>(node_and_v);
     /**
      * check whether it should insert into this node.
      */
-    link_or_value *child = std::get<tuple_node_index>(node_and_v)->get_lv_of(key_slice);
+    link_or_value *child = target_border->get_lv_of(key_slice);
     /**
-     * if child == nullptr && final_slice == true : insert node into this border_node.
-     * else if child == nullptr && final_slice == false : create next_layer.
+     * if child == nullptr : insert node into this border_node.
      * else if child == value (next_layer == nullptr) : return status::WARN_UNIQUE_RESTRICTION.
      * else if child ==  next_layer && final_slice == true : return status::WARN_UNIQUE_RESTRICTION.
      * else if child == next_layer && final_slice == false : root = child; advance key; goto retry_find_border;
      * else unreachable; std::abort();
      */
     if (child == nullptr) {
-      if (final_slice) {
+      /**
+       * inserts node into this border_node.
+       */
+      target_border->lock();
+      if (target_border->get_version_deleted() ||
+          target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
         /**
-         * insert node into this border_node.
+         * It was interrupted by delete ops or splitting.
          */
-      } else {
-        /**
-         * create next_layer.
-         */
+        target_border->unlock();
+        goto retry;
       }
+      target_border->insert_lv(traverse_key_view, value, arg_value_length, value_align);
+      target_border->unlock();
+      return status::OK;
     } else if (child->get_next_layer() == nullptr ||
                (child->get_next_layer() != nullptr && final_slice)) {
+      target_border->unlock();
       return status::WARN_UNIQUE_RESTRICTION;
     } else if (child->get_next_layer() != nullptr && !final_slice) {
+      if (target_border->get_version_deleted() ||
+          target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
+        target_border->unlock();
+        goto retry;
+      }
       /**
        * root = child; advance key; goto retry_find_border;
        */
+      target_border->unlock();
+      root = dynamic_cast<base_node *>(child->get_next_layer());
+      traverse_key_view.remove_prefix(sizeof(base_node::key_slice_type));
+      goto retry_find_border;
     } else {
       /**
       * unreachable
@@ -140,14 +159,24 @@ private:
   /**
    *
    * @param key_slice
+   * @details It finds border node by using arguments @a root, @a key_slice.
+   * If the @a root is not the root of some layer, this function finds root nodes of the layer, then finds border node by
+   * using retry label.
    * @return std::tuple<base_node*, node_version64_body>
    * node_version64_body is stable version of base_node*.
    */
   static std::tuple<border_node *, node_version64_body>
-  find_border(base_node *root, base_node::key_slice_type key_slice) {
+  find_border(base_node *root, base_node::key_slice_type key_slice, status &special_status) {
 retry:
     base_node *n = root;
     node_version64_body v = n->get_stable_version();
+    if (v.get_root() && v.get_deleted()) {
+      special_status = status::WARN_ROOT_DELETED;
+      return std::make_tuple(nullptr, node_version64_body());
+    }
+    /**
+     * Here, valid node.
+     */
     if (n != get_root()) {
       root = root->get_parent();
       goto retry;
