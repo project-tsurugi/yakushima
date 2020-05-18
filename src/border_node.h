@@ -25,11 +25,12 @@ public:
   /**
    * @brief release all heap objects and clean up.
    */
-  void destroy() final {
-    /**
-     * todo : Call destroy of all children.
-     */
-    return;
+  status destroy() final {
+    for (auto i = 0; i < permutation_.get_cnk(); ++i) {
+      lv_[i].destroy();
+    }
+    delete this;
+    return status::OK_DESTROY_BORDER;
   }
 
   [[nodiscard]] link_or_value *get_lv_at(std::size_t index) {
@@ -61,6 +62,8 @@ public:
   }
 
   void init_border() {
+    init_base();
+    set_version_border(true);
     n_removed_ = 0;
     for (std::size_t i = 0; i < key_slice_length; ++i) {
       key_length_[i] = 0;
@@ -85,7 +88,6 @@ public:
            bool root,
            std::size_t arg_value_length = sizeof(ValueType),
            std::size_t value_align = alignof(ValueType)) {
-    init_base();
     init_border();
     set_version_root(root);
     next_ = nullptr;

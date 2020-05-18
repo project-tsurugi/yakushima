@@ -25,17 +25,13 @@ protected:
 };
 
 TEST_F(typeid_test, typeid_check_super_derived) {
-  std::unique_ptr<base_node> base_uptr(new base_node()); // u ... unique
   std::unique_ptr<border_node> border_uptr(new border_node());
   std::unique_ptr<interior_node> interior_uptr(new interior_node());
 
-  ASSERT_EQ(typeid(base_uptr.get()), typeid(base_node*));
   ASSERT_EQ(typeid(border_uptr.get()), typeid(border_node*));
   ASSERT_EQ(typeid(interior_uptr.get()), typeid(interior_node*));
 
   base_node* base_nptr; // n ... normal
-  base_nptr = base_uptr.get();
-  ASSERT_EQ(typeid(*base_nptr), typeid(base_node));
   base_nptr = reinterpret_cast<base_node*>(border_uptr.get());
   ASSERT_EQ(typeid(*base_nptr), typeid(border_node));
   base_nptr = reinterpret_cast<base_node*>(interior_uptr.get());

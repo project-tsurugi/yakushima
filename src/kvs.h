@@ -47,16 +47,17 @@ public:
       /**
        * root is nullptr, so put single border nodes.
        */
-      border_node *new_root = new border_node();
-      new_root->set(key_view, value, true, arg_value_length, value_align);
+      border_node *new_border = new border_node();
+      new_border->set(key_view, value, true, arg_value_length, value_align);
       for (;;) {
-        if (root_.compare_exchange_weak(expected, dynamic_cast<base_node *>(new_root), std::memory_order_acq_rel,
+        if (root_.compare_exchange_weak(expected, dynamic_cast<base_node *>(new_border), std::memory_order_acq_rel,
                                         std::memory_order_acquire)) {
           return status::OK;
         } else {
           if (expected != nullptr) {
             // root is not nullptr;
-            delete new_root;
+            new_border->destroy();
+            delete new_border;
             break;
           }
           // root is nullptr.
@@ -125,7 +126,7 @@ descend:
     /**
      * The caller checks whether it has been deleted.
      */
-    if (typeid(*n) == typeid(border_node))
+    if (n->get_version_border())
       return std::make_tuple(static_cast<border_node *>(n), v);
     /**
      * @a n points to a interior_node object.

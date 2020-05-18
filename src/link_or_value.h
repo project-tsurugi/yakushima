@@ -1,14 +1,14 @@
+#pragma once
+
 /**
  * @file link_or_vlaue.h
  */
 
 #include "atomic_wrapper.h"
-#include "cpu.h"
 #include "base_node.h"
+#include "cpu.h"
 
 #include <typeinfo>
-
-#pragma once
 
 namespace yakushima {
 
@@ -32,11 +32,20 @@ public:
    * @details release heap objects.
    */
   void destroy() {
+    /**
+     * about next layer
+     */
+     if (next_layer_ != nullptr) {
+       next_layer_->destroy();
+     }
+    next_layer_ = nullptr;
+    /**
+     * about value
+     */
     if (get_need_delete_value()) {
       ::operator delete(v_or_vp_);
     }
     set_need_delete_value(false);
-    set_next_layer(nullptr);
     set_v_or_vp(nullptr);
     set_value_length(0);
   }
@@ -141,6 +150,8 @@ private:
   /**
    * @attention
    * This variable is read/write concurrently.
+   * If this is nullptr, value is stored.
+   * If this is not nullptr, it contains next_layer.
    */
   base_node *next_layer_{nullptr};
   /**

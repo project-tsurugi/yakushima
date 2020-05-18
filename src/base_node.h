@@ -6,6 +6,7 @@
 
 #include "atomic_wrapper.h"
 #include "cpu.h"
+#include "scheme.h"
 #include "version.h"
 
 namespace yakushima {
@@ -20,10 +21,11 @@ public:
   ~base_node() = default;
 
   /**
-   * A virtual function is defined because I want to distinguish the child class of the contents
-   * by typeid using polymorphism.
+   * A virtual function is defined because It wants to distinguish the child class of the contents
+   * by using polymorphism.
+   * So this function is pure virtual function.
    */
-  virtual void destroy() {}
+  virtual status destroy() = 0;
 
   /**
    * copy/move assign/constructor can not declare due to atomic member @a parent_
@@ -54,6 +56,10 @@ public:
 
   [[nodiscard]] node_version64 get_version() &{
     return version_;
+  }
+
+  [[nodiscard]] bool get_version_border() {
+    return version_.get_border();
   }
 
   void init_base() {
@@ -89,6 +95,10 @@ public:
         p = check;
       }
     }
+  }
+
+  void set_version_border(bool tf) {
+    version_.set_border(tf);
   }
 
   void set_version_root(bool tf) {

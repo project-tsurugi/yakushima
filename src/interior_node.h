@@ -13,6 +13,7 @@
 #include "border_node.h"
 
 namespace yakushima {
+
 class interior_node final : public base_node {
 public:
   /**
@@ -31,10 +32,12 @@ public:
    * @brief release all heap objects and clean up.
    * @pre This function is called by single thread.
    */
-  void destroy() final {
+  status destroy() final {
     for (auto i = 0; i < n_keys_; ++i) {
       child[i]->destroy();
     }
+    delete this;
+    return status::OK_DESTROY_INTERIOR;
   }
 
   [[nodiscard]] n_keys_body_type get_n_keys() {

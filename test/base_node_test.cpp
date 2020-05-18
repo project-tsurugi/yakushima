@@ -4,7 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "base_node.h"
+#include "border_node.h"
 #include "version.h"
 
 using namespace yakushima;
@@ -23,7 +23,11 @@ protected:
 TEST_F(base_node_test, constructor_base_node) {
   node_version64 ver;
   ver.init();
-  base_node bn;
+  /**
+   * base_node class is abstract class, so it can not declare object as base_node type.
+   * Instead of that, it uses border_node.
+   */
+  border_node bn;
   ASSERT_EQ(bn.get_version().get_body(), ver.get_body());
   ASSERT_EQ(bn.get_parent(), nullptr);
   for (std::size_t i = 0; i < base_node::key_slice_length; ++i) {
