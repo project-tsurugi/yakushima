@@ -66,7 +66,15 @@ public:
     return version_.get_deleted();
   }
 
-  [[nodiscard]] std::size_t get_version_vsplit() {
+  [[nodiscard]] node_version64_body::vdelete_type get_version_vdelete() {
+    return version_.get_vdelete();
+  }
+
+  [[nodiscard]] node_version64_body::vinsert_type  get_version_vinsert() {
+    return version_.get_vinsert();
+  }
+
+  [[nodiscard]] node_version64_body::vsplit_type get_version_vsplit() {
     return version_.get_vsplit();
   }
 

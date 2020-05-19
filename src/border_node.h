@@ -37,7 +37,14 @@ public:
     return &lv_[index];
   }
 
-  [[nodiscard]] link_or_value *get_lv_of(base_node::key_slice_type key_slice) {
+  /**
+   * @attention This function must not be called with locking of this node. Because this function executes
+   * get_stable_version and it waits own (lock-holder) infinitely.
+   * @param[in] key_slice
+   * @param[out] stable_v  the stable version which is at atomically fetching lv.
+   * @return
+   */
+  [[nodiscard]] link_or_value *get_lv_of(base_node::key_slice_type key_slice, node_version64_body &stable_v) {
     node_version64_body v = get_stable_version();
     for (;;) {
       /**
@@ -52,9 +59,29 @@ public:
         }
       }
       node_version64_body v_check = get_stable_version();
-      if (v == v_check) return ret_lv;
-      else v = v_check;
+      if (v == v_check) {
+        stable_v = v;
+        return ret_lv;
+      } else {
+        v = v_check;
+      }
     }
+  }
+
+  /**
+   * @param key_slice
+   * @details This function extracts lv without lock (double checking stable version).
+   * @return link_or_value*
+   * @return nullptr
+   */
+  [[nodiscard]] link_or_value *get_lv_of_without_lock(base_node::key_slice_type key_slice) {
+    std::size_t cnk = permutation_.get_cnk();
+    for (std::size_t i = 0; i < cnk; ++i) {
+      if (key_slice == get_key_slice_at(i)) {
+        return get_lv_at(i);
+      }
+    }
+    return nullptr;
   }
 
   [[nodiscard]] uint8_t *get_key_length() {
