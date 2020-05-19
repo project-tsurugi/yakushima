@@ -11,6 +11,8 @@
 #include <cstdint>
 #include <xmmintrin.h>
 
+#include "atomic_wrapper.h"
+
 namespace yakushima {
 
 /**
@@ -21,6 +23,22 @@ namespace yakushima {
  */
 class node_version64_body {
 public:
+  using vdelete_type = std::uint16_t;
+  using vinsert_type = std::uint16_t;
+  using vsplit_type = std::uint16_t;
+
+  node_version64_body() = default;
+
+  node_version64_body(const node_version64_body &) = default;
+
+  node_version64_body(node_version64_body &&) = default;
+
+  node_version64_body &operator=(const node_version64_body &) = default;
+
+  node_version64_body &operator=(node_version64_body &&) = default;
+
+  ~node_version64_body() = default;
+
   bool operator==(const node_version64_body &rhs) const {
     return locked == rhs.get_locked()
            && inserting == rhs.get_inserting()
@@ -28,6 +46,7 @@ public:
            && deleted == rhs.get_deleted()
            && root == rhs.get_root()
            && border == rhs.get_border()
+           && vdelete == rhs.get_vdelete()
            && vinsert == rhs.get_vinsert()
            && vsplit == rhs.get_vsplit()
            && unused == rhs.get_unused();
@@ -65,11 +84,15 @@ public:
     return unused;
   }
 
-  [[nodiscard]] std::uint32_t get_vinsert() const {
+  [[nodiscard]] vdelete_type get_vdelete() const {
+    return vdelete;
+  }
+
+  [[nodiscard]] vinsert_type get_vinsert() const {
     return vinsert;
   }
 
-  [[nodiscard]] std::uint64_t get_vsplit() const {
+  [[nodiscard]] vsplit_type get_vsplit() const {
     return vsplit;
   }
 
@@ -80,6 +103,7 @@ public:
     deleted = false;
     root = false;
     border = false;
+    vdelete = 0;
     vinsert = 0;
     vsplit = 0;
     unused = false;
@@ -113,11 +137,15 @@ public:
     unused = new_unused;
   }
 
-  void set_vinsert(std::uint32_t new_vinsert) &{
+  void set_vdelete(vdelete_type new_vdelete) {
+    vdelete = new_vdelete;
+  }
+
+  void set_vinsert(vinsert_type new_vinsert) &{
     vinsert = new_vinsert;
   }
 
-  void set_vsplit(std::uint32_t new_vsplit) &{
+  void set_vsplit(vsplit_type new_vsplit) &{
     vsplit = new_vsplit;
   }
 
@@ -137,6 +165,9 @@ private:
    * @details It is a dirty bit set during splitting.
    */
   bool splitting: 1;
+  /**
+   * @details It is a delete bit set after delete.
+   */
   bool deleted: 1;
   /**
    * @details It tells whether the node is the root of some B+-tree.
@@ -147,18 +178,29 @@ private:
    */
   bool border: 1;
   /**
-   * @details It is a counter incremented after inserting.
-   */
-  std::uint32_t vinsert: 16;
-  /**
-   * @details It is a counter incremented after splitting.
-   */
-  std::uint64_t vsplit: 41;
-  /**
    * @details It allows more efficient operations on the version number.
    * tanabe : Is variables's details is nothing in original paper?
    */
   bool unused: 1;
+  /**
+   * @attention tanabe : In the original paper, the interior node does not have a delete count field.
+   * On the other hand, the border node has this (nremoved) but no details in original paper.
+   * Since there is a @a deleted field in the version, you can check whether the node you are checking has been deleted.
+   * However, you do not know that the position has been moved.
+   * Maybe you took the node from the wrong position.
+   * The original paper cannot detect it.
+   * Therefore, add this vdelete field.
+   * @details It is a counter incremented after delete.
+   */
+  vdelete_type vdelete;
+  /**
+   * @details It is a counter incremented after inserting.
+   */
+  vinsert_type vinsert;
+  /**
+   * @details It is a counter incremented after splitting.
+   */
+  vsplit_type vsplit;
 };
 
 /**
@@ -174,20 +216,16 @@ public:
     init();
   }
 
-  node_version64(node_version64 const &rv) {
-    body_.store(rv.get_body(), std::memory_order_release);
-  }
-
   /**
    * @details This is atomic increment.
    * If you use "setter(getter + 1)", that is not atomic increment.
    */
   void atomic_increment_vinsert() {
-    node_version64_body expected(body_.load(std::memory_order_acquire)), desired;
+    node_version64_body expected(get_body()), desired;
     for (;;) {
       desired = expected;
       desired.set_vinsert(desired.get_vinsert() + 1);
-      if (body_.compare_exchange_strong(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
+      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
         break;
     }
   }
@@ -197,16 +235,16 @@ public:
    * @return void
    */
   void lock() {
-    node_version64_body expected(body_.load(std::memory_order_acquire)), desired;
+    node_version64_body expected(get_body()), desired;
     for (;;) {
       if (expected.get_locked()) {
         _mm_pause();
-        expected = body_.load(std::memory_order_acquire);
+        expected = get_body();
         continue;
       }
       desired = expected;
       desired.set_locked(true);
-      if (body_.compare_exchange_strong(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
+      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
         break;
     }
   }
@@ -216,7 +254,7 @@ public:
    * @pre The caller already succeeded acquiring lock.
    */
   void unlock() &{
-    node_version64_body desired(body_.load(std::memory_order_acquire));
+    node_version64_body desired(get_body());
     if (desired.get_inserting()) {
       desired.set_vinsert(desired.get_vinsert() + 1);
       desired.set_inserting(false);
@@ -226,38 +264,38 @@ public:
       desired.set_splitting(false);
     }
     desired.set_locked(false);
-    body_.store(desired, std::memory_order_release);
+    set_body(desired);
   }
 
-  [[nodiscard]] node_version64_body get_body() const {
+  [[nodiscard]] node_version64_body get_body() {
     return body_.load(std::memory_order_acquire);
   }
 
-  [[nodiscard]] bool get_border() const {
+  [[nodiscard]] bool get_border() {
     return get_body().get_border();
   }
 
-  [[nodiscard]] bool get_deleted() const {
+  [[nodiscard]] bool get_deleted() {
     return get_body().get_deleted();
   }
 
-  [[nodiscard]] bool get_inserting() const {
+  [[nodiscard]] bool get_inserting() {
     return get_body().get_inserting();
   }
 
-  [[nodiscard]] bool get_locked() const {
+  [[nodiscard]] bool get_locked() {
     return get_body().get_locked();
   }
 
-  [[nodiscard]] bool get_root() const {
+  [[nodiscard]] bool get_root() {
     return get_body().get_root();
   }
 
-  [[nodiscard]] bool get_splitting() const {
+  [[nodiscard]] bool get_splitting() {
     return get_body().get_splitting();
   }
 
-  [[nodiscard]] node_version64_body get_stable_version() const {
+  [[nodiscard]] node_version64_body get_stable_version() {
     for (;;) {
       node_version64_body sv = get_body();
       /**
@@ -271,15 +309,19 @@ public:
     }
   }
 
-  [[nodiscard]] bool get_unused() const {
+  [[nodiscard]] bool get_unused() {
     return get_body().get_unused();
   }
 
-  [[nodiscard]] bool get_vinsert() const {
+  [[nodiscard]] node_version64_body::vdelete_type get_vdelete() {
+    return get_body().get_vdelete();
+  }
+
+  [[nodiscard]] node_version64_body::vinsert_type get_vinsert() {
     return get_body().get_vinsert();
   }
 
-  [[nodiscard]] bool get_vsplit() const {
+  [[nodiscard]] node_version64_body::vsplit_type get_vsplit() {
     return get_body().get_vsplit();
   }
 
@@ -287,9 +329,7 @@ public:
    * @pre This function is called by only single thread.
    */
   void init() {
-    node_version64_body verbody;
-    verbody.init();
-    body_.store(verbody, std::memory_order_release);
+    set_body(node_version64_body());
   }
 
   void set_body(node_version64_body newv) &{
@@ -338,13 +378,19 @@ public:
     set_body(new_body);
   }
 
-  void set_vinsert(bool new_vinsert) &{
+  void set_vdelete(node_version64_body::vdelete_type new_vdelete) &{
+    node_version64_body new_body = get_body();
+    new_body.set_vdelete(new_vdelete);
+    set_body(new_body);
+  }
+
+  void set_vinsert(node_version64_body::vinsert_type new_vinsert) &{
     node_version64_body new_body = get_body();
     new_body.set_vinsert(new_vinsert);
     set_body(new_body);
   }
 
-  void set_vsplit(bool new_vsplit) &{
+  void set_vsplit(node_version64_body::vsplit_type new_vsplit) &{
     node_version64_body new_body = get_body();
     new_body.set_vsplit(new_vsplit);
     set_body(new_body);

@@ -45,7 +45,7 @@ public:
   }
 
   [[nodiscard]] base_node* get_child_at(std::size_t index) {
-    return loadAcquire(child[index]);
+    return loadAcquireN(child[index]);
   }
 
   base_node *get_child_of(base_node::key_slice_type key_slice) {

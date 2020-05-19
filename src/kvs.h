@@ -42,7 +42,8 @@ public:
   static status put(std::string_view key_view, ValueType *value,
                     std::size_t arg_value_length = sizeof(ValueType),
                     std::size_t value_align = alignof(ValueType)) {
-    base_node *expected = root_.load(std::memory_order_acquire);
+root_nullptr:
+    base_node *expected = get_root();
     if (expected == nullptr) {
       /**
        * root is nullptr, so put single border nodes.
@@ -57,14 +58,13 @@ public:
           if (expected != nullptr) {
             // root is not nullptr;
             new_border->destroy();
-            delete new_border;
             break;
           }
           // root is nullptr.
         }
       }
     }
-retry:
+retry_from_root:
     /**
      * here, root is not nullptr.
      * Prepare key for traversing tree.
@@ -72,6 +72,7 @@ retry:
     bool final_slice{false};
     std::string_view traverse_key_view{key_view};
     base_node *root = get_root();
+    if (root == nullptr) goto root_nullptr;
 retry_find_border:
     /**
      * prepare key_slice
@@ -89,7 +90,7 @@ retry_find_border:
      */
     status special_status;
     std::tuple<border_node *, node_version64_body> node_and_v = find_border(root, key_slice, special_status);
-    if (special_status == status::WARN_ROOT_DELETED) goto retry;
+    if (special_status == status::WARN_ROOT_DELETED) goto retry_from_root;
     constexpr std::size_t tuple_node_index = 0;
     constexpr std::size_t tuple_v_index = 1;
     border_node *target_border = std::get<tuple_node_index>(node_and_v);
@@ -97,15 +98,15 @@ retry_find_border:
     /**
      * check whether it should insert into this node.
      */
-    link_or_value *child = target_border->get_lv_of(key_slice);
+    link_or_value *lv_ptr = target_border->get_lv_of(key_slice);
     /**
-     * if child == nullptr : insert node into this border_node.
-     * else if child == value (next_layer == nullptr) : return status::WARN_UNIQUE_RESTRICTION.
-     * else if child ==  next_layer && final_slice == true : return status::WARN_UNIQUE_RESTRICTION.
-     * else if child == next_layer && final_slice == false : root = child; advance key; goto retry_find_border;
+     * if lv == nullptr : insert node into this border_node.
+     * else if lv == value (next_layer == nullptr) : return status::WARN_UNIQUE_RESTRICTION.
+     * else if lv ==  next_layer && final_slice == true : return status::WARN_UNIQUE_RESTRICTION.
+     * else if lv == next_layer && final_slice == false : root = lv; advance key; goto retry_find_border;
      * else unreachable; std::abort();
      */
-    if (child == nullptr) {
+    if (lv_ptr == nullptr) {
       /**
        * inserts node into this border_node.
        */
@@ -116,26 +117,29 @@ retry_find_border:
          * It was interrupted by delete ops or splitting.
          */
         target_border->unlock();
-        goto retry;
+        goto retry_from_root;
       }
       target_border->insert_lv(traverse_key_view, value, arg_value_length, value_align);
       target_border->unlock();
       return status::OK;
-    } else if (child->get_next_layer() == nullptr ||
-               (child->get_next_layer() != nullptr && final_slice)) {
-      target_border->unlock();
+    }
+    /**
+     * Here, lv_ptr != nullptr.
+     */
+    if (lv_ptr->get_v_or_vp_() != nullptr ||
+        (lv_ptr->get_next_layer() != nullptr && final_slice)) {
       return status::WARN_UNIQUE_RESTRICTION;
-    } else if (child->get_next_layer() != nullptr && !final_slice) {
+    } else if (lv_ptr->get_next_layer() != nullptr && !final_slice) {
       if (target_border->get_version_deleted() ||
           target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
         target_border->unlock();
-        goto retry;
+        goto retry_from_root;
       }
       /**
-       * root = child; advance key; goto retry_find_border;
+       * root = lv; advance key; goto retry_find_border;
        */
       target_border->unlock();
-      root = dynamic_cast<base_node *>(child->get_next_layer());
+      root = dynamic_cast<base_node *>(lv_ptr->get_next_layer());
       traverse_key_view.remove_prefix(sizeof(base_node::key_slice_type));
       goto retry_find_border;
     } else {

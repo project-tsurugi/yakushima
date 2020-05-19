@@ -39,7 +39,7 @@ public:
     if (index > static_cast<std::size_t>(key_slice_length)) {
       std::abort();
     }
-    return loadAcquire(key_slice_[index]);
+    return loadAcquireN(key_slice_[index]);
   }
 
   [[nodiscard]] bool get_lock() & {
@@ -51,11 +51,11 @@ public:
   }
 
   [[nodiscard]] base_node *get_parent() &{
-    return loadAcquire(parent_);
+    return loadAcquireN(parent_);
   }
 
-  [[nodiscard]] node_version64 get_version() &{
-    return version_;
+  [[nodiscard]] node_version64_body get_version() &{
+    return version_.get_body();
   }
 
   [[nodiscard]] bool get_version_border() {
@@ -111,7 +111,7 @@ public:
   }
 
   void set_parent(base_node* new_parent) {
-    storeRelease(parent_, new_parent);
+    storeReleaseN(parent_, new_parent);
   }
 
   void set_version_border(bool tf) {

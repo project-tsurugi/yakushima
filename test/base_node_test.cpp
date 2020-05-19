@@ -28,7 +28,7 @@ TEST_F(base_node_test, constructor_base_node) {
    * Instead of that, it uses border_node.
    */
   border_node bn;
-  ASSERT_EQ(bn.get_version().get_body(), ver.get_body());
+  ASSERT_EQ(bn.get_version(), ver.get_body());
   ASSERT_EQ(bn.get_parent(), nullptr);
   for (std::size_t i = 0; i < base_node::key_slice_length; ++i) {
     ASSERT_EQ(bn.get_key_slice_at(i), 0);

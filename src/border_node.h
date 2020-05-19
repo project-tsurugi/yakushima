@@ -177,6 +177,7 @@ private:
   // first member of base_node is aligned along with cache line size.
   /**
    * @attention This variable is read/written concurrently.
+   * tanabe : I don't know this variable's value. There is a  no purpose (details) in the original paper.
    */
   n_removed_type n_removed_{};
   /**

@@ -51,11 +51,11 @@ public:
   }
 
   [[nodiscard]] bool get_need_delete_value() {
-    return loadAcquire(need_delete_value_);
+    return loadAcquireN(need_delete_value_);
   }
 
   [[nodiscard]] base_node *get_next_layer() {
-    return loadAcquire(next_layer_);
+    return loadAcquireN(next_layer_);
   }
 
   [[nodiscard]] const std::type_info *get_lv_type() {
@@ -69,7 +69,7 @@ public:
   }
 
   [[nodiscard]] void *get_v_or_vp_() {
-    return loadAcquire(v_or_vp_);
+    return loadAcquireN(v_or_vp_);
   }
 
   void init_lv() {
@@ -131,19 +131,19 @@ public:
    * @param [in] next_layer
    */
   void set_next_layer(base_node *new_next_layer) {
-    storeRelease(next_layer_, new_next_layer);
+    storeReleaseN(next_layer_, new_next_layer);
   }
 
   void set_v_or_vp(void *new_v_or_vp) {
-    storeRelease(v_or_vp_, new_v_or_vp);
+    storeReleaseN(v_or_vp_, new_v_or_vp);
   }
 
   void set_value_length(value_size_type new_value_length) {
-    storeRelease(value_length_, new_value_length);
+    storeReleaseN(value_length_, new_value_length);
   }
 
   void set_need_delete_value(bool new_need_delete_value) {
-    storeRelease(need_delete_value_, new_need_delete_value);
+    storeReleaseN(need_delete_value_, new_need_delete_value);
   }
 
 private:
