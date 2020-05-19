@@ -27,6 +27,11 @@ protected:
 TEST_F(kvs_test, init) {
   masstree_kvs::init_kvs();
   ASSERT_EQ(true, true); // test ending of function which returns void.
+  std::string k("a"), v("v-a");
+  masstree_kvs::put(std::string_view(k), v.data(), v.size());
+  ASSERT_EQ(true, true); // test ending of function which returns void.
+  [[maybe_unused]] std::tuple<std::string*, std::size_t> tuple = masstree_kvs::get<std::string>(std::string_view(k));
+  ASSERT_EQ(true, true); // test ending of function which returns void.
 }
 
 }  // namespace yakushima::testing

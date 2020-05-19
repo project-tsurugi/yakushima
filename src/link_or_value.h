@@ -116,8 +116,8 @@ public:
         v_or_vp_ = ::operator new(sizeof(arg_value_size),
                                   static_cast<std::align_val_t>(value_align));
         need_delete_value_ = true;
-        ValueType *vp_tmp = static_cast<void *>(v_or_vp_);
-        for (auto i = 0; i < arg_value_size / sizeof(ValueType); ++i) {
+        ValueType *vp_tmp = static_cast<ValueType*>(v_or_vp_);
+        for (std::size_t i = 0; i < arg_value_size / sizeof(ValueType); ++i) {
           memcpy(&vp_tmp[i], &vptr[i], sizeof(ValueType));
         }
       }

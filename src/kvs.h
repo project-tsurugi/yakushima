@@ -30,7 +30,7 @@ public:
    */
   template<class ValueType>
   [[nodiscard]] static std::tuple<ValueType *, std::size_t>
-  get([[maybe_unused]]std::string key) {
+  get([[maybe_unused]]std::string_view key) {
     return std::make_tuple(nullptr, 0);
   }
 
