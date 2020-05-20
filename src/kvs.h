@@ -120,6 +120,7 @@ retry_find_border:
      * else if lv == next_layer && final_slice == false : root = lv; advance key; goto retry_find_border;
      * else unreachable; std::abort();
      */
+lv_ptr_null:
     if (lv_ptr == nullptr) {
       /**
        * inserts node into this border_node.
@@ -174,8 +175,66 @@ lv_ptr_exists:
         return status::WARN_UNIQUE_RESTRICTION;
       } else {
         /**
-         * todo : It creates new layer and inserts this old lv into the new layer.
+         * Finally, It creates new layer and inserts this old lv into the new layer.
          */
+        target_border->lock();
+        if (target_border->get_version_deleted()
+            || target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
+          target_border->unlock();
+          goto retry_from_root;
+        }
+        /**
+         * Here, border node is correct.
+         */
+        if (target_border->get_version_vinsert() != v_at_fetch_lv.get_vinsert()
+            || target_border->get_version_vdelete() != v_at_fetch_lv.get_vdelete()) {
+          /**
+           * lv_ptr may be incorrect.
+           */
+          lv_ptr = target_border->get_lv_of_without_lock(key_slice);
+          if (lv_ptr == nullptr) {
+            /**
+             * Before jumping, it updates the v_at_fetch by current version to improve performance lately.
+             */
+            node_version64_body new_v = target_border->get_version();
+            new_v.set_locked(false);
+            v_at_fb = v_at_fetch_lv = new_v;
+            target_border->unlock();
+            goto lv_ptr_null;
+          } else {
+            /**
+             * Before jumping, it updates the v_at_fetch by current version to improve performance lately.
+             */
+            node_version64_body new_v = target_border->get_version();
+            new_v.set_locked(false);
+            v_at_fb = v_at_fetch_lv = new_v;
+            target_border->unlock();
+            goto lv_ptr_exists;
+          }
+        }
+        /**
+         * Here, lv_ptr is correct.
+         * It creates new layer and inserts this old lv into the new layer.
+         */
+        border_node *new_border = new border_node();
+        new_border->init_border(traverse_key_view, value, true, arg_value_length, value_align);
+        /**
+         * Here, not final slice, so the key_slice size is 8 bytes
+         */
+        std::string_view slice_of_traverse_key_view(traverse_key_view);
+        slice_of_traverse_key_view.remove_suffix(slice_of_traverse_key_view.size() - sizeof(base_node::key_slice_type));
+        /**
+         * 1st argument (index == 0) was used by this (non-final) slice at init_border func.
+         */
+        new_border->insert_lv_at(1, slice_of_traverse_key_view, lv_ptr->get_v_or_vp_(), lv_ptr->get_value_length(),
+                                 lv_ptr->get_value_align());
+        /**
+         * process for lv_ptr
+         */
+        lv_ptr->destroy_value();
+        lv_ptr->set_next_layer(dynamic_cast<base_node *>(new_border));
+        target_border->unlock();
+        return status::OK;
       }
     }
     /**
@@ -184,22 +243,24 @@ lv_ptr_exists:
     if (lv_ptr->get_next_layer() != nullptr && !final_slice) {
       if (target_border->get_version_deleted() ||
           target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
+        /**
+         * border is incorrect.
+         */
         target_border->unlock();
         goto retry_from_root;
       }
       /**
        * root = lv; advance key; goto retry_find_border;
        */
-      target_border->unlock();
       root = dynamic_cast<base_node *>(lv_ptr->get_next_layer());
       traverse_key_view.remove_prefix(sizeof(base_node::key_slice_type));
+      target_border->unlock();
       goto retry_find_border;
-    } else {
-      /**
-      * unreachable
-      */
-      std::abort();
     }
+    /**
+    * unreachable
+    */
+    std::abort();
   }
 
   static status remove([[maybe_unused]]std::string key) {

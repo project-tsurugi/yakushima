@@ -14,7 +14,8 @@ namespace yakushima {
 
 class link_or_value {
 public:
-  using value_size_type = std::size_t;
+  using value_length_type = std::size_t;
+  using value_align_type = std::size_t;
 
   link_or_value() = default;
 
@@ -32,22 +33,25 @@ public:
    * @details release heap objects.
    */
   void destroy() {
-    /**
-     * about next layer
-     */
-     if (next_layer_ != nullptr) {
-       next_layer_->destroy();
-     }
-    next_layer_ = nullptr;
-    /**
-     * about value
-     */
+    destroy_next_layer();
+    destroy_value();
+  }
+
+  void destroy_next_layer() {
+    if (next_layer_ != nullptr) {
+      next_layer_->destroy();
+    }
+    set_next_layer(nullptr);
+  }
+
+  void destroy_value() {
     if (get_need_delete_value()) {
       ::operator delete(v_or_vp_);
     }
     set_need_delete_value(false);
     set_v_or_vp(nullptr);
     set_value_length(0);
+    set_value_align(0);
   }
 
   [[nodiscard]] bool get_need_delete_value() {
@@ -72,6 +76,14 @@ public:
     return loadAcquireN(v_or_vp_);
   }
 
+  [[nodiscard]] value_align_type get_value_align() {
+    return loadAcquireN(value_align_);
+  }
+
+  [[nodiscard]] value_length_type get_value_length() {
+    return loadAcquireN(value_length_);
+  }
+
   void init_lv() {
     set_need_delete_value(false);
     set_next_layer(nullptr);
@@ -86,40 +98,27 @@ public:
    * @param arg_value_size The byte size of value.
    * @param value_align The alignment of value.
    */
-  template<class ValueType>
-  void set_value(ValueType *vptr, std::size_t arg_value_size = sizeof(ValueType),
-                 std::size_t value_align = alignof(ValueType)) {
-    if (need_delete_value_) {
-      ::operator delete(v_or_vp_);
-      need_delete_value_ = false;
+  void set_value(void *vptr, std::size_t arg_value_size,
+                 std::size_t value_align) {
+    if (get_need_delete_value()) {
+      ::operator delete(get_v_or_vp_());
+      set_need_delete_value(false);
     }
-    next_layer_ = nullptr;
-    value_length_ = arg_value_size;
+    set_next_layer(nullptr);
+    set_value_length(arg_value_size);
+    set_value_align(value_align);
     try {
       /**
        * @details It use copy assign, so ValueType must be copy-assignable.
        */
-      if (sizeof(ValueType) == arg_value_size) {
-        if (arg_value_size <= sizeof(void *)) {
-          memcpy(&v_or_vp_, vptr, arg_value_size);
-          need_delete_value_ = false;
-        } else {
-          v_or_vp_ = ::operator new(sizeof(ValueType),
-                                    static_cast<std::align_val_t>(value_align));
-          memcpy(v_or_vp_, vptr, arg_value_size);
-          need_delete_value_ = true;
-        }
+      if (arg_value_size <= sizeof(void *)) {
+        memcpy(&v_or_vp_, vptr, arg_value_size);
+        set_need_delete_value(false);
       } else {
-        /**
-         * Value is variable-length.
-         */
-        v_or_vp_ = ::operator new(sizeof(arg_value_size),
-                                  static_cast<std::align_val_t>(value_align));
-        need_delete_value_ = true;
-        ValueType *vp_tmp = static_cast<ValueType*>(v_or_vp_);
-        for (std::size_t i = 0; i < arg_value_size / sizeof(ValueType); ++i) {
-          memcpy(&vp_tmp[i], &vptr[i], sizeof(ValueType));
-        }
+        set_v_or_vp(::operator new(sizeof(arg_value_size),
+                                   static_cast<std::align_val_t>(value_align)));
+        memcpy(get_v_or_vp_(), vptr, arg_value_size);
+        set_need_delete_value(true);
       }
     } catch (std::bad_alloc &e) {
       std::cout << e.what() << std::endl;
@@ -138,7 +137,11 @@ public:
     storeReleaseN(v_or_vp_, new_v_or_vp);
   }
 
-  void set_value_length(value_size_type new_value_length) {
+  void set_value_align(value_align_type new_value_align) {
+    storeReleaseN(value_align_, new_value_align);
+  }
+
+  void set_value_length(value_length_type new_value_length) {
     storeReleaseN(value_length_, new_value_length);
   }
 
@@ -165,7 +168,8 @@ private:
    * This variable is read/write concurrently.
    * This variable is updated at initialization and destruction.
    */
-  value_size_type value_length_{0};
+  value_length_type value_length_{0};
+  value_align_type value_align_{0};
   /**
    * @attention
    * This variable is read/write concurrently.

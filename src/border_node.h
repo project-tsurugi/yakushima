@@ -137,7 +137,7 @@ public:
     std::size_t cnk = permutation_.get_cnk();
     if (cnk == key_slice_length) {
       /**
-       * It needs splitting
+       * todo : It needs splitting
        */
     } else {
       /**
@@ -150,12 +150,11 @@ public:
   /**
    * @pre It already locked this node.
    */
-  template<class ValueType>
   void insert_lv_at(std::size_t index,
                     std::string_view key_view,
-                    ValueType *value_ptr,
-                    std::size_t arg_value_length,
-                    std::size_t value_align) {
+                    void *value_ptr,
+                    link_or_value::value_length_type arg_value_length,
+                    link_or_value::value_align_type value_align) {
     base_node::key_slice_type key_slice;
     if (key_view.size() > sizeof(base_node::key_slice_type)) {
       /**
@@ -189,11 +188,10 @@ public:
 
 private:
 
-  template<class ValueType>
   void set_lv_value(std::size_t index,
-                    ValueType *value,
-                    std::size_t arg_value_length = sizeof(ValueType),
-                    std::size_t value_align = alignof(ValueType)) {
+                    void *value,
+                    link_or_value::value_length_type arg_value_length,
+                    link_or_value::value_align_type value_align) {
     lv_[index].set_value(value, arg_value_length, value_align);
   }
 

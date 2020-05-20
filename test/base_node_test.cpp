@@ -35,4 +35,11 @@ TEST_F(base_node_test, constructor_base_node) {
   }
 }
 
+TEST_F(base_node_test, type_size) {
+  /**
+   * kvs.h uses the argument (sizeof(base_node::key_slice_type)) as 8 at std::string_view::remove_suffix function.
+   */
+  ASSERT_EQ(sizeof(base_node::key_slice_type), 8);
+}
+
 }  // namespace yakushima::testing
