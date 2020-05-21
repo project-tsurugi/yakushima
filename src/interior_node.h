@@ -81,7 +81,7 @@ public:
 
   void init_interior() {
     init_base();
-    set_version_border(true);
+    set_version_border(false);
     for (std::size_t i = 0; i < child_length; ++i) {
       child[i] = nullptr;
     }
