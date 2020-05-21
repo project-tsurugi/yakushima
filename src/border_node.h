@@ -115,7 +115,7 @@ public:
   void init_border(std::string_view key_view,
                    ValueType *value_ptr,
                    bool root,
-                   std::size_t arg_value_length = sizeof(ValueType),
+                   link_or_value::value_length_type arg_value_length = sizeof(ValueType),
                    std::size_t value_align = alignof(ValueType)) {
     init_border();
     set_version_root(root);
@@ -126,12 +126,14 @@ public:
 
   /**
    * @pre It already locked this node.
+   * @details This function is also called when creating a new layer when 8 bytes-key collides at a border node.
+   * At that time, the original value is moved to the new layer.
+   * This function does not use a template declaration because its pointer is retrieved with void *.
    */
-  template<class ValueType>
   void insert_lv(std::string_view key_view,
-                 ValueType *value_ptr,
-                 std::size_t arg_value_length,
-                 std::size_t value_align) {
+                 void *value_ptr,
+                 link_or_value::value_length_type arg_value_length,
+                 link_or_value::value_align_type value_align) {
     set_version_inserting(true);
     std::size_t cnk = permutation_.get_cnk();
     if (cnk == key_slice_length) {
