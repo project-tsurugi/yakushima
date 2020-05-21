@@ -15,6 +15,11 @@ class base_node {
 public:
   static constexpr std::size_t key_slice_length = 15;
   using key_slice_type = std::uint64_t;
+  /**
+   * key_length_type is used at permutation.h, border_node.h.
+   * To avoid circular reference at there, declare here.
+   */
+  using key_length_type = std::uint8_t;
 
   base_node() = default;
 

@@ -15,7 +15,6 @@ namespace yakushima {
 
 class border_node final : public base_node {
 public:
-  using key_length_type = std::uint8_t;
   using n_removed_type = std::uint8_t;
 
   border_node() = default;

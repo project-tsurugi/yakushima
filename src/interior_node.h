@@ -10,7 +10,6 @@
 
 #include "atomic_wrapper.h"
 #include "base_node.h"
-#include "border_node.h"
 
 namespace yakushima {
 
