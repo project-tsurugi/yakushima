@@ -115,7 +115,7 @@ public:
   void init_border(std::string_view key_view,
                    ValueType *value_ptr,
                    bool root,
-                   link_or_value::value_length_type arg_value_length = sizeof(ValueType),
+                   value_length_type arg_value_length = sizeof(ValueType),
                    std::size_t value_align = alignof(ValueType)) {
     init_border();
     set_version_root(root);
@@ -132,14 +132,15 @@ public:
    */
   void insert_lv(std::string_view key_view,
                  void *value_ptr,
-                 link_or_value::value_length_type arg_value_length,
-                 link_or_value::value_align_type value_align) {
+                 value_length_type arg_value_length,
+                 value_align_type value_align) {
     set_version_inserting(true);
     std::size_t cnk = permutation_.get_cnk();
     if (cnk == key_slice_length) {
       /**
        * todo : It needs splitting
        */
+       split(key_view, value_ptr, arg_value_length, value_align);
     } else {
       /**
        * Insert into this nodes.
@@ -154,8 +155,8 @@ public:
   void insert_lv_at(std::size_t index,
                     std::string_view key_view,
                     void *value_ptr,
-                    link_or_value::value_length_type arg_value_length,
-                    link_or_value::value_align_type value_align) {
+                    value_length_type arg_value_length,
+                    value_align_type value_align) {
     base_node::key_slice_type key_slice;
     if (key_view.size() > sizeof(base_node::key_slice_type)) {
       /**
@@ -191,8 +192,8 @@ private:
 
   void set_lv_value(std::size_t index,
                     void *value,
-                    link_or_value::value_length_type arg_value_length,
-                    link_or_value::value_align_type value_align) {
+                    value_length_type arg_value_length,
+                    value_align_type value_align) {
     lv_[index].set_value(value, arg_value_length, value_align);
   }
 

@@ -20,6 +20,13 @@ public:
    * To avoid circular reference at there, declare here.
    */
   using key_length_type = std::uint8_t;
+  /**
+   * These are mainly used at link_or_value.h
+   * To avoid circular reference at there, declare here.
+   */
+  using value_length_type = std::size_t;
+  using value_align_type = std::size_t;
+
 
   base_node() = default;
 
@@ -140,6 +147,29 @@ public:
   }
   void set_version_splitting(bool tf) {
     version_.set_splitting(tf);
+  }
+
+  /**
+   * @pre It already locked this node.
+   * @param key_view
+   * @param value_ptr
+   * @param arg_value_length
+   * @param value_align
+   */
+  void split([[maybe_unused]]std::string_view key_view,
+             [[maybe_unused]]void *value_ptr,
+             [[maybe_unused]]value_length_type arg_value_length,
+             [[maybe_unused]]value_align_type value_align) {
+    if (get_version_border()) {
+      /**
+       * process for border split.
+       */
+       return;
+    }
+    /**
+     * process for interior split.
+     */
+     return;
   }
 
   /**
