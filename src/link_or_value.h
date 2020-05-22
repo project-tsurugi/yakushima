@@ -96,6 +96,17 @@ public:
   }
 
   /**
+   * @pre This is called by split process.
+   * @param nlv
+   */
+  void set(link_or_value *nlv) {
+    /**
+     * This object in this function is not accessed concurrently, so it can memcpy.
+     */
+     *this = *nlv;
+  }
+
+  /**
    * @pre @a arg_value_length is divisible by sizeof( @a ValueType ).
    * @pre This function called at initialization.
    * @param vptr The pointer to source value object.

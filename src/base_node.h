@@ -1,5 +1,5 @@
 /**
- * @file mt_base_node.h
+ * @file base_node.h
  */
 
 #pragma once
@@ -39,11 +39,11 @@ public:
    */
   virtual status destroy() = 0;
 
-  /**
-   * copy/move assign/constructor can not declare due to atomic member @a parent_
-   */
+  [[nodiscard]] key_length_type *get_key_length() {
+    return key_length_;
+  }
 
-  [[nodiscard]] uint64_t *get_key_slice() {
+  [[nodiscard]] key_slice_type *get_key_slice() {
     return key_slice_;
   }
 
@@ -125,6 +125,10 @@ public:
     }
   }
 
+  void set_key_length(std::size_t index, uint8_t length) {
+    key_length_[index] = length;
+  }
+
   void set_key_slice(std::size_t index, std::uint64_t key_slice) {
     if (index >= key_slice_length) std::abort();
     key_slice_[index] = key_slice;
@@ -132,6 +136,10 @@ public:
 
   void set_parent(base_node* new_parent) {
     storeReleaseN(parent_, new_parent);
+  }
+
+  void set_version(node_version64_body nv) {
+    version_.set_body(nv);
   }
 
   void set_version_border(bool tf) {
@@ -149,27 +157,9 @@ public:
     version_.set_splitting(tf);
   }
 
-  /**
-   * @pre It already locked this node.
-   * @param key_view
-   * @param value_ptr
-   * @param arg_value_length
-   * @param value_align
-   */
-  void split([[maybe_unused]]std::string_view key_view,
-             [[maybe_unused]]void *value_ptr,
-             [[maybe_unused]]value_length_type arg_value_length,
-             [[maybe_unused]]value_align_type value_align) {
-    if (get_version_border()) {
-      /**
-       * process for border split.
-       */
-       return;
-    }
-    /**
-     * process for interior split.
-     */
-     return;
+  void shift_left_base_member(std::size_t start_pos, std::size_t shift_size) {
+    memmove(&get_key_slice()[start_pos-shift_size], &get_key_slice()[start_pos], sizeof(key_slice_type) * (key_slice_length - shift_size));
+    memmove(&get_key_length()[start_pos-shift_size], &get_key_length()[start_pos], sizeof(key_length_type) * (key_slice_length - shift_size));
   }
 
   /**
@@ -180,7 +170,6 @@ public:
   void unlock() &{
     version_.unlock();
   }
-
 
 private:
   /**
@@ -202,6 +191,15 @@ private:
    * @attention This variable is read/written concurrently.
    */
   key_slice_type key_slice_[key_slice_length]{};
+  /**
+   * @attention This variable is read/written concurrently.
+   * @details This is used for distinguishing the identity of link or value and same slices.
+   * For example,
+   * key 1 : \0, key 2 : \0\0, ... , key 8 : \0\0\0\0\0\0\0\0.
+   * These keys have same key_slices (0) but different key_length.
+   * If the length is more than 8, the lv points out to next layer.
+   */
+  key_length_type key_length_[key_slice_length]{};
 };
 
 } // namespace yakushima

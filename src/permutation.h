@@ -61,20 +61,28 @@ public:
     body_.store(0, std::memory_order_release);
   }
 
+  /**
+   * @pre @a key_slice and @a key_length is array whose size is equal or less than cnk of permutation.
+   * If it ignores, it may occur seg-v error.
+   * @param key_slice
+   * @param key_length
+   */
   void rearrange(std::uint64_t *key_slice, std::uint8_t *key_length) {
     std::uint64_t per_body(body_.load(std::memory_order_acquire));
     // get current number of keys
     std::size_t cnk = per_body & cnk_mask;
 
     // tuple<key_slice, key_length, index>
-    [[maybe_unused]] constexpr std::size_t key_slice_index = 0;
-    [[maybe_unused]] constexpr std::size_t key_length_index = 1;
     constexpr std::size_t key_pos = 2;
     std::vector<std::tuple<base_node::key_slice_type, base_node::key_length_type, std::uint8_t>> vec;
     vec.reserve(cnk);
     for (std::uint8_t i = 0; i < cnk; ++i) {
       vec.emplace_back(key_slice[i], key_length[i], i);
     }
+    /**
+     * sort based on key_slice and key_length for dictionary order.
+     * So <key_slice_type, key_length_type, ...>
+     */
     std::sort(vec.begin(), vec.end());
 
     // rearrange

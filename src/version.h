@@ -249,24 +249,6 @@ public:
     }
   }
 
-  /**
-   * @details This function unlocks atomically.
-   * @pre The caller already succeeded acquiring lock.
-   */
-  void unlock() &{
-    node_version64_body desired(get_body());
-    if (desired.get_inserting()) {
-      desired.set_vinsert(desired.get_vinsert() + 1);
-      desired.set_inserting(false);
-    }
-    if (desired.get_splitting()) {
-      desired.set_vsplit(desired.get_vsplit() + 1);
-      desired.set_splitting(false);
-    }
-    desired.set_locked(false);
-    set_body(desired);
-  }
-
   [[nodiscard]] node_version64_body get_body() {
     return body_.load(std::memory_order_acquire);
   }
@@ -394,6 +376,24 @@ public:
     node_version64_body new_body = get_body();
     new_body.set_vsplit(new_vsplit);
     set_body(new_body);
+  }
+
+  /**
+   * @details This function unlocks atomically.
+   * @pre The caller already succeeded acquiring lock.
+   */
+  void unlock() &{
+    node_version64_body desired(get_body());
+    if (desired.get_inserting()) {
+      desired.set_vinsert(desired.get_vinsert() + 1);
+      desired.set_inserting(false);
+    }
+    if (desired.get_splitting()) {
+      desired.set_vsplit(desired.get_vsplit() + 1);
+      desired.set_splitting(false);
+    }
+    desired.set_locked(false);
+    set_body(desired);
   }
 
 private:

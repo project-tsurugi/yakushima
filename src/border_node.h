@@ -4,10 +4,13 @@
 
 #pragma once
 
+#include <string.h>
+
 #include <cstdint>
 #include <iostream>
 
 #include "atomic_wrapper.h"
+#include "interior_node.h"
 #include "link_or_value.h"
 #include "permutation.h"
 
@@ -15,8 +18,6 @@ namespace yakushima {
 
 class border_node final : public base_node {
 public:
-  using n_removed_type = std::uint8_t;
-
   border_node() = default;
 
   ~border_node() = default;
@@ -32,6 +33,10 @@ public:
     return status::OK_DESTROY_BORDER;
   }
 
+  [[nodiscard]] link_or_value *get_lv() {
+    return lv_;
+  }
+
   [[nodiscard]] link_or_value *get_lv_at(std::size_t index) {
     return &lv_[index];
   }
@@ -43,7 +48,7 @@ public:
    * @param[out] stable_v  the stable version which is at atomically fetching lv.
    * @return
    */
-  [[nodiscard]] link_or_value *get_lv_of(base_node::key_slice_type key_slice, node_version64_body &stable_v) {
+  [[nodiscard]] link_or_value *get_lv_of(key_slice_type key_slice, node_version64_body &stable_v) {
     node_version64_body v = get_stable_version();
     for (;;) {
       /**
@@ -73,7 +78,7 @@ public:
    * @return link_or_value*
    * @return nullptr
    */
-  [[nodiscard]] link_or_value *get_lv_of_without_lock(base_node::key_slice_type key_slice) {
+  [[nodiscard]] link_or_value *get_lv_of_without_lock(key_slice_type key_slice) {
     std::size_t cnk = permutation_.get_cnk();
     for (std::size_t i = 0; i < cnk; ++i) {
       if (key_slice == get_key_slice_at(i)) {
@@ -83,16 +88,11 @@ public:
     return nullptr;
   }
 
-  [[nodiscard]] uint8_t *get_key_length() {
-    return key_length_;
-  }
-
   void init_border() {
     init_base();
     set_version_border(true);
-    n_removed_ = 0;
     for (std::size_t i = 0; i < key_slice_length; ++i) {
-      key_length_[i] = 0;
+      set_key_length(i, 0);
       lv_[i].init_lv();
     }
     permutation_.init();
@@ -157,14 +157,14 @@ public:
                     void *value_ptr,
                     value_length_type arg_value_length,
                     value_align_type value_align) {
-    base_node::key_slice_type key_slice;
-    if (key_view.size() > sizeof(base_node::key_slice_type)) {
+    key_slice_type key_slice;
+    if (key_view.size() > sizeof(key_slice_type)) {
       /**
        * Create multiple border nodes.
        */
-      memcpy(&key_slice, key_view.data(), sizeof(base_node::key_slice_type));
+      memcpy(&key_slice, key_view.data(), sizeof(key_slice_type));
       set_key_slice(index, key_slice);
-      set_key_length(index, sizeof(base_node::key_slice_type));
+      set_key_length(index, sizeof(key_slice_type));
       permutation_.inc_key_num();
       permutation_.rearrange(get_key_slice(), get_key_length());
       border_node *next_layer_border = new border_node();
@@ -184,11 +184,16 @@ public:
     }
   }
 
-  void set_key_length(std::size_t index, uint8_t length) {
-    key_length_[index] = length;
-  }
-
 private:
+
+  /**
+   * @pre This is called by split process.
+   * @param index
+   * @param nlv
+   */
+  void set_lv(std::size_t index, link_or_value *nlv) {
+    lv_[index].set(nlv);
+  }
 
   void set_lv_value(std::size_t index,
                     void *value,
@@ -201,21 +206,100 @@ private:
     lv_[index].set_next_layer(next_layer);
   }
 
+  void set_next(border_node *nnext) {
+    storeReleaseN(next_, nnext);
+  }
+
+  void set_prev(border_node *nprev) {
+    prev_.store(nprev, std::memory_order_release);
+  }
+
+  void shift_left_border_member(std::size_t start_pos, std::size_t shift_size) {
+    memmove(&get_lv()[start_pos - shift_size], &get_lv()[start_pos],
+            sizeof(link_or_value) * (key_slice_length - shift_size));
+  }
+
+  /**
+   * @pre It already locked this node.
+   * @details border node split.
+   * @param[in] key_view
+   * @param[in] value_ptr
+   * @param[in] value_length
+   * @param[in] value_align
+   */
+  void split([[maybe_unused]]std::string_view key_view,
+             [[maybe_unused]]void *value_ptr,
+             [[maybe_unused]]value_length_type value_length,
+             [[maybe_unused]]value_align_type value_align) {
+    border_node *new_border = new border_node();
+    new_border->init_border();
+    new_border->set_prev(this);
+    set_version_root(false);
+    set_version_splitting(true);
+    /**
+     * new border is initially locked
+     */
+    new_border->set_version(get_version());
+    /**
+     * split keys among n and n', inserting k
+     */
+    constexpr std::size_t key_slice_index = 0;
+    constexpr std::size_t key_length_index = 1;
+    constexpr std::size_t key_pos = 2;
+    std::vector<std::tuple<key_slice_type, key_length_type, std::uint8_t>> vec;
+    std::uint8_t cnk = permutation_.get_cnk();
+    vec.reserve(cnk);
+    key_slice_type *key_slice_array = get_key_slice();
+    key_length_type *key_length_array = get_key_length();
+    for (std::uint8_t i = 0; i < cnk; ++i) {
+      vec.emplace_back(key_slice_array[i], key_length_array[i], i);
+    }
+    std::sort(vec.begin(), vec.end());
+
+    /**
+     * split
+     */
+    std::size_t index_ctr(0);
+    std::vector<std::size_t> shift_pos;
+    for (auto itr = vec.begin() + (key_slice_length / 2); itr != vec.end(); ++itr) {
+      /**
+       * move base_node members to new nodes
+       */
+      new_border->set_key_slice(index_ctr, std::get<key_slice_index>(*itr));
+      new_border->set_key_length(index_ctr, std::get<key_length_index>(*itr));
+      new_border->set_lv(index_ctr, get_lv_at(index_ctr));
+      if (std::get<key_pos>(*itr) < (key_slice_length / 2)) {
+        shift_pos.emplace_back(std::get<key_pos>(*itr));
+      }
+      ++index_ctr;
+    }
+    /**
+     * fix member positions of old border_node.
+     */
+    std::sort(shift_pos.begin(), shift_pos.end());
+    std::size_t shifted_ctr(0);
+    for (auto itr = shift_pos.begin(); itr != shift_pos.end(); ++itr) {
+      shift_left_base_member(*itr - shifted_ctr, 1);
+      shift_left_border_member(*itr - shifted_ctr, 1);
+      ++shifted_ctr;
+    }
+    /**
+     * fix permutations
+     */
+    permutation_.rearrange(get_key_slice(), get_key_length());
+    new_border->permutation_.rearrange(new_border->get_key_slice(), new_border->get_key_length());
+[[maybe_unused]]ascend:
+    /**
+     * The next border node is not exposed to the reader until the split process is completed.
+     */
+    set_next(new_border);
+    /**
+     * unlock phase
+     */
+    return;
+  }
+
   // first member of base_node is aligned along with cache line size.
-  /**
-   * @attention This variable is read/written concurrently.
-   * tanabe : I don't know this variable's value. There is a  no purpose (details) in the original paper.
-   */
-  n_removed_type n_removed_{};
-  /**
-   * @attention This variable is read/written concurrently.
-   * @details This is used for distinguishing the identity of link or value and same slices.
-   * For example,
-   * key 1 : \0, key 2 : \0\0, ... , key 8 : \0\0\0\0\0\0\0\0.
-   * These keys have same key_slices (0) but different key_length.
-   * If the length is more than 8, the lv points out to next layer.
-   */
-  key_length_type key_length_[key_slice_length]{};
   /**
    * @attention This variable is read/written concurrently.
    */
@@ -232,12 +316,6 @@ private:
    * @attention This is protected by its previous sibling's lock.
    */
   std::atomic<border_node *> prev_{nullptr};
-  /**
-   * @attention This variable is read concurrently.
-   * This variable is updated only at initialization.
-   * tanabe : I don't know this variable's value. There is a  no purpose (details) in the original paper.
-   */
-  std::uint64_t key_suffix_[key_slice_length]{};
 };
 } // namespace yakushima
 
