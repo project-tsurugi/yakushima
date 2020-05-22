@@ -8,6 +8,9 @@
 
 namespace yakushima {
 
-masstree_kvs mt_kvs;
+/**
+ * @details To create a root node that is a static object, it is declared.
+ */
+border_node mt_kvs;
 
 } // namespace yakushima

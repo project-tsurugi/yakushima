@@ -11,6 +11,11 @@
 
 namespace yakushima {
 
+/**
+ * forward declaration to use friend
+ */
+class masstree_kvs;
+
 class base_node {
 public:
   static constexpr std::size_t key_slice_length = 15;
@@ -43,11 +48,15 @@ public:
     return key_length_;
   }
 
+  [[nodiscard]] key_length_type get_key_length_at(std::size_t index) {
+    return loadAcquireN(key_length_[index]);
+  }
+
   [[nodiscard]] key_slice_type *get_key_slice() {
     return key_slice_;
   }
 
-  [[nodiscard]] uint64_t get_key_slice_at(std::size_t index) {
+  [[nodiscard]] key_slice_type get_key_slice_at(std::size_t index) {
     if (index > static_cast<std::size_t>(key_slice_length)) {
       std::abort();
     }
@@ -56,6 +65,10 @@ public:
 
   [[nodiscard]] bool get_lock() & {
     return version_.get_locked();
+  }
+
+  static base_node *get_root() {
+    return root_.load(std::memory_order_acquire);
   }
 
   [[nodiscard]] node_version64_body get_stable_version() &{
@@ -68,6 +81,10 @@ public:
 
   [[nodiscard]] node_version64_body get_version() &{
     return version_.get_body();
+  }
+
+  [[nodiscard]] node_version64 *get_version_ptr() {
+    return &version_;
   }
 
   [[nodiscard]] bool get_version_border() {
@@ -138,6 +155,10 @@ public:
     storeReleaseN(parent_, new_parent);
   }
 
+  static void set_root(base_node *nr) {
+    root_.store(nr, std::memory_order_release);
+  }
+
   void set_version(node_version64_body nv) {
     version_.set_body(nv);
   }
@@ -172,6 +193,7 @@ public:
   }
 
 private:
+  friend masstree_kvs;
   /**
    * @attention This variable is read/written concurrently.
    */
@@ -200,6 +222,14 @@ private:
    * If the length is more than 8, the lv points out to next layer.
    */
   key_length_type key_length_[key_slice_length]{};
+
+/**
+ * @details
+ * Todo : It will be container to be able to switch database.
+ */
+  static std::atomic<base_node *> root_;
 };
+
+std::atomic<base_node *> base_node::root_ = nullptr;
 
 } // namespace yakushima

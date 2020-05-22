@@ -20,7 +20,7 @@ public:
    * @return status::OK
    */
   static status destroy() {
-    root_.load(std::memory_order_acquire)->destroy();
+    base_node::get_root()->destroy();
     return status::OK;
   }
 
@@ -35,7 +35,7 @@ public:
   }
 
   static void init_kvs() {
-    root_.store(nullptr, std::memory_order_release);
+    base_node::set_root(nullptr);
   }
 
   template<class ValueType>
@@ -43,7 +43,7 @@ public:
                     std::size_t arg_value_length = sizeof(ValueType),
                     std::size_t value_align = alignof(ValueType)) {
 root_nullptr:
-    base_node *expected = get_root();
+    base_node *expected = base_node::get_root();
     if (expected == nullptr) {
       /**
        * root is nullptr, so put single border nodes.
@@ -51,7 +51,7 @@ root_nullptr:
       border_node *new_border = new border_node();
       new_border->init_border(key_view, value, true, arg_value_length, value_align);
       for (;;) {
-        if (root_.compare_exchange_weak(expected, dynamic_cast<base_node *>(new_border), std::memory_order_acq_rel,
+        if (base_node::root_.compare_exchange_weak(expected, dynamic_cast<base_node *>(new_border), std::memory_order_acq_rel,
                                         std::memory_order_acquire)) {
           return status::OK;
         } else {
@@ -69,7 +69,7 @@ retry_from_root:
      * here, root is not nullptr.
      * Prepare key for traversing tree.
      */
-    base_node *root = get_root();
+    base_node *root = base_node::get_root();
     if (root == nullptr) goto root_nullptr;
 
     bool final_slice{false};
@@ -161,8 +161,12 @@ lv_ptr_null:
           goto lv_ptr_exists;
         }
       }
-      target_border->insert_lv(traverse_key_view, value, arg_value_length, value_align);
-      target_border->unlock();
+      std::vector<node_version64 *> lock_list;
+      lock_list.emplace_back(target_border->get_version_ptr());
+      target_border->insert_lv(traverse_key_view, value, arg_value_length, value_align, lock_list);
+      for (auto &lock : lock_list) {
+        lock->unlock();
+      }
       return status::OK;
     }
 lv_ptr_exists:
@@ -267,12 +271,7 @@ lv_ptr_exists:
     return status::OK;
   }
 
-protected:
 private:
-  static base_node *get_root() {
-    return root_.load(std::memory_order_acquire);
-  }
-
   /**
    *
    * @param key_slice
@@ -294,7 +293,7 @@ retry:
     /**
      * Here, valid node.
      */
-    if (n != get_root()) {
+    if (n != base_node::get_root()) {
       root = root->get_parent();
       goto retry;
     }
@@ -346,14 +345,6 @@ descend:
     v = v_check;
     goto descend;
   }
-
-  /**
-   * @details
-   * Todo : It will be container to be able to switch database.
-   */
-  static std::atomic<base_node *> root_;
 };
-
-std::atomic<base_node *> masstree_kvs::root_ = nullptr;
 
 } // namespace yakushima

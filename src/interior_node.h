@@ -83,9 +83,25 @@ public:
     init_base();
     set_version_border(false);
     for (std::size_t i = 0; i < child_length; ++i) {
-      child[i] = nullptr;
+      set_child_at(i, nullptr);
     }
-    n_keys_ = 0;
+    set_n_keys(0);
+  }
+
+  void set_child_at(std::size_t index, base_node* new_child) {
+    storeReleaseN(child[index], new_child);
+  }
+
+  void set_n_keys(n_keys_body_type new_n_key) {
+    n_keys_.store(new_n_key, std::memory_order_release);
+  }
+
+  void n_keys_decrement() {
+    n_keys_.fetch_sub(1);
+  }
+
+  void n_keys_increment() {
+    n_keys_.fetch_add(1);
   }
 
 private:
