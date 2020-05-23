@@ -163,7 +163,7 @@ lv_ptr_null:
       }
       std::vector<node_version64 *> lock_list;
       lock_list.emplace_back(target_border->get_version_ptr());
-      target_border->insert_lv(traverse_key_view, value, arg_value_length, value_align, lock_list);
+      target_border->insert_lv(traverse_key_view, false, value, arg_value_length, value_align, lock_list);
       for (auto &lock : lock_list) {
         lock->unlock();
       }
@@ -230,7 +230,7 @@ lv_ptr_exists:
         /**
          * 1st argument (index == 0) was used by this (non-final) slice at init_border func.
          */
-        new_border->insert_lv_at(1, slice_of_traverse_key_view, lv_ptr->get_v_or_vp_(), lv_ptr->get_value_length(),
+        new_border->insert_lv_at(1, slice_of_traverse_key_view, false, lv_ptr->get_v_or_vp_(), lv_ptr->get_value_length(),
                                  lv_ptr->get_value_align());
         /**
          * process for lv_ptr

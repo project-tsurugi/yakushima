@@ -88,7 +88,15 @@ public:
     set_n_keys(0);
   }
 
-  void set_child_at(std::size_t index, base_node* new_child) {
+  /**
+   * @details split interior node.
+   * @param key_view After sp
+   */
+  void split([[maybe_unused]]std::string_view key_view,
+             [[maybe_unused]]base_node *child_node) {
+  }
+
+  void set_child_at(std::size_t index, base_node *new_child) {
     storeReleaseN(child[index], new_child);
   }
 

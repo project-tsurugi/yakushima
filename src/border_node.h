@@ -23,6 +23,80 @@ public:
   ~border_node() = default;
 
   /**
+   * @details This may be called at split function.
+   * It creates new interior node as parents of this border_node and @a higher_border node.
+   * @param higher_border This is a higher border_node as result of split for this node.
+   * @param key_view
+   * @param value_ptr
+   * @param value_length
+   * @param value_align
+   * @param lock_list This is unused because the border nodes is not-full as result of split.
+   * The insert_lv function needs lock_list as an argument, so it is passed in spite of not using.
+   */
+  void create_interior_parents_and_insert(border_node *higher_border,
+                                          std::string_view key_view, void *value_ptr, value_length_type value_length,
+                                          value_align_type value_align, std::vector<node_version64 *> &lock_list) {
+    /**
+     * create a new interior node p with children n, n'
+     */
+    interior_node *ni = new interior_node();
+    ni->init_interior();
+    ni->set_version_root(true);
+    /**
+     * process base node members
+     */
+    ni->set_key(0, higher_border->get_key_slice_at(0), higher_border->get_key_length_at(0));
+    /**
+     * process interior node members
+     */
+    ni->n_keys_increment();
+    ni->set_child_at(0, dynamic_cast<base_node *>(this));
+    ni->set_child_at(1, dynamic_cast<base_node *>(higher_border));
+    /**
+     * The insert process we wanted to do before we split.
+     * key_slice must be initialized to 0.
+     */
+    key_slice_type key_slice(0);
+    if (key_view.size() > sizeof(key_slice_type)) {
+      memcpy(&key_slice, key_view.data(), sizeof(key_slice_type));
+    } else {
+      memcpy(&key_slice, key_view.data(), key_view.size());
+    }
+    key_slice_type lowest_key_of_nb = higher_border->get_key_slice_at(0);
+    key_length_type lowest_key_length_of_nb = higher_border->get_key_length_at(0);
+    int memcmp_result = memcmp(&key_slice, &lowest_key_of_nb, sizeof(key_slice_type));
+    if (memcmp_result < 0
+        || (memcmp_result == 0 && key_view.size() < lowest_key_length_of_nb)) {
+      /**
+       * insert to lower border node.
+       * @attention lock_list will not be added new lock.
+       */
+      insert_lv(key_view, false, value_ptr, value_length, value_align, lock_list);
+    } else if (memcmp_result > 0
+               || (memcmp_result == 0 && key_view.size() > lowest_key_length_of_nb)) {
+      /**
+       * insert to higher border node.
+       * @attention lock_list will not be added new lock.
+       */
+      std::vector<node_version64 *> dammy;
+      higher_border->insert_lv(key_view, false, value_ptr, value_length, value_align, lock_list);
+    } else {
+      /**
+       * It did not have a matching key, so it ran inert_lv.
+       * There should be no matching keys even if it splited this border.
+       */
+      std::cerr << __FILE__ << " : " << __LINE__ << " : " << "split fatal error" << std::endl;
+      std::abort();
+    }
+    /**
+     * release interior parent to global.
+     */
+    set_parent(dynamic_cast<base_node *>(ni));
+    higher_border->set_parent(dynamic_cast<base_node *>(ni));
+    set_root(dynamic_cast<base_node *>(ni));
+  }
+
+  /**
    * @brief release all heap objects and clean up.
    */
   status destroy() final {
@@ -121,7 +195,7 @@ public:
     set_version_root(root);
     next_ = nullptr;
     prev_ = nullptr;
-    insert_lv_at(0, key_view, value_ptr, arg_value_length, value_align);
+    insert_lv_at(0, key_view, false, value_ptr, arg_value_length, value_align);
   }
 
   /**
@@ -132,6 +206,7 @@ public:
    * @param[out] lock_list Hold the lock so that the caller can release the lock from below.
    */
   void insert_lv(std::string_view key_view,
+                 bool next_layer,
                  void *value_ptr,
                  value_length_type arg_value_length,
                  value_align_type value_align,
@@ -140,22 +215,24 @@ public:
     std::size_t cnk = permutation_.get_cnk();
     if (cnk == key_slice_length) {
       /**
-       * todo : It needs splitting
+       * It needs splitting
        */
       split(key_view, value_ptr, arg_value_length, value_align, lock_list);
     } else {
       /**
        * Insert into this nodes.
        */
-       insert_lv_at(cnk, key_view, value_ptr, arg_value_length, value_align);
+      insert_lv_at(cnk, key_view, next_layer, value_ptr, arg_value_length, value_align);
     }
   }
 
   /**
    * @pre It already locked this node.
+   * @param[in] next_layer If it is true, value_ptr points to next_layer.
    */
   void insert_lv_at(std::size_t index,
                     std::string_view key_view,
+                    bool next_layer,
                     void *value_ptr,
                     value_length_type arg_value_length,
                     value_align_type value_align) {
@@ -188,6 +265,9 @@ public:
       set_key_length(index, key_view.size());
       permutation_.inc_key_num();
       permutation_.rearrange(get_key_slice(), get_key_length());
+      if (next_layer) {
+        set_lv_next_layer(index, reinterpret_cast<base_node *>(value_ptr));
+      }
       set_lv_value(index, value_ptr, arg_value_length, value_align);
     }
   }
@@ -234,11 +314,12 @@ private:
    * @param[in] value_ptr
    * @param[in] value_length
    * @param[in] value_align
+   * @param[out] lock_list Hold the lock so that the caller can release the lock from below.
    */
-  void split([[maybe_unused]]std::string_view key_view,
-             [[maybe_unused]]void *value_ptr,
-             [[maybe_unused]]value_length_type value_length,
-             [[maybe_unused]]value_align_type value_align,
+  void split(std::string_view key_view,
+             void *value_ptr,
+             value_length_type value_length,
+             value_align_type value_align,
              std::vector<node_version64 *> &lock_list) {
     border_node *new_border = new border_node();
     new_border->init_border();
@@ -301,56 +382,10 @@ private:
     permutation_.rearrange(get_key_slice(), get_key_length());
     new_border->permutation_.set_cnk(key_slice_length - key_slice_length / 2);
     new_border->permutation_.rearrange(new_border->get_key_slice(), new_border->get_key_length());
-[[maybe_unused]]ascend:
+
     base_node *p = lock_parent();
     if (p == nullptr) {
-      /**
-       * create a new interior node p with children n, n'
-       */
-      interior_node *ni = new interior_node();
-      ni->init_interior();
-      ni->set_version_root(true);
-      /**
-       * process base node members
-       */
-      ni->set_key_slice(0, new_border->get_key_slice_at(0));
-      ni->set_key_length(0, new_border->get_key_length_at(0));
-      /**
-       * process interior node members
-       */
-      ni->n_keys_increment();
-      ni->set_child_at(0, dynamic_cast<base_node *>(this));
-      ni->set_child_at(1, dynamic_cast<base_node *>(new_border));
-      /**
-       * The insert process we wanted to do before we split.
-       * key_slice must be initialized to 0.
-       */
-      key_slice_type key_slice(0);
-      if (key_view.size() > sizeof(key_slice_type)) {
-        memcpy(&key_slice, key_view.data(), sizeof(key_slice_type));
-      } else {
-        memcpy(&key_slice, key_view.data(), key_view.size());
-      }
-      key_slice_type lowest_key_of_nb = new_border->get_key_slice_at(0);
-      key_length_type lowest_key_length_of_nb = new_border->get_key_length_at(0);
-      int memcmp_result = memcmp(&key_slice, &lowest_key_of_nb, sizeof(key_slice_type));
-      if (memcmp_result < 0
-          || (memcmp_result == 0 && key_view.size() < lowest_key_length_of_nb)) {
-        std::vector<node_version64 *> dammy;
-        insert_lv(key_view, value_ptr, value_length, value_align, dammy);
-      } else if (memcmp_result > 0
-                 || (memcmp_result == 0 && key_view.size() > lowest_key_length_of_nb)) {
-        std::vector<node_version64 *> dammy;
-        new_border->insert_lv(key_view, value_ptr, value_length, value_align, dammy);
-      } else {
-        /**
-         * It did not have a matching key, so it ran inert_lv.
-         * There should be no matching keys even if it splited this border.
-         */
-        std::cerr << __FILE__ << " : " << __LINE__ << " : " << "split fatal error" << std::endl;
-        std::abort();
-      }
-      set_root(dynamic_cast<base_node *>(ni));
+      create_interior_parents_and_insert(new_border, key_view, value_ptr, value_length, value_align, lock_list);
       return;
     }
     /**
@@ -358,20 +393,41 @@ private:
      */
     lock_list.emplace_back(p->get_version_ptr());
     if (p->get_version_border()) {
-      /**
-       * border full case
-       */
+      border_node *pb = dynamic_cast<border_node *>(p);
+      if (pb->permutation_.get_cnk() == base_node::key_slice_length) {
+        /**
+         * border full case
+         */
+        split(key_view, value_ptr, value_length, value_align, lock_list);
+        return;
+      }
       /**
        * border not-full case
+       */
+      pb->set_version_inserting(true);
+      /**
+       * The old border node which is before this split was root of the some layer.
+       * So it creates new interior nodes in the layer and insert its interior pointer
+       * to the (parent) border node.
+       */
+      create_interior_parents_and_insert(new_border, key_view, value_ptr, value_length, value_align, lock_list);
+      interior_node *pi = dynamic_cast<interior_node *>(get_parent());
+      pb->insert_lv(std::string_view{reinterpret_cast<char *>(pi->get_key_slice_at(0)),
+                                     pi->get_key_length_at(0)},
+                    true, pi, 0, 0, lock_list);
+      return;
+    }
+    interior_node *pi = dynamic_cast<interior_node *>(p);
+    if (pi->get_n_keys() == base_node::key_slice_length) {
+      /**
+       * interior full case
        */
       return;
     }
     /**
-     * interior full case
-     */
-    /**
      * interior not-full case
      */
+    pi->set_version_inserting(true);
     return;
   }
 

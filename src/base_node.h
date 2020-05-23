@@ -142,11 +142,16 @@ public:
     }
   }
 
-  void set_key_length(std::size_t index, uint8_t length) {
+  void set_key(std::size_t index, key_slice_type key_slice, key_length_type key_length) {
+    set_key_slice(index, key_slice);
+    set_key_length(index, key_length);
+  }
+
+  void set_key_length(std::size_t index, key_length_type length) {
     key_length_[index] = length;
   }
 
-  void set_key_slice(std::size_t index, std::uint64_t key_slice) {
+  void set_key_slice(std::size_t index, key_slice_type key_slice) {
     if (index >= key_slice_length) std::abort();
     key_slice_[index] = key_slice;
   }
