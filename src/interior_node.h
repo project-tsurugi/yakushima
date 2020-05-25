@@ -28,6 +28,12 @@ public:
 
   ~interior_node() = default;
 
+  void create_interior_parent([[maybe_unused]]interior_node* right) {
+    /**
+     * todo;
+     */
+    return;
+  }
   /**
    * @brief release all heap objects and clean up.
    * @pre This function is called by single thread.
@@ -140,13 +146,65 @@ public:
   }
 
   /**
+   * @pre It already acquired lock of this node.
    * @details split interior node.
-   * @param key_view After sp
+   * @param[in] child_node After split, it inserts this @child_node.
    */
-  void split([[maybe_unused]]base_node *child_node) {
+  void split(base_node *child_node, std::vector<node_version64 *> &lock_list) {
+    interior_node *new_interior = new interior_node();
+    new_interior->init_interior();
+    set_version_root(false);
+    set_version_splitting(true);
     /**
-     * todo;
+     * new interior is initially locked.
      */
+    new_interior->set_version(get_version());
+    lock_list.emplace_back(new_interior->get_version_ptr());
+    /**
+     * split keys among n and n'
+     */
+    key_slice_type pivot_key = key_slice_length / 2;
+    std::size_t split_children_points = pivot_key + 1;
+    move_key_to_base_range(new_interior, split_children_points);
+    set_n_keys(pivot_key);
+    if (pivot_key % 2) {
+      new_interior->set_n_keys(pivot_key);
+    } else {
+      new_interior->set_n_keys(pivot_key -1);
+    }
+    move_children_to_interior_range(new_interior, split_children_points);
+    /**
+     * It inserts child_node.
+     */
+    std::tuple<key_slice_type, key_length_type> visitor{child_node->get_key_slice_at(0),
+                                                        child_node->get_key_length_at(0)};
+    if (visitor <
+        std::make_tuple<key_slice_type, key_length_type>(get_key_slice_at(pivot_key), get_key_length_at(pivot_key))) {
+      insert(child_node);
+    } else {
+      new_interior->insert(child_node);
+    }
+
+    base_node* p = lock_parent();
+    if (p == nullptr) {
+      create_interior_parent(new_interior);
+      return;
+    }
+    /**
+     * todo
+     * case : p is full-border
+     * case : p is not-full-border
+     * case : p is full-interior
+     * case : p is not-full-interior
+     */
+     return;
+  }
+
+  void move_children_to_interior_range(interior_node *right_interior, std::size_t start) {
+    for (auto i = start; i < child_length; ++i) {
+      right_interior->set_child_at(i - start, get_child_at(i));
+      set_child_at(i, nullptr);
+    }
   }
 
   void n_keys_decrement() {

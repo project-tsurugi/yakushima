@@ -147,6 +147,13 @@ public:
     }
   }
 
+  void move_key_to_base_range(base_node* right, std::size_t start) {
+    for (auto i = start; i < key_slice_length; ++i) {
+      right->set_key(i - start, get_key_slice_at(i), get_key_length_at(i));
+      set_key(i, 0, 0);
+    }
+  }
+
   void set_key(std::size_t index, key_slice_type key_slice, key_length_type key_length) {
     set_key_slice_at(index, key_slice);
     set_key_length_at(index, key_length);

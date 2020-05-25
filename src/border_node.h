@@ -44,6 +44,8 @@ public:
     interior_node *ni = new interior_node();
     ni->init_interior();
     ni->set_version_root(true);
+    ni->lock();
+    lock_list.emplace_back(ni->get_version_ptr());
     /**
      * process base node members
      */
@@ -80,7 +82,6 @@ public:
        * insert to higher border node.
        * @attention lock_list will not be added new lock.
        */
-      std::vector<node_version64 *> dammy;
       higher_border->insert_lv(key_view, next_layer, value_ptr, value_length, value_align, lock_list);
     } else {
       /**
@@ -346,7 +347,7 @@ private:
     new_border->set_version(get_version());
     lock_list.emplace_back(new_border->get_version_ptr());
     /**
-     * split keys among n and n', inserting k
+     * split keys among n and n'
      */
     constexpr std::size_t key_slice_index = 0;
     constexpr std::size_t key_length_index = 1;
@@ -403,6 +404,9 @@ private:
 
     base_node *p = lock_parent();
     if (p == nullptr) {
+      /**
+       * create interior as parents and insert k.
+       */
       create_interior_parents_and_insert(new_border, key_view, next_layer, value_ptr, value_length, value_align,
                                          lock_list);
       return;
@@ -425,13 +429,13 @@ private:
       interior_node *pi = dynamic_cast<interior_node *>(get_parent());
       if (pb->permutation_.get_cnk() == base_node::key_slice_length) {
         /**
-         * border full case
+         * border full case, it splits and inserts.
          */
         split(key_view, true, pi, value_length, value_align, lock_list);
         return;
       }
       /**
-       * border not-full case
+       * border not-full case, it inserts.
        */
       pb->insert_lv(std::string_view
                             {reinterpret_cast<char *>(pi->get_key_slice_at(0)), pi->get_key_length_at(0)},
@@ -444,13 +448,13 @@ private:
     interior_node *pi = dynamic_cast<interior_node *>(p);
     if (pi->get_n_keys() == base_node::key_slice_length) {
       /**
-       * interior full case
+       * interior full case, it splits and inserts.
        */
-       pi->split(new_border);
+       pi->split(new_border, lock_list);
       return;
     }
     /**
-     * interior not-full case
+     * interior not-full case, it inserts.
      */
     pi->set_version_inserting(true);
     pi->insert(new_border);
