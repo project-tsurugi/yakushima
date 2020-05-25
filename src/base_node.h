@@ -38,7 +38,7 @@ public:
   ~base_node() = default;
 
   /**
-   * A virtual function is defined because It wants to distinguish the child class of the contents
+   * A virtual function is defined because It wants to distinguish the children class of the contents
    * by using polymorphism.
    * So this function is pure virtual function.
    */
@@ -110,8 +110,13 @@ public:
   void init_base() {
     version_.init();
     set_parent(nullptr);
-    for (std::size_t i = 0; i < key_slice_length; ++i) {
-      key_slice_[i] = 0;
+    init_base_member_range(0, key_slice_length - 1);
+  }
+
+  void init_base_member_range(std::size_t start, std::size_t end) {
+    for (std::size_t i = start; i <= end; ++i) {
+      set_key_slice_at(i, 0);
+      set_key_length_at(i, 0);
     }
   }
 
@@ -143,15 +148,15 @@ public:
   }
 
   void set_key(std::size_t index, key_slice_type key_slice, key_length_type key_length) {
-    set_key_slice(index, key_slice);
-    set_key_length(index, key_length);
+    set_key_slice_at(index, key_slice);
+    set_key_length_at(index, key_length);
   }
 
-  void set_key_length(std::size_t index, key_length_type length) {
+  void set_key_length_at(std::size_t index, key_length_type length) {
     key_length_[index] = length;
   }
 
-  void set_key_slice(std::size_t index, key_slice_type key_slice) {
+  void set_key_slice_at(std::size_t index, key_slice_type key_slice) {
     if (index >= key_slice_length) std::abort();
     key_slice_[index] = key_slice;
   }
@@ -184,8 +189,17 @@ public:
   }
 
   void shift_left_base_member(std::size_t start_pos, std::size_t shift_size) {
-    memmove(&get_key_slice()[start_pos-shift_size], &get_key_slice()[start_pos], sizeof(key_slice_type) * (key_slice_length - shift_size));
-    memmove(&get_key_length()[start_pos-shift_size], &get_key_length()[start_pos], sizeof(key_length_type) * (key_slice_length - shift_size));
+    memmove(&get_key_slice()[start_pos - shift_size], &get_key_slice()[start_pos],
+            sizeof(key_slice_type) * (key_slice_length - start_pos));
+    memmove(&get_key_length()[start_pos - shift_size], &get_key_length()[start_pos],
+            sizeof(key_length_type) * (key_slice_length - start_pos));
+  }
+
+  void shift_right_base_member(std::size_t start, std::size_t shift_size) {
+    memmove(&get_key_slice()[start + shift_size], &get_key_slice()[start],
+            sizeof(key_slice_type) * start);
+    memmove(&get_key_length()[start + shift_size], &get_key_length()[start],
+            sizeof(key_length_type) * start);
   }
 
   /**

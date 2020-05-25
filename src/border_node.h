@@ -25,6 +25,7 @@ public:
   /**
    * @details This may be called at split function.
    * It creates new interior node as parents of this border_node and @a higher_border node.
+   * After that, it inserts based on @a key_view, @a value_ptr, ... (args).
    * @param higher_border This is a higher border_node as result of split for this node.
    * @param key_view
    * @param value_ptr
@@ -34,7 +35,8 @@ public:
    * The insert_lv function needs lock_list as an argument, so it is passed in spite of not using.
    */
   void create_interior_parents_and_insert(border_node *higher_border,
-                                          std::string_view key_view, void *value_ptr, value_length_type value_length,
+                                          std::string_view key_view, bool next_layer, void *value_ptr,
+                                          value_length_type value_length,
                                           value_align_type value_align, std::vector<node_version64 *> &lock_list) {
     /**
      * create a new interior node p with children n, n'
@@ -71,7 +73,7 @@ public:
        * insert to lower border node.
        * @attention lock_list will not be added new lock.
        */
-      insert_lv(key_view, false, value_ptr, value_length, value_align, lock_list);
+      insert_lv(key_view, next_layer, value_ptr, value_length, value_align, lock_list);
     } else if (memcmp_result > 0
                || (memcmp_result == 0 && key_view.size() > lowest_key_length_of_nb)) {
       /**
@@ -79,7 +81,7 @@ public:
        * @attention lock_list will not be added new lock.
        */
       std::vector<node_version64 *> dammy;
-      higher_border->insert_lv(key_view, false, value_ptr, value_length, value_align, lock_list);
+      higher_border->insert_lv(key_view, next_layer, value_ptr, value_length, value_align, lock_list);
     } else {
       /**
        * It did not have a matching key, so it ran inert_lv.
@@ -164,11 +166,8 @@ public:
 
   void init_border() {
     init_base();
+    init_border_member_range(0, key_slice_length - 1);
     set_version_border(true);
-    for (std::size_t i = 0; i < key_slice_length; ++i) {
-      set_key_length(i, 0);
-      lv_[i].init_lv();
-    }
     permutation_.init();
     next_ = nullptr;
     prev_.store(nullptr, std::memory_order_relaxed);
@@ -192,10 +191,22 @@ public:
                    value_length_type arg_value_length = sizeof(ValueType),
                    std::size_t value_align = alignof(ValueType)) {
     init_border();
+    init_border_member_range(0, key_slice_length - 1);
     set_version_root(root);
+    set_version_border(true);
     next_ = nullptr;
     prev_ = nullptr;
     insert_lv_at(0, key_view, false, value_ptr, arg_value_length, value_align);
+  }
+
+  void init_border_member_range(std::size_t start, std::size_t end) {
+    for (auto i = start; i <= end; ++i) {
+      init_lv_at(i);
+    }
+  }
+
+  void init_lv_at(std::size_t index) {
+    lv_[index].init_lv();
   }
 
   /**
@@ -217,7 +228,7 @@ public:
       /**
        * It needs splitting
        */
-      split(key_view, value_ptr, arg_value_length, value_align, lock_list);
+      split(key_view, next_layer, value_ptr, arg_value_length, value_align, lock_list);
     } else {
       /**
        * Insert into this nodes.
@@ -248,8 +259,8 @@ public:
        * Create multiple border nodes.
        */
       memcpy(&key_slice, key_view.data(), sizeof(key_slice_type));
-      set_key_slice(index, key_slice);
-      set_key_length(index, sizeof(key_slice_type));
+      set_key_slice_at(index, key_slice);
+      set_key_length_at(index, sizeof(key_slice_type));
       permutation_.inc_key_num();
       permutation_.rearrange(get_key_slice(), get_key_length());
       border_node *next_layer_border = new border_node();
@@ -258,11 +269,12 @@ public:
       /**
        * @attention next_layer_border is the root of next layer.
        */
-      static_cast<border_node *>(next_layer_border)->init_border(key_view, value_ptr, true, arg_value_length, value_align);
+      static_cast<border_node *>(next_layer_border)->init_border(key_view, value_ptr, true, arg_value_length,
+                                                                 value_align);
     } else {
       memcpy(&key_slice, key_view.data(), key_view.size());
-      set_key_slice(index, key_slice);
-      set_key_length(index, key_view.size());
+      set_key_slice_at(index, key_slice);
+      set_key_length_at(index, key_view.size());
       permutation_.inc_key_num();
       permutation_.rearrange(get_key_slice(), get_key_length());
       if (next_layer) {
@@ -303,8 +315,8 @@ private:
   }
 
   void shift_left_border_member(std::size_t start_pos, std::size_t shift_size) {
-    memmove(&get_lv()[start_pos - shift_size], &get_lv()[start_pos],
-            sizeof(link_or_value) * (key_slice_length - shift_size));
+    memmove(get_lv_at(start_pos - shift_size), get_lv_at(start_pos),
+            sizeof(link_or_value) * (key_slice_length - start_pos));
   }
 
   /**
@@ -317,6 +329,7 @@ private:
    * @param[out] lock_list Hold the lock so that the caller can release the lock from below.
    */
   void split(std::string_view key_view,
+             bool next_layer,
              void *value_ptr,
              value_length_type value_length,
              value_align_type value_align,
@@ -357,8 +370,8 @@ private:
       /**
        * move base_node members to new nodes
        */
-      new_border->set_key_slice(index_ctr, std::get<key_slice_index>(*itr));
-      new_border->set_key_length(index_ctr, std::get<key_length_index>(*itr));
+      new_border->set_key_slice_at(index_ctr, std::get<key_slice_index>(*itr));
+      new_border->set_key_length_at(index_ctr, std::get<key_length_index>(*itr));
       new_border->set_lv(index_ctr, get_lv_at(index_ctr));
       if (std::get<key_pos>(*itr) < (key_slice_length / 2)) {
         shift_pos.emplace_back(std::get<key_pos>(*itr));
@@ -371,10 +384,15 @@ private:
     std::sort(shift_pos.begin(), shift_pos.end());
     std::size_t shifted_ctr(0);
     for (auto itr = shift_pos.begin(); itr != shift_pos.end(); ++itr) {
-      shift_left_base_member(*itr - shifted_ctr, 1);
-      shift_left_border_member(*itr - shifted_ctr, 1);
+      shift_left_base_member(*itr + 1 - shifted_ctr, 1);
+      shift_left_border_member(*itr + 1 - shifted_ctr, 1);
       ++shifted_ctr;
     }
+    /**
+     * maintenance about empty parts due to new border.
+     */
+    init_base_member_range(key_slice_length / 2, key_slice_length - 1);
+    init_border_member_range(key_slice_length / 2, key_slice_length - 1);
     /**
      * fix permutations
      */
@@ -385,7 +403,8 @@ private:
 
     base_node *p = lock_parent();
     if (p == nullptr) {
-      create_interior_parents_and_insert(new_border, key_view, value_ptr, value_length, value_align, lock_list);
+      create_interior_parents_and_insert(new_border, key_view, next_layer, value_ptr, value_length, value_align,
+                                         lock_list);
       return;
     }
     /**
@@ -393,41 +412,48 @@ private:
      */
     lock_list.emplace_back(p->get_version_ptr());
     if (p->get_version_border()) {
+      /**
+       * parent is border node.
+       * The old border node which is before this split was root of the some layer.
+       * So it creates new interior nodes in the layer and insert its interior pointer
+       * to the (parent) border node.
+       */
       border_node *pb = dynamic_cast<border_node *>(p);
+      pb->set_version_inserting(true);
+      create_interior_parents_and_insert(new_border, key_view, next_layer, value_ptr, value_length,
+                                         value_align, lock_list);
+      interior_node *pi = dynamic_cast<interior_node *>(get_parent());
       if (pb->permutation_.get_cnk() == base_node::key_slice_length) {
         /**
          * border full case
          */
-        split(key_view, value_ptr, value_length, value_align, lock_list);
+        split(key_view, true, pi, value_length, value_align, lock_list);
         return;
       }
       /**
        * border not-full case
        */
-      pb->set_version_inserting(true);
-      /**
-       * The old border node which is before this split was root of the some layer.
-       * So it creates new interior nodes in the layer and insert its interior pointer
-       * to the (parent) border node.
-       */
-      create_interior_parents_and_insert(new_border, key_view, value_ptr, value_length, value_align, lock_list);
-      interior_node *pi = dynamic_cast<interior_node *>(get_parent());
-      pb->insert_lv(std::string_view{reinterpret_cast<char *>(pi->get_key_slice_at(0)),
-                                     pi->get_key_length_at(0)},
+      pb->insert_lv(std::string_view
+                            {reinterpret_cast<char *>(pi->get_key_slice_at(0)), pi->get_key_length_at(0)},
                     true, pi, 0, 0, lock_list);
       return;
     }
+    /**
+     * parent is interior node.
+     */
     interior_node *pi = dynamic_cast<interior_node *>(p);
     if (pi->get_n_keys() == base_node::key_slice_length) {
       /**
        * interior full case
        */
+       pi->split(new_border);
       return;
     }
     /**
      * interior not-full case
      */
     pi->set_version_inserting(true);
+    pi->insert(new_border);
     return;
   }
 

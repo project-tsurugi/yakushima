@@ -14,6 +14,9 @@ namespace yakushima {
 
 class masstree_kvs {
 public:
+  using key_slice_type = base_node::key_slice_type;
+  using key_length_type = base_node::key_length_type;
+
   /**
    * @brief release all heap objects and clean up.
    * @pre This function is called by single thread.
@@ -78,19 +81,22 @@ retry_find_border:
     /**
      * prepare key_slice
      */
-    base_node::key_slice_type key_slice;
-    if (traverse_key_view.size() > sizeof(base_node::key_slice_type)) {
-      memcpy(&key_slice, traverse_key_view.data(), sizeof(base_node::key_slice_type));
+    key_slice_type key_slice;
+    key_length_type key_slice_length;
+    if (traverse_key_view.size() > sizeof(key_slice_type)) {
+      memcpy(&key_slice, traverse_key_view.data(), sizeof(key_slice_type));
       final_slice = false;
+      key_slice_length = sizeof(key_slice_type);
     } else {
       memcpy(&key_slice, traverse_key_view.data(), traverse_key_view.size());
       final_slice = true;
+      key_slice_length = traverse_key_view.size();
     }
     /**
      * traverse tree to border node.
      */
     status special_status;
-    std::tuple<border_node *, node_version64_body> node_and_v = find_border(root, key_slice, special_status);
+    std::tuple<border_node *, node_version64_body> node_and_v = find_border(root, key_slice, key_slice_length, special_status);
     if (special_status == status::WARN_ROOT_DELETED) {
       /**
        * @a root is the root node of the some layer, but it was deleted.
@@ -226,7 +232,7 @@ lv_ptr_exists:
          * Here, not final slice, so the key_slice size is 8 bytes
          */
         std::string_view slice_of_traverse_key_view(traverse_key_view);
-        slice_of_traverse_key_view.remove_suffix(slice_of_traverse_key_view.size() - sizeof(base_node::key_slice_type));
+        slice_of_traverse_key_view.remove_suffix(slice_of_traverse_key_view.size() - sizeof(key_slice_type));
         /**
          * 1st argument (index == 0) was used by this (non-final) slice at init_border func.
          */
@@ -257,7 +263,7 @@ lv_ptr_exists:
        * root = lv; advance key; goto retry_find_border;
        */
       root = dynamic_cast<base_node *>(lv_ptr->get_next_layer());
-      traverse_key_view.remove_prefix(sizeof(base_node::key_slice_type));
+      traverse_key_view.remove_prefix(sizeof(key_slice_type));
       target_border->unlock();
       goto retry_find_border;
     }
@@ -282,7 +288,7 @@ private:
    * node_version64_body is stable version of base_node*.
    */
   static std::tuple<border_node *, node_version64_body>
-  find_border(base_node *root, base_node::key_slice_type key_slice, status &special_status) {
+  find_border(base_node *root, key_slice_type key_slice, key_length_type key_slice_length, status &special_status) {
 retry:
     base_node *n = root;
     node_version64_body v = n->get_stable_version();
@@ -306,7 +312,7 @@ descend:
     /**
      * @a n points to a interior_node object.
      */
-    [[maybe_unused]]base_node *n_child = static_cast<interior_node *>(n)->get_child_of(key_slice);
+    [[maybe_unused]]base_node *n_child = static_cast<interior_node *>(n)->get_child_of(key_slice, key_slice_length);
     /**
      * As soon as you it finished operating the contents of node, read version (v_check).
      */

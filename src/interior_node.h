@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include <cstdint>
+#include <cstring>
 
 #include "atomic_wrapper.h"
 #include "base_node.h"
@@ -33,7 +34,7 @@ public:
    */
   status destroy() final {
     for (auto i = 0; i < n_keys_; ++i) {
-      child[i]->destroy();
+      get_child_at(i)->destroy();
     }
     delete this;
     return status::OK_DESTROY_INTERIOR;
@@ -44,11 +45,12 @@ public:
   }
 
   [[nodiscard]] base_node* get_child_at(std::size_t index) {
-    return loadAcquireN(child[index]);
+    return loadAcquireN(children[index]);
   }
 
-  base_node *get_child_of(base_node::key_slice_type key_slice) {
+  base_node *get_child_of(key_slice_type key_slice, key_length_type key_length) {
     node_version64_body v = get_stable_version();
+    std::tuple<key_slice_type, key_length_type> visitor{key_slice, key_length};
     for (;;) {
       n_keys_body_type n_key = get_n_keys();
       base_node *ret_child{nullptr};
@@ -56,8 +58,8 @@ public:
         /**
          * It loads key_slice atomically by get_key_slice_at func.
          */
-         base_node::key_slice_type slice_at_index = get_key_slice_at(i);
-        if (memcmp(&key_slice, &slice_at_index, sizeof(base_node::key_slice_type)) < 0) {
+        std::tuple<key_slice_type, key_length_type> resident{get_key_slice_at(i), get_key_length_at(i)};
+        if (visitor < resident) {
           /**
            * The key_slice must be left direction of the index.
            */
@@ -67,10 +69,10 @@ public:
           /**
            * The key_slice must be right direction of the index.
            */
-           if (i == n_key -1) {
-             ret_child = get_child_at(i+1);
-             break;
-           }
+          if (i == n_key - 1) {
+            ret_child = get_child_at(i + 1);
+            break;
+          }
         }
       }
       node_version64_body check = get_stable_version();
@@ -89,19 +91,62 @@ public:
   }
 
   /**
-   * @details split interior node.
-   * @param key_view After sp
+   * @pre It already acquired lock of this node.
+   * @pre This interior node is not full.
+   * @details insert @a child and fix @a children.
+   * @param child new inserted child.
    */
-  void split([[maybe_unused]]std::string_view key_view,
-             [[maybe_unused]]base_node *child_node) {
+  void insert(base_node *child) {
+    std::tuple<key_slice_type, key_length_type>
+            visitor{child->get_key_slice_at(0), child->get_key_length_at(0)};
+    n_keys_body_type n_key = get_n_keys();
+    for (auto i = 0; i < n_key; ++i) {
+      std::tuple<key_slice_type, key_length_type>
+              resident{get_key_slice_at(i), get_key_length_at(i)};
+      constexpr std::size_t visitor_slice = 0;
+      constexpr std::size_t visitor_slice_length = 1;
+      if (visitor < resident) {
+        shift_right_children(i, 1);
+        set_child_at(i, child);
+        shift_right_base_member(i, 1);
+        set_key(i, std::get<visitor_slice>(resident), std::get<visitor_slice_length>(resident));
+        n_keys_increment();
+        return;
+      }
+    }
+    set_key(n_key, child->get_key_slice_at(0), child->get_key_length_at(0));
+    set_child_at(n_key + 1, child);
+    n_keys_increment();
+    return;
   }
 
   void set_child_at(std::size_t index, base_node *new_child) {
-    storeReleaseN(child[index], new_child);
+    storeReleaseN(children[index], new_child);
   }
 
   void set_n_keys(n_keys_body_type new_n_key) {
     n_keys_.store(new_n_key, std::memory_order_release);
+  }
+
+  /**
+   * @pre It already acquired lock of this node.
+   * @param start_pos
+   * @param shift_size
+   */
+  void shift_right_children(std::size_t start_pos, std::size_t shift_size) {
+    memmove(reinterpret_cast<void *>(get_child_at(start_pos + shift_size)),
+            reinterpret_cast<void *>(get_child_at(start_pos)),
+            sizeof(base_node *) * (start_pos + 1));
+  }
+
+  /**
+   * @details split interior node.
+   * @param key_view After sp
+   */
+  void split([[maybe_unused]]base_node *child_node) {
+    /**
+     * todo;
+     */
   }
 
   void n_keys_decrement() {
@@ -120,7 +165,7 @@ private:
   /**
    * @attention This variable is read/written concurrently.
    */
-  base_node *child[child_length]{};
+  base_node *children[child_length]{};
   /**
    * @attention This variable is read/written concurrently.
    */
