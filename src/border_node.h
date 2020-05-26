@@ -27,11 +27,11 @@ public:
    * It creates new interior node as parents of this border_node and @a higher_border node.
    * After that, it inserts based on @a key_view, @a value_ptr, ... (args).
    * @param higher_border This is a higher border_node as result of split for this node.
-   * @param key_view
-   * @param value_ptr
-   * @param value_length
-   * @param value_align
-   * @param lock_list This is unused because the border nodes is not-full as result of split.
+   * @param[in] key_view
+   * @param[in] value_ptr
+   * @param[in] value_length
+   * @param[in] value_align
+   * @param[out] lock_list This is unused because the border nodes is not-full as result of split.
    * The insert_lv function needs lock_list as an argument, so it is passed in spite of not using.
    */
   void create_interior_parents_and_insert(border_node *higher_border,

@@ -11,8 +11,14 @@
 
 #include "atomic_wrapper.h"
 #include "base_node.h"
+#include "border_node.h"
 
 namespace yakushima {
+
+/**
+ * forward declaration.
+ */
+class border_node;
 
 class interior_node final : public base_node {
 public:
@@ -28,12 +34,38 @@ public:
 
   ~interior_node() = default;
 
-  void create_interior_parent([[maybe_unused]]interior_node* right) {
+  /**
+   * @details This may be called at split function.
+   * It creates new interior node as parents of this interior_node and @a right.
+   * @param[in] right
+   * @param[out] lock_list
+   * @param[out] new_parent This function tells new parent to the caller via this argument.
+   */
+  void create_interior_parent(interior_node *right, std::vector<node_version64 *> &lock_list, base_node** new_parent) {
+    interior_node *ni = new interior_node();
+    ni->init_interior();
+    ni->set_version_root(true);
+    ni->lock();
+    lock_list.emplace_back(ni->get_version_ptr());
     /**
-     * todo;
+     * process base members
      */
+    ni->set_key(0, right->get_key_slice_at(0), right->get_key_length_at(0));
+    /**
+     * process interior node members
+     */
+    ni->n_keys_increment();
+    ni->set_child_at(0, this);
+    ni->set_child_at(1, right);
+    /**
+     * release interior parent to global
+     */
+    set_parent(ni);
+    right->set_parent(ni);
+    *new_parent = ni;
     return;
   }
+
   /**
    * @brief release all heap objects and clean up.
    * @pre This function is called by single thread.
@@ -187,9 +219,21 @@ public:
 
     base_node* p = lock_parent();
     if (p == nullptr) {
-      create_interior_parent(new_interior);
+      create_interior_parent(new_interior, lock_list, &p);
+      /**
+       * p became new root.
+       */
+      set_root(p);
       return;
     }
+    /**
+     * p exists.
+     */
+     lock_list.emplace_back(p->get_version_ptr());
+     if (p->get_version_border()) {
+       [[maybe_unused]]border_node* pb = reinterpret_cast<border_node*>(p);
+       return;
+     }
     /**
      * todo
      * case : p is full-border
