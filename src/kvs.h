@@ -7,6 +7,7 @@
 
 #include "base_node.h"
 #include "border_node.h"
+#include "border_helper.h"
 #include "interior_node.h"
 #include "scheme.h"
 
@@ -169,7 +170,7 @@ lv_ptr_null:
       }
       std::vector<node_version64 *> lock_list;
       lock_list.emplace_back(target_border->get_version_ptr());
-      target_border->insert_lv(traverse_key_view, false, value, arg_value_length, value_align, lock_list);
+      insert_lv(target_border, traverse_key_view, false, value, arg_value_length, value_align, lock_list);
       for (auto &lock : lock_list) {
         lock->unlock();
       }
