@@ -42,7 +42,7 @@ retry_from_root:
     }
     bool final_slice(false);
     std::string_view traverse_key_view{key_view};
-//retry_find_border:
+retry_find_border:
     /**
      * prepare key_slice
      */
@@ -109,10 +109,9 @@ retry_from_root:
     /**
      * lv_ptr points to next_layer.
      */
-     if (final_slice) {
-       return std::make_tuple(nullptr, 0);
-     }
-    return std::make_tuple(nullptr, 0);
+    traverse_key_view.remove_prefix(sizeof(key_slice_type));
+    root = lv_ptr->get_next_layer();
+    goto retry_find_border;
   }
 
   static void init_kvs() {
