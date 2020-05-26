@@ -14,12 +14,12 @@ enum class status : std::int32_t {
   WARN_BAD_USAGE,
   /**
    * @brief Warning
-   * @details (insert/put/get/delete) No corresponding value in masstree.
+   * @details (insert/put/get/delete) No corresponding value in this storage engine.
    */
   WARN_NOT_FOUND,
   /**
    * @brief Warning
-   * @details This status tells that find_border must retry from root of all tree.
+   * @details The find_border function tells that it must retry from root of all tree.
    */
   WARN_ROOT_DELETED,
   /**

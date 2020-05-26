@@ -35,10 +35,83 @@ public:
   template<class ValueType>
   [[nodiscard]] static std::tuple<ValueType *, std::size_t>
   get([[maybe_unused]]std::string_view key_view) {
+retry_from_root:
     base_node *root = base_node::get_root();
     if (root == nullptr) {
       return std::make_tuple(nullptr, 0);
     }
+    bool final_slice(false);
+    std::string_view traverse_key_view{key_view};
+//retry_find_border:
+    /**
+     * prepare key_slice
+     */
+    key_slice_type key_slice;
+    key_length_type key_slice_length;
+    if (traverse_key_view.size() > sizeof(key_slice_type)) {
+      memcpy(&key_slice, traverse_key_view.data(), sizeof(key_slice_type));
+      final_slice = false;
+      key_slice_length = sizeof(key_slice_type);
+    } else {
+      memcpy(&key_slice, traverse_key_view.data(), traverse_key_view.size());
+      final_slice = true;
+      key_slice_length = traverse_key_view.size();
+    }
+    /**
+     * traverse tree to border node.
+     */
+    status special_status;
+    std::tuple<border_node *, node_version64_body> node_and_v = find_border(root, key_slice, key_slice_length,
+                                                                            special_status);
+    if (special_status == status::WARN_ROOT_DELETED) {
+      /**
+       * @a root is the root node of the some layer, but it was deleted.
+       * So it must retry from root of the all tree.
+       */
+      goto retry_from_root;
+    }
+    constexpr std::size_t tuple_node_index = 0;
+    constexpr std::size_t tuple_v_index = 1;
+    border_node *target_border = std::get<tuple_node_index>(node_and_v);
+    node_version64_body v_at_fb = std::get<tuple_v_index>(node_and_v);
+    /**
+     * check whether it should get from this node.
+     */
+    node_version64_body v_at_fetch_lv;
+    link_or_value *lv_ptr = target_border->get_lv_of(key_slice, key_slice_length, v_at_fetch_lv);
+    if (v_at_fetch_lv.get_vsplit() != v_at_fb.get_vsplit()) {
+      /**
+       * The correct border was changed between atomically fetching bordr node and atomically fetching lv.
+       */
+      goto retry_from_root;
+    }
+    /**
+     * check lv_ptr == nullptr
+     */
+    if (lv_ptr == nullptr) {
+      return std::make_tuple(nullptr, 0);
+    }
+    /**
+     * lv_ptr != nullptr
+     */
+    void *vp = lv_ptr->get_v_or_vp_();
+    if (vp != nullptr) {
+      if (final_slice) {
+        return std::make_tuple<ValueType *, std::size_t>(reinterpret_cast<ValueType *>(vp), lv_ptr->get_value_length());
+      } else {
+        /**
+         * value exists and not-final slice means WARN_NOT_FOUND because
+         * if the key is partially the same, lv should have next_layer, but has value.
+         */
+        return std::make_tuple(nullptr, 0);
+      }
+    }
+    /**
+     * lv_ptr points to next_layer.
+     */
+     if (final_slice) {
+       return std::make_tuple(nullptr, 0);
+     }
     return std::make_tuple(nullptr, 0);
   }
 
@@ -118,7 +191,7 @@ retry_find_border:
      * check whether it should insert into this node.
      */
     node_version64_body v_at_fetch_lv;
-    link_or_value *lv_ptr = target_border->get_lv_of(key_slice, v_at_fetch_lv);
+    link_or_value *lv_ptr = target_border->get_lv_of(key_slice, key_slice_length, v_at_fetch_lv);
     if (v_at_fetch_lv.get_vsplit() != v_at_fb.get_vsplit()) {
       /**
        * It may be change the correct border between atomically fetching border node and atomically fetching lv.
@@ -230,19 +303,20 @@ lv_ptr_exists:
         }
         /**
          * Here, lv_ptr is correct.
+         */
+        /**
+         * Here, not final slice, so the key_slice size is 8 bytes
          * It creates new layer and inserts this old lv into the new layer.
          */
         border_node *new_border = new border_node();
-        new_border->init_border(traverse_key_view, value, true, arg_value_length, value_align);
-        /**
-         * Here, not final slice, so the key_slice size is 8 bytes
-         */
         std::string_view slice_of_traverse_key_view(traverse_key_view);
-        slice_of_traverse_key_view.remove_suffix(slice_of_traverse_key_view.size() - sizeof(key_slice_type));
+        traverse_key_view.remove_prefix(sizeof(key_slice_type));
+        new_border->init_border(traverse_key_view, value, true, arg_value_length, value_align);
         /**
          * 1st argument (index == 0) was used by this (non-final) slice at init_border func.
          */
-        new_border->insert_lv_at(1, slice_of_traverse_key_view, false, lv_ptr->get_v_or_vp_(),
+        slice_of_traverse_key_view.remove_suffix(slice_of_traverse_key_view.size() - sizeof(key_slice_type));
+        new_border->insert_lv_at(new_border->get_permutation_cnk(), slice_of_traverse_key_view, false, lv_ptr->get_v_or_vp_(),
                                  lv_ptr->get_value_length(), lv_ptr->get_value_align());
         /**
          * process for lv_ptr

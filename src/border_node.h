@@ -52,7 +52,7 @@ public:
    * @param[out] stable_v  the stable version which is at atomically fetching lv.
    * @return
    */
-  [[nodiscard]] link_or_value *get_lv_of(key_slice_type key_slice, node_version64_body &stable_v) {
+  [[nodiscard]] link_or_value *get_lv_of(key_slice_type key_slice, key_length_type key_length, node_version64_body &stable_v) {
     node_version64_body v = get_stable_version();
     for (;;) {
       /**
@@ -61,7 +61,7 @@ public:
       std::size_t cnk = permutation_.get_cnk();
       link_or_value *ret_lv{nullptr};
       for (std::size_t i = 0; i < cnk; ++i) {
-        if (key_slice == get_key_slice_at(i)) {
+        if (key_slice == get_key_slice_at(i) && key_length == get_key_length_at(i)) {
           ret_lv = get_lv_at(i);
           break;
         }
