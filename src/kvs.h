@@ -35,6 +35,10 @@ public:
   template<class ValueType>
   [[nodiscard]] static std::tuple<ValueType *, std::size_t>
   get([[maybe_unused]]std::string_view key_view) {
+    base_node *root = base_node::get_root();
+    if (root == nullptr) {
+      return std::make_tuple(nullptr, 0);
+    }
     return std::make_tuple(nullptr, 0);
   }
 
@@ -55,8 +59,8 @@ root_nullptr:
       border_node *new_border = new border_node();
       new_border->init_border(key_view, value, true, arg_value_length, value_align);
       for (;;) {
-        if (base_node::root_.compare_exchange_weak(expected, dynamic_cast<base_node *>(new_border), std::memory_order_acq_rel,
-                                        std::memory_order_acquire)) {
+        if (base_node::root_.compare_exchange_weak(expected, dynamic_cast<base_node *>(new_border),
+                                                   std::memory_order_acq_rel, std::memory_order_acquire)) {
           return status::OK;
         } else {
           if (expected != nullptr) {
@@ -97,7 +101,8 @@ retry_find_border:
      * traverse tree to border node.
      */
     status special_status;
-    std::tuple<border_node *, node_version64_body> node_and_v = find_border(root, key_slice, key_slice_length, special_status);
+    std::tuple<border_node *, node_version64_body> node_and_v = find_border(root, key_slice, key_slice_length,
+                                                                            special_status);
     if (special_status == status::WARN_ROOT_DELETED) {
       /**
        * @a root is the root node of the some layer, but it was deleted.
@@ -237,8 +242,8 @@ lv_ptr_exists:
         /**
          * 1st argument (index == 0) was used by this (non-final) slice at init_border func.
          */
-        new_border->insert_lv_at(1, slice_of_traverse_key_view, false, lv_ptr->get_v_or_vp_(), lv_ptr->get_value_length(),
-                                 lv_ptr->get_value_align());
+        new_border->insert_lv_at(1, slice_of_traverse_key_view, false, lv_ptr->get_v_or_vp_(),
+                                 lv_ptr->get_value_length(), lv_ptr->get_value_align());
         /**
          * process for lv_ptr
          */
