@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "border_helper.h"
 #include "interior_node.h"
 
 namespace yakushima {
@@ -13,6 +14,20 @@ using key_slice_type = base_node::key_slice_type;
 using key_length_type = base_node::key_length_type;
 using value_align_type = base_node::value_align_type;
 using value_length_type = base_node::value_length_type;
+
+/**
+ * start : forward declaration due to resolve dependency.
+ */
+static void border_split(border_node *border, std::string_view key_view, bool next_layer, void *value_ptr,
+                         value_length_type value_length, value_align_type value_align,
+                         std::vector<node_version64 *> &lock_list);
+
+static void insert_lv(border_node *border, std::string_view key_view, bool next_layer, void *value_ptr,
+                      value_length_type arg_value_length, value_align_type value_align,
+                      std::vector<node_version64 *> &lock_list);
+/**
+ * end : forward declaration due to resolve dependency.
+ */
 
 /**
  * @pre It already acquired lock of this node.
@@ -108,16 +123,37 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
    */
   lock_list.emplace_back(p->get_version_ptr());
   if (p->get_version_border()) {
-    [[maybe_unused]]border_node *pb = reinterpret_cast<border_node *>(p);
+    border_node *pb = dynamic_cast<border_node *>(p);
+    if (pb->get_permutation_cnk() == base_node::key_slice_length) {
+      /**
+       * parent border full case
+       */
+      create_interior_parent(interior, new_interior, lock_list, &p);
+      border_split(pb, std::string_view{reinterpret_cast<char *>(p->get_key_slice_at(0)),
+                                        p->get_key_length_at(0)}, true, p, 0, 0,
+                   lock_list);
+      return;
+    }
+    /**
+     * parent border not-full case
+     */
+    insert_lv(pb, std::string_view{reinterpret_cast<char *>(new_interior->get_key_slice_at(0)),
+                                   new_interior->get_key_length_at(0)}, true, p, 0,
+              0, lock_list);
+    return;
+  }
+  interior_node *pi = dynamic_cast<interior_node *>(p);
+  if (pi->get_n_keys() == base_node::key_slice_length) {
+    /**
+     * parent interior full case.
+     */
+    interior_split(pi, new_interior, lock_list);
     return;
   }
   /**
-   * todo
-   * case : p is full-border
-   * case : p is not-full-border
-   * case : p is full-interior
-   * case : p is not-full-interior
+   * parent interior not-full case
    */
+  pi->insert(new_interior);
   return;
 }
 

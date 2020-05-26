@@ -43,12 +43,8 @@ static void create_interior_parents_and_insert(border_node *left,
  * This function does not use a template declaration because its pointer is retrieved with void *.
  * @param[out] lock_list Hold the lock so that the caller can release the lock from below.
  */
-static void insert_lv(border_node *border,
-                      std::string_view key_view,
-                      bool next_layer,
-                      void *value_ptr,
-                      value_length_type arg_value_length,
-                      value_align_type value_align,
+static void insert_lv(border_node *border, std::string_view key_view, bool next_layer, void *value_ptr,
+                      value_length_type arg_value_length, value_align_type value_align,
                       std::vector<node_version64 *> &lock_list);
 
 /**
