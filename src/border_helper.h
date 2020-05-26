@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "interior_helper.h"
 #include "border_node.h"
 
 namespace yakushima {
@@ -292,7 +293,7 @@ static void border_split(border_node *border,
     /**
      * interior full case, it splits and inserts.
      */
-    pi->split(new_border, lock_list);
+    interior_split(pi, new_border, lock_list);
     return;
   }
   /**

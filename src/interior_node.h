@@ -35,38 +35,6 @@ public:
   ~interior_node() = default;
 
   /**
-   * @details This may be called at split function.
-   * It creates new interior node as parents of this interior_node and @a right.
-   * @param[in] right
-   * @param[out] lock_list
-   * @param[out] new_parent This function tells new parent to the caller via this argument.
-   */
-  void create_interior_parent(interior_node *right, std::vector<node_version64 *> &lock_list, base_node** new_parent) {
-    interior_node *ni = new interior_node();
-    ni->init_interior();
-    ni->set_version_root(true);
-    ni->lock();
-    lock_list.emplace_back(ni->get_version_ptr());
-    /**
-     * process base members
-     */
-    ni->set_key(0, right->get_key_slice_at(0), right->get_key_length_at(0));
-    /**
-     * process interior node members
-     */
-    ni->n_keys_increment();
-    ni->set_child_at(0, this);
-    ni->set_child_at(1, right);
-    /**
-     * release interior parent to global
-     */
-    set_parent(ni);
-    right->set_parent(ni);
-    *new_parent = ni;
-    return;
-  }
-
-  /**
    * @brief release all heap objects and clean up.
    * @pre This function is called by single thread.
    */
@@ -175,73 +143,6 @@ public:
     memmove(reinterpret_cast<void *>(get_child_at(start_pos + shift_size)),
             reinterpret_cast<void *>(get_child_at(start_pos)),
             sizeof(base_node *) * (start_pos + 1));
-  }
-
-  /**
-   * @pre It already acquired lock of this node.
-   * @details split interior node.
-   * @param[in] child_node After split, it inserts this @child_node.
-   */
-  void split(base_node *child_node, std::vector<node_version64 *> &lock_list) {
-    interior_node *new_interior = new interior_node();
-    new_interior->init_interior();
-    set_version_root(false);
-    set_version_splitting(true);
-    /**
-     * new interior is initially locked.
-     */
-    new_interior->set_version(get_version());
-    lock_list.emplace_back(new_interior->get_version_ptr());
-    /**
-     * split keys among n and n'
-     */
-    key_slice_type pivot_key = key_slice_length / 2;
-    std::size_t split_children_points = pivot_key + 1;
-    move_key_to_base_range(new_interior, split_children_points);
-    set_n_keys(pivot_key);
-    if (pivot_key % 2) {
-      new_interior->set_n_keys(pivot_key);
-    } else {
-      new_interior->set_n_keys(pivot_key -1);
-    }
-    move_children_to_interior_range(new_interior, split_children_points);
-    /**
-     * It inserts child_node.
-     */
-    std::tuple<key_slice_type, key_length_type> visitor{child_node->get_key_slice_at(0),
-                                                        child_node->get_key_length_at(0)};
-    if (visitor <
-        std::make_tuple<key_slice_type, key_length_type>(get_key_slice_at(pivot_key), get_key_length_at(pivot_key))) {
-      insert(child_node);
-    } else {
-      new_interior->insert(child_node);
-    }
-
-    base_node* p = lock_parent();
-    if (p == nullptr) {
-      create_interior_parent(new_interior, lock_list, &p);
-      /**
-       * p became new root.
-       */
-      set_root(p);
-      return;
-    }
-    /**
-     * p exists.
-     */
-     lock_list.emplace_back(p->get_version_ptr());
-     if (p->get_version_border()) {
-       [[maybe_unused]]border_node* pb = reinterpret_cast<border_node*>(p);
-       return;
-     }
-    /**
-     * todo
-     * case : p is full-border
-     * case : p is not-full-border
-     * case : p is full-interior
-     * case : p is not-full-interior
-     */
-     return;
   }
 
   void move_children_to_interior_range(interior_node *right_interior, std::size_t start) {
