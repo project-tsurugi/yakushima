@@ -12,7 +12,7 @@ option(BUILD_TESTS "Build test programs" ON)
 option(BUILD_DOCUMENTS "Build documents" ON)
 
 option(ENABLE_SANITIZER "enable sanitizer on debug build" ON)
-option(ENABLE_UB_SANITIZER "enable undefined behavior sanitizer on debug build" OFF)
+option(ENABLE_UB_SANITIZER "enable undefined behavior sanitizer on debug build" ON)
 option(ENABLE_COVERAGE "enable coverage on debug build" OFF)
 
 find_package(Doxygen REQUIRED)
