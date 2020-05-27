@@ -24,7 +24,11 @@ public:
    * @return status::OK
    */
   static status destroy() {
-    base_node::get_root()->destroy();
+    base_node* root = base_node::get_root();
+    if (root != nullptr) {
+      base_node::get_root()->destroy();
+    }
+    base_node::set_root(nullptr);
     return status::OK;
   }
 
@@ -115,7 +119,7 @@ retry_find_border:
   }
 
   static void init_kvs() {
-    base_node::set_root(nullptr);
+    destroy();
   }
 
   template<class ValueType>

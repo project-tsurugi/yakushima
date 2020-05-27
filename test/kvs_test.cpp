@@ -4,6 +4,7 @@
 
 #include <future>
 #include <thread>
+#include <tuple>
 
 #include "gtest/gtest.h"
 
@@ -26,12 +27,24 @@ protected:
 
 TEST_F(kvs_test, init) {
   masstree_kvs::init_kvs();
-  ASSERT_EQ(true, true); // test ending of function which returns void.
+  ASSERT_EQ(base_node::get_root(), nullptr);
   std::string k("a"), v("v-a");
-  masstree_kvs::put(std::string_view(k), v.data(), v.size());
-  ASSERT_EQ(true, true); // test ending of function which returns void.
-  [[maybe_unused]] std::tuple<std::string*, std::size_t> tuple = masstree_kvs::get<std::string>(std::string_view(k));
-  ASSERT_EQ(true, true); // test ending of function which returns void.
+  ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+  ASSERT_NE(base_node::get_root(), nullptr);
+  masstree_kvs::init_kvs();
+  ASSERT_EQ(base_node::get_root(), nullptr);
+}
+
+TEST_F(kvs_test, put_get) {
+  masstree_kvs::init_kvs();
+  ASSERT_EQ(base_node::get_root(), nullptr);
+  std::string k("a"), v("v-a");
+  ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+  ASSERT_NE(base_node::get_root(), nullptr);
+  std::tuple<char*, std::size_t> tuple = masstree_kvs::get<char>(std::string_view(k));
+  ASSERT_NE(std::get<0>(tuple), nullptr);
+  ASSERT_EQ(std::get<1>(tuple), v.size());
+  ASSERT_EQ(memcmp(&std::get<0>(tuple), v.data(), v.size()), 0);
 }
 
 }  // namespace yakushima::testing
