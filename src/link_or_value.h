@@ -124,17 +124,11 @@ public:
     set_value_align(value_align);
     try {
       /**
-       * @details It use copy assign, so ValueType must be copy-assignable.
+       * It use copy assign, so ValueType must be copy-assignable.
        */
-      if (arg_value_size <= sizeof(void *)) {
-        memcpy(&v_or_vp_, vptr, arg_value_size);
-        set_need_delete_value(false);
-      } else {
-        set_v_or_vp(::operator new(sizeof(arg_value_size),
-                                   static_cast<std::align_val_t>(value_align)));
+        set_v_or_vp(::operator new(sizeof(arg_value_size), static_cast<std::align_val_t>(value_align)));
         memcpy(get_v_or_vp_(), vptr, arg_value_size);
         set_need_delete_value(true);
-      }
     } catch (std::bad_alloc &e) {
       std::cout << e.what() << std::endl;
     }

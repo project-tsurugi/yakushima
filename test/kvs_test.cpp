@@ -44,7 +44,7 @@ TEST_F(kvs_test, put_get) {
   std::tuple<char*, std::size_t> tuple = masstree_kvs::get<char>(std::string_view(k));
   ASSERT_NE(std::get<0>(tuple), nullptr);
   ASSERT_EQ(std::get<1>(tuple), v.size());
-  ASSERT_EQ(memcmp(&std::get<0>(tuple), v.data(), v.size()), 0);
+  ASSERT_EQ(memcmp(std::get<0>(tuple), v.data(), v.size()), 0);
 }
 
 }  // namespace yakushima::testing
