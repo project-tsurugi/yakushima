@@ -55,7 +55,6 @@ TEST_F(kvs_test, single_put_get_to_one_border) {
   ASSERT_EQ(masstree_kvs::destroy(), status::OK_DESTROY_ALL);
 }
 
-#if 0
 TEST_F(kvs_test, multiple_put_get_same_null_char_key_slice_and_different_key_length_to_single_border) {
   /**
    * put one key-value
@@ -86,7 +85,7 @@ TEST_F(kvs_test, multiple_put_get_same_null_char_key_slice_and_different_key_len
   ASSERT_EQ(masstree_kvs::destroy(), status::OK_DESTROY_ALL);
 }
 
-TEST_F(kvs_test, multiple_put_get_same_null_char_key_slice_and_different_key_length_to_single_border) {
+TEST_F(kvs_test, multiple_put_get_same_null_char_key_slice_and_different_key_length_to_multiple_border) {
   /**
    * put one key-value
    */
@@ -123,6 +122,5 @@ TEST_F(kvs_test, multiple_put_get_same_null_char_key_slice_and_different_key_len
   }
   ASSERT_EQ(masstree_kvs::destroy(), status::OK_DESTROY_ALL);
 }
-#endif
 
 }  // namespace yakushima::testing

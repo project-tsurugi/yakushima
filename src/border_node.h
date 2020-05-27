@@ -122,11 +122,8 @@ public:
                    value_length_type arg_value_length = sizeof(ValueType),
                    std::size_t value_align = alignof(ValueType)) {
     init_border();
-    init_border_member_range(0, key_slice_length - 1);
     set_version_root(root);
     set_version_border(true);
-    next_ = nullptr;
-    prev_ = nullptr;
     insert_lv_at(0, key_view, false, value_ptr, arg_value_length, value_align);
   }
 
@@ -175,7 +172,11 @@ public:
       static_cast<border_node *>(next_layer_border)->init_border(key_view, value_ptr, true, arg_value_length,
                                                                  value_align);
     } else {
-      memcpy(&key_slice, key_view.data(), key_view.size());
+      if (key_view.size() > 0) {
+        memcpy(&key_slice, key_view.data(), key_view.size());
+      } else {
+        key_slice = 0;
+      }
       set_key_slice_at(index, key_slice);
       set_key_length_at(index, key_view.size());
       permutation_.inc_key_num();

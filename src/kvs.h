@@ -180,7 +180,9 @@ retry_find_border:
       final_slice = false;
       key_slice_length = sizeof(key_slice_type);
     } else {
-      memcpy(&key_slice, traverse_key_view.data(), traverse_key_view.size());
+      if (traverse_key_view.size() > 0) {
+        memcpy(&key_slice, traverse_key_view.data(), traverse_key_view.size());
+      }
       final_slice = true;
       key_slice_length = traverse_key_view.size();
     }
@@ -323,20 +325,18 @@ lv_ptr_exists:
          * It creates new layer and inserts this old lv into the new layer.
          */
         border_node *new_border = new border_node();
-        std::string_view slice_of_traverse_key_view(traverse_key_view);
         traverse_key_view.remove_prefix(sizeof(key_slice_type));
-        new_border->init_border(traverse_key_view, value, true, arg_value_length, value_align);
+        new_border->init_border(std::string_view{nullptr, 0}, lv_ptr->get_v_or_vp_(), true, lv_ptr->get_value_length(), lv_ptr->get_value_align());
+        new_border->insert_lv_at(1, traverse_key_view, true, value, arg_value_length, value_align);
         /**
          * 1st argument (index == 0) was used by this (non-final) slice at init_border func.
          */
-        slice_of_traverse_key_view.remove_suffix(slice_of_traverse_key_view.size() - sizeof(key_slice_type));
-        new_border->insert_lv_at(new_border->get_permutation_cnk(), slice_of_traverse_key_view, false, lv_ptr->get_v_or_vp_(),
-                                 lv_ptr->get_value_length(), lv_ptr->get_value_align());
         /**
          * process for lv_ptr
          */
         lv_ptr->destroy_value();
-        lv_ptr->set_next_layer(dynamic_cast<base_node *>(new_border));
+        lv_ptr->set_next_layer(new_border);
+        new_border->set_parent(target_border);
         target_border->unlock();
         return status::OK;
       }
@@ -386,16 +386,9 @@ private:
 retry:
     base_node *n = root;
     node_version64_body v = n->get_stable_version();
-    if (v.get_root() && v.get_deleted()) {
+    if ((v.get_root() && v.get_deleted()) || !v.get_root()) {
       special_status = status::WARN_ROOT_DELETED;
       return std::make_tuple(nullptr, node_version64_body());
-    }
-    /**
-     * Here, valid node.
-     */
-    if (n != base_node::get_root()) {
-      root = root->get_parent();
-      goto retry;
     }
 descend:
     /**
