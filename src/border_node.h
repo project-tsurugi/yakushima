@@ -16,6 +16,9 @@
 
 namespace yakushima {
 
+using std::cout;
+using std::endl;
+
 class border_node final : public base_node {
 public:
   border_node() = default;

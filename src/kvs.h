@@ -11,6 +11,8 @@
 #include "interior_node.h"
 #include "scheme.h"
 
+#include "debug.hh"
+
 namespace yakushima {
 
 class masstree_kvs {
@@ -52,7 +54,7 @@ retry_find_border:
     /**
      * prepare key_slice
      */
-    key_slice_type key_slice;
+    key_slice_type key_slice(0);
     key_length_type key_slice_length;
     if (traverse_key_view.size() > sizeof(key_slice_type)) {
       memcpy(&key_slice, traverse_key_view.data(), sizeof(key_slice_type));
@@ -171,7 +173,7 @@ retry_find_border:
     /**
      * prepare key_slice
      */
-    key_slice_type key_slice;
+    key_slice_type key_slice(0);
     key_length_type key_slice_length;
     if (traverse_key_view.size() > sizeof(key_slice_type)) {
       memcpy(&key_slice, traverse_key_view.data(), sizeof(key_slice_type));
