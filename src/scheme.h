@@ -33,6 +33,10 @@ enum class status : std::int32_t {
    */
   OK,
   /**
+   * @brief (destroy) It destroys existing all trees.
+   */
+  OK_DESTROY_ALL,
+  /**
    * @brief (destroy) It destroys xxx.
    */
   OK_DESTROY_BORDER,
@@ -40,6 +44,10 @@ enum class status : std::int32_t {
    * @brief (destroy) It destroys xxx.
    */
   OK_DESTROY_INTERIOR,
+  /**
+   * @brief (destroy) Root is nullptr and it could not destroy.
+   */
+  OK_ROOT_IS_NULL,
   /**
    * @brief root is not both interior and border.
    */

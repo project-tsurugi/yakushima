@@ -25,11 +25,13 @@ public:
    */
   static status destroy() {
     base_node* root = base_node::get_root();
+    status return_status(status::OK_ROOT_IS_NULL);
     if (root != nullptr) {
       base_node::get_root()->destroy();
+      base_node::set_root(nullptr);
+      return_status = status::OK_DESTROY_ALL;
     }
-    base_node::set_root(nullptr);
-    return status::OK;
+    return return_status;
   }
 
   /**
@@ -118,8 +120,15 @@ retry_find_border:
     goto retry_find_border;
   }
 
-  static void init_kvs() {
-    destroy();
+  static status init_kvs() {
+    /**
+     * todo : clear thread information.
+     * It implements at implementing delete.
+     */
+    /**
+     * If there are existing tree, destroy all tree.
+     */
+    return destroy();
   }
 
   template<class ValueType>

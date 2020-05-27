@@ -26,25 +26,69 @@ protected:
 };
 
 TEST_F(kvs_test, init) {
-  masstree_kvs::init_kvs();
+  ASSERT_EQ(masstree_kvs::init_kvs(), status::OK_ROOT_IS_NULL);
   ASSERT_EQ(base_node::get_root(), nullptr);
   std::string k("a"), v("v-a");
   ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
   ASSERT_NE(base_node::get_root(), nullptr);
-  masstree_kvs::init_kvs();
+  ASSERT_EQ(masstree_kvs::init_kvs(), status::OK_DESTROY_ALL);
   ASSERT_EQ(base_node::get_root(), nullptr);
 }
 
-TEST_F(kvs_test, put_get) {
+TEST_F(kvs_test, single_put_get_to_one_border) {
+  /**
+   * put one key-value
+   */
   masstree_kvs::init_kvs();
   ASSERT_EQ(base_node::get_root(), nullptr);
   std::string k("a"), v("v-a");
   ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
   ASSERT_NE(base_node::get_root(), nullptr);
-  std::tuple<char*, std::size_t> tuple = masstree_kvs::get<char>(std::string_view(k));
+  std::tuple<char *, std::size_t> tuple = masstree_kvs::get<char>(std::string_view(k));
   ASSERT_NE(std::get<0>(tuple), nullptr);
   ASSERT_EQ(std::get<1>(tuple), v.size());
   ASSERT_EQ(memcmp(std::get<0>(tuple), v.data(), v.size()), 0);
+  ASSERT_EQ(masstree_kvs::destroy(), status::OK_DESTROY_ALL);
+}
+
+TEST_F(kvs_test, multiple_put_same_null_char_key_slice_and_different_key_length_get) {
+#if 0
+  /**
+   * put one key-value
+   */
+  masstree_kvs::init_kvs();
+  constexpr std::size_t ary_size = 15;
+  std::string k[ary_size], v[ary_size];
+  for (std::size_t i = 0; i < ary_size; ++i) {
+    k[i].assign(i, '\0');
+    v[i] = std::to_string(i);
+    ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k[i]), v[i].data(), v[i].size()));
+    border_node *br = dynamic_cast<border_node *>(base_node::get_root());
+    if (i <= 8) {
+      /**
+       * There are 9 key which has the same slice and the different length.
+       * key length == 0, same_slice and length is 1, 2, ..., 8.
+       */
+      ASSERT_EQ(br->get_permutation_cnk(), i + 1);
+    } else {
+      /**
+       * The key whose the length of same parts is more than 8, it should be next_layer.
+       * So the number of keys should not be change.
+       */
+      ASSERT_EQ(br->get_permutation_cnk(), 9);
+    }
+  }
+  /**
+   * there are bug.
+   */
+  for (std::size_t i = 0; i < ary_size; ++i) {
+    constexpr std::size_t value_index = 0, size_index = 1;
+    std::tuple<char*, std::size_t> tuple = masstree_kvs::get<char>(std::string_view(k[i]));
+    ASSERT_EQ(std::get<size_index>(tuple), v[i].size());
+    ASSERT_EQ(memcmp(std::get<value_index>(tuple), v[i].data(), v[i].size()), 0);
+  }
+  ASSERT_EQ(masstree_kvs::destroy(), status::OK_DESTROY_ALL);
+#endif
 }
 
 }  // namespace yakushima::testing
