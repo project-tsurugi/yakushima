@@ -135,13 +135,19 @@ TEST_F(kvs_test, put_until_creating_interior_node) {
   constexpr std::size_t ary_size = base_node::key_slice_length + 1;
   std::string k[ary_size], v[ary_size];
   for (std::size_t i = 0; i < ary_size; ++i) {
-    k[i].assign(1, 'a'+i);
-    v[i].assign(1, 'a'+i);
+    k[i].assign(1, 'a' + i);
+    v[i].assign(1, 'a' + i);
   }
   for (std::size_t i = 0; i < ary_size; ++i) {
     ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view{k[i]}, v[i].data(), v[i].size()));
   }
+  interior_node *in = dynamic_cast<interior_node *>(base_node::get_root());
   ASSERT_EQ(typeid(*base_node::get_root()), typeid(interior_node));
+  border_node *bn = dynamic_cast<border_node *>(in->get_child_at(0));
+  ASSERT_EQ(bn->get_permutation_cnk(), 8);
+  bn = dynamic_cast<border_node *>(in->get_child_at(1));
+  ASSERT_EQ(bn->get_permutation_cnk(), 8);
+
   ASSERT_EQ(masstree_kvs::destroy(), status::OK_DESTROY_ALL);
 }
 

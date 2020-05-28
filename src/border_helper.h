@@ -200,6 +200,7 @@ static void border_split(border_node *border,
   vec.reserve(cnk);
   key_slice_type *key_slice_array = border->get_key_slice();
   key_length_type *key_length_array = border->get_key_length();
+  vec.reserve(cnk);
   for (std::uint8_t i = 0; i < cnk; ++i) {
     vec.emplace_back(key_slice_array[i], key_length_array[i], i);
   }
@@ -209,14 +210,23 @@ static void border_split(border_node *border,
    */
   std::size_t index_ctr(0);
   std::vector<std::size_t> shift_pos;
-  for (auto itr = vec.begin() + (base_node::key_slice_length / 2); itr != vec.end(); ++itr) {
+  /**
+   * If the fan-out is odd, keep more than half to improve the performance.
+   */
+  std::size_t remaining_size;
+  if (base_node::key_slice_length % 2) {
+    remaining_size = base_node::key_slice_length / 2 + 1;
+  } else {
+    remaining_size = base_node::key_slice_length / 2;
+  }
+  for (auto itr = vec.begin() + remaining_size; itr != vec.end(); ++itr) {
     /**
      * move base_node members to new nodes
      */
     new_border->set_key_slice_at(index_ctr, std::get<key_slice_index>(*itr));
     new_border->set_key_length_at(index_ctr, std::get<key_length_index>(*itr));
     new_border->set_lv(index_ctr, border->get_lv_at(std::get<key_pos>(*itr)));
-    if (std::get<key_pos>(*itr) < (base_node::key_slice_length / 2)) {
+    if (std::get<key_pos>(*itr) < remaining_size) {
       shift_pos.emplace_back(std::get<key_pos>(*itr));
     }
     ++index_ctr;
@@ -234,14 +244,14 @@ static void border_split(border_node *border,
   /**
    * maintenance about empty parts due to new border.
    */
-  border->init_base_member_range(base_node::key_slice_length / 2, base_node::key_slice_length - 1);
-  border->init_border_member_range(base_node::key_slice_length / 2, base_node::key_slice_length - 1);
+  border->init_base_member_range(remaining_size, base_node::key_slice_length - 1);
+  border->init_border_member_range(remaining_size, base_node::key_slice_length - 1);
   /**
    * fix permutations
    */
-  border->set_permutation_cnk(base_node::key_slice_length / 2);
+  border->set_permutation_cnk(remaining_size);
   border->set_permutation_rearrange();
-  new_border->set_permutation_cnk(base_node::key_slice_length - base_node::key_slice_length / 2);
+  new_border->set_permutation_cnk(base_node::key_slice_length - remaining_size);
   new_border->set_permutation_rearrange();
 
   base_node *p = border->lock_parent();
