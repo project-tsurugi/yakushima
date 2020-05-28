@@ -111,15 +111,17 @@ TEST_F(kvs_test, multiple_put_get_same_null_char_key_slice_and_different_key_len
       ASSERT_EQ(br->get_permutation_cnk(), 9);
     }
   }
-  /**
-   * there are bug.
-   */
   for (std::size_t i = 0; i < ary_size; ++i) {
     constexpr std::size_t value_index = 0, size_index = 1;
     std::tuple<char*, std::size_t> tuple = masstree_kvs::get<char>(std::string_view(k[i]));
     ASSERT_EQ(std::get<size_index>(tuple), v[i].size());
     ASSERT_EQ(memcmp(std::get<value_index>(tuple), v[i].data(), v[i].size()), 0);
   }
+  /**
+   * check next layer is border.
+   */
+  border_node *br = dynamic_cast<border_node *>(base_node::get_root());
+  ASSERT_EQ(typeid(*br->get_lv_at(8)->get_next_layer()), typeid(border_node));
   ASSERT_EQ(masstree_kvs::destroy(), status::OK_DESTROY_ALL);
 }
 
