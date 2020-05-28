@@ -9,9 +9,12 @@
 #include <bitset>
 #include <cmath>
 #include <cstdint>
+#include <iostream>
 #include <xmmintrin.h>
 
 #include "atomic_wrapper.h"
+
+using std::cout, std::endl;
 
 namespace yakushima {
 
@@ -46,10 +49,27 @@ public:
            && deleted == rhs.get_deleted()
            && root == rhs.get_root()
            && border == rhs.get_border()
+           && unused == rhs.get_unused()
            && vdelete == rhs.get_vdelete()
            && vinsert == rhs.get_vinsert()
-           && vsplit == rhs.get_vsplit()
-           && unused == rhs.get_unused();
+           && vsplit == rhs.get_vsplit();
+  }
+
+  /**
+   * @details display function for analysis and debug.
+   */
+  void display() {
+    cout << "node_version64_body::display" << endl;
+    cout << "locked : " << get_locked() << endl;
+    cout << "inserting : " << get_inserting() << endl;
+    cout << "splitting : " << get_splitting() << endl;
+    cout << "deleted : " << get_deleted() << endl;
+    cout << "root : " << get_root() << endl;
+    cout << "border : " << get_border() << endl;
+    cout << "unused : " << get_unused() << endl;
+    cout << "vdelete : " << get_vdelete() << endl;
+    cout << "vinsert : " << get_vinsert() << endl;
+    cout << "vsplit: " << get_vsplit() << endl;
   }
 
   bool operator!=(const node_version64_body &rhs) const {
@@ -103,10 +123,10 @@ public:
     deleted = false;
     root = false;
     border = false;
+    unused = false;
     vdelete = 0;
     vinsert = 0;
     vsplit = 0;
-    unused = false;
   }
 
   void set_border(bool new_border) &{
