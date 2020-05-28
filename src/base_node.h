@@ -44,6 +44,19 @@ public:
    */
   virtual status destroy() = 0;
 
+  /**
+   * @details display function for analysis and debug.
+   */
+  void display() {
+    cout << "base_node::display" << endl;
+    version_.display();
+    cout << "parent_ : " << get_parent() << endl;
+    for (std::size_t i = 0; i < key_slice_length; ++i) {
+      cout << "key_slice_[" << i << "] : " << key_slice_[i] << endl;
+      cout << "key_length_[" << i << "] : " << key_length_[i] << endl;
+    }
+  }
+
   [[nodiscard]] key_length_type *get_key_length() {
     return key_length_;
   }
