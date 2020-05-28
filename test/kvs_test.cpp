@@ -20,9 +20,13 @@ namespace yakushima::testing {
 
 class kvs_test : public ::testing::Test {
 protected:
-  kvs_test() = default;
+  kvs_test() {
+    masstree_kvs::init_kvs();
+  }
 
-  ~kvs_test() = default;
+  ~kvs_test() {
+    masstree_kvs::destroy();
+  }
 };
 
 TEST_F(kvs_test, init) {
@@ -124,5 +128,21 @@ TEST_F(kvs_test, multiple_put_get_same_null_char_key_slice_and_different_key_len
   ASSERT_EQ(typeid(*br->get_lv_at(8)->get_next_layer()), typeid(border_node));
   ASSERT_EQ(masstree_kvs::destroy(), status::OK_DESTROY_ALL);
 }
+
+#if 0
+TEST_F(kvs_test, put_until_creating_interior_node) {
+  masstree_kvs::init_kvs();
+  constexpr std::size_t ary_size = base_node::key_slice_length + 1;
+  std::string k[ary_size], v[ary_size];
+  for (std::size_t i = 0; i < ary_size; ++i) {
+    k[i].assign(1, 'a'+i);
+    v[i].assign(1, 'a'+i);
+  }
+  for (std::size_t i = 0; i < ary_size; ++i) {
+    ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view{k[i]}, v[i].data(), v[i].size()));
+  }
+  ASSERT_EQ(masstree_kvs::destroy(), status::OK_DESTROY_ALL);
+}
+#endif
 
 }  // namespace yakushima::testing
