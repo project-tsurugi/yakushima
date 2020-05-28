@@ -151,4 +151,51 @@ TEST_F(kvs_test, put_until_creating_interior_node) {
   ASSERT_EQ(masstree_kvs::destroy(), status::OK_DESTROY_ALL);
 }
 
+TEST_F(kvs_test, put_until_first_split_of_interior_node) {
+#if 0
+  std::size_t ary_size;
+  if (base_node::key_slice_length % 2) {
+    /**
+     * first border split occurs at inserting (base_node::key_slice_length + 1) times.
+     * after first border split, split occurs at inserting (base_node::key_slice_length / 2 + 1) times.
+     * first interior split occurs at splitting interior_node::child_length times.
+     */
+    ary_size =
+            base_node::key_slice_length + 1 + (base_node::key_slice_length / 2 + 1) * (interior_node::child_length - 1);
+  } else {
+    ary_size = base_node::key_slice_length + 1 + (base_node::key_slice_length / 2) * (interior_node::child_length - 1);
+  }
+
+  std::string k[ary_size], v[ary_size];
+  for (std::size_t i = 0; i < ary_size; ++i) {
+    k[i].assign(1, i);
+    v[i].assign(1, i);
+  }
+  for (std::size_t i = 0; i < ary_size; ++i) {
+    ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view{k[i]}, v[i].data(), v[i].size()));
+  }
+
+  interior_node *in = dynamic_cast<interior_node *>(base_node::get_root());
+  /**
+   * root is interior.
+   */
+  ASSERT_EQ(in->get_version_border(), false);
+  interior_node *child_of_root = dynamic_cast<interior_node *>(in->get_child_at(0));
+  /**
+   * child of root[0] is interior.
+   */
+  ASSERT_EQ(child_of_root->get_version_border(), false);
+  child_of_root = dynamic_cast<interior_node *>(in->get_child_at(1));
+  /**
+   * child of root[1] is interior.
+   */
+  ASSERT_EQ(child_of_root->get_version_border(), false);
+  border_node *child_child_of_root = dynamic_cast<border_node *>(child_of_root->get_child_at(0));
+  /**
+   * child of child of root[0] is border.
+   */
+  ASSERT_EQ(child_child_of_root->get_version_border(), true);
+#endif
+}
+
 }  // namespace yakushima::testing
