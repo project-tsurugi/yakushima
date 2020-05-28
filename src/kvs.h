@@ -37,8 +37,9 @@ public:
   }
 
   /**
-   * @param key [in] The key.
-   * @return ValueType*
+   * @tparam ValueType The returned pointer is cast to the given type information before it is returned.
+   * @param[in] key_view The key_view of key-value.
+   * @return std::tuple<ValueType *, std::size_t> The set of pointer to value and the value size.
    */
   template<class ValueType>
   [[nodiscard]] static std::tuple<ValueType *, std::size_t>
@@ -133,6 +134,19 @@ retry_find_border:
     return destroy();
   }
 
+  /**
+   * @tparam[in] ValueType If a single object is inserted, the value size and value alignment information can be omitted
+   * from this type information. In this case, sizeof and alignof are executed on the type information.
+   * In the cases where this is likely to cause problems and when inserting an array object,
+   * the value size and value alignment information should be specified explicitly.
+   * This is because sizeof for a type represents a single object size.
+   * @param[in] key_view The key_view of key-value.
+   * @param[in] value The pointer to value.
+   * @param[in] arg_value_length The length of value object.
+   * @param[in] value_align The alignment information of value object.
+   * @return status::OK success.
+   * @return status::WARN_UNIQUE_RESTRICTION The key-value whose key is same to given key already exists.
+   */
   template<class ValueType>
   static status put(std::string_view key_view, ValueType *value,
                     std::size_t arg_value_length = sizeof(ValueType),
