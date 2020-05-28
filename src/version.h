@@ -251,6 +251,13 @@ public:
   }
 
   /**
+   * @details display function for analysis and debug.
+   */
+  void display() {
+    get_body().display();
+  }
+
+  /**
    * @details This function locks atomically.
    * @return void
    */

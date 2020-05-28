@@ -75,6 +75,10 @@ TEST_F(version_test, display) {
   node_version64_body vb;
   vb.init();
   vb.display();
+
+  node_version64 v;
+  v.init();
+  v.display();
 }
 
 }  // namespace yakushima::testing
