@@ -126,7 +126,7 @@ TEST_F(kvs_test, multiple_put_get_same_null_char_key_slice_and_different_key_len
    * check next layer is border.
    */
   border_node *br = dynamic_cast<border_node *>(base_node::get_root());
-  ASSERT_EQ(typeid(*br->get_lv_at(8)->get_next_layer()), typeid(border_node));
+  ASSERT_EQ(typeid(*(br->get_lv_at(8)->get_next_layer())), typeid(border_node));
   ASSERT_EQ(masstree_kvs::destroy(), status::OK_DESTROY_ALL);
 }
 
@@ -141,6 +141,7 @@ TEST_F(kvs_test, put_until_creating_interior_node) {
   for (std::size_t i = 0; i < ary_size; ++i) {
     ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view{k[i]}, v[i].data(), v[i].size()));
   }
+  ASSERT_EQ(typeid(*base_node::get_root()), typeid(interior_node));
   ASSERT_EQ(masstree_kvs::destroy(), status::OK_DESTROY_ALL);
 }
 

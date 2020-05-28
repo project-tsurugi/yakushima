@@ -23,7 +23,8 @@ public:
   /**
    * @brief release all heap objects and clean up.
    * @pre This function is called by single thread.
-   * @return status::OK
+   * @return status::OK_DESTROY_ALL destroyed all tree.
+   * @return status::OK_ROOT_IS_NULL tree was nothing.
    */
   static status destroy() {
     base_node* root = base_node::get_root();

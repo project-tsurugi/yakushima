@@ -8,6 +8,8 @@
 #include "interior_helper.h"
 #include "border_node.h"
 
+#include "../test/include/debug.hh"
+
 namespace yakushima {
 
 using key_slice_type = base_node::key_slice_type;
@@ -97,23 +99,25 @@ static void create_interior_parents_and_insert(border_node *left,
    * key_slice must be initialized to 0.
    */
   key_slice_type key_slice(0);
+  key_length_type key_length(0);
   if (key_view.size() > sizeof(key_slice_type)) {
     memcpy(&key_slice, key_view.data(), sizeof(key_slice_type));
+    key_length = sizeof(key_slice_type);
   } else {
-    memcpy(&key_slice, key_view.data(), key_view.size());
+    if (key_view.size() > 0) {
+      memcpy(&key_slice, key_view.data(), key_view.size());
+    }
+    key_length = key_view.size();
   }
-  key_slice_type lowest_key_of_nb = right->get_key_slice_at(0);
-  key_length_type lowest_key_length_of_nb = right->get_key_length_at(0);
-  int memcmp_result = memcmp(&key_slice, &lowest_key_of_nb, sizeof(key_slice_type));
-  if (memcmp_result < 0
-      || (memcmp_result == 0 && key_view.size() < lowest_key_length_of_nb)) {
+  std::tuple<key_slice_type, key_length_type> visitor{key_slice, key_length};
+  std::tuple<key_slice_type, key_length_type> r_low{right->get_key_slice_at(0), right->get_key_length_at(0)};
+  if (visitor < r_low) {
     /**
      * insert to lower border node.
      * @attention lock_list will not be added new lock.
      */
     insert_lv(left, key_view, next_layer, value_ptr, value_length, value_align, lock_list);
-  } else if (memcmp_result > 0
-             || (memcmp_result == 0 && key_view.size() > lowest_key_length_of_nb)) {
+  } else if (visitor > r_low) {
     /**
      * insert to higher border node.
      * @attention lock_list will not be added new lock.
@@ -200,7 +204,6 @@ static void border_split(border_node *border,
     vec.emplace_back(key_slice_array[i], key_length_array[i], i);
   }
   std::sort(vec.begin(), vec.end());
-
   /**
    * split
    */
@@ -212,7 +215,7 @@ static void border_split(border_node *border,
      */
     new_border->set_key_slice_at(index_ctr, std::get<key_slice_index>(*itr));
     new_border->set_key_length_at(index_ctr, std::get<key_length_index>(*itr));
-    new_border->set_lv(index_ctr, border->get_lv_at(index_ctr));
+    new_border->set_lv(index_ctr, border->get_lv_at(std::get<key_pos>(*itr)));
     if (std::get<key_pos>(*itr) < (base_node::key_slice_length / 2)) {
       shift_pos.emplace_back(std::get<key_pos>(*itr));
     }

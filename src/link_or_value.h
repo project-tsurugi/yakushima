@@ -97,11 +97,12 @@ public:
 
   /**
    * @pre This is called by split process.
+   * @details This is move process.
    * @param nlv
    */
   void set(link_or_value *nlv) {
     /**
-     * This object in this function is not accessed concurrently, so it can memcpy.
+     * This object in this function is not accessed concurrently, so it can copy assign.
      */
      *this = *nlv;
   }

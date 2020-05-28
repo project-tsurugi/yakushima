@@ -8,10 +8,15 @@
 
 #include <cstdint>
 #include <cstring>
+#include <iostream>
 
 #include "atomic_wrapper.h"
 #include "base_node.h"
 #include "border_node.h"
+
+#include "../test/include/debug.hh"
+
+using std::cout, std::endl;
 
 namespace yakushima {
 
@@ -39,7 +44,7 @@ public:
    * @pre This function is called by single thread.
    */
   status destroy() final {
-    for (auto i = 0; i < n_keys_; ++i) {
+    for (auto i = 0; i < n_keys_ + 1; ++i) {
       get_child_at(i)->destroy();
     }
     delete this;
