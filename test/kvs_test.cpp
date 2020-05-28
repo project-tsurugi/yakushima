@@ -11,6 +11,7 @@
 #include "kvs.h"
 
 #include "include/global_variables_decralation.h"
+#include "debug.hh"
 
 using namespace yakushima;
 using std::cout;
@@ -129,7 +130,6 @@ TEST_F(kvs_test, multiple_put_get_same_null_char_key_slice_and_different_key_len
   ASSERT_EQ(masstree_kvs::destroy(), status::OK_DESTROY_ALL);
 }
 
-#if 0
 TEST_F(kvs_test, put_until_creating_interior_node) {
   masstree_kvs::init_kvs();
   constexpr std::size_t ary_size = base_node::key_slice_length + 1;
@@ -143,6 +143,5 @@ TEST_F(kvs_test, put_until_creating_interior_node) {
   }
   ASSERT_EQ(masstree_kvs::destroy(), status::OK_DESTROY_ALL);
 }
-#endif
 
 }  // namespace yakushima::testing
