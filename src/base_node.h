@@ -47,13 +47,15 @@ public:
   /**
    * @details display function for analysis and debug.
    */
-  void display() {
-    cout << "base_node::display" << endl;
+  virtual void display() = 0;
+
+  void display_base() {
+    cout << "base_node::display_base" << endl;
     version_.display();
     cout << "parent_ : " << get_parent() << endl;
     for (std::size_t i = 0; i < key_slice_length; ++i) {
-      cout << "key_slice_[" << i << "] : " << key_slice_[i] << endl;
-      cout << "key_length_[" << i << "] : " << key_length_[i] << endl;
+      cout << "key_slice_[" << i << "] : " <<  std::to_string(get_key_slice_at(i))  << endl;
+      cout << "key_length_[" << i << "] : " << std::to_string(get_key_length_at(i)) << endl;
     }
   }
 

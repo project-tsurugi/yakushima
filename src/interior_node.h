@@ -51,6 +51,18 @@ public:
     return status::OK_DESTROY_INTERIOR;
   }
 
+  /**
+   * @details display function for analysis and debug.
+   */
+  void display() final {
+    display_base();
+    cout << "interior_node::display" << endl;
+    cout << "nkeys_ : " << std::to_string(get_n_keys()) << endl;
+    for (std::size_t i = 0; i < get_n_keys(); ++i) {
+      cout << "child : " << i << " : " << get_child_at(i) << endl;
+    }
+  }
+
   [[nodiscard]] n_keys_body_type get_n_keys() {
     return n_keys_.load(std::memory_order_acquire);
   }

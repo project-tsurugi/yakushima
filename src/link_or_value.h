@@ -58,6 +58,17 @@ public:
     set_value_align(0);
   }
 
+  /**
+   * @details display function for analysis and debug.
+   */
+  void display() {
+    cout << "need_delete_value_ : " << get_need_delete_value() << endl;
+    cout << "next_layer_ : " << get_next_layer() << endl;
+    cout << "v_or_vp_ : " << get_v_or_vp_() << endl;
+    cout << "value_length_ : " << get_value_length() << endl;
+    cout << "value_align_ : " << get_value_align() << endl;
+  }
+
   [[nodiscard]] bool get_need_delete_value() {
     return loadAcquireN(need_delete_value_);
   }
@@ -93,6 +104,7 @@ public:
     set_next_layer(nullptr);
     set_v_or_vp(nullptr);
     set_value_length(0);
+    set_value_align(0);
   }
 
   /**

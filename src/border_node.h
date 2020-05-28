@@ -36,6 +36,19 @@ public:
     return status::OK_DESTROY_BORDER;
   }
 
+  /**
+   * @details display function for analysis and debug.
+   */
+  void display() final {
+    display_base();
+    cout << "border_node::display" << endl;
+    permutation_.display();
+    for (std::size_t i = 0; i < get_permutation_cnk(); ++i) {
+      lv_[i].display();
+    }
+    cout << "next : " << get_next() << endl;
+  }
+
   [[nodiscard]] std::uint8_t get_permutation_cnk() {
     return permutation_.get_cnk();
   }
@@ -93,6 +106,10 @@ public:
       }
     }
     return nullptr;
+  }
+
+  border_node *get_next() {
+    return loadAcquireN(next_);
   }
 
   void init_border() {
@@ -240,13 +257,13 @@ private:
    */
   link_or_value lv_[key_slice_length]{};
   /**
-   * @attention This variable is read/written concurrently.
-   */
-  border_node *next_{nullptr};
-  /**
    * @attention This is protected by its previous sibling's lock.
    */
   std::atomic<border_node *> prev_{nullptr};
+  /**
+   * @attention This variable is read/written concurrently.
+   */
+  border_node *next_{nullptr};
 };
 } // namespace yakushima
 

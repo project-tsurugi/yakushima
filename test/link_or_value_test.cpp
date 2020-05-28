@@ -25,4 +25,11 @@ TEST_F(link_or_value_test, link_or_value_test) {
   link_or_value lv;
 }
 
+TEST_F(link_or_value_test, display) {
+  link_or_value lv;
+  lv.display();
+  lv.init_lv();
+  lv.display();
+}
+
 }  // namespace yakushima::testing

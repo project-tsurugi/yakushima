@@ -11,6 +11,7 @@
 #include <bitset>
 #include <cmath>
 #include <cstdint>
+#include <iostream>
 #include <tuple>
 #include <vector>
 
@@ -32,6 +33,11 @@ public:
 
   permutation() {
     init();
+  }
+
+  void display() {
+    std::bitset<64> bs{get_body()};
+    cout << bs << endl;
   }
 
   std::uint64_t get_body() &{

@@ -33,4 +33,10 @@ TEST_F(permutation_test, basic_permutation_test) {
   ASSERT_EQ(per.get_cnk(), 1); // check invariant.
 }
 
+TEST_F(permutation_test, display) {
+  permutation per{};
+  per.display();
+  per.inc_key_num();
+  per.display();
+}
 }  // namespace yakushima::testing
