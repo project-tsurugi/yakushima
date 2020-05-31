@@ -247,7 +247,6 @@ static void border_split(border_node *border,
   }
 
   base_node *p = border->lock_parent();
-
   if (p == nullptr) {
     /**
      * create interior as parents and insert k.

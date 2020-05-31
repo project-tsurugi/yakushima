@@ -160,8 +160,7 @@ TEST_F(kvs_test, put_until_first_split_of_interior_node) {
      * first interior split occurs at splitting interior_node::child_length times.
      */
     ary_size =
-            // base_node::key_slice_length + 1 + (base_node::key_slice_length / 2 + 1) * (interior_node::child_length - 1);
-            base_node::key_slice_length + 1 + (base_node::key_slice_length / 2 + 1) * 7;
+            base_node::key_slice_length + 1 + (base_node::key_slice_length / 2 + 1) * (interior_node::child_length - 1);
   } else {
     ary_size = base_node::key_slice_length + 1 + (base_node::key_slice_length / 2) * (interior_node::child_length - 1);
   }
@@ -208,24 +207,26 @@ TEST_F(kvs_test, put_until_first_split_of_interior_node) {
         ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root())->get_child_at(
                 2))->get_permutation_cnk(), 8);
       } else if ((i > base_node::key_slice_length + (base_node::key_slice_length / 2) + 1) &&
-                 (i - base_node::key_slice_length) % ((base_node::key_slice_length / 2)) == 0) {
+              (i < base_node::key_slice_length + (base_node::key_slice_length / 2 + 1) * (base_node::key_slice_length - 1)) &&
+                 (i - base_node::key_slice_length) % ((base_node::key_slice_length / 2 + 1)) == 0) {
+        /**
+         * When it puts (base_node::key_slice_length / 2) keys, the root interior node has (i-base_node::key_slice
+         * _length) / (base_node::key_slice_length / 2);
+         */
         ASSERT_EQ(dynamic_cast<interior_node *>(base_node::get_root())->get_n_keys(),
-                  (i - base_node::key_slice_length) / (base_node::key_slice_length / 2));
-#if 0
-        } else if (i == base_node::key_slice_length + ((base_node::key_slice_length / 2)) * 14) {
-          ASSERT_EQ(dynamic_cast<interior_node *>(base_node::get_root())->get_n_keys(), 15);
-#endif
-        }
+                  (i - base_node::key_slice_length) / (base_node::key_slice_length / 2 + 1) + 1);
+
+      } else if (i == base_node::key_slice_length + ((base_node::key_slice_length / 2 + 1)) * (base_node::key_slice_length - 1)) {
+        ASSERT_EQ(dynamic_cast<interior_node *>(base_node::get_root())->get_n_keys(), base_node::key_slice_length);
+      }
       }
     }
 
-#if 0
     interior_node *in = dynamic_cast<interior_node *>(base_node::get_root());
     /**
      * root is interior.
      */
     ASSERT_EQ(in->get_version_border(), false);
-    in->display();
     interior_node *child_of_root = dynamic_cast<interior_node *>(in->get_child_at(0));
     /**
      * child of root[0] is interior.
@@ -241,7 +242,6 @@ TEST_F(kvs_test, put_until_first_split_of_interior_node) {
      * child of child of root[0] is border.
      */
     ASSERT_EQ(child_child_of_root->get_version_border(), true);
-#endif
 }
 
 }  // namespace yakushima::testing

@@ -75,7 +75,6 @@ static void create_interior_parent(interior_node *left, interior_node *right, st
 }
 
 static void interior_split(interior_node *interior, base_node *child_node, std::vector<node_version64 *> &lock_list) {
-  NNN;
   interior_node *new_interior = new interior_node();
   new_interior->init_interior();
   interior->set_version_splitting(true);
@@ -114,7 +113,6 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
 
   base_node *p = interior->lock_parent();
   if (p == nullptr) {
-    NNN;
     create_interior_parent(interior, new_interior, lock_list, &p);
     /**
      * p became new root.
