@@ -160,7 +160,8 @@ TEST_F(kvs_test, put_until_first_split_of_interior_node) {
      * first interior split occurs at splitting interior_node::child_length times.
      */
     ary_size =
-            base_node::key_slice_length + 1 + (base_node::key_slice_length / 2 + 1) * (interior_node::child_length - 1);
+            // base_node::key_slice_length + 1 + (base_node::key_slice_length / 2 + 1) * (interior_node::child_length - 1);
+            base_node::key_slice_length + 1 + (base_node::key_slice_length / 2 + 1) * 7;
   } else {
     ary_size = base_node::key_slice_length + 1 + (base_node::key_slice_length / 2) * (interior_node::child_length - 1);
   }
@@ -170,32 +171,76 @@ TEST_F(kvs_test, put_until_first_split_of_interior_node) {
     k[i].assign(1, i);
     v[i].assign(1, i);
   }
-#if 0
   for (std::size_t i = 0; i < ary_size; ++i) {
     ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view{k[i]}, v[i].data(), v[i].size()));
-  }
+    if (base_node::key_slice_length % 2) {
+      if (i == base_node::key_slice_length - 1) {
+        /**
+         * root is full-border.
+         */
+        ASSERT_EQ(typeid(*base_node::get_root()), typeid(border_node));
+      } else if (i == base_node::key_slice_length) {
+        /**
+         * split and insert.
+         */
+        ASSERT_EQ(typeid(*base_node::get_root()), typeid(interior_node));
+        ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root())->get_child_at(
+                0))->get_permutation_cnk(), 8);
+        ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root())->get_child_at(
+                1))->get_permutation_cnk(), 8);
+      } else if (i == base_node::key_slice_length + (base_node::key_slice_length / 2)) {
+        /**
+         * root is interior, root has 2 childs, child[0] of root has 8 keys and child[1] of root has 15 keys.
+         */
+        ASSERT_EQ(dynamic_cast<interior_node *>(base_node::get_root())->get_n_keys(), 1);
+        ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root())->get_child_at(
+                0))->get_permutation_cnk(), 8);
+        ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root())->get_child_at(
+                1))->get_permutation_cnk(), 15);
+      } else if (i == base_node::key_slice_length + (base_node::key_slice_length / 2) + 1) {
+        /**
+         * root is interior, root has 3 childs, child[0-2] of root has 8 keys.
+         */
+        ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root())->get_child_at(
+                0))->get_permutation_cnk(), 8);
+        ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root())->get_child_at(
+                1))->get_permutation_cnk(), 8);
+        ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root())->get_child_at(
+                2))->get_permutation_cnk(), 8);
+      } else if ((i > base_node::key_slice_length + (base_node::key_slice_length / 2) + 1) &&
+                 (i - base_node::key_slice_length) % ((base_node::key_slice_length / 2)) == 0) {
+        ASSERT_EQ(dynamic_cast<interior_node *>(base_node::get_root())->get_n_keys(),
+                  (i - base_node::key_slice_length) / (base_node::key_slice_length / 2));
+#if 0
+        } else if (i == base_node::key_slice_length + ((base_node::key_slice_length / 2)) * 14) {
+          ASSERT_EQ(dynamic_cast<interior_node *>(base_node::get_root())->get_n_keys(), 15);
+#endif
+        }
+      }
+    }
 
-  interior_node *in = dynamic_cast<interior_node *>(base_node::get_root());
-  /**
-   * root is interior.
-   */
-  ASSERT_EQ(in->get_version_border(), false);
-  in->display();
-  interior_node *child_of_root = dynamic_cast<interior_node *>(in->get_child_at(0));
-  /**
-   * child of root[0] is interior.
-   */
-  ASSERT_EQ(child_of_root->get_version_border(), false);
-  child_of_root = dynamic_cast<interior_node *>(in->get_child_at(1));
-  /**
-   * child of root[1] is interior.
-   */
-  ASSERT_EQ(child_of_root->get_version_border(), false);
-  border_node *child_child_of_root = dynamic_cast<border_node *>(child_of_root->get_child_at(0));
-  /**
-   * child of child of root[0] is border.
-   */
-  ASSERT_EQ(child_child_of_root->get_version_border(), true);
+#if 0
+    interior_node *in = dynamic_cast<interior_node *>(base_node::get_root());
+    /**
+     * root is interior.
+     */
+    ASSERT_EQ(in->get_version_border(), false);
+    in->display();
+    interior_node *child_of_root = dynamic_cast<interior_node *>(in->get_child_at(0));
+    /**
+     * child of root[0] is interior.
+     */
+    ASSERT_EQ(child_of_root->get_version_border(), false);
+    child_of_root = dynamic_cast<interior_node *>(in->get_child_at(1));
+    /**
+     * child of root[1] is interior.
+     */
+    ASSERT_EQ(child_of_root->get_version_border(), false);
+    border_node *child_child_of_root = dynamic_cast<border_node *>(child_of_root->get_child_at(0));
+    /**
+     * child of child of root[0] is border.
+     */
+    ASSERT_EQ(child_child_of_root->get_version_border(), true);
 #endif
 }
 
