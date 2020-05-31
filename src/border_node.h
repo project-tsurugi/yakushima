@@ -112,6 +112,10 @@ public:
     return loadAcquireN(next_);
   }
 
+  border_node *get_prev() {
+    return prev_.load(std::memory_order_acquire);
+  }
+
   void init_border() {
     init_base();
     init_border_member_range(0, key_slice_length - 1);

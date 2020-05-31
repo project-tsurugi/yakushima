@@ -152,7 +152,6 @@ TEST_F(kvs_test, put_until_creating_interior_node) {
 }
 
 TEST_F(kvs_test, put_until_first_split_of_interior_node) {
-#if 0
   std::size_t ary_size;
   if (base_node::key_slice_length % 2) {
     /**
@@ -171,6 +170,7 @@ TEST_F(kvs_test, put_until_first_split_of_interior_node) {
     k[i].assign(1, i);
     v[i].assign(1, i);
   }
+#if 0
   for (std::size_t i = 0; i < ary_size; ++i) {
     ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view{k[i]}, v[i].data(), v[i].size()));
   }
@@ -180,6 +180,7 @@ TEST_F(kvs_test, put_until_first_split_of_interior_node) {
    * root is interior.
    */
   ASSERT_EQ(in->get_version_border(), false);
+  in->display();
   interior_node *child_of_root = dynamic_cast<interior_node *>(in->get_child_at(0));
   /**
    * child of root[0] is interior.

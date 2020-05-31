@@ -8,6 +8,8 @@
 #include "border_helper.h"
 #include "interior_node.h"
 
+#include "../test/include/debug.hh"
+
 namespace yakushima {
 
 using key_slice_type = base_node::key_slice_type;
@@ -73,10 +75,11 @@ static void create_interior_parent(interior_node *left, interior_node *right, st
 }
 
 static void interior_split(interior_node *interior, base_node *child_node, std::vector<node_version64 *> &lock_list) {
+  NNN;
   interior_node *new_interior = new interior_node();
   new_interior->init_interior();
-  interior->set_version_root(false);
   interior->set_version_splitting(true);
+  interior->set_version_root(false);
   /**
    * new interior is initially locked.
    */
@@ -103,7 +106,7 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
   std::tuple<key_slice_type, key_length_type> visitor{child_node->get_key_slice_at(0),
                                                       child_node->get_key_length_at(0)};
   if (visitor <
-      std::make_tuple<key_slice_type, key_length_type>(interior->get_key_slice_at(pivot_key), interior->get_key_length_at(pivot_key))) {
+      std::make_tuple<key_slice_type, key_length_type>(new_interior->get_key_slice_at(0), new_interior->get_key_length_at(0))) {
     interior->insert(child_node);
   } else {
     new_interior->insert(child_node);
@@ -111,6 +114,7 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
 
   base_node *p = interior->lock_parent();
   if (p == nullptr) {
+    NNN;
     create_interior_parent(interior, new_interior, lock_list, &p);
     /**
      * p became new root.

@@ -91,15 +91,15 @@ static void create_interior_parents_and_insert(border_node *left,
   /**
    * process interior node members
    */
-  ni->n_keys_increment();
   ni->set_child_at(0, dynamic_cast<base_node *>(left));
   ni->set_child_at(1, dynamic_cast<base_node *>(right));
+  ni->n_keys_increment();
   /**
    * The insert process we wanted to do before we split.
    * key_slice must be initialized to 0.
    */
   key_slice_type key_slice(0);
-  key_length_type key_length(0);
+  key_length_type key_length;
   if (key_view.size() > sizeof(key_slice_type)) {
     memcpy(&key_slice, key_view.data(), sizeof(key_slice_type));
     key_length = sizeof(key_slice_type);
@@ -137,7 +137,6 @@ static void create_interior_parents_and_insert(border_node *left,
   left->set_parent(dynamic_cast<base_node *>(ni));
   right->set_parent(dynamic_cast<base_node *>(ni));
   *new_parent = ni;
-  base_node::set_root(dynamic_cast<base_node *>(ni));
 }
 
 static void insert_lv(border_node *border,
@@ -255,12 +254,14 @@ static void border_split(border_node *border,
   new_border->set_permutation_rearrange();
 
   base_node *p = border->lock_parent();
+
   if (p == nullptr) {
     /**
      * create interior as parents and insert k.
      */
     create_interior_parents_and_insert(border, new_border, key_view, next_layer, value_ptr, value_length, value_align,
-                                       lock_list, reinterpret_cast<interior_node**>(&p));
+                                       lock_list, reinterpret_cast<interior_node **>(&p));
+    base_node::set_root(dynamic_cast<base_node *>(p));
     return;
   }
   /**

@@ -58,7 +58,7 @@ public:
     display_base();
     cout << "interior_node::display" << endl;
     cout << "nkeys_ : " << std::to_string(get_n_keys()) << endl;
-    for (std::size_t i = 0; i < get_n_keys(); ++i) {
+    for (std::size_t i = 0; i <= get_n_keys(); ++i) {
       cout << "child : " << i << " : " << get_child_at(i) << endl;
     }
   }
@@ -139,8 +139,20 @@ public:
     }
     set_key(n_key, child->get_key_slice_at(0), child->get_key_length_at(0));
     set_child_at(n_key + 1, child);
+    child->set_parent(this);
     n_keys_increment();
     return;
+  }
+
+  void move_children_to_interior_range(interior_node *right_interior, std::size_t start) {
+    for (auto i = start; i < child_length; ++i) {
+      right_interior->set_child_at(i - start, get_child_at(i));
+      /**
+       * right interiror is new parent of get_child_at(i).
+       */
+      get_child_at(i)->set_parent(dynamic_cast<base_node*>(right_interior));
+      set_child_at(i, nullptr);
+    }
   }
 
   void set_child_at(std::size_t index, base_node *new_child) {
@@ -160,13 +172,6 @@ public:
     memmove(reinterpret_cast<void *>(get_child_at(start_pos + shift_size)),
             reinterpret_cast<void *>(get_child_at(start_pos)),
             sizeof(base_node *) * (start_pos + 1));
-  }
-
-  void move_children_to_interior_range(interior_node *right_interior, std::size_t start) {
-    for (auto i = start; i < child_length; ++i) {
-      right_interior->set_child_at(i - start, get_child_at(i));
-      set_child_at(i, nullptr);
-    }
   }
 
   void n_keys_decrement() {
