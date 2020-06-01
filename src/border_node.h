@@ -37,6 +37,15 @@ public:
   }
 
   /**
+   * @pre This border node was already locked by caller.
+   * @details delete value corresponding to @a key_slice and @a key_length
+   * @param key_slice The key slice of key-value.
+   * @param key_length The @key_slice length.
+   */
+  void delete_of([[maybe_unused]]key_slice_type key_slice, [[maybe_unused]]key_length_type key_slice_length) {
+  }
+
+  /**
    * @details display function for analysis and debug.
    */
   void display() final {

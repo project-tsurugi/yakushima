@@ -474,13 +474,26 @@ retry_fetch_lv:
      */
     if (lv_ptr->get_v_or_vp_() != nullptr) {
       if (final_slice) {
+        target_border->lock();
+        node_version64_body final_check = target_border->get_version();
+        if (final_check.get_deleted() || // the border was deleted.
+            final_check.get_vsplit() != v_at_fb.get_vsplit()) { // the border may be incorrect.
+          target_border->unlock();
+          goto retry_from_root;
+        }
         /**
-         * todo : lock and check this border and link_or_value is still correct.
+         * here, border is correct.
          */
+        if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete() || // the lv may be deleted.
+            final_check.get_vinsert() != v_at_fetch_lv.get_vinsert()) { // the lv may be next_layer from value ptr.
+          final_check.make_stable_version_forcibly();
+          v_at_fb = final_check;
+          target_border->unlock();
+          goto retry_fetch_lv;
+        }
 
-        /**
-         * todo : remove  process.
-         */
+        target_border->delete_of(key_slice, key_slice_length);
+        target_border->unlock();
         return status::OK;
       } else {
         return status::OK_NOT_FOUND;
