@@ -43,8 +43,8 @@ public:
    * @return std::tuple<ValueType *, std::size_t> The set of pointer to value and the value size.
    */
   template<class ValueType>
-  [[nodiscard]] static std::tuple<ValueType *, std::size_t>
-  get([[maybe_unused]]std::string_view key_view) {
+  static std::tuple<ValueType *, std::size_t>
+  get(std::string_view key_view) {
 retry_from_root:
     base_node *root = base_node::get_root();
     if (root == nullptr) {
@@ -414,7 +414,7 @@ descend:
     /**
      * @a n points to a interior_node object.
      */
-    [[maybe_unused]]base_node *n_child = static_cast<interior_node *>(n)->get_child_of(key_slice, key_slice_length);
+    base_node *n_child = static_cast<interior_node *>(n)->get_child_of(key_slice, key_slice_length);
     /**
      * As soon as you it finished operating the contents of node, read version (v_check).
      */
