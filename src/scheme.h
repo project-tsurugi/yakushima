@@ -14,11 +14,6 @@ enum class status : std::int32_t {
   WARN_BAD_USAGE,
   /**
    * @brief Warning
-   * @details (insert/put/get/delete) No corresponding value in this storage engine.
-   */
-  WARN_NOT_FOUND,
-  /**
-   * @brief Warning
    * @details The find_border function tells that it must retry from root of all tree.
    */
   WARN_RETRY_FROM_ROOT_OF_ALL,
@@ -44,6 +39,11 @@ enum class status : std::int32_t {
    * @brief (destroy) It destroys xxx.
    */
   OK_DESTROY_INTERIOR,
+  /**
+   * @brief Warning
+   * @details (get/delete) No corresponding value in this storage engine.
+   */
+  OK_NOT_FOUND,
   /**
    * @brief
    * (destroy) Root is nullptr and it could not destroy.

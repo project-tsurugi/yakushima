@@ -98,10 +98,10 @@ public:
    * @return link_or_value*
    * @return nullptr
    */
-  [[nodiscard]] link_or_value *get_lv_of_without_lock(key_slice_type key_slice) {
+  [[nodiscard]] link_or_value *get_lv_of_without_lock(key_slice_type key_slice, key_length_type key_length) {
     std::size_t cnk = permutation_.get_cnk();
     for (std::size_t i = 0; i < cnk; ++i) {
-      if (key_slice == get_key_slice_at(i)) {
+      if (key_slice == get_key_slice_at(i) && key_length == get_key_length_at(i)) {
         return get_lv_at(i);
       }
     }

@@ -129,6 +129,12 @@ public:
     vsplit = 0;
   }
 
+  void make_stable_version_forcibly() {
+    set_inserting(false);
+    set_locked(false);
+    set_splitting(false);
+  }
+
   void set_border(bool new_border) &{
     border = new_border;
   }
@@ -339,6 +345,12 @@ public:
    */
   void init() {
     set_body(node_version64_body());
+  }
+
+  void make_stable_version_forcibly() {
+    set_inserting(false);
+    set_locked(false);
+    set_splitting(false);
   }
 
   void set_body(node_version64_body newv) &{
