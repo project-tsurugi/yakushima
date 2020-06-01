@@ -33,7 +33,10 @@ public:
   void delete_at(std::size_t pos) {
     /**
      * todo : To prevent segv from occurring even if a parallel reader reads it later.
+     * The destruction of the destroy function propagates to the next_layer.
+     * This is for bulk destruction, and nullptr is set to prevent it.
      */
+    lv_[pos].set_next_layer(nullptr);
     lv_[pos].destroy();
 
     /**
