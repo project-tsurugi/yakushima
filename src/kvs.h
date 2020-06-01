@@ -73,7 +73,7 @@ retry_find_border:
     status special_status;
     std::tuple<border_node *, node_version64_body> node_and_v = find_border(root, key_slice, key_slice_length,
                                                                             special_status);
-    if (special_status == status::WARN_ROOT_DELETED) {
+    if (special_status == status::WARN_RETRY_FROM_ROOT_OF_ALL) {
       /**
        * @a root is the root node of the some layer, but it was deleted.
        * So it must retry from root of the all tree.
@@ -207,7 +207,7 @@ retry_find_border:
     status special_status;
     std::tuple<border_node *, node_version64_body> node_and_v = find_border(root, key_slice, key_slice_length,
                                                                             special_status);
-    if (special_status == status::WARN_ROOT_DELETED) {
+    if (special_status == status::WARN_RETRY_FROM_ROOT_OF_ALL) {
       /**
        * @a root is the root node of the some layer, but it was deleted.
        * So it must retry from root of the all tree.
@@ -382,7 +382,220 @@ lv_ptr_exists:
     std::abort();
   }
 
-  static status remove([[maybe_unused]]std::string key) {
+  /**
+   * @param[in] key_view The key_view of key-value.
+   * @return status::OK_ROOT_IS_NULL No existing tree.
+   */
+  static status remove([[maybe_unused]]std::string_view key_view) {
+#if 0
+retry_from_root:
+    base_node *root = base_node::get_root();
+    if (root == nullptr) {
+      /**
+       * root is nullptr
+       */
+       return status::OK_ROOT_IS_NULL;
+    }
+
+    bool final_slice{false};
+    std::string_view traverse_key_view{key_view};
+retry_find_border:
+    /**
+     * prepare key_slice
+     */
+    key_slice_type key_slice(0);
+    key_length_type key_slice_length;
+    if (traverse_key_view.size() > sizeof(key_slice_type)) {
+      memcpy(&key_slice, traverse_key_view.data(), sizeof(key_slice_type));
+      final_slice = false;
+      key_slice_length = sizeof(key_slice_type);
+    } else {
+      if (traverse_key_view.size() > 0) {
+        memcpy(&key_slice, traverse_key_view.data(), traverse_key_view.size());
+      }
+      final_slice = true;
+      key_slice_length = traverse_key_view.size();
+    }
+    /**
+     * traverse tree to border node.
+     */
+    status special_status;
+    std::tuple<border_node *, node_version64_body> node_and_v = find_border(root, key_slice, key_slice_length,
+                                                                            special_status);
+    if (special_status == status::WARN_RETRY_FROM_ROOT_OF_ALL) {
+      /**
+       * @a root is the root node of the some layer, but it was deleted.
+       * So it must retry from root of the all tree.
+       */
+      goto retry_from_root;
+    }
+    constexpr std::size_t tuple_node_index = 0;
+    constexpr std::size_t tuple_v_index = 1;
+    border_node *target_border = std::get<tuple_node_index>(node_and_v);
+    node_version64_body v_at_fb = std::get<tuple_v_index>(node_and_v);
+    /**
+     * check whether it should delete against this node.
+     */
+    node_version64_body v_at_fetch_lv;
+    link_or_value *lv_ptr = target_border->get_lv_of(key_slice, key_slice_length, v_at_fetch_lv);
+    if (v_at_fetch_lv.get_vsplit() != v_at_fb.get_vsplit() || v_at_fetch_lv.get_deleted()) {
+      /**
+       * It may be change the correct border between atomically fetching border node and atomically fetching lv.
+       */
+      goto retry_from_root;
+    }
+    /**
+     * if lv == nullptr : insert node into this border_node.
+     * else if lv == some value && final_slice : return status::WARN_UNIQUE_RESTRICTION.
+     * else if lv ==  next_layer && final_slice == true : return status::WARN_UNIQUE_RESTRICTION.
+     * else if lv == next_layer && final_slice == false : root = lv; advance key; goto retry_find_border;
+     * else unreachable; std::abort();
+     */
+lv_ptr_null:
+    if (lv_ptr == nullptr) {
+      /**
+       * inserts node into this border_node.
+       */
+      target_border->lock();
+      if (target_border->get_version_deleted()
+          || target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
+        /**
+         * get_version_deleted() : It was deleted between atomically fetching border node
+         * and locking.
+         * vsplit comparison : It may be change the correct border node between
+         * atomically fetching border and lock.
+         */
+        target_border->unlock();
+        goto retry_from_root;
+      }
+      /**
+       * Here, border node is the correct.
+       */
+      if (target_border->get_version_vinsert() != v_at_fetch_lv.get_vinsert()
+          || target_border->get_version_vdelete() != v_at_fetch_lv.get_vdelete()) {
+        /**
+         * It must re-check the existence of lv because it was inserted or deleted between
+         * fetching lv and locking.
+         */
+        lv_ptr = target_border->get_lv_of_without_lock(key_slice);
+        if (lv_ptr != nullptr) {
+          /**
+           * Before jumping, it updates the v_at_fetch by current version to improve performance lately.
+           */
+          node_version64_body new_v = target_border->get_version();
+          new_v.set_locked(false);
+          v_at_fb = v_at_fetch_lv = new_v;
+          /**
+           * Jump
+           */
+          target_border->unlock();
+          goto lv_ptr_exists;
+        }
+      }
+      std::vector<node_version64 *> lock_list;
+      lock_list.emplace_back(target_border->get_version_ptr());
+      insert_lv(target_border, traverse_key_view, false, value, arg_value_length, value_align, lock_list);
+      for (auto &lock : lock_list) {
+        lock->unlock();
+      }
+      return status::OK;
+    }
+lv_ptr_exists:
+    /**
+     * Here, lv_ptr != nullptr.
+     * If lv_ptr has some value && final_slice
+     */
+    if (lv_ptr->get_v_or_vp_() != nullptr) {
+      if (final_slice) {
+        return status::WARN_UNIQUE_RESTRICTION;
+      } else {
+        /**
+         * Finally, It creates new layer and inserts this old lv into the new layer.
+         */
+        target_border->lock();
+        if (target_border->get_version_deleted()
+            || target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
+          target_border->unlock();
+          goto retry_from_root;
+        }
+        /**
+         * Here, border node is correct.
+         */
+        if (target_border->get_version_vinsert() != v_at_fetch_lv.get_vinsert()
+            || target_border->get_version_vdelete() != v_at_fetch_lv.get_vdelete()) {
+          /**
+           * lv_ptr may be incorrect.
+           */
+          lv_ptr = target_border->get_lv_of_without_lock(key_slice);
+          if (lv_ptr == nullptr) {
+            /**
+             * Before jumping, it updates the v_at_fetch by current version to improve performance lately.
+             */
+            node_version64_body new_v = target_border->get_version();
+            new_v.set_locked(false);
+            v_at_fb = v_at_fetch_lv = new_v;
+            target_border->unlock();
+            goto lv_ptr_null;
+          } else {
+            /**
+             * Before jumping, it updates the v_at_fetch by current version to improve performance lately.
+             */
+            node_version64_body new_v = target_border->get_version();
+            new_v.set_locked(false);
+            v_at_fb = v_at_fetch_lv = new_v;
+            target_border->unlock();
+            goto lv_ptr_exists;
+          }
+        }
+        /**
+         * Here, lv_ptr is correct.
+         */
+        /**
+         * Here, not final slice, so the key_slice size is 8 bytes
+         * It creates new layer and inserts this old lv into the new layer.
+         */
+        border_node *new_border = new border_node();
+        traverse_key_view.remove_prefix(sizeof(key_slice_type));
+        new_border->init_border(std::string_view{nullptr, 0}, lv_ptr->get_v_or_vp_(), true, lv_ptr->get_value_length(), lv_ptr->get_value_align());
+        new_border->insert_lv_at(1, traverse_key_view, true, value, arg_value_length, value_align);
+        /**
+         * 1st argument (index == 0) was used by this (non-final) slice at init_border func.
+         */
+        /**
+         * process for lv_ptr
+         */
+        lv_ptr->destroy_value();
+        lv_ptr->set_next_layer(new_border);
+        new_border->set_parent(target_border);
+        target_border->unlock();
+        return status::OK;
+      }
+    }
+    /**
+     * Here, lv_ptr has some next_layer.
+     */
+    if (lv_ptr->get_next_layer() != nullptr && !final_slice) {
+      if (target_border->get_version_deleted() ||
+          target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
+        /**
+         * border is incorrect.
+         */
+        target_border->unlock();
+        goto retry_from_root;
+      }
+      /**
+       * root = lv; advance key; goto retry_find_border;
+       */
+      root = dynamic_cast<base_node *>(lv_ptr->get_next_layer());
+      traverse_key_view.remove_prefix(sizeof(key_slice_type));
+      target_border->unlock();
+      goto retry_find_border;
+    }
+    /**
+    * unreachable
+    */
+    std::abort();
+#endif
     return status::OK;
   }
 
@@ -401,8 +614,8 @@ private:
 retry:
     base_node *n = root;
     node_version64_body v = n->get_stable_version();
-    if ((v.get_root() && v.get_deleted()) || !v.get_root()) {
-      special_status = status::WARN_ROOT_DELETED;
+    if (v.get_deleted() || !v.get_root()) {
+      special_status = status::WARN_RETRY_FROM_ROOT_OF_ALL;
       return std::make_tuple(nullptr, node_version64_body());
     }
 descend:

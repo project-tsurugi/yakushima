@@ -21,7 +21,7 @@ enum class status : std::int32_t {
    * @brief Warning
    * @details The find_border function tells that it must retry from root of all tree.
    */
-  WARN_ROOT_DELETED,
+  WARN_RETRY_FROM_ROOT_OF_ALL,
   /**
    * @brief Warning
    * @details Masstree originally has a unique key constraint.
@@ -45,7 +45,9 @@ enum class status : std::int32_t {
    */
   OK_DESTROY_INTERIOR,
   /**
-   * @brief (destroy) Root is nullptr and it could not destroy.
+   * @brief
+   * (destroy) Root is nullptr and it could not destroy.
+   * (remove) No existing tree.
    */
   OK_ROOT_IS_NULL,
   /**
