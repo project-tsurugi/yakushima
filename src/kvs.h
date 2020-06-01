@@ -406,7 +406,7 @@ lv_ptr_exists:
    * @param[in] key_view The key_view of key-value.
    * @return status::OK_ROOT_IS_NULL No existing tree.
    */
-  static status remove([[maybe_unused]]std::string_view key_view) {
+  static status remove(std::string_view key_view) {
 retry_from_root:
     base_node *root = base_node::get_root();
     if (root == nullptr) {

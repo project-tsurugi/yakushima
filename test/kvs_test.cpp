@@ -244,4 +244,18 @@ TEST_F(kvs_test, put_until_first_split_of_interior_node) {
     ASSERT_EQ(child_child_of_root->get_version_border(), true);
 }
 
+TEST_F(kvs_test, delete_against_single_put_to_one_border) {
+  /**
+   * put one key-value
+   */
+  masstree_kvs::init_kvs();
+  std::string k("a"), v("v-a");
+  ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+  base_node* root = base_node::get_root(); // this is border node.
+  ASSERT_NE(root, nullptr);
+  ASSERT_EQ(status::OK, masstree_kvs::remove(std::string_view(k)));
+  ASSERT_EQ(base_node::get_root(), nullptr);
+  ASSERT_EQ(masstree_kvs::destroy(), status::OK_ROOT_IS_NULL);
+}
+
 }  // namespace yakushima::testing
