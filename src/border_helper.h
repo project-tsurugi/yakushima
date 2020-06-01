@@ -134,8 +134,9 @@ static void border_split(border_node *border,
                          std::vector<node_version64 *> &lock_list) {
   border_node *new_border = new border_node();
   new_border->init_border();
-  border->set_next(new_border);
+  new_border->set_next(border->get_next());
   new_border->set_prev(border);
+  border->set_next(new_border);
   border->set_version_root(false);
   border->set_version_splitting(true);
   /**
