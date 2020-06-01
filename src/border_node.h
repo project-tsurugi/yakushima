@@ -26,6 +26,30 @@ public:
   ~border_node() = default;
 
   /**
+   * @pre This function is called by delete_of function.
+   * @details delete the key-value corresponding to @a pos as position.
+   * @param[in] pos The position of being deleted.
+   */
+  void delete_at(std::size_t pos) {
+    /**
+     * todo : To prevent segv from occurring even if a parallel reader reads it later.
+     */
+    lv_[pos].destroy();
+
+    /**
+     * rearrangement.
+     */
+    if (pos == static_cast<std::size_t>(get_permutation_cnk() - 1)) { // tail
+      init_border(pos);
+    } else { // not-tail
+      shift_left_base_member(pos + 1, 1);
+      shift_left_border_member(pos + 1, 1);
+    }
+    permutation_.dec_key_num();
+    permutation_rearrange();
+  }
+
+  /**
    * @pre There is a lv which points to @a child.
    * @details Delete operation on the element matching @a child.
    * @param child
@@ -49,30 +73,6 @@ public:
     }
     delete this;
     return status::OK_DESTROY_BORDER;
-  }
-
-  /**
-   * @pre This function is called by delete_of function.
-   * @details delete the key-value corresponding to @a pos as position.
-   * @param[in] pos The position of being deleted.
-   */
-  void delete_at(std::size_t pos) {
-    /**
-     * todo : To prevent segv from occurring even if a parallel reader reads it later.
-     */
-    lv_[pos].destroy();
-
-    /**
-     * rearrangement.
-     */
-    if (pos == static_cast<std::size_t>(get_permutation_cnk() - 1)) { // tail
-      init_border(pos);
-    } else { // not-tail
-      shift_left_base_member(pos, 1);
-      shift_left_border_member(pos, 1);
-    }
-    permutation_.dec_key_num();
-    permutation_rearrange();
   }
 
   /**

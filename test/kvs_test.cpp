@@ -61,9 +61,6 @@ TEST_F(kvs_test, single_put_get_to_one_border) {
 }
 
 TEST_F(kvs_test, multiple_put_get_same_null_char_key_slice_and_different_key_length_to_single_border) {
-  /**
-   * put one key-value
-   */
   masstree_kvs::init_kvs();
   constexpr std::size_t ary_size = 9;
   std::string k[ary_size], v[ary_size];
@@ -91,9 +88,6 @@ TEST_F(kvs_test, multiple_put_get_same_null_char_key_slice_and_different_key_len
 }
 
 TEST_F(kvs_test, multiple_put_get_same_null_char_key_slice_and_different_key_length_to_multiple_border) {
-  /**
-   * put one key-value
-   */
   masstree_kvs::init_kvs();
   constexpr std::size_t ary_size = 15;
   std::string k[ary_size], v[ary_size];
@@ -251,10 +245,38 @@ TEST_F(kvs_test, delete_against_single_put_to_one_border) {
   masstree_kvs::init_kvs();
   std::string k("a"), v("v-a");
   ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
-  base_node* root = base_node::get_root(); // this is border node.
+  base_node *root = base_node::get_root(); // this is border node.
   ASSERT_NE(root, nullptr);
   ASSERT_EQ(status::OK, masstree_kvs::remove(std::string_view(k)));
   ASSERT_EQ(base_node::get_root(), nullptr);
+  ASSERT_EQ(masstree_kvs::destroy(), status::OK_ROOT_IS_NULL);
+}
+
+TEST_F(kvs_test, delte_against_multiple_put_same_null_char_key_slice_and_different_key_length_to_single_border) {
+  masstree_kvs::init_kvs();
+  constexpr std::size_t ary_size = 9;
+  std::string k[ary_size], v[ary_size];
+  for (std::size_t i = 0; i < ary_size; ++i) {
+    k[i].assign(i, '\0');
+    v[i] = std::to_string(i);
+    ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k[i]), v[i].data(), v[i].size()));
+    border_node *br = dynamic_cast<border_node *>(base_node::get_root());
+    /**
+     * There are 9 key which has the same slice and the different length.
+     * key length == 0, same_slice and length is 1, 2, ..., 8.
+     */
+    ASSERT_EQ(br->get_permutation_cnk(), i + 1);
+  }
+  /**
+   * there are bug.
+   */
+  for (std::size_t i = 0; i < ary_size; ++i) {
+    ASSERT_EQ(status::OK, masstree_kvs::remove(k[i]));
+    border_node *br = dynamic_cast<border_node *>(base_node::get_root());
+    if (i != ary_size - 1) {
+      ASSERT_EQ(br->get_permutation_cnk(), ary_size - i - 1);
+    }
+  }
   ASSERT_EQ(masstree_kvs::destroy(), status::OK_ROOT_IS_NULL);
 }
 
