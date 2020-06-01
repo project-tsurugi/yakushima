@@ -75,9 +75,6 @@ TEST_F(kvs_test, multiple_put_get_same_null_char_key_slice_and_different_key_len
        */
       ASSERT_EQ(br->get_permutation_cnk(), i + 1);
   }
-  /**
-   * there are bug.
-   */
   for (std::size_t i = 0; i < ary_size; ++i) {
     constexpr std::size_t value_index = 0, size_index = 1;
     std::tuple<char *, std::size_t> tuple = masstree_kvs::get<char>(std::string_view(k[i]));
@@ -267,9 +264,6 @@ TEST_F(kvs_test, delte_against_multiple_put_same_null_char_key_slice_and_differe
      */
     ASSERT_EQ(br->get_permutation_cnk(), i + 1);
   }
-  /**
-   * there are bug.
-   */
   for (std::size_t i = 0; i < ary_size; ++i) {
     ASSERT_EQ(status::OK, masstree_kvs::remove(k[i]));
     border_node *br = dynamic_cast<border_node *>(base_node::get_root());
