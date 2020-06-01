@@ -12,18 +12,12 @@
 
 #include "atomic_wrapper.h"
 #include "base_node.h"
-#include "border_node.h"
 
 #include "../test/include/debug.hh"
 
 using std::cout, std::endl;
 
 namespace yakushima {
-
-/**
- * forward declaration.
- */
-class border_node;
 
 class interior_node final : public base_node {
 public:
@@ -40,14 +34,37 @@ public:
   ~interior_node() = default;
 
   /**
+   * @pre There is a child which is the same to @a child.
+   * @post If the number of children is 1, It asks caller to make the child to root and delete this node.
+   * Therefore, it place the-only-one child to position 0.
    * @details Delete operation on the element matching @a child.
    * @param child
    */
   void delete_of(base_node* child) {
-    /**
-     * todo
-     */
-    cout << child << endl;
+    std::size_t n_key = get_n_keys();
+    for (std::size_t i = 0; i <= n_key; ++i) {
+      if (get_child_at(i) == child) {
+        if (n_key == 1 && i == 0) {
+          set_child_at(0, get_child_at(1)); // note : if i == 1, nothing to do.
+        } else { // n_key > 1
+          if (i == 0) { // leftmost points
+            shift_left_base_member(1, 1);
+            shift_left_children(1, 1);
+          } else if (i == n_key) { // rightmost points
+            // no unique process
+          } else { // middle points
+            shift_left_base_member(i, 1);
+            shift_left_children(i + 1, 1);
+          }
+          set_key(n_key - 1, 0, 0);
+          set_child_at(n_key, nullptr);
+        }
+        n_keys_decrement();
+        return;
+      }
+    }
+    std::cerr << __FILE__ << " : " << __LINE__ << " : precondition failure." << endl;
+    std::abort();
   }
 
   /**
@@ -140,14 +157,15 @@ public:
       constexpr std::size_t visitor_slice = 0;
       constexpr std::size_t visitor_slice_length = 1;
       if (visitor < resident) {
-        shift_right_children(i, 1);
-        set_child_at(i, child);
         shift_right_base_member(i, 1);
-        set_key(i, std::get<visitor_slice>(resident), std::get<visitor_slice_length>(resident));
+        set_key(i, std::get<visitor_slice>(visitor), std::get<visitor_slice_length>(visitor));
+        shift_right_children(i + 1, 1);
+        set_child_at(i + 1, child);
         n_keys_increment();
         return;
       }
     }
+    // insert to rightmost points
     set_key(n_key, child->get_key_slice_at(0), child->get_key_length_at(0));
     set_child_at(n_key + 1, child);
     child->set_parent(this);
@@ -179,10 +197,21 @@ public:
    * @param start_pos
    * @param shift_size
    */
+  void shift_left_children(std::size_t start_pos, std::size_t shift_size) {
+    memmove(reinterpret_cast<void *>(get_child_at(start_pos - shift_size)),
+            reinterpret_cast<void *>(get_child_at(start_pos)),
+            sizeof(base_node *) * (child_length - start_pos));
+  }
+
+  /**
+   * @pre It already acquired lock of this node.
+   * @param start_pos
+   * @param shift_size
+   */
   void shift_right_children(std::size_t start_pos, std::size_t shift_size) {
     memmove(reinterpret_cast<void *>(get_child_at(start_pos + shift_size)),
             reinterpret_cast<void *>(get_child_at(start_pos)),
-            sizeof(base_node *) * (start_pos + 1));
+            sizeof(base_node *) * (child_length - start_pos - shift_size));
   }
 
   void n_keys_decrement() {

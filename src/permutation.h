@@ -28,8 +28,8 @@ public:
    * cnk ... current number of keys.
    */
   static constexpr std::size_t cnk_mask = 0b1111;
-  static constexpr std::size_t cnk_size = 4; // bits
-  static constexpr std::size_t pkey_size = 4; // bits, permutation key size.
+  static constexpr std::size_t cnk_bit_size = 4; // bits
+  static constexpr std::size_t pkey_bit_size = 4; // bits, permutation key size.
 
   permutation() {
     init();
@@ -42,7 +42,7 @@ public:
     std::uint64_t per_body(body_.load(std::memory_order_acquire));
     // decrement key number
     std::size_t cnk = per_body & cnk_mask;
-    if (cnk >= pow(2, cnk_size) -1) std::abort();
+    if (cnk >= pow(2, cnk_bit_size) - 1) std::abort();
     --cnk;
     per_body &= ~cnk_mask;
     per_body |= cnk;
@@ -63,6 +63,12 @@ public:
     return per_body & cnk_mask;
   }
 
+  [[nodiscard]] std::size_t get_lowest_key_pos() {
+    std::uint64_t per = get_body();
+    per = per >> cnk_bit_size;
+    return per & cnk_mask;
+  }
+
   /**
    * @brief increment key number.
    */
@@ -70,7 +76,7 @@ public:
     std::uint64_t per_body(body_.load(std::memory_order_acquire));
     // increment key number
     std::size_t cnk = per_body & cnk_mask;
-    if (cnk >= pow(2, cnk_size) -1) std::abort();
+    if (cnk >= pow(2, cnk_bit_size) - 1) std::abort();
     ++cnk;
     per_body &= ~cnk_mask;
     per_body |= cnk;
@@ -109,7 +115,7 @@ public:
     std::uint64_t new_body(0);
     for (auto itr = std::crbegin(vec); itr != std::crend(vec); ++itr) {
       new_body |= std::get<key_pos>(*itr);
-      new_body <<= pkey_size;
+      new_body <<= pkey_bit_size;
     }
     new_body |= cnk;
     body_.store(new_body, std::memory_order_release);
@@ -120,7 +126,7 @@ public:
   }
 
   status set_cnk(uint8_t new_cnk) &{
-    if (powl(2, cnk_size) <= new_cnk) return status::WARN_BAD_USAGE;
+    if (powl(2, cnk_bit_size) <= new_cnk) return status::WARN_BAD_USAGE;
     std::uint64_t body = body_.load(std::memory_order_acquire);
     body &= ~cnk_mask;
     body |= new_cnk;

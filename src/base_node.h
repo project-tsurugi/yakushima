@@ -232,9 +232,9 @@ public:
 
   void shift_right_base_member(std::size_t start, std::size_t shift_size) {
     memmove(&get_key_slice()[start + shift_size], &get_key_slice()[start],
-            sizeof(key_slice_type) * start);
+            sizeof(key_slice_type) * (key_slice_length - start - shift_size));
     memmove(&get_key_length()[start + shift_size], &get_key_length()[start],
-            sizeof(key_length_type) * start);
+            sizeof(key_length_type) * (key_slice_length - start - shift_size));
   }
 
   /**

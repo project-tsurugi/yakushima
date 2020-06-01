@@ -26,14 +26,18 @@ public:
   ~border_node() = default;
 
   /**
+   * @pre There is a lv which points to @a child.
    * @details Delete operation on the element matching @a child.
    * @param child
    */
   void delete_of(base_node* child) {
-    /**
-     * todo
-     */
-    cout << child << endl;
+    std::size_t cnk = get_permutation_cnk();
+    for (std::size_t i = 0; i < cnk; ++i) {
+      if (child == lv_[i].get_next_layer()) {
+        delete_of(get_key_slice_at(i), get_key_length_at(i));
+        return;
+      }
+    }
   }
 
   /**
@@ -91,7 +95,7 @@ public:
     for (std::size_t i = 0; i < cnk; ++i) {
       if (key_slice == get_key_slice_at(i) && key_slice_length == get_key_length_at(i)) {
         delete_at(i);
-        if (cnk == 1) {
+        if (cnk == 1) { // attention : this cnk is before delete_at;
           /**
            * After this delete operation, this border node is empty.
            */
@@ -104,7 +108,21 @@ public:
             delete this;
             return;
           } else {
-            pn->delete_of(this);
+            if (pn->get_version_border()) {
+              pn->delete_of(this);
+            } else {
+              interior_node* pi = dynamic_cast<interior_node*>(pn);
+              if (pi->get_n_keys() == 1) {
+                pi->delete_of(this);
+                base_node::set_root(pi->get_child_at(0));
+                /**
+                 * todo : To prevent segv from occurring even if a parallel reader reads it later.
+                 */
+                 delete pi;
+              } else {
+                pi->delete_of(this);
+              }
+            }
             /**
              * todo : To prevent segv from occurring even if a parallel reader reads it later.
              */
