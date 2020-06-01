@@ -89,7 +89,7 @@ retry_find_border:
      */
     node_version64_body v_at_fetch_lv;
     link_or_value *lv_ptr = target_border->get_lv_of(key_slice, key_slice_length, v_at_fetch_lv);
-    if (v_at_fetch_lv.get_vsplit() != v_at_fb.get_vsplit()) {
+    if (v_at_fetch_lv.get_vsplit() != v_at_fb.get_vsplit() || v_at_fetch_lv.get_deleted()) {
       /**
        * The correct border was changed between atomically fetching bordr node and atomically fetching lv.
        */
@@ -223,7 +223,7 @@ retry_find_border:
      */
     node_version64_body v_at_fetch_lv;
     link_or_value *lv_ptr = target_border->get_lv_of(key_slice, key_slice_length, v_at_fetch_lv);
-    if (v_at_fetch_lv.get_vsplit() != v_at_fb.get_vsplit()) {
+    if (v_at_fetch_lv.get_vsplit() != v_at_fb.get_vsplit() || v_at_fetch_lv.get_deleted()) {
       /**
        * It may be change the correct border between atomically fetching border node and atomically fetching lv.
        */
