@@ -493,7 +493,11 @@ retry_fetch_lv:
         }
 
         target_border->delete_of(key_slice, key_slice_length);
-        target_border->unlock();
+        /**
+         * Whether or not the lock needs to be released depends on
+         * whether or not the root becomes nullptr as a result of the delete operation.
+         * Let delete_of decide whether to release the lock or not.
+         */
         return status::OK;
       } else {
         return status::OK_NOT_FOUND;

@@ -35,6 +35,20 @@ public:
     init();
   }
 
+  /**
+   * @brief decrement key number.
+   */
+  void dec_key_num() {
+    std::uint64_t per_body(body_.load(std::memory_order_acquire));
+    // decrement key number
+    std::size_t cnk = per_body & cnk_mask;
+    if (cnk >= pow(2, cnk_size) -1) std::abort();
+    --cnk;
+    per_body &= ~cnk_mask;
+    per_body |= cnk;
+    body_.store(per_body, std::memory_order_release);
+  }
+
   void display() {
     std::bitset<64> bs{get_body()};
     cout << bs << endl;

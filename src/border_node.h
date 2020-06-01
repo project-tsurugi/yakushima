@@ -26,6 +26,17 @@ public:
   ~border_node() = default;
 
   /**
+   * @details Delete operation on the element matching @a child.
+   * @param child
+   */
+  void delete_of(base_node* child) {
+    /**
+     * todo
+     */
+    cout << child << endl;
+  }
+
+  /**
    * @brief release all heap objects and clean up.
    */
   status destroy() final {
@@ -37,12 +48,79 @@ public:
   }
 
   /**
-   * @pre This border node was already locked by caller.
-   * @details delete value corresponding to @a key_slice and @a key_length
-   * @param key_slice The key slice of key-value.
-   * @param key_length The @key_slice length.
+   * @pre This function is called by delete_of function.
+   * @details delete the key-value corresponding to @a pos as position.
+   * @param[in] pos The position of being deleted.
    */
-  void delete_of([[maybe_unused]]key_slice_type key_slice, [[maybe_unused]]key_length_type key_slice_length) {
+  void delete_at(std::size_t pos) {
+    /**
+     * todo : To prevent segv from occurring even if a parallel reader reads it later.
+     */
+    lv_[pos].destroy();
+
+    /**
+     * rearrangement.
+     */
+    if (pos == static_cast<std::size_t>(get_permutation_cnk() - 1)) { // tail
+      init_border(pos);
+    } else { // not-tail
+      shift_left_base_member(pos, 1);
+      shift_left_border_member(pos, 1);
+    }
+    permutation_.dec_key_num();
+    permutation_rearrange();
+  }
+
+  /**
+   * @pre
+   * This border node was already locked by caller.
+   * This function is called by remove func.
+   * The key-value corresponding to @a key_slice and @a key_length exists in this node.
+   * @post
+   * The function is responsible for locking this border node.
+   * If the border node is annihilated, the lock will not release, and if it does not, it will release.
+   * @details delete value corresponding to @a key_slice and @a key_length
+   * @param[in] key_slice The key slice of key-value.
+   * @param[in] key_length The @key_slice length.
+   */
+  void delete_of(key_slice_type key_slice, key_length_type key_slice_length) {
+    /**
+     * find position.
+     */
+    std::size_t cnk = get_permutation_cnk();
+    for (std::size_t i = 0; i < cnk; ++i) {
+      if (key_slice == get_key_slice_at(i) && key_slice_length == get_key_length_at(i)) {
+        delete_at(i);
+        if (cnk == 1) {
+          /**
+           * After this delete operation, this border node is empty.
+           */
+          base_node *pn = lock_parent();
+          if (pn == nullptr) {
+            base_node::set_root(nullptr);
+            /**
+             * todo : To prevent segv from occurring even if a parallel reader reads it later.
+             */
+            delete this;
+            return;
+          } else {
+            pn->delete_of(this);
+            /**
+             * todo : To prevent segv from occurring even if a parallel reader reads it later.
+             */
+            delete this;
+            return;
+          }
+        }
+        this->unlock();
+        return;
+      }
+    }
+    /**
+     * unreachable.
+     */
+    std::cerr << __FILE__ << ": " << __LINE__ << " : it gets to unreachable points." << endl;
+    std::abort();
   }
 
   /**
@@ -135,6 +213,15 @@ public:
   }
 
   /**
+   * @details init at @a pos as position.
+   * @param[in] pos This is a position (index) to be initialized.
+   */
+  void init_border(std::size_t pos) {
+    init_base(pos);
+    init_lv_at(pos);
+  }
+
+  /**
    * @pre This function is called by put function.
    * @pre @a arg_value_length is divisible by sizeof( @a ValueType ).
    * @pre This function can not be called for updating existing nodes.
@@ -192,7 +279,7 @@ public:
       set_key_slice_at(index, key_slice);
       set_key_length_at(index, sizeof(key_slice_type));
       permutation_.inc_key_num();
-      permutation_.rearrange(get_key_slice(), get_key_length());
+      permutation_rearrange();
       border_node *next_layer_border = new border_node();
       set_lv_next_layer(index, next_layer_border);
       key_view.remove_prefix(sizeof(key_slice_type));
@@ -210,7 +297,7 @@ public:
       set_key_slice_at(index, key_slice);
       set_key_length_at(index, key_view.size());
       permutation_.inc_key_num();
-      permutation_.rearrange(get_key_slice(), get_key_length());
+      permutation_rearrange();
       if (next_layer) {
         set_lv_next_layer(index, reinterpret_cast<base_node *>(value_ptr));
       }
@@ -218,12 +305,12 @@ public:
     }
   }
 
-  void set_permutation_cnk(std::uint8_t ncnk) {
-    permutation_.set_cnk(ncnk);
+  void permutation_rearrange() {
+    permutation_.rearrange(get_key_slice(), get_key_length());
   }
 
-  void set_permutation_rearrange() {
-    permutation_.rearrange(get_key_slice(), get_key_length());
+  void set_permutation_cnk(std::uint8_t ncnk) {
+    permutation_.set_cnk(ncnk);
   }
 
   /**

@@ -40,6 +40,17 @@ public:
   ~interior_node() = default;
 
   /**
+   * @details Delete operation on the element matching @a child.
+   * @param child
+   */
+  void delete_of(base_node* child) {
+    /**
+     * todo
+     */
+    cout << child << endl;
+  }
+
+  /**
    * @brief release all heap objects and clean up.
    * @pre This function is called by single thread.
    */

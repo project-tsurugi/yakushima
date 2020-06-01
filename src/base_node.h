@@ -38,6 +38,12 @@ public:
   ~base_node() = default;
 
   /**
+   * @details Delete operation on the element matching @a child.
+   * @param child
+   */
+  virtual void delete_of(base_node* child) = 0;
+
+  /**
    * A virtual function is defined because It wants to distinguish the children class of the contents
    * by using polymorphism.
    * So this function is pure virtual function.
@@ -128,10 +134,17 @@ public:
     init_base_member_range(0, key_slice_length - 1);
   }
 
+  /**
+   * @details init at @a pos as position.
+   * @param[in] pos This is a position (index) to be initialized.
+   */
+  void init_base(std::size_t pos) {
+    set_key(pos, 0, 0);
+  }
+
   void init_base_member_range(std::size_t start, std::size_t end) {
     for (std::size_t i = start; i <= end; ++i) {
-      set_key_slice_at(i, 0);
-      set_key_length_at(i, 0);
+      set_key(i, 0, 0);
     }
   }
 

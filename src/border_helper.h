@@ -205,9 +205,9 @@ static void border_split(border_node *border,
    * fix permutations
    */
   border->set_permutation_cnk(remaining_size);
-  border->set_permutation_rearrange();
+  border->permutation_rearrange();
   new_border->set_permutation_cnk(base_node::key_slice_length - remaining_size);
-  new_border->set_permutation_rearrange();
+  new_border->permutation_rearrange();
 
   /**
    * The insert process we wanted to do before we split.
