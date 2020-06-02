@@ -48,6 +48,9 @@ public:
       shift_left_base_member(pos + 1, 1);
       shift_left_border_member(pos + 1, 1);
     }
+    if (get_next() != nullptr) {
+      set_version_deleted(true);
+    }
     permutation_.dec_key_num();
     permutation_rearrange();
   }

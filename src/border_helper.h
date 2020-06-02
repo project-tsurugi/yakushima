@@ -136,6 +136,12 @@ static void border_split(border_node *border,
   new_border->init_border();
   new_border->set_next(border->get_next());
   new_border->set_prev(border);
+  if (border->get_next() != nullptr) {
+    /**
+     * The prev of border next can be updated if it posesses the border lock.
+     */
+     border->get_next()->set_prev(new_border);
+  }
   border->set_next(new_border);
   border->set_version_root(false);
   border->set_version_splitting(true);
