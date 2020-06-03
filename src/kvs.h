@@ -10,6 +10,7 @@
 #include "border_helper.h"
 #include "interior_node.h"
 #include "scheme.h"
+#include "thread_info.h"
 
 #include "debug.hh"
 
@@ -19,6 +20,16 @@ class masstree_kvs {
 public:
   using key_slice_type = base_node::key_slice_type;
   using key_length_type = base_node::key_length_type;
+
+#if 0
+  // todo
+  void cleanup() {
+    destroy();
+    /**
+     * todo : cleanup session info. finish leader thread.
+     */
+  }
+#endif
 
   /**
    * @brief release all heap objects and clean up.

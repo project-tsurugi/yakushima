@@ -7,6 +7,13 @@
 
 namespace yakushima {
 
+using Epoch = std::uint64_t;
+
+/**
+ * @brief Session token
+ */
+using Token = void *;
+
 enum class status : std::int32_t {
   /**
    * @brief Warning of mistaking usage.
@@ -17,6 +24,11 @@ enum class status : std::int32_t {
    * @details The find_border function tells that it must retry from root of all tree.
    */
   WARN_RETRY_FROM_ROOT_OF_ALL,
+  /**
+   * @brief Warning
+   * @details (assign_session) The maximum number of sessions is already up and running.
+   */
+  WARN_MAX_SESSIONS,
   /**
    * @brief Warning
    * @details Masstree originally has a unique key constraint.
