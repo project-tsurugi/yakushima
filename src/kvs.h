@@ -21,6 +21,19 @@ public:
   using key_slice_type = base_node::key_slice_type;
   using key_length_type = base_node::key_length_type;
 
+  /**
+   * @details It declares that it will be operating yakushima from now on.
+   * In a session defined as between enter and leave, it is guaranteed that the heap memory object object read
+   * by get function will not be released in session.
+   * An occupied GC container is assigned.
+   * @param token
+   * @return status::OK success.
+   * @return status::WARN_MAX_SESSIONS The maximum number of sessions is already up and running.
+   */
+  status enter(Token &token) {
+    return thread_info::assign_session(token);
+  }
+
 #if 0
   // todo
   void cleanup() {
@@ -152,15 +165,15 @@ retry_fetch_lv:
     goto retry_find_border;
   }
 
-  static status init_kvs() {
+  static void init_kvs() {
     /**
-     * todo : clear thread information.
-     * It implements at implementing delete.
+     * initialize thread infomation table (kThreadInfoTable)
      */
+    thread_info::init();
     /**
      * If there are existing tree, destroy all tree.
      */
-    return destroy();
+    destroy();
   }
 
   /**

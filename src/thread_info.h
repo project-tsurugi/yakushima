@@ -33,10 +33,10 @@ public:
    * @return status::OK success.
    * @return status::WARN_MAX_SESSIONS The maximum number of sessions is already up and running.
    */
-  status assing_session(Token &token) {
+  static status assign_session(Token &token) {
     for (auto itr = kThreadInfoTable.begin(); itr != kThreadInfoTable.end(); ++itr) {
-      if (gain_the_right()) {
-        token = static_cast<void*>(&(*itr));
+      if (itr->gain_the_right()) {
+        token = static_cast<void *>(&(*itr));
         return status::OK;
       }
     }
@@ -58,6 +58,22 @@ public:
     }
   }
 
+  Epoch get_begin_epoch() {
+    return begin_epoch_.load(std::memory_order_acquire);
+  }
+
+  std::vector<base_node *> *get_node_container() {
+    return gc_container_.get_node_container();
+  }
+
+  bool get_running() {
+    return running_.load(std::memory_order_acquire);
+  }
+
+  std::vector<void *> *get_value_container() {
+    return gc_container_.get_value_container();
+  }
+
   void set_begin_epoch(Epoch epoch) {
     begin_epoch_.store(epoch, std::memory_order_relaxed);
   }
@@ -77,9 +93,9 @@ private:
    * @details This is updated by worker and is read by leader.
    */
   alignas(CACHE_LINE_SIZE)
-  std::atomic<Epoch> begin_epoch_;
+  std::atomic<Epoch> begin_epoch_{0};
   gc_container gc_container_;
-  std::atomic<bool> running_;
+  std::atomic<bool> running_{false};
 };
 
 std::array<thread_info, YAKUSHIMA_MAX_PARALLEL_SESSIONS> thread_info::kThreadInfoTable;
