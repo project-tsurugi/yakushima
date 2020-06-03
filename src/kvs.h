@@ -22,16 +22,26 @@ public:
   using key_length_type = base_node::key_length_type;
 
   /**
-   * @details It declares that it will be operating yakushima from now on.
-   * In a session defined as between enter and leave, it is guaranteed that the heap memory object object read
-   * by get function will not be released in session.
-   * An occupied GC container is assigned.
+   * @details It declares that the session starts. In a session defined as between enter and leave, it is guaranteed
+   * that the heap memory object object read by get function will not be released in session. An occupied GC container
+   * is assigned.
    * @param token
    * @return status::OK success.
    * @return status::WARN_MAX_SESSIONS The maximum number of sessions is already up and running.
    */
   status enter(Token &token) {
     return thread_info::assign_session(token);
+  }
+
+  /**
+   * @details It declares that the session ends. Values read during the session may be invalidated from now on.
+   * It will clean up the contents of GC containers that have been occupied by this session as much as possible.
+   * @param token
+   * @return status::OK success
+   * @return status::WARN_INVALID_TOKEN @a token of argument is invalid.
+   */
+  status leave(Token &token) {
+    return thread_info::leave_session(token);
   }
 
 #if 0

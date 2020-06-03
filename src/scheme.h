@@ -20,6 +20,10 @@ enum class status : std::int32_t {
    */
   WARN_BAD_USAGE,
   /**
+   * @brief warning
+   */
+  WARN_INVALID_TOKEN,
+  /**
    * @brief Warning
    * @details The find_border function tells that it must retry from root of all tree.
    */

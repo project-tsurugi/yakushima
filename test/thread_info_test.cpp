@@ -19,7 +19,7 @@ protected:
   ~thread_info_test() = default;
 };
 
-TEST_F(thread_info_test, thread_info_init) {
+TEST_F(thread_info_test, thread_info_init_leave) {
   thread_info::init();
   constexpr std::size_t length = 5;
   Token token[length];
@@ -36,6 +36,10 @@ TEST_F(thread_info_test, thread_info_init) {
       if (i == j) continue;
       ASSERT_NE(token[i], token[j]);
     }
+  }
+
+  for (std::size_t i = 0; i < length; ++i) {
+    ASSERT_EQ(thread_info::leave_session(token[i]), status::OK);
   }
 }
 

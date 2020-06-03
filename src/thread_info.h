@@ -44,6 +44,26 @@ public:
   }
 
   /**
+   * @details When @a token points to an invalid memory location, an error occurs if @a token is referenced.
+   * To avoid this, it scans the table.
+   * @todo performance improvement.
+   * @param token
+   * @return
+   */
+  static status leave_session(Token &token) {
+    for (auto itr = kThreadInfoTable.begin(); itr != kThreadInfoTable.end(); ++itr) {
+      if (token == static_cast<void*>(&(*itr))) {
+        /**
+         * todo : gc
+         */
+        itr->set_running(false);
+        return status::OK;
+      }
+    }
+    return status::WARN_INVALID_TOKEN;
+  }
+
+  /**
    * @details Take the right to assign this thread_info.
    * @return true success.
    * @return false fail.
