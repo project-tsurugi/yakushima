@@ -31,13 +31,10 @@ protected:
 };
 
 TEST_F(kvs_test, init) {
-  ASSERT_EQ(masstree_kvs::init_kvs(), status::OK_ROOT_IS_NULL);
   ASSERT_EQ(base_node::get_root(), nullptr);
   std::string k("a"), v("v-a");
   ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
   ASSERT_NE(base_node::get_root(), nullptr);
-  ASSERT_EQ(masstree_kvs::init_kvs(), status::OK_DESTROY_ALL);
-  ASSERT_EQ(base_node::get_root(), nullptr);
 }
 
 TEST_F(kvs_test, single_put_get_to_one_border) {
