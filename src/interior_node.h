@@ -49,6 +49,9 @@ public:
         if (n_key == 1) {
           base_node *pn = lock_parent();
           if (pn == nullptr) {
+            /**
+             * todo : consider deeply whetehr it is correct.
+             */
             get_child_at(!i)->set_parent(nullptr);
             base_node::set_root(get_child_at(!i)); // i == 0 or 1
             base_node::get_root()->atomic_set_version_root(true);
@@ -60,15 +63,18 @@ public:
           reinterpret_cast<thread_info *>(token)->move_node_to_gc_container(this);
         } else { // n_key > 1
           if (i == 0) { // leftmost points
-            shift_left_base_member(1, 1);
+            shift_left_base_member(2, 2);
             shift_left_children(1, 1);
+            set_key(n_key - 1, 0, 0);
+            set_key(n_key - 2, 0, 0);
           } else if (i == n_key) { // rightmost points
             // no unique process
+            set_key(n_key - 1, 0, 0);
           } else { // middle points
             shift_left_base_member(i, 1);
             shift_left_children(i + 1, 1);
+            set_key(n_key - 1, 0, 0);
           }
-          set_key(n_key - 1, 0, 0);
           set_child_at(n_key, nullptr);
         }
         set_version_vdelete(get_version_vdelete() + 1);
@@ -211,9 +217,9 @@ public:
    * @param shift_size
    */
   void shift_left_children(std::size_t start_pos, std::size_t shift_size) {
-    memmove(reinterpret_cast<void *>(get_child_at(start_pos - shift_size)),
-            reinterpret_cast<void *>(get_child_at(start_pos)),
-            sizeof(base_node *) * (child_length - start_pos));
+    for (std::size_t i = start_pos; i < child_length; ++i) {
+      set_child_at(i - shift_size, get_child_at(i));
+    }
   }
 
   /**
