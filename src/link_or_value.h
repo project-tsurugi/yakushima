@@ -1,8 +1,8 @@
-#pragma once
-
 /**
- * @file link_or_vlaue.h
+ * @file link_or_value.h
  */
+
+#pragma once
 
 #include "atomic_wrapper.h"
 #include "base_node.h"
@@ -149,7 +149,7 @@ public:
 
   /**
    * @pre This function called at initialization.
-   * @param [in] next_layer
+   * @param[in] new_next_layer
    */
   void set_next_layer(base_node *new_next_layer) {
     storeReleaseN(next_layer_, new_next_layer);

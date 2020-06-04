@@ -34,13 +34,16 @@ static void insert_lv(border_node *border, std::string_view key_view, bool next_
 /**
  * @pre It already acquired lock of this node.
  * @details split interior node.
- * @param[in] child_node After split, it inserts this @child_node.
+ * @param[in] interior
+ * @param[in] child_node After split, it inserts this @a child_node.
+ * @param[out] lock_list
  */
 static void interior_split(interior_node *interior, base_node *child_node, std::vector<node_version64 *> &lock_list);
 
 /**
  * @details This may be called at split function.
  * It creates new interior node as parents of this interior_node and @a right.
+ * @param[in] left
  * @param[in] right
  * @param[out] lock_list
  * @param[out] new_parent This function tells new parent to the caller via this argument.

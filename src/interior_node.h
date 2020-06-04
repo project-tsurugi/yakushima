@@ -1,5 +1,5 @@
 /**
- * @file mt_interior_node.h
+ * @file interior_node.h
  */
 
 #pragma once

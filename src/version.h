@@ -1,5 +1,5 @@
 /**
- * @file mt_version.h
+ * @file version.h
  * @brief version number layout
  */
 

@@ -1,6 +1,6 @@
 /**
- * @file mt_kvs.h
- * @brief This file defines the body of masstree.
+ * @file kvs.h
+ * @brief This is the interface used by outside.
  */
 
 #pragma once
@@ -194,8 +194,8 @@ retry_fetch_lv:
   }
 
   /**
-   * @tparam[in] ValueType If a single object is inserted, the value size and value alignment information can be omitted
-   * from this type information. In this case, sizeof and alignof are executed on the type information.
+   * @tparam ValueType If a single object is inserted, the value size and value alignment information can be
+   * omitted from this type information. In this case, sizeof and alignof are executed on the type information.
    * In the cases where this is likely to cause problems and when inserting an array object,
    * the value size and value alignment information should be specified explicitly.
    * This is because sizeof for a type represents a single object size.
@@ -581,10 +581,13 @@ retry_fetch_lv:
 private:
   /**
    *
-   * @param key_slice
    * @details It finds border node by using arguments @a root, @a key_slice.
    * If the @a root is not the root of some layer, this function finds root nodes of the layer, then finds border node by
    * using retry label.
+   * @param[in] root
+   * @param[in] key_slice
+   * @param[in] key_slice_length
+   * @param[out] special_status
    * @return std::tuple<base_node*, node_version64_body>
    * node_version64_body is stable version of base_node*.
    */

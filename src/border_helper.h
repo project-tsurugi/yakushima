@@ -23,10 +23,6 @@ using value_length_type = base_node::value_length_type;
  * After that, it inserts based on @a key_view, @a value_ptr, ... (args).
  * @param[in] left
  * @param[in] right This is a higher border_node as result of split for this node.
- * @param[in] key_view
- * @param[in] value_ptr
- * @param[in] value_length
- * @param[in] value_align
  * @param[out] lock_list This is unused because the border nodes is not-full as result of split.
  * @param[out] new_parent This is a new parents.
  * The insert_lv function needs lock_list as an argument, so it is passed in spite of not using.
@@ -39,6 +35,12 @@ static void create_interior_parents(border_node *left, border_node *right, std::
  * @details This function is also called when creating a new layer when 8 bytes-key collides at a border node.
  * At that time, the original value is moved to the new layer.
  * This function does not use a template declaration because its pointer is retrieved with void *.
+ * @param[in] border
+ * @param[in] key_view
+ * @param[in] next_layer
+ * @param[in] value_ptr
+ * @param[in] arg_value_length
+ * @param[in] value_align
  * @param[out] lock_list Hold the lock so that the caller can release the lock from below.
  */
 static void insert_lv(border_node *border, std::string_view key_view, bool next_layer, void *value_ptr,
@@ -48,7 +50,9 @@ static void insert_lv(border_node *border, std::string_view key_view, bool next_
 /**
  * @pre It already locked this node.
  * @details border node split.
+ * @param[in] border
  * @param[in] key_view
+ * @param[in] next_layer
  * @param[in] value_ptr
  * @param[in] value_length
  * @param[in] value_align
@@ -116,15 +120,6 @@ static void insert_lv(border_node *border,
   }
 }
 
-/**
- * @pre It already locked this node.
- * @details border node split.
- * @param[in] key_view
- * @param[in] value_ptr
- * @param[in] value_length
- * @param[in] value_align
- * @param[out] lock_list Hold the lock so that the caller can release the lock from below.
- */
 static void border_split(border_node *border,
                          std::string_view key_view,
                          bool next_layer,

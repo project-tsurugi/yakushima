@@ -1,6 +1,6 @@
 /**
- * @file mt_version.h
- * @brief version number layout
+ * @file permutation.h
+ * @brief permutation which expresses the key order by index inside of the border node.
  */
 
 #pragma once

@@ -40,7 +40,7 @@ enum class status : std::int32_t {
    */
   WARN_UNIQUE_RESTRICTION,
   /**
-   * @biref success status
+   * @brief success status
    */
   OK,
   /**

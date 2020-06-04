@@ -1,5 +1,5 @@
 /**
- * @file mt_border_node.h
+ * @file border_node.h
  */
 
 #pragma once
@@ -91,7 +91,7 @@ public:
    * If the border node is annihilated, the lock will not release, and if it does not, it will release.
    * @details delete value corresponding to @a key_slice and @a key_length
    * @param[in] key_slice The key slice of key-value.
-   * @param[in] key_length The @key_slice length.
+   * @param[in] key_slice_length The @a key_slice length.
    */
   void delete_of(key_slice_type key_slice, key_length_type key_slice_length) {
     /**
@@ -176,10 +176,12 @@ public:
    * @attention This function must not be called with locking of this node. Because this function executes
    * get_stable_version and it waits own (lock-holder) infinitely.
    * @param[in] key_slice
+   * @param[in] key_length
    * @param[out] stable_v  the stable version which is at atomically fetching lv.
    * @return
    */
-  [[nodiscard]] link_or_value *get_lv_of(key_slice_type key_slice, key_length_type key_length, node_version64_body &stable_v) {
+  [[nodiscard]] link_or_value *get_lv_of(key_slice_type key_slice, key_length_type key_length,
+          node_version64_body &stable_v) {
     node_version64_body v = get_stable_version();
     for (;;) {
       /**
@@ -204,8 +206,9 @@ public:
   }
 
   /**
-   * @param key_slice
    * @details This function extracts lv without lock (double checking stable version).
+   * @param[in] key_slice
+   * @param[in] key_length
    * @return link_or_value*
    * @return nullptr
    */
@@ -252,9 +255,11 @@ public:
    * @pre If this function is used for node creation, link after set because
    * set function does not execute lock function.
    * @details This function inits border node by using arguments.
-   * @param key_view
-   * @param value_ptr
+   * @param[in] key_view
+   * @param[in] value_ptr
    * @param[in] root is the root node of the layer.
+   * @param[in] arg_value_length
+   * @param[in] value_align
    */
   template<class ValueType>
   void init_border(std::string_view key_view,
@@ -280,7 +285,12 @@ public:
 
   /**
    * @pre It already locked this node.
+   * @param[in] index
+   * @param[in] key_view
    * @param[in] next_layer If it is true, value_ptr points to next_layer.
+   * @param[in] value_ptr
+   * @param[in] arg_value_length
+   * @param[in] value_align
    */
   void insert_lv_at(std::size_t index,
                     std::string_view key_view,
