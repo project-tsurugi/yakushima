@@ -38,9 +38,10 @@ public:
    * @post If the number of children is 1, It asks caller to make the child to root and delete this node.
    * Therefore, it place the-only-one child to position 0.
    * @details Delete operation on the element matching @a child.
-   * @param child
+   * @param[in] token
+   * @param[in] child
    */
-  void delete_of(base_node* child) {
+  void delete_of([[maybe_unused]]Token token, base_node* child) final {
     std::size_t n_key = get_n_keys();
     for (std::size_t i = 0; i <= n_key; ++i) {
       if (get_child_at(i) == child) {

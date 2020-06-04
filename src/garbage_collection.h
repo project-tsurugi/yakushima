@@ -9,9 +9,7 @@
 #include <vector>
 
 #include "base_node.h"
-#include "border_node.h"
 #include "cpu.h"
-#include "interior_node.h"
 
 namespace yakushima {
 
@@ -28,6 +26,20 @@ public:
     }
   }
 
+  void add_node_to_gc_container(Epoch gc_epoch, base_node *n) {
+    node_container_->emplace_back(std::make_pair(gc_epoch, n));
+  }
+
+  void add_value_to_gc_container(Epoch gc_epoch, void *vp) {
+    value_container_->emplace_back(std::make_pair(gc_epoch, vp));
+  }
+
+  /**
+   * @tparam interior_node
+   * @tparam border_node
+   * @attention Use a template class so that the dependency does not cycle.
+   */
+  template<class interior_node, class border_node>
   static void fin() {
     for (auto container = kGarbageNodes.begin(); container != kGarbageNodes.end(); ++container) {
       for (auto itr = container->begin(); itr != container->end(); ++itr) {
@@ -37,20 +49,34 @@ public:
           delete dynamic_cast<interior_node *>(std::get<gc_target_index>(*itr));
         }
       }
+      container->clear();
     }
 
     for (auto container = kGarbageValues.begin(); container != kGarbageValues.end(); ++container) {
       for (auto itr = container->begin(); itr != container->end(); ++itr) {
         ::operator delete(std::get<gc_target_index>(*itr));
       }
+      container->clear();
     }
   }
 
+  /**
+   * @tparam interior_node
+   * @tparam border_node
+   * @attention Use a template class so that the dependency does not cycle.
+   */
+  template<class interior_node, class border_node>
   void gc() {
-    gc_node();
+    gc_node<interior_node, border_node>();
     gc_value();
   }
 
+  /**
+   * @tparam interior_node
+   * @tparam border_node
+   * @attention Use a template class so that the dependency does not cycle.
+   */
+  template<class interior_node, class border_node>
   void gc_node() {
     Epoch gc_epoch = get_gc_epoch();
     auto gc_end_itr = node_container_->begin();
@@ -87,8 +113,12 @@ public:
     }
   }
 
+  static void init() {
+    set_gc_epoch(0);
+  }
+
   static void set_gc_epoch(Epoch epoch) {
-    kGarbageCollectionEpoch.store(epoch, std::memory_order_release);
+    kGCEpoch.store(epoch, std::memory_order_release);
   }
 
   void set_node_container(std::vector<std::pair<Epoch, base_node *>> *container) {
@@ -100,7 +130,7 @@ public:
   }
 
   static Epoch get_gc_epoch() {
-    return kGarbageCollectionEpoch.load(std::memory_order_acquire);
+    return kGCEpoch.load(std::memory_order_acquire);
   }
 
   std::vector<std::pair<Epoch, base_node *>> *get_node_container() {
@@ -116,7 +146,7 @@ private:
   static constexpr std::size_t gc_target_index = 1;
   static std::array<std::vector<std::pair<Epoch, base_node *>>, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kGarbageNodes;
   static std::array<std::vector<std::pair<Epoch, void *>>, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kGarbageValues;
-  static std::atomic<Epoch> kGarbageCollectionEpoch;
+  static std::atomic<Epoch> kGCEpoch;
 
   std::vector<std::pair<Epoch, base_node *>> *node_container_{nullptr};
   std::vector<std::pair<Epoch, void *>> *value_container_{nullptr};
@@ -125,6 +155,6 @@ private:
 alignas(CACHE_LINE_SIZE)
 std::array<std::vector<std::pair<Epoch, base_node *>>, YAKUSHIMA_MAX_PARALLEL_SESSIONS> gc_container::kGarbageNodes;
 std::array<std::vector<std::pair<Epoch, void *>>, YAKUSHIMA_MAX_PARALLEL_SESSIONS> gc_container::kGarbageValues;
-std::atomic<Epoch> gc_container::kGarbageCollectionEpoch{0};
+std::atomic<Epoch> gc_container::kGCEpoch{0};
 
 } // namespace yakushima

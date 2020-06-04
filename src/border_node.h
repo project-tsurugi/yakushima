@@ -13,6 +13,7 @@
 #include "interior_node.h"
 #include "link_or_value.h"
 #include "permutation.h"
+#include "thread_info.h"
 
 namespace yakushima {
 
@@ -58,13 +59,14 @@ public:
   /**
    * @pre There is a lv which points to @a child.
    * @details Delete operation on the element matching @a child.
-   * @param child
+   * @param[in] token
+   * @param[in] child
    */
-  void delete_of(base_node* child) {
+  void delete_of(Token token, base_node* child) final {
     std::size_t cnk = get_permutation_cnk();
     for (std::size_t i = 0; i < cnk; ++i) {
       if (child == lv_[i].get_next_layer()) {
-        delete_of(get_key_slice_at(i), get_key_length_at(i));
+        delete_of(token, get_key_slice_at(i), get_key_length_at(i));
         return;
       }
     }
@@ -90,10 +92,11 @@ public:
    * The function is responsible for locking this border node.
    * If the border node is annihilated, the lock will not release, and if it does not, it will release.
    * @details delete value corresponding to @a key_slice and @a key_length
+   * @param[in] token
    * @param[in] key_slice The key slice of key-value.
    * @param[in] key_slice_length The @a key_slice length.
    */
-  void delete_of(key_slice_type key_slice, key_length_type key_slice_length) {
+  void delete_of(Token token, key_slice_type key_slice, key_length_type key_slice_length) {
     /**
      * find position.
      */
@@ -108,31 +111,22 @@ public:
           base_node *pn = lock_parent();
           if (pn == nullptr) {
             base_node::set_root(nullptr);
-            /**
-             * todo : To prevent segv from occurring even if a parallel reader reads it later.
-             */
-            delete this;
+            reinterpret_cast<thread_info *>(token)->move_node_to_gc_container(this);
             return;
           } else {
             if (pn->get_version_border()) {
-              pn->delete_of(this);
+              pn->delete_of(token, this);
             } else {
               interior_node* pi = dynamic_cast<interior_node*>(pn);
               if (pi->get_n_keys() == 1) {
-                pi->delete_of(this);
+                pi->delete_of(token, this);
                 base_node::set_root(pi->get_child_at(0));
-                /**
-                 * todo : To prevent segv from occurring even if a parallel reader reads it later.
-                 */
-                 delete pi;
+                reinterpret_cast<thread_info *>(token)->move_node_to_gc_container(pi);
               } else {
-                pi->delete_of(this);
+                pi->delete_of(token, this);
               }
             }
-            /**
-             * todo : To prevent segv from occurring even if a parallel reader reads it later.
-             */
-            delete this;
+            reinterpret_cast<thread_info *>(token)->move_node_to_gc_container(this);
             return;
           }
         }

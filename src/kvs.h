@@ -25,34 +25,24 @@ public:
    * @details It declares that the session starts. In a session defined as between enter and leave, it is guaranteed
    * that the heap memory object object read by get function will not be released in session. An occupied GC container
    * is assigned.
-   * @param token
+   * @param[in] token
    * @return status::OK success.
    * @return status::WARN_MAX_SESSIONS The maximum number of sessions is already up and running.
    */
-  status enter(Token &token) {
+  static status enter(Token &token) {
     return thread_info::assign_session(token);
   }
 
   /**
    * @details It declares that the session ends. Values read during the session may be invalidated from now on.
    * It will clean up the contents of GC containers that have been occupied by this session as much as possible.
-   * @param token
+   * @param[in] token
    * @return status::OK success
    * @return status::WARN_INVALID_TOKEN @a token of argument is invalid.
    */
-  status leave(Token &token) {
-    return thread_info::leave_session(token);
+  static status leave(Token &token) {
+    return thread_info::leave_session<interior_node, border_node>(token);
   }
-
-#if 0
-  // todo
-  void cleanup() {
-    destroy();
-    /**
-     * todo : cleanup session info. finish leader thread.
-     */
-  }
-#endif
 
   /**
    * @brief release all heap objects and clean up.
@@ -76,7 +66,7 @@ public:
    */
   static void fin() {
     destroy();
-    gc_container::fin();
+    gc_container::fin<interior_node, border_node>();
   }
 
   /**
@@ -191,9 +181,11 @@ retry_fetch_lv:
      * initialize thread infomation table (kThreadInfoTable)
      */
     thread_info::init();
+
   }
 
   /**
+   * @pre @a token of arguments is valid.
    * @tparam ValueType If a single object is inserted, the value size and value alignment information can be
    * omitted from this type information. In this case, sizeof and alignof are executed on the type information.
    * In the cases where this is likely to cause problems and when inserting an array object,
@@ -207,9 +199,8 @@ retry_fetch_lv:
    * @return status::WARN_UNIQUE_RESTRICTION The key-value whose key is same to given key already exists.
    */
   template<class ValueType>
-  static status put(std::string_view key_view, ValueType *value,
-                    std::size_t arg_value_length = sizeof(ValueType),
-                    std::size_t value_align = alignof(ValueType)) {
+  static status put(Token token, std::string_view key_view, ValueType *value,
+                    std::size_t arg_value_length = sizeof(ValueType), std::size_t value_align = alignof(ValueType)) {
 root_nullptr:
     base_node *expected = base_node::get_root();
     if (expected == nullptr) {
@@ -395,14 +386,16 @@ lv_ptr_exists:
          */
         border_node *new_border = new border_node();
         traverse_key_view.remove_prefix(sizeof(key_slice_type));
-        new_border->init_border(std::string_view{nullptr, 0}, lv_ptr->get_v_or_vp_(), true, lv_ptr->get_value_length(), lv_ptr->get_value_align());
+        new_border->init_border(std::string_view{nullptr, 0}, lv_ptr->get_v_or_vp_(), true, lv_ptr->get_value_length(),
+                                lv_ptr->get_value_align());
         new_border->insert_lv_at(1, traverse_key_view, true, value, arg_value_length, value_align);
         /**
          * 1st argument (index == 0) was used by this (non-final) slice at init_border func.
-         */
-        /**
          * process for lv_ptr
          */
+        thread_info *ti = reinterpret_cast<thread_info *>(token);
+        ti->move_value_to_gc_container(lv_ptr->get_v_or_vp_());
+        lv_ptr->set_need_delete_value(false);
         lv_ptr->destroy_value();
         lv_ptr->set_next_layer(new_border);
         new_border->set_parent(target_border);
@@ -444,17 +437,19 @@ lv_ptr_exists:
   }
 
   /**
+   * @pre @a token of arguments is valid.
+   * @param[in] token
    * @param[in] key_view The key_view of key-value.
    * @return status::OK_ROOT_IS_NULL No existing tree.
    */
-  static status remove(std::string_view key_view) {
+  static status remove(Token token, std::string_view key_view) {
 retry_from_root:
     base_node *root = base_node::get_root();
     if (root == nullptr) {
       /**
        * root is nullptr
        */
-       return status::OK_ROOT_IS_NULL;
+      return status::OK_ROOT_IS_NULL;
     }
 
     bool final_slice{false};
@@ -533,7 +528,7 @@ retry_fetch_lv:
           goto retry_fetch_lv;
         }
 
-        target_border->delete_of(key_slice, key_slice_length);
+        target_border->delete_of(token, key_slice, key_slice_length);
         /**
          * Whether or not the lock needs to be released depends on
          * whether or not the root becomes nullptr as a result of the delete operation.

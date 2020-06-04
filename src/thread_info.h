@@ -36,6 +36,7 @@ public:
   static status assign_session(Token &token) {
     for (auto itr = kThreadInfoTable.begin(); itr != kThreadInfoTable.end(); ++itr) {
       if (itr->gain_the_right()) {
+        itr->set_begin_epoch(gc_container::get_gc_epoch());
         token = static_cast<void *>(&(*itr));
         return status::OK;
       }
@@ -46,14 +47,16 @@ public:
   /**
    * @details When @a token points to an invalid memory location, an error occurs if @a token is referenced.
    * To avoid this, it scans the table.
-   * @todo performance improvement.
+   * @tparam interior_node
+   * @tparam border_node
    * @param token
    * @return
    */
+  template<class interior_node, class border_node>
   static status leave_session(Token &token) {
     for (auto itr = kThreadInfoTable.begin(); itr != kThreadInfoTable.end(); ++itr) {
-      if (token == static_cast<void*>(&(*itr))) {
-        itr->gc_container_.gc();
+      if (token == static_cast<void *>(&(*itr))) {
+        itr->gc_container_.gc<interior_node, border_node>();
         itr->set_running(false);
         return status::OK;
       }
@@ -90,6 +93,14 @@ public:
 
   std::vector<std::pair<Epoch, void *>> *get_value_container() {
     return gc_container_.get_value_container();
+  }
+
+  void move_node_to_gc_container(base_node *n) {
+    gc_container_.add_node_to_gc_container(begin_epoch_.load(std::memory_order_acquire), n);
+  }
+
+  void move_value_to_gc_container(void *vp) {
+    gc_container_.add_value_to_gc_container(begin_epoch_.load(std::memory_order_acquire), vp);
   }
 
   void set_begin_epoch(Epoch epoch) {

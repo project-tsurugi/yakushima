@@ -4,6 +4,8 @@
 
 #include "gtest/gtest.h"
 
+#include "border_node.h"
+#include "interior_node.h"
 #include "thread_info.h"
 
 using namespace yakushima;
@@ -39,7 +41,7 @@ TEST_F(thread_info_test, thread_info_init_leave) {
   }
 
   for (std::size_t i = 0; i < length; ++i) {
-    ASSERT_EQ(thread_info::leave_session(token[i]), status::OK);
+    ASSERT_EQ((thread_info::leave_session<interior_node, border_node>(token[i])), status::OK);
   }
 }
 
