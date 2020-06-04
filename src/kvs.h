@@ -8,6 +8,7 @@
 #include "base_node.h"
 #include "border_node.h"
 #include "border_helper.h"
+#include "epoch.h"
 #include "interior_node.h"
 #include "scheme.h"
 #include "thread_info.h"
@@ -66,6 +67,8 @@ public:
    */
   static void fin() {
     destroy();
+    thread_info::set_epoch_thread_end();
+    thread_info::join_epoch_thread();
     gc_container::fin<interior_node, border_node>();
   }
 
@@ -181,7 +184,7 @@ retry_fetch_lv:
      * initialize thread infomation table (kThreadInfoTable)
      */
     thread_info::init();
-
+    thread_info::invoke_epoch_thread();
   }
 
   /**

@@ -7,8 +7,6 @@
 
 namespace yakushima {
 
-using Epoch = std::uint64_t;
-
 /**
  * @brief Session token
  */

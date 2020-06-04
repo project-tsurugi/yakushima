@@ -27,6 +27,7 @@ if (ENABLE_COVERAGE)
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} --coverage")
 endif ()
 
+add_definitions(-D YAKUSHIMA_EPOCH_TIME=40)
 add_definitions(-D YAKUSHIMA_MAX_PARALLEL_SESSIONS=250)
 
 function(set_compile_options target_name)
