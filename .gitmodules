@@ -1,3 +1,9 @@
 [submodule "third_party/googletest"]
 	path = third_party/googletest
 	url = https://github.com/google/googletest.git
+[submodule ".github/actions/tsurugi-annotations-action"]
+	path = .github/actions/tsurugi-annotations-action
+	url = git@github.com:project-tsurugi/tsurugi-annotations-action.git
+[submodule ".github/actions/tsurugi-slack-action"]
+	path = .github/actions/tsurugi-slack-action
+	url = git@github.com:project-tsurugi/tsurugi-slack-action.git

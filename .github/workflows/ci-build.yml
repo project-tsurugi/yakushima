@@ -1,0 +1,98 @@
+name: Yakushima-CI
+
+on: [push, pull_request]
+
+jobs:
+  Build:
+    runs-on: [self-hosted, oltp]
+
+    steps:
+      - id: Begin
+        name: Begin
+        run: |
+          echo "Begin ${GITHUB_WORKFLOW}/${GITHUB_JOB} hostname:$(hostname)"
+
+      - id: Checkout
+        name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          ssh-key: ${{ secrets.SSH_KEY }}
+
+      - id: CMake_Build
+        name: CMake_Build
+        run: |
+          mkdir build
+          cd build
+          cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
+          cmake --build . --target all --clean-first -- -j8
+
+      - id: CTest
+        name: CTest
+        continue-on-error: false
+        env:
+          GTEST_OUTPUT: xml
+          ASAN_OPTIONS: detect_stack_use_after_return=true
+        run: |
+          cd build
+          ctest --verbose --timeout 100
+
+      - id: Clang-Tidy
+        name: Clang-Tidy
+        run: |
+          python tools/bin/run-clang-tidy.py -clang-tidy-binary clang-tidy-8 -quiet -export-fixes=build/clang-tidy-fix.yaml -p build -extra-arg=-Wno-unknown-warning-option -header-filter=$(pwd)'/(include|src|examples)/.*\\.h$' $(pwd)'/(src|examples)/.*' 2>&1 | tee build/clang-tidy.log
+
+      - id: Doxygen
+        name: Doxygen
+        run: |
+          cd build
+          make doxygen 2> >(tee doxygen-error.log)
+          zip -q -r yakushima-doxygen doxygen/html
+
+      - id: Upload_Doxygen_HTML
+        name: Upload_Doxygen_HTML
+        uses: actions/upload-artifact@v2
+        if: contains(github.ref, '/tags/') || contains(github.ref, '/pull/') || contains(github.ref, '/heads/master')
+        with:
+          name: yakushima-doxygen
+          path: build/yakushima-doxygen.zip
+
+      - id: Gcovr
+        name: Gcovr
+        env:
+          GCOVR_COMMON_OPTION: -e ../third_party/ -e ../.*/test.*
+        run: |
+          cd build
+          mkdir gcovr-xml gcovr-html
+          gcovr -j4 -r .. --xml ${GCOVR_COMMON_OPTION} -o gcovr-xml/yakushima-gcovr.xml
+          gcovr -j4 -r .. --html --html-details --html-title "yakushima coverage" ${GCOVR_COMMON_OPTION} -o gcovr-html/yakushima-gcovr.html
+          zip -q -r yakushima-coverage-report gcovr-html
+
+      - id: Upload_Gcovr_HTML
+        name: Upload_Gcovr_HTML
+        uses: actions/upload-artifact@v2
+        if: contains(github.ref, '/tags/') || contains(github.ref, '/pull/') || contains(github.ref, '/heads/master')
+        with:
+          name: yakushima-coverage-report
+          path: build/yakushima-coverage-report.zip
+
+      - id: Generate_Annotations
+        name: Generate_Annotations
+        uses: ./.github/actions/tsurugi-annotations-action
+        if: always()
+        with:
+          access-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: Notify_Slack
+        name: Notify_Slack
+        uses: ./.github/actions/tsurugi-slack-action
+        if: always() && (contains(github.ref, '/tags/') || contains(github.ref, '/pull/') || contains(github.ref, '/heads/master'))
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        with:
+          kind: 'job-result'
+          channel: 'tsurugi-dev'
+          status: ${{ job.status }}
+          step_context: ${{ toJson(steps) }}
+          username: ${{ github.workflow }}
