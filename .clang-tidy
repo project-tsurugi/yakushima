@@ -1,0 +1,44 @@
+---
+Checks: "-*,\
+abseil-*,\
+boost-*,\
+bugprone-*,\
+-bugprone-branch-clone,\
+cert-*,\
+-cert-oop54-cpp,\
+cppcoreguidelines-*,\
+-cppcoreguidelines-pro-type-const-cast,\
+-cppcoreguidelines-avoid-magic-numbers,\
+fuchsia-*,\
+-fuchsia-default-arguments,\
+-fuchsia-default-arguments-calls,\
+-fuchsia-default-arguments-declarations,\
+-fuchsia-overloaded-operator,\
+-fuchsia-trailing-return,\
+google-*,\
+-google-build-using-namespace,\
+-google-readability-namespace-comments,\
+-google-readability-todo,\
+-google-runtime-references,\
+hicpp-*,\
+-hicpp-braces-around-statements,\
+-hicpp-no-array-decay,\
+llvm-*,\
+-llvm-include-order,\
+-llvm-header-guard,\
+-llvm-namespace-comment,\
+misc-*,\
+-misc-unused-parameters,\
+modernize-*,\
+-modernize-use-trailing-return-type,\
+performance-*,\
+readability-*,\
+-readability-braces-around-statements,\
+-readability-named-parameter,\
+-readability-magic-numbers,\
+"
+CheckOptions:
+  - key: readability-implicit-bool-conversion.AllowPointerConditions
+    value: 1
+HeaderFilterRegex: '.*/(include|src|examples)/.*\.h$'
+...
