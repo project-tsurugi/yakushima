@@ -53,9 +53,7 @@ public:
   static status leave_session(Token &token) {
     for (auto itr = kThreadInfoTable.begin(); itr != kThreadInfoTable.end(); ++itr) {
       if (token == static_cast<void*>(&(*itr))) {
-        /**
-         * todo : gc
-         */
+        itr->gc_container_.gc();
         itr->set_running(false);
         return status::OK;
       }

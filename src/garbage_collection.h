@@ -28,6 +28,24 @@ public:
     }
   }
 
+  static void fin() {
+    for (auto container = kGarbageNodes.begin(); container != kGarbageNodes.end(); ++container) {
+      for (auto itr = container->begin(); itr != container->end(); ++itr) {
+        if (std::get<gc_target_index>(*itr)->get_version_border()) {
+          delete dynamic_cast<border_node *>(std::get<gc_target_index>(*itr));
+        } else {
+          delete dynamic_cast<interior_node *>(std::get<gc_target_index>(*itr));
+        }
+      }
+    }
+
+    for (auto container = kGarbageValues.begin(); container != kGarbageValues.end(); ++container) {
+      for (auto itr = container->begin(); itr != container->end(); ++itr) {
+        ::operator delete(std::get<gc_target_index>(*itr));
+      }
+    }
+  }
+
   void gc() {
     gc_node();
     gc_value();
@@ -41,16 +59,10 @@ public:
         gc_end_itr = itr;
         break;
       } else {
-        if (typeid(*std::get<gc_target_index>(*itr)) == typeid(border_node)) {
-          delete dynamic_cast<border_node*>(std::get<gc_target_index>(*itr));
-        } else if (typeid(*std::get<gc_target_index>(*itr)) == typeid(interior_node)) {
-          delete dynamic_cast<interior_node*>(std::get<gc_target_index>(*itr));
+        if (std::get<gc_target_index>(*itr)->get_version_border()) {
+          delete dynamic_cast<border_node *>(std::get<gc_target_index>(*itr));
         } else {
-          /**
-           * unreachable point.
-           */
-          std::cerr << __FILE__ << ": " << __LINE__ << std::endl;
-          std::abort();
+          delete dynamic_cast<interior_node *>(std::get<gc_target_index>(*itr));
         }
       }
     }

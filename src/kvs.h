@@ -72,6 +72,14 @@ public:
   }
 
   /**
+   * @brief Delete all tree from the root and release all heap objects.
+   */
+  static void fin() {
+    destroy();
+    gc_container::fin();
+  }
+
+  /**
    * @tparam ValueType The returned pointer is cast to the given type information before it is returned.
    * @param[in] key_view The key_view of key-value.
    * @return std::tuple<ValueType *, std::size_t> The set of pointer to value and the value size.
@@ -175,15 +183,14 @@ retry_fetch_lv:
     goto retry_find_border;
   }
 
-  static void init_kvs() {
+  /**
+   * @brief Initialize kThreadInfoTable, which is a table that holds thread execution information.
+   */
+  static void init() {
     /**
      * initialize thread infomation table (kThreadInfoTable)
      */
     thread_info::init();
-    /**
-     * If there are existing tree, destroy all tree.
-     */
-    destroy();
   }
 
   /**

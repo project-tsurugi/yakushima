@@ -22,7 +22,7 @@ namespace yakushima::testing {
 class kvs_test : public ::testing::Test {
 protected:
   kvs_test() {
-    masstree_kvs::init_kvs();
+    masstree_kvs::init();
   }
 
   ~kvs_test() {
@@ -41,7 +41,7 @@ TEST_F(kvs_test, single_put_get_to_one_border) {
   /**
    * put one key-value
    */
-  masstree_kvs::init_kvs();
+  masstree_kvs::init();
   ASSERT_EQ(base_node::get_root(), nullptr);
   std::string k("a"), v("v-a");
   ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
@@ -58,7 +58,7 @@ TEST_F(kvs_test, single_put_get_to_one_border) {
 }
 
 TEST_F(kvs_test, multiple_put_get_same_null_char_key_slice_and_different_key_length_to_single_border) {
-  masstree_kvs::init_kvs();
+  masstree_kvs::init();
   constexpr std::size_t ary_size = 9;
   std::string k[ary_size], v[ary_size];
   for (std::size_t i = 0; i < ary_size; ++i) {
@@ -82,7 +82,7 @@ TEST_F(kvs_test, multiple_put_get_same_null_char_key_slice_and_different_key_len
 }
 
 TEST_F(kvs_test, multiple_put_get_same_null_char_key_slice_and_different_key_length_to_multiple_border) {
-  masstree_kvs::init_kvs();
+  masstree_kvs::init();
   constexpr std::size_t ary_size = 15;
   std::string k[ary_size], v[ary_size];
   for (std::size_t i = 0; i < ary_size; ++i) {
@@ -119,7 +119,7 @@ TEST_F(kvs_test, multiple_put_get_same_null_char_key_slice_and_different_key_len
 }
 
 TEST_F(kvs_test, put_until_creating_interior_node) {
-  masstree_kvs::init_kvs();
+  masstree_kvs::init();
   constexpr std::size_t ary_size = base_node::key_slice_length + 1;
   std::string k[ary_size], v[ary_size];
   for (std::size_t i = 0; i < ary_size; ++i) {
@@ -236,7 +236,7 @@ TEST_F(kvs_test, delete_against_single_put_to_one_border) {
   /**
    * put one key-value
    */
-  masstree_kvs::init_kvs();
+  masstree_kvs::init();
   std::string k("a"), v("v-a");
   ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
   ASSERT_EQ(status::OK, masstree_kvs::remove(std::string_view(k)));
@@ -245,7 +245,7 @@ TEST_F(kvs_test, delete_against_single_put_to_one_border) {
 }
 
 TEST_F(kvs_test, delte_against_multiple_put_same_null_char_key_slice_and_different_key_length_to_single_border) {
-  masstree_kvs::init_kvs();
+  masstree_kvs::init();
   constexpr std::size_t ary_size = 9;
   std::string k[ary_size], v[ary_size];
   for (std::size_t i = 0; i < ary_size; ++i) {
@@ -268,7 +268,7 @@ TEST_F(kvs_test, delte_against_multiple_put_same_null_char_key_slice_and_differe
 }
 
 TEST_F(kvs_test, delete_against_multiple_put_same_null_char_key_slice_and_different_key_length_to_multiple_border) {
-  masstree_kvs::init_kvs();
+  masstree_kvs::init();
   constexpr std::size_t ary_size = 15;
   std::string k[ary_size], v[ary_size];
   for (std::size_t i = 0; i < ary_size; ++i) {
