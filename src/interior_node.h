@@ -49,12 +49,9 @@ public:
         if (n_key == 1) {
           base_node *pn = lock_parent();
           if (pn == nullptr) {
+            get_child_at(!i)->set_parent(nullptr);
             base_node::set_root(get_child_at(!i)); // i == 0 or 1
             base_node::get_root()->atomic_set_version_root(true);
-            /**
-             * todo : Consider deeply that it is no problem updating (set_version_root) without locking the node
-             * even if it uses atomic operations.
-             */
           } else {
             pn->delete_of(token, this);
             pn->unlock();

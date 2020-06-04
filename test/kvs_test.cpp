@@ -41,7 +41,6 @@ TEST_F(kvs_test, init) {
 }
 
 TEST_F(kvs_test, single_put_get_to_one_border) {
-#if 0
   /**
    * put one key-value
    */
@@ -341,7 +340,6 @@ TEST_F(kvs_test, delete_against_all_after_put_until_creating_interior_node) {
   }
   ASSERT_EQ(base_node::get_root(), nullptr);
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
-#endif
 }
 
 }  // namespace yakushima::testing
