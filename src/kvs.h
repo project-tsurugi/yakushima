@@ -191,6 +191,7 @@ retry_fetch_lv:
    * In the cases where this is likely to cause problems and when inserting an array object,
    * the value size and value alignment information should be specified explicitly.
    * This is because sizeof for a type represents a single object size.
+   * @param[in] token
    * @param[in] key_view The key_view of key-value.
    * @param[in] value The pointer to value.
    * @param[in] arg_value_length The length of value object.

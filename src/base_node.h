@@ -39,7 +39,8 @@ public:
 
   /**
    * @details Delete operation on the element matching @a child.
-   * @param child
+   * @param[in] token
+   * @param[in] child
    */
   virtual void delete_of(Token token, base_node* child) = 0;
 
