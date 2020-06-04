@@ -30,15 +30,14 @@ public:
    * @pre This function is called by delete_of function.
    * @details delete the key-value corresponding to @a pos as position.
    * @param[in] pos The position of being deleted.
+   * @param[in] target_is_value
    */
-  void delete_at(std::size_t pos) {
-    /**
-     * todo : To prevent segv from occurring even if a parallel reader reads it later.
-     * The destruction of the destroy function propagates to the next_layer.
-     * This is for bulk destruction, and nullptr is set to prevent it.
-     */
-    lv_[pos].set_next_layer(nullptr);
-    lv_[pos].destroy();
+  void delete_at(Token token, std::size_t pos, bool target_is_value) {
+    thread_info *ti = reinterpret_cast<thread_info *>(token);
+    if (target_is_value) {
+      ti->move_value_to_gc_container(lv_[pos].get_v_or_vp_());
+    }
+    lv_[pos].init_lv();
 
     /**
      * rearrangement.
@@ -48,9 +47,6 @@ public:
     } else { // not-tail
       shift_left_base_member(pos + 1, 1);
       shift_left_border_member(pos + 1, 1);
-    }
-    if (get_next() != nullptr) {
-      set_version_deleted(true);
     }
     permutation_.dec_key_num();
     permutation_rearrange();
@@ -66,7 +62,7 @@ public:
     std::size_t cnk = get_permutation_cnk();
     for (std::size_t i = 0; i < cnk; ++i) {
       if (child == lv_[i].get_next_layer()) {
-        delete_of(token, get_key_slice_at(i), get_key_length_at(i));
+        delete_of(token, get_key_slice_at(i), get_key_length_at(i), false);
         return;
       }
     }
@@ -88,49 +84,52 @@ public:
    * This border node was already locked by caller.
    * This function is called by remove func.
    * The key-value corresponding to @a key_slice and @a key_length exists in this node.
-   * @post
-   * The function is responsible for locking this border node.
-   * If the border node is annihilated, the lock will not release, and if it does not, it will release.
    * @details delete value corresponding to @a key_slice and @a key_length
    * @param[in] token
    * @param[in] key_slice The key slice of key-value.
    * @param[in] key_slice_length The @a key_slice length.
+   * @param[in] target_is_value
    */
-  void delete_of(Token token, key_slice_type key_slice, key_length_type key_slice_length) {
+  void delete_of(Token token, key_slice_type key_slice, key_length_type key_slice_length, bool target_is_value) {
     /**
      * find position.
      */
     std::size_t cnk = get_permutation_cnk();
     for (std::size_t i = 0; i < cnk; ++i) {
       if (key_slice == get_key_slice_at(i) && key_slice_length == get_key_length_at(i)) {
-        delete_at(i);
+        delete_at(token, i, target_is_value);
         if (cnk == 1) { // attention : this cnk is before delete_at;
           /**
            * After this delete operation, this border node is empty.
            */
+          border_node *prev = get_prev();
+          if (prev != nullptr) {
+            prev->lock();
+            if (prev->get_version_deleted()) {
+              prev->unlock();
+              prev = nullptr;
+            } else {
+              prev->set_next(get_next());
+              if (get_next() != nullptr) {
+                get_next()->set_prev(prev);
+              }
+              prev->unlock();
+            }
+          }
+          /**
+           * lock order is next to prev and lower to higher.
+           */
           base_node *pn = lock_parent();
           if (pn == nullptr) {
             base_node::set_root(nullptr);
-            reinterpret_cast<thread_info *>(token)->move_node_to_gc_container(this);
-            return;
           } else {
-            if (pn->get_version_border()) {
-              pn->delete_of(token, this);
-            } else {
-              interior_node* pi = dynamic_cast<interior_node*>(pn);
-              if (pi->get_n_keys() == 1) {
-                pi->delete_of(token, this);
-                base_node::set_root(pi->get_child_at(0));
-                reinterpret_cast<thread_info *>(token)->move_node_to_gc_container(pi);
-              } else {
-                pi->delete_of(token, this);
-              }
-            }
-            reinterpret_cast<thread_info *>(token)->move_node_to_gc_container(this);
-            return;
+            pn->delete_of(token, this);
+            pn->unlock();
           }
+          set_version_deleted(true);
+          reinterpret_cast<thread_info *>(token)->move_node_to_gc_container(this);
         }
-        this->unlock();
+        set_version_vdelete(get_version_vdelete() + 1);
         return;
       }
     }
@@ -221,7 +220,7 @@ public:
   }
 
   border_node *get_prev() {
-    return prev_.load(std::memory_order_acquire);
+    return prev_;
   }
 
   void init_border() {
@@ -230,7 +229,7 @@ public:
     set_version_border(true);
     permutation_.init();
     next_ = nullptr;
-    prev_.store(nullptr, std::memory_order_relaxed);
+    set_prev(nullptr);
   }
 
   /**
@@ -357,28 +356,28 @@ public:
     lv_[index].set_value(value, arg_value_length, value_align);
   }
 
-  void set_lv_next_layer(std::size_t index, base_node *next_layer) {
-    lv_[index].set_next_layer(next_layer);
-  }
+    void set_lv_next_layer(std::size_t index, base_node *next_layer) {
+      lv_[index].set_next_layer(next_layer);
+    }
 
-  void set_next(border_node *nnext) {
-    storeReleaseN(next_, nnext);
-  }
+    void set_next(border_node *nnext) {
+      storeReleaseN(next_, nnext);
+    }
 
-  void set_prev(border_node *nprev) {
-    prev_.store(nprev, std::memory_order_release);
-  }
+    void set_prev(border_node *prev) {
+      prev_ = prev;
+    }
 
-  void shift_left_border_member(std::size_t start_pos, std::size_t shift_size) {
-    memmove(get_lv_at(start_pos - shift_size), get_lv_at(start_pos),
-            sizeof(link_or_value) * (key_slice_length - start_pos));
-  }
+    void shift_left_border_member(std::size_t start_pos, std::size_t shift_size) {
+      memmove(get_lv_at(start_pos - shift_size), get_lv_at(start_pos),
+              sizeof(link_or_value) * (key_slice_length - start_pos));
+    }
 
-private:
-  // first member of base_node is aligned along with cache line size.
-  /**
-   * @attention This variable is read/written concurrently.
-   */
+    private:
+    // first member of base_node is aligned along with cache line size.
+    /**
+     * @attention This variable is read/written concurrently.
+     */
   permutation permutation_{};
   /**
    * @attention This variable is read/written concurrently.
@@ -387,7 +386,7 @@ private:
   /**
    * @attention This is protected by its previous sibling's lock.
    */
-  std::atomic<border_node *> prev_{nullptr};
+    border_node *prev_{nullptr};
   /**
    * @attention This variable is read/written concurrently.
    */

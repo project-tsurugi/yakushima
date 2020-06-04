@@ -256,6 +256,16 @@ public:
     }
   }
 
+  void atomic_set_root(bool tf) {
+    node_version64_body expected(get_body()), desired;
+    for (;;) {
+      desired = expected;
+      desired.set_root(tf);
+      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
+        break;
+    }
+  }
+
   /**
    * @details display function for analysis and debug.
    */

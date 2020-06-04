@@ -41,6 +41,7 @@ TEST_F(kvs_test, init) {
 }
 
 TEST_F(kvs_test, single_put_get_to_one_border) {
+#if 0
   /**
    * put one key-value
    */
@@ -54,7 +55,6 @@ TEST_F(kvs_test, single_put_get_to_one_border) {
   key_slice_type lvalue_key_slice = root->get_key_slice_at(0);
   ASSERT_EQ(memcmp(&lvalue_key_slice, k.data(), k.size()), 0);
   ASSERT_EQ(root->get_key_length_at(0), k.size());
-  root->display();
   std::tuple<char *, std::size_t> tuple = masstree_kvs::get<char>(std::string_view(k));
   ASSERT_NE(std::get<0>(tuple), nullptr);
   ASSERT_EQ(std::get<1>(tuple), v.size());
@@ -316,6 +316,32 @@ TEST_F(kvs_test, delete_against_multiple_put_same_null_char_key_slice_and_differ
   }
   ASSERT_EQ(masstree_kvs::destroy(), status::OK_ROOT_IS_NULL);
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
+}
+
+TEST_F(kvs_test, delete_against_all_after_put_until_creating_interior_node) {
+  Token token;
+  ASSERT_EQ(masstree_kvs::enter(token), status::OK);
+  constexpr std::size_t ary_size = base_node::key_slice_length + 1;
+  std::string k[ary_size], v[ary_size];
+  for (std::size_t i = 0; i < ary_size; ++i) {
+    k[i].assign(1, 'a' + i);
+    v[i].assign(1, 'a' + i);
+  }
+  for (std::size_t i = 0; i < ary_size; ++i) {
+    ASSERT_EQ(status::OK, masstree_kvs::put(token, std::string_view{k[i]}, v[i].data(), v[i].size()));
+  }
+
+  std::size_t lb_n{ary_size / 2};
+  for (std::size_t i = 0; i < lb_n; ++i) {
+    ASSERT_EQ(status::OK, masstree_kvs::remove(token, k[i]));
+  }
+  ASSERT_EQ(base_node::get_root()->get_version_border(), true);
+  for (std::size_t i = lb_n; i < ary_size; ++i) {
+    ASSERT_EQ(status::OK, masstree_kvs::remove(token, k[i]));
+  }
+  ASSERT_EQ(base_node::get_root(), nullptr);
+  ASSERT_EQ(masstree_kvs::leave(token), status::OK);
+#endif
 }
 
 }  // namespace yakushima::testing

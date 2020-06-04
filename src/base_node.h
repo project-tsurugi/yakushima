@@ -37,6 +37,10 @@ public:
 
   ~base_node() = default;
 
+  void atomic_set_version_root(bool tf) {
+    version_.atomic_set_root(tf);
+  }
+
   /**
    * @details Delete operation on the element matching @a child.
    * @param[in] token
@@ -226,6 +230,10 @@ public:
   }
   void set_version_splitting(bool tf) {
     version_.set_splitting(tf);
+  }
+
+  void set_version_vdelete(std::size_t vdelete) {
+    version_.set_vdelete(vdelete);
   }
 
   void shift_left_base_member(std::size_t start_pos, std::size_t shift_size) {

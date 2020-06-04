@@ -12,6 +12,7 @@
 
 #include "atomic_wrapper.h"
 #include "base_node.h"
+#include "thread_info.h"
 
 #include "../test/include/debug.hh"
 
@@ -41,12 +42,25 @@ public:
    * @param[in] token
    * @param[in] child
    */
-  void delete_of([[maybe_unused]]Token token, base_node* child) final {
+  void delete_of(Token token, base_node *child) final {
     std::size_t n_key = get_n_keys();
     for (std::size_t i = 0; i <= n_key; ++i) {
       if (get_child_at(i) == child) {
-        if (n_key == 1 && i == 0) {
-          set_child_at(0, get_child_at(1)); // note : if i == 1, nothing to do.
+        if (n_key == 1) {
+          base_node *pn = lock_parent();
+          if (pn == nullptr) {
+            base_node::set_root(get_child_at(!i)); // i == 0 or 1
+            base_node::get_root()->atomic_set_version_root(true);
+            /**
+             * todo : Consider deeply that it is no problem updating (set_version_root) without locking the node
+             * even if it uses atomic operations.
+             */
+          } else {
+            pn->delete_of(token, this);
+            pn->unlock();
+          }
+          set_version_deleted(true);
+          reinterpret_cast<thread_info *>(token)->move_node_to_gc_container(this);
         } else { // n_key > 1
           if (i == 0) { // leftmost points
             shift_left_base_member(1, 1);
@@ -60,6 +74,7 @@ public:
           set_key(n_key - 1, 0, 0);
           set_child_at(n_key, nullptr);
         }
+        set_version_vdelete(get_version_vdelete() + 1);
         n_keys_decrement();
         return;
       }
