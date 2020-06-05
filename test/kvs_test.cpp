@@ -459,6 +459,7 @@ TEST_F(kvs_test, delete_against_put_until_first_split_of_interior_node) {
 #if 0
   std::size_t to_sb = dynamic_cast<interior_node*>(dynamic_cast<interior_node*>(base_node::get_root())->get_child_at(0))->get_n_keys() * n_in_bn;
   for (std::size_t i = n_in_bn; i < n_in_bn + to_sb; ++i) {
+    cout << i << endl;
     ASSERT_EQ(status::OK, masstree_kvs::remove(token, k[i]));
   }
   ASSERT_EQ(base_node::get_root()->get_version_border(), false);

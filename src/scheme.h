@@ -70,4 +70,39 @@ enum class status : std::int32_t {
   ERR_UNKNOWN_ROOT,
 };
 
+inline constexpr std::string_view to_string_view(status value) noexcept {
+  using namespace std::string_view_literals;
+  switch (value) {
+    case status::WARN_BAD_USAGE:
+      return "WARN_BAD_USAGE"sv;
+    case status::WARN_INVALID_TOKEN:
+      return "WARN_INVALID_TOKEN"sv;
+    case status::WARN_MAX_SESSIONS:
+      return "WARN_MAX_SESSIONS"sv;
+    case status::WARN_RETRY_FROM_ROOT_OF_ALL:
+      return "WARN_RETRY_FROM_ROOT_OF_ALL"sv;
+    case status::WARN_UNIQUE_RESTRICTION:
+      return "WARN_UNIQUE_RESTRICTION"sv;
+    case status::OK:
+      return "OK"sv;
+    case status::OK_DESTROY_ALL:
+      return "OK_DESTROY_ALL"sv;
+    case status::OK_DESTROY_BORDER:
+      return "OK_DESTROY_BORDER"sv;
+    case status::OK_DESTROY_INTERIOR:
+      return "OK_DESTROY_INTERIOR"sv;
+    case status::OK_NOT_FOUND:
+      return "OK_NOT_FOUND"sv;
+    case status::OK_ROOT_IS_NULL:
+      return "OK_ROOT_IS_NULL"sv;
+    case status::ERR_UNKNOWN_ROOT:
+      return "ERR_UNKNOWN_ROOT"sv;
+  }
+  std::abort();
+}
+
+inline std::ostream& operator<<(std::ostream& out, status value) {
+  return out << to_string_view(value);
+}
+
 } // namespace yakushima
