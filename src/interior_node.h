@@ -12,6 +12,7 @@
 
 #include "atomic_wrapper.h"
 #include "base_node.h"
+#include "interior_helper.h"
 #include "thread_info.h"
 
 #include "../test/include/debug.hh"
@@ -19,6 +20,14 @@
 using std::cout, std::endl;
 
 namespace yakushima {
+
+/**
+ * forward declaration.
+ */
+template<class interior_node, class border_node>
+static void insert_lv(border_node *border, std::string_view key_view, bool next_layer, void *value_ptr,
+                      std::size_t arg_value_length, std::size_t value_align,
+                      std::vector<node_version64 *> &lock_list);
 
 class interior_node final : public base_node {
 public:
@@ -41,8 +50,10 @@ public:
    * @details Delete operation on the element matching @a child.
    * @param[in] token
    * @param[in] child
+   * @param[in] lock_list
    */
-  void delete_of(Token token, base_node *child) final {
+  template<class border_node>
+  void delete_of(Token token, base_node *child, std::vector<node_version64 *> &lock_list) {
     std::size_t n_key = get_n_keys();
     for (std::size_t i = 0; i <= n_key; ++i) {
       if (get_child_at(i) == child) {
@@ -51,31 +62,67 @@ public:
           if (pn == nullptr) {
             /**
              * todo : consider deeply whetehr it is correct.
+             * consider coordination A and B.
+             * A : set_root here.
+             * B : set_root by sibling node's split.
              */
             get_child_at(!i)->set_parent(nullptr);
             base_node::set_root(get_child_at(!i)); // i == 0 or 1
             base_node::get_root()->atomic_set_version_root(true);
           } else {
-            pn->delete_of(token, this);
+            if (pn->get_version_border()) {
+              border_node *bn = dynamic_cast<border_node *>(pn);
+              base_node *sibling = get_child_at(!i);
+              std::string_view key_view;
+              key_slice_type key_slice;
+              key_length_type key_length;
+              if (sibling->get_version_border()) {
+                std::size_t lowest_key_pos = bn->get_permutation_lowest_key_pos();
+                key_slice = sibling->get_key_slice_at(lowest_key_pos);
+                key_length = sibling->get_key_length_at(lowest_key_pos);
+                key_view = std::string_view(reinterpret_cast<const char *>(&key_slice), key_length);
+              } else {
+                key_slice = sibling->get_key_slice_at(0);
+                key_length = sibling->get_key_length_at(0);
+                key_view = std::string_view(reinterpret_cast<const char *>(&key_slice), key_length);
+              }
+              if (bn->get_permutation_cnk() == base_node::key_slice_length) {
+                // to prevent split
+                bn->delete_of(token, this, lock_list);
+                insert_lv<interior_node, border_node>(bn, key_view, true, sibling, 0, 0, lock_list);
+              } else {
+                // to prevent delete node entity.
+                insert_lv<interior_node, border_node>(bn, key_view, true, sibling, 0, 0, lock_list);
+                bn->delete_of(token, this, lock_list);
+              }
+            } else {
+              interior_node *in = dynamic_cast<interior_node *>(pn);
+              if (in->get_n_keys() == base_node::key_slice_length) {
+                in->delete_of<border_node>(token, this, lock_list);
+                //insert<border_node>();
+                // todo
+              }
+            }
             pn->unlock();
           }
           set_version_deleted(true);
           reinterpret_cast<thread_info *>(token)->move_node_to_gc_container(this);
         } else { // n_key > 1
           if (i == 0) { // leftmost points
-            shift_left_base_member(2, 2);
-            shift_left_children(1, 1);
+            shift_left_base_member(1, 1);
             set_key(n_key - 1, 0, 0);
-            set_key(n_key - 2, 0, 0);
+            shift_left_children(1, 1);
+            set_child_at(n_key, nullptr);
           } else if (i == n_key) { // rightmost points
             // no unique process
             set_key(n_key - 1, 0, 0);
+            set_child_at(i, nullptr);
           } else { // middle points
             shift_left_base_member(i, 1);
-            shift_left_children(i + 1, 1);
             set_key(n_key - 1, 0, 0);
+            shift_left_children(i + 1, 1);
+            set_child_at(n_key, nullptr);
           }
-          set_child_at(n_key, nullptr);
         }
         set_version_vdelete(get_version_vdelete() + 1);
         n_keys_decrement();
@@ -166,9 +213,14 @@ public:
    * @details insert @a child and fix @a children.
    * @param child new inserted child.
    */
+  template<class border_node>
   void insert(base_node *child) {
+    std::size_t pos{0};
+    if (child->get_version_border()) {
+      pos = reinterpret_cast<border_node *>(child)->get_permutation_lowest_key_pos();
+    }
     std::tuple<key_slice_type, key_length_type>
-            visitor{child->get_key_slice_at(0), child->get_key_length_at(0)};
+            visitor{child->get_key_slice_at(pos), child->get_key_length_at(pos)};
     n_keys_body_type n_key = get_n_keys();
     for (auto i = 0; i < n_key; ++i) {
       std::tuple<key_slice_type, key_length_type>

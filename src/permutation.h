@@ -69,6 +69,15 @@ public:
     return per & cnk_mask;
   }
 
+  [[nodiscard]] std::size_t get_index_of_rank(std::size_t rank) {
+    std::uint64_t per = get_body();
+    per = per >> cnk_bit_size;
+    if (rank != 0) {
+      per = per >> (pkey_bit_size * rank);
+    }
+    return per & cnk_mask;
+  }
+
   /**
    * @brief increment key number.
    */

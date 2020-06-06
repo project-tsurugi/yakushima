@@ -445,6 +445,12 @@ public:
     set_body(desired);
   }
 
+  static void unlock(std::vector<node_version64 *> &lock_list) {
+    for (auto &l : lock_list) {
+      l->unlock();
+    }
+  }
+
 private:
   std::atomic<node_version64_body> body_;
 };

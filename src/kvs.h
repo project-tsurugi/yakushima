@@ -293,10 +293,23 @@ retry_fetch_lv:
      */
 lv_ptr_null:
     if (lv_ptr == nullptr) {
-      /**
-       * inserts node into this border_node.
-       */
+      std::vector<node_version64 *> lock_list;
+      std::vector<base_node *> next_layers;
+      if (target_border->get_permutation_cnk() == base_node::key_slice_length) {
+        /**
+         * split occurs. If there is a next_layer, its parent may change.
+         * You have to get the lock from bottom to top.
+         */
+        target_border->get_all_next_layer(next_layers);
+        if (next_layers.size() != 0) {
+          for (auto &n : next_layers) {
+            n->lock();
+            lock_list.emplace_back(n->get_version_ptr());
+          }
+        }
+      }
       target_border->lock();
+      lock_list.emplace_back(target_border->get_version_ptr());
       if (target_border->get_version_deleted()
           || target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
         /**
@@ -305,7 +318,7 @@ lv_ptr_null:
          * vsplit comparison : It may be change the correct border node between
          * atomically fetching border and lock.
          */
-        target_border->unlock();
+        node_version64::unlock(lock_list);
         goto retry_from_root;
       }
       /**
@@ -314,30 +327,15 @@ lv_ptr_null:
       if (target_border->get_version_vinsert() != v_at_fetch_lv.get_vinsert()
           || target_border->get_version_vdelete() != v_at_fetch_lv.get_vdelete()) {
         /**
-         * It must re-check the existence of lv because it was inserted or deleted between
-         * fetching lv and locking.
+         * next_layers may be wrong. However, when it rechecks the next_layers, it can't get the lock down,
+         * so it have to try again.
          */
-        lv_ptr = target_border->get_lv_of_without_lock(key_slice, key_slice_length);
-        if (lv_ptr != nullptr) {
-          /**
-           * Before jumping, it updates the v_at_fetch by current version to improve performance lately.
-           */
-          node_version64_body new_v = target_border->get_version();
-          new_v.make_stable_version_forcibly(); // make this into stable_version forcibly.
-          v_at_fb = v_at_fetch_lv = new_v;
-          /**
-           * Jump
-           */
-          target_border->unlock();
-          goto lv_ptr_exists;
-        }
+        node_version64::unlock(lock_list);
+        goto retry_fetch_lv;
       }
-      std::vector<node_version64 *> lock_list;
-      lock_list.emplace_back(target_border->get_version_ptr());
-      insert_lv(target_border, traverse_key_view, false, value, arg_value_length, value_align, lock_list);
-      for (auto &lock : lock_list) {
-        lock->unlock();
-      }
+      insert_lv<interior_node, border_node>(target_border, traverse_key_view, false, value, arg_value_length,
+                                                   value_align, lock_list);
+      node_version64::unlock(lock_list);
       return status::OK;
     }
 lv_ptr_exists:
@@ -349,13 +347,15 @@ lv_ptr_exists:
       if (final_slice) {
         return status::WARN_UNIQUE_RESTRICTION;
       } else {
+        std::vector<node_version64 *> lock_list;
         /**
          * Finally, It creates new layer and inserts this old lv into the new layer.
          */
         target_border->lock();
+        lock_list.emplace_back(target_border->get_version_ptr());
         if (target_border->get_version_deleted() // this border is incorrect.
             || target_border->get_version_vsplit() != v_at_fb.get_vsplit()) { // this border may be incorrect.
-          target_border->unlock();
+          node_version64::unlock(lock_list);
           goto retry_from_root;
         }
         /**
@@ -370,7 +370,7 @@ lv_ptr_exists:
             node_version64_body new_v = target_border->get_version();
             new_v.make_stable_version_forcibly();
             v_at_fb = v_at_fetch_lv = new_v;
-            target_border->unlock();
+            node_version64::unlock(lock_list);
             goto lv_ptr_null;
           } else {
             /**
@@ -379,7 +379,7 @@ lv_ptr_exists:
             node_version64_body new_v = target_border->get_version();
             new_v.make_stable_version_forcibly();
             v_at_fb = v_at_fetch_lv = new_v;
-            target_border->unlock();
+            node_version64::unlock(lock_list);
             goto lv_ptr_exists;
           }
         }
@@ -532,7 +532,8 @@ retry_fetch_lv:
           goto retry_fetch_lv;
         }
 
-        target_border->delete_of(token, key_slice, key_slice_length, true);
+        std::vector<node_version64 *> lock_list;
+        target_border->delete_of<true>(token, key_slice, key_slice_length, lock_list);
         target_border->unlock();
         return status::OK;
       } else {

@@ -6,8 +6,6 @@
 #pragma once
 
 #include "border_helper.h"
-#include "interior_node.h"
-
 #include "../test/include/debug.hh"
 
 namespace yakushima {
@@ -20,10 +18,12 @@ using value_length_type = base_node::value_length_type;
 /**
  * start : forward declaration due to resolve dependency.
  */
+template<class interior_node, class border_node>
 static void border_split(border_node *border, std::string_view key_view, bool next_layer, void *value_ptr,
                          value_length_type value_length, value_align_type value_align,
                          std::vector<node_version64 *> &lock_list);
 
+template<class interior_node, class border_node>
 static void insert_lv(border_node *border, std::string_view key_view, bool next_layer, void *value_ptr,
                       value_length_type arg_value_length, value_align_type value_align,
                       std::vector<node_version64 *> &lock_list);
@@ -38,6 +38,7 @@ static void insert_lv(border_node *border, std::string_view key_view, bool next_
  * @param[in] child_node After split, it inserts this @a child_node.
  * @param[out] lock_list
  */
+template<class interior_node, class border_node>
 static void interior_split(interior_node *interior, base_node *child_node, std::vector<node_version64 *> &lock_list);
 
 /**
@@ -48,10 +49,12 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
  * @param[out] lock_list
  * @param[out] new_parent This function tells new parent to the caller via this argument.
  */
-static void create_interior_parent(interior_node *left, interior_node *right, std::vector<node_version64 *> &lock_list,
-                            base_node **new_parent);
+template<class interior_node>
+static void create_interior_parent_of_interior(interior_node *left, interior_node *right, std::vector<node_version64 *> &lock_list,
+                                   base_node **new_parent);
 
-static void create_interior_parent(interior_node *left, interior_node *right, std::vector<node_version64 *> &lock_list,
+template<class interior_node>
+static void create_interior_parent_of_interior(interior_node *left, interior_node *right, std::vector<node_version64 *> &lock_list,
                                    base_node **new_parent) {
   interior_node *ni = new interior_node();
   ni->init_interior();
@@ -77,6 +80,7 @@ static void create_interior_parent(interior_node *left, interior_node *right, st
   return;
 }
 
+template<class interior_node, class border_node>
 static void interior_split(interior_node *interior, base_node *child_node, std::vector<node_version64 *> &lock_list) {
   interior_node *new_interior = new interior_node();
   new_interior->init_interior();
@@ -108,15 +112,15 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
   std::tuple<key_slice_type, key_length_type> visitor{child_node->get_key_slice_at(0),
                                                       child_node->get_key_length_at(0)};
   if (visitor <
-      std::make_tuple<key_slice_type, key_length_type>(new_interior->get_key_slice_at(0), new_interior->get_key_length_at(0))) {
-    interior->insert(child_node);
+          std::make_tuple<key_slice_type, key_length_type>(new_interior->get_key_slice_at(0), new_interior->get_key_length_at(0))) {
+    interior->template insert<border_node>(child_node);
   } else {
-    new_interior->insert(child_node);
+    new_interior->template insert<border_node>(child_node);
   }
 
   base_node *p = interior->lock_parent();
   if (p == nullptr) {
-    create_interior_parent(interior, new_interior, lock_list, &p);
+    create_interior_parent_of_interior<interior_node>(interior, new_interior, lock_list, &p);
     /**
      * p became new root.
      */
@@ -133,8 +137,8 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
       /**
        * parent border full case
        */
-      create_interior_parent(interior, new_interior, lock_list, &p);
-      border_split(pb, std::string_view{reinterpret_cast<char *>(p->get_key_slice_at(0)),
+      create_interior_parent_of_interior<interior_node>(interior, new_interior, lock_list, &p);
+      border_split<interior_node, border_node>(pb, std::string_view{reinterpret_cast<char *>(p->get_key_slice_at(0)),
                                         p->get_key_length_at(0)}, true, p, 0, 0,
                    lock_list);
       return;
@@ -142,7 +146,7 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
     /**
      * parent border not-full case
      */
-    insert_lv(pb, std::string_view{reinterpret_cast<char *>(new_interior->get_key_slice_at(0)),
+    insert_lv<interior_node, border_node>(pb, std::string_view{reinterpret_cast<char *>(new_interior->get_key_slice_at(0)),
                                    new_interior->get_key_length_at(0)}, true, p, 0,
               0, lock_list);
     return;
@@ -152,13 +156,13 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
     /**
      * parent interior full case.
      */
-    interior_split(pi, new_interior, lock_list);
+    interior_split<interior_node, border_node>(pi, new_interior, lock_list);
     return;
   }
   /**
    * parent interior not-full case
    */
-  pi->insert(new_interior);
+  pi->template insert<border_node>(new_interior);
   return;
 }
 

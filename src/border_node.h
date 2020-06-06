@@ -58,11 +58,11 @@ public:
    * @param[in] token
    * @param[in] child
    */
-  void delete_of(Token token, base_node* child) final {
+  void delete_of(Token token, base_node *child, std::vector<node_version64 *> &lock_list) {
     std::size_t cnk = get_permutation_cnk();
     for (std::size_t i = 0; i < cnk; ++i) {
       if (child == lv_[i].get_next_layer()) {
-        delete_of(token, get_key_slice_at(i), get_key_length_at(i), false);
+        delete_of<false>(token, get_key_slice_at(i), get_key_length_at(i), lock_list);
         return;
       }
     }
@@ -90,7 +90,9 @@ public:
    * @param[in] key_slice_length The @a key_slice length.
    * @param[in] target_is_value
    */
-  void delete_of(Token token, key_slice_type key_slice, key_length_type key_slice_length, bool target_is_value) {
+  template<bool target_is_value>
+  void delete_of(Token token, key_slice_type key_slice, key_length_type key_slice_length,
+                 std::vector<node_version64 *> &lock_list) {
     /**
      * find position.
      */
@@ -123,7 +125,11 @@ public:
           if (pn == nullptr) {
             base_node::set_root(nullptr);
           } else {
-            pn->delete_of(token, this);
+            if (pn->get_version_border()) {
+              dynamic_cast<border_node *>(pn)->delete_of(token, this, lock_list);
+            } else {
+              dynamic_cast<interior_node *>(pn)->delete_of<border_node>(token, this, lock_list);
+            }
             pn->unlock();
           }
           set_version_deleted(true);
@@ -155,6 +161,10 @@ public:
 
   [[nodiscard]] std::uint8_t get_permutation_cnk() {
     return permutation_.get_cnk();
+  }
+
+  [[nodiscard]] std::size_t get_permutation_lowest_key_pos() {
+    return permutation_.get_lowest_key_pos();
   }
 
   [[nodiscard]] link_or_value *get_lv() {
@@ -194,6 +204,24 @@ public:
         return ret_lv;
       } else {
         v = v_check;
+      }
+    }
+  }
+
+  /**
+   * @post It is necessary for the caller to verify whether the extraction is appropriate.
+   * @param[out] next_layers
+   * @attention layers are stored in ascending order.
+   * @return
+   */
+  void get_all_next_layer(std::vector<base_node *> &next_layers) {
+    next_layers.clear();
+    std::size_t cnk = permutation_.get_cnk();
+    for (std::size_t i = 0; i < cnk; ++i) {
+      link_or_value *lv = get_lv_at(permutation_.get_index_of_rank(i));
+      base_node *nl = lv->get_next_layer();
+      if (nl != nullptr) {
+        next_layers.emplace_back(nl);
       }
     }
   }

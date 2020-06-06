@@ -42,13 +42,6 @@ public:
   }
 
   /**
-   * @details Delete operation on the element matching @a child.
-   * @param[in] token
-   * @param[in] child
-   */
-  virtual void delete_of(Token token, base_node* child) = 0;
-
-  /**
    * A virtual function is defined because It wants to distinguish the children class of the contents
    * by using polymorphism.
    * So this function is pure virtual function.
