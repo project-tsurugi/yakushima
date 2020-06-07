@@ -302,9 +302,9 @@ lv_ptr_null:
          */
         target_border->get_all_next_layer(next_layers);
         if (next_layers.size() != 0) {
-          for (auto &n : next_layers) {
-            n->lock();
-            lock_list.emplace_back(n->get_version_ptr());
+          for (auto itr = next_layers.rbegin(); itr != next_layers.rend(); ++itr) {
+            (*itr)->lock();
+            lock_list.emplace_back((*itr)->get_version_ptr());
           }
         }
       }
@@ -403,7 +403,7 @@ lv_ptr_exists:
         lv_ptr->destroy_value();
         lv_ptr->set_next_layer(new_border);
         new_border->set_parent(target_border);
-        target_border->unlock();
+        node_version64::unlock(lock_list);
         return status::OK;
       }
     }
@@ -515,10 +515,12 @@ retry_fetch_lv:
     if (lv_ptr->get_v_or_vp_() != nullptr) {
       if (final_slice) {
         target_border->lock();
+        std::vector<node_version64 *> lock_list;
+        lock_list.emplace_back(target_border->get_version_ptr());
         node_version64_body final_check = target_border->get_version();
         if (final_check.get_deleted() || // the border was deleted.
             final_check.get_vsplit() != v_at_fb.get_vsplit()) { // the border may be incorrect.
-          target_border->unlock();
+          node_version64::unlock(lock_list);
           goto retry_from_root;
         }
         /**
@@ -528,13 +530,12 @@ retry_fetch_lv:
             final_check.get_vinsert() != v_at_fetch_lv.get_vinsert()) { // the lv may be next_layer from value ptr.
           final_check.make_stable_version_forcibly();
           v_at_fb = final_check;
-          target_border->unlock();
+          node_version64::unlock(lock_list);
           goto retry_fetch_lv;
         }
 
-        std::vector<node_version64 *> lock_list;
         target_border->delete_of<true>(token, key_slice, key_slice_length, lock_list);
-        target_border->unlock();
+        node_version64::unlock(lock_list);
         return status::OK;
       } else {
         return status::OK_NOT_FOUND;

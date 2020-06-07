@@ -144,12 +144,6 @@ static void border_split(border_node *border,
   new_border->init_border();
   new_border->set_next(border->get_next());
   new_border->set_prev(border);
-  if (border->get_next() != nullptr) {
-    /**
-     * The prev of border next can be updated if it posesses the border lock.
-     */
-    border->get_next()->set_prev(new_border);
-  }
   border->set_next(new_border);
   border->set_version_root(false);
   border->set_version_splitting(true);
@@ -158,6 +152,12 @@ static void border_split(border_node *border,
    */
   new_border->set_version(border->get_version());
   lock_list.emplace_back(new_border->get_version_ptr());
+  if (new_border->get_next() != nullptr) {
+    /**
+     * The prev of border next can be updated if it posesses the border lock.
+     */
+    new_border->get_next()->set_prev(new_border);
+  }
   /**
    * split keys among n and n'
    */
@@ -195,6 +195,10 @@ static void border_split(border_node *border,
     new_border->set_key_slice_at(index_ctr, std::get<key_slice_index>(*itr));
     new_border->set_key_length_at(index_ctr, std::get<key_length_index>(*itr));
     new_border->set_lv(index_ctr, border->get_lv_at(std::get<key_pos>(*itr)));
+    base_node *nl = border->get_lv_at(std::get<key_pos>(*itr))->get_next_layer();
+    if (nl != nullptr) {
+      nl->set_parent(new_border);
+    }
     if (std::get<key_pos>(*itr) < remaining_size) {
       shift_pos.emplace_back(std::get<key_pos>(*itr));
     }
@@ -263,7 +267,12 @@ static void border_split(border_node *border,
     std::abort();
   }
 
-  base_node *p = border->lock_parent();
+  std::vector<base_node *> next_layers;
+  std::vector<node_version64 *> next_layers_lock;
+  base_node* p = border->get_parent();
+  //todo correct next_layers and lock
+
+  p = border->lock_parent();
   if (p == nullptr) {
     /**
      * create interior as parents and insert k.
@@ -273,10 +282,6 @@ static void border_split(border_node *border,
     base_node::set_root(dynamic_cast<base_node *>(p));
     return;
   }
-  /**
-   * p exists.
-   * todo : consider that root is deleted.
-   */
   lock_list.emplace_back(p->get_version_ptr());
   if (p->get_version_border()) {
     /**
@@ -293,7 +298,7 @@ static void border_split(border_node *border,
       /**
        * border full case, it splits and inserts.
        */
-      border_split<interior_node, border_node>(pb, key_view, true, pi, value_length, value_align, lock_list);
+      border_split<interior_node, border_node>(pb, key_view, true, pi, 0, 0, lock_list);
       return;
     }
     /**
