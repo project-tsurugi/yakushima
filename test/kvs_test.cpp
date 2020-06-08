@@ -466,8 +466,6 @@ TEST_F(kvs_test, delete_against_put_until_first_split_of_interior_node) {
   for (std::size_t i = n_in_bn; i < n_in_bn + to_sb; ++i) {
     ASSERT_EQ(status::OK, masstree_kvs::remove(token, k[i]));
   }
-  base_node* hogei = base_node::get_root();
-  cout << hogei << endl;
   ASSERT_EQ(1, dynamic_cast<interior_node *>(dynamic_cast<interior_node *>(base_node::get_root()))->get_n_keys());
   for (std::size_t i = n_in_bn + to_sb; i < ary_size; ++i) {
     ASSERT_EQ(status::OK, masstree_kvs::remove(token, k[i]));
