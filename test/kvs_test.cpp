@@ -10,7 +10,6 @@
 
 #include "kvs.h"
 
-#include "include/global_variables_decralation.h"
 #include "debug.hh"
 
 using namespace yakushima;
