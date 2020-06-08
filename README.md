@@ -1,4 +1,4 @@
-# yakushima - Masstree Storage Engine.
+# yakushima - Storage Engine.
 
 ## Requirements
 
