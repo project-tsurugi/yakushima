@@ -121,9 +121,13 @@ public:
           /**
            * lock order is next to prev and lower to higher.
            */
+retry_lock_parent:
           base_node *pn = lock_parent();
           if (pn == nullptr) {
             base_node::set_root(nullptr);
+          } else if (get_parent() != pn) {
+            pn->unlock();
+            goto retry_lock_parent;
           } else {
             if (pn->get_version_border()) {
               dynamic_cast<border_node *>(pn)->delete_of(token, this, lock_list);
@@ -253,7 +257,7 @@ public:
   }
 
   border_node *get_prev() {
-    return prev_;
+    return loadAcquireN(prev_);
   }
 
   void init_border() {
@@ -403,7 +407,7 @@ public:
   }
 
   void set_prev(border_node *prev) {
-    prev_ = prev;
+    storeReleaseN(prev_, prev);
   }
 
   void shift_left_border_member(std::size_t start_pos, std::size_t shift_size) {

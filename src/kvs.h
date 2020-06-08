@@ -274,20 +274,6 @@ retry_fetch_lv:
      */
     if (lv_ptr == nullptr) {
       std::vector<node_version64 *> lock_list;
-      std::vector<base_node *> next_layers;
-      if (target_border->get_permutation_cnk() == base_node::key_slice_length) {
-        /**
-         * split occurs. If there is a next_layer, its parent may change.
-         * You have to get the lock from bottom to top.
-         */
-        target_border->get_all_next_layer(next_layers);
-        if (next_layers.size() != 0) {
-          for (auto itr = next_layers.rbegin(); itr != next_layers.rend(); ++itr) {
-            (*itr)->lock();
-            lock_list.emplace_back((*itr)->get_version_ptr());
-          }
-        }
-      }
       target_border->lock();
       lock_list.emplace_back(target_border->get_version_ptr());
       if (target_border->get_version_deleted()

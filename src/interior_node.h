@@ -58,18 +58,17 @@ public:
     for (std::size_t i = 0; i <= n_key; ++i) {
       if (get_child_at(i) == child) {
         if (n_key == 1) {
+retry_lock_parent:
           base_node *pn = lock_parent();
           if (pn == nullptr) {
-            /**
-             * todo : consider deeply whetehr it is correct.
-             * consider coordination A and B.
-             * A : set_root here.
-             * B : set_root by sibling node's split.
-             */
             get_child_at(!i)->set_parent(nullptr);
             base_node::set_root(get_child_at(!i)); // i == 0 or 1
             base_node::get_root()->atomic_set_version_root(true);
+          } else if (pn != get_parent()) {
+            pn->unlock();
+            goto retry_lock_parent;
           } else {
+            get_child_at(!i)->set_parent(pn);
             if (pn->get_version_border()) {
               border_node *bn = dynamic_cast<border_node *>(pn);
               base_node *sibling = get_child_at(!i);
@@ -99,8 +98,10 @@ public:
               interior_node *in = dynamic_cast<interior_node *>(pn);
               if (in->get_n_keys() == base_node::key_slice_length) {
                 in->delete_of<border_node>(token, this, lock_list);
-                //insert<border_node>();
-                // todo
+                in->insert<border_node>(get_child_at(!i));
+              } else {
+                in->insert<border_node>(get_child_at(!i));
+                in->delete_of<border_node>(token, this, lock_list);
               }
             }
             pn->unlock();
@@ -129,31 +130,60 @@ public:
         return;
       }
     }
-    std::cerr << __FILE__ << " : " << __LINE__ << " : precondition failure." << endl;
+
+    std::cerr << __FILE__ << " : " << __LINE__ << " : precondition failure." << std::endl;
     std::abort();
   }
 
-  /**
-   * @brief release all heap objects and clean up.
-   * @pre This function is called by single thread.
-   */
-  status destroy() final {
-    for (auto i = 0; i < n_keys_ + 1; ++i) {
-      get_child_at(i)->destroy();
+/**
+ * @brief release all heap objects and clean up.
+ * @pre This function is called by single thread.
+ */
+  status
+
+  destroy()
+
+  final {
+    for (
+            auto i = 0;
+            i < n_keys_ + 1; ++i) {
+      get_child_at(i)
+              ->
+
+                      destroy();
     }
     delete this;
-    return status::OK_DESTROY_INTERIOR;
+    return
+            status::OK_DESTROY_INTERIOR;
   }
 
-  /**
-   * @details display function for analysis and debug.
-   */
-  void display() final {
+/**
+ * @details display function for analysis and debug.
+ */
+  void display()
+
+  final {
     display_base();
-    cout << "interior_node::display" << endl;
-    cout << "nkeys_ : " << std::to_string(get_n_keys()) << endl;
-    for (std::size_t i = 0; i <= get_n_keys(); ++i) {
-      cout << "child : " << i << " : " << get_child_at(i) << endl;
+
+    cout << "interior_node::display" <<
+         endl;
+    cout << "nkeys_ : " <<
+
+         std::to_string(get_n_keys())
+
+         <<
+         endl;
+    for (
+            std::size_t i = 0;
+            i <=
+
+            get_n_keys();
+
+            ++i) {
+      cout << "child : " << i << " : " <<
+           get_child_at(i)
+           <<
+           endl;
     }
   }
 
@@ -208,12 +238,12 @@ public:
     set_n_keys(0);
   }
 
-  /**
-   * @pre It already acquired lock of this node.
-   * @pre This interior node is not full.
-   * @details insert @a child and fix @a children.
-   * @param child new inserted child.
-   */
+/**
+ * @pre It already acquired lock of this node.
+ * @pre This interior node is not full.
+ * @details insert @a child and fix @a children.
+ * @param child new inserted child.
+ */
   template<class border_node>
   void insert(base_node *child) {
     std::size_t pos{0};
@@ -231,7 +261,7 @@ public:
       if (visitor < resident) {
         shift_right_base_member(i, 1);
         set_key(i, std::get<visitor_slice>(visitor), std::get<visitor_slice_length>(visitor));
-        shift_right_children(i + 1, 1);
+        shift_right_children(i + 1);
         set_child_at(i + 1, child);
         n_keys_increment();
         return;
@@ -264,26 +294,28 @@ public:
     n_keys_.store(new_n_key, std::memory_order_release);
   }
 
-  /**
-   * @pre It already acquired lock of this node.
-   * @param start_pos
-   * @param shift_size
-   */
+/**
+ * @pre It already acquired lock of this node.
+ * @param start_pos
+ * @param shift_size
+ */
   void shift_left_children(std::size_t start_pos, std::size_t shift_size) {
     for (std::size_t i = start_pos; i < child_length; ++i) {
       set_child_at(i - shift_size, get_child_at(i));
     }
   }
 
-  /**
-   * @pre It already acquired lock of this node.
-   * @param start_pos
-   * @param shift_size
-   */
-  void shift_right_children(std::size_t start_pos, std::size_t shift_size) {
-    memmove(reinterpret_cast<void *>(get_child_at(start_pos + shift_size)),
-            reinterpret_cast<void *>(get_child_at(start_pos)),
-            sizeof(base_node *) * (child_length - start_pos - shift_size));
+/**
+ * @pre It already acquired lock of this node.
+ * It is not full-interior node.
+ * @param start_pos
+ * @param shift_size
+ */
+  void shift_right_children(std::size_t start_pos) {
+    std::size_t n_key = get_n_keys();
+    for (std::size_t i = n_key + 1; i > start_pos; --i) {
+      set_child_at(i, get_child_at(i - 1));
+    }
   }
 
   void n_keys_decrement() {
@@ -295,17 +327,17 @@ public:
   }
 
 private:
-  /**
-   * first member of base_node is aligned along with cache line size.
-   */
+/**
+ * first member of base_node is aligned along with cache line size.
+ */
 
-  /**
-   * @attention This variable is read/written concurrently.
-   */
+/**
+ * @attention This variable is read/written concurrently.
+ */
   base_node *children[child_length]{};
-  /**
-   * @attention This variable is read/written concurrently.
-   */
+/**
+ * @attention This variable is read/written concurrently.
+ */
   n_keys_type n_keys_{};
 };
 
