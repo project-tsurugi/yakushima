@@ -260,8 +260,6 @@ private:
   alignas(CACHE_LINE_SIZE)
   node_version64 version_{};
   /**
-   * @details Member parent_ is a type "std::atomic<interior_node*>" essentially,
-   * but declare a type "std::atomic<base_node*>" due to including file order.
    * @attention This member is protected by its parent's lock.
    * In the original paper, Fig 2 tells that parent's type is interior_node*,
    * however, at Fig 1, parent's type is interior_node or border_node both

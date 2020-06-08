@@ -116,7 +116,7 @@ public:
     /**
      * This object in this function is not accessed concurrently, so it can copy assign.
      */
-     *this = *nlv;
+    *this = *nlv;
   }
 
   /**
@@ -139,11 +139,12 @@ public:
       /**
        * It use copy assign, so ValueType must be copy-assignable.
        */
-        set_v_or_vp(::operator new(sizeof(arg_value_size), static_cast<std::align_val_t>(value_align)));
-        memcpy(get_v_or_vp_(), vptr, arg_value_size);
-        set_need_delete_value(true);
+      set_v_or_vp(::operator new(sizeof(arg_value_size), static_cast<std::align_val_t>(value_align)));
+      memcpy(get_v_or_vp_(), vptr, arg_value_size);
+      set_need_delete_value(true);
     } catch (std::bad_alloc &e) {
       std::cout << e.what() << std::endl;
+      std::cerr << __FILE__ << ": " << __LINE__ << std::endl;
     }
   }
 

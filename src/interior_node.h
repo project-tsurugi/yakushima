@@ -161,7 +161,7 @@ public:
     return n_keys_.load(std::memory_order_acquire);
   }
 
-  [[nodiscard]] base_node* get_child_at(std::size_t index) {
+  [[nodiscard]] base_node *get_child_at(std::size_t index) {
     return loadAcquireN(children[index]);
   }
 
@@ -182,19 +182,20 @@ public:
            */
           ret_child = get_child_at(i);
           break;
-        } else {
-          /**
-           * The key_slice must be right direction of the index.
-           */
-          if (i == n_key - 1) {
-            ret_child = get_child_at(i + 1);
-            break;
-          }
+        }
+        /**
+         * The key_slice must be right direction of the index.
+         */
+        if (i == n_key - 1) {
+          ret_child = get_child_at(i + 1);
+          break;
         }
       }
       node_version64_body check = get_stable_version();
-      if (v == check) return ret_child;
-      else v = check;
+      if (v == check) {
+        return ret_child;
+      }
+      v = check;
     }
   }
 
@@ -250,7 +251,7 @@ public:
       /**
        * right interiror is new parent of get_child_at(i).
        */
-      get_child_at(i)->set_parent(dynamic_cast<base_node*>(right_interior));
+      get_child_at(i)->set_parent(dynamic_cast<base_node *>(right_interior));
       set_child_at(i, nullptr);
     }
   }

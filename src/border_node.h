@@ -62,7 +62,7 @@ public:
     std::size_t cnk = get_permutation_cnk();
     for (std::size_t i = 0; i < cnk; ++i) {
       if (child == lv_[i].get_next_layer()) {
-        delete_of<false>(token, get_key_slice_at(i), get_key_length_at(i), lock_list);
+        delete_of < false > (token, get_key_slice_at(i), get_key_length_at(i), lock_list);
         return;
       }
     }
@@ -181,10 +181,11 @@ public:
    * @param[in] key_slice
    * @param[in] key_length
    * @param[out] stable_v  the stable version which is at atomically fetching lv.
+   * @param[out] lv_pos
    * @return
    */
   [[nodiscard]] link_or_value *get_lv_of(key_slice_type key_slice, key_length_type key_length,
-          node_version64_body &stable_v) {
+                                         node_version64_body &stable_v, std::size_t &lv_pos) {
     node_version64_body v = get_stable_version();
     for (;;) {
       /**
@@ -193,9 +194,13 @@ public:
       std::size_t cnk = permutation_.get_cnk();
       link_or_value *ret_lv{nullptr};
       for (std::size_t i = 0; i < cnk; ++i) {
-        if (key_slice == get_key_slice_at(i) && key_length == get_key_length_at(i)) {
-          ret_lv = get_lv_at(i);
-          break;
+        if (key_slice == get_key_slice_at(i)) {
+          if ((key_length == get_key_length_at(i)) ||
+              (key_length > sizeof(key_slice_type) && get_key_length_at(i) > sizeof(key_slice_type))) {
+            ret_lv = get_lv_at(i);
+            lv_pos = i;
+            break;
+          }
         }
       }
       node_version64_body v_check = get_stable_version();
@@ -332,30 +337,35 @@ public:
        */
       memcpy(&key_slice, key_view.data(), sizeof(key_slice_type));
       set_key_slice_at(index, key_slice);
-      set_key_length_at(index, sizeof(key_slice_type));
+      /**
+       * You only need to know that it is 8 bytes or more. If it is stored obediently,
+       * key_length_type must be a large size type.
+       */
+      set_key_length_at(index, sizeof(key_slice_type) + 1);
       permutation_.inc_key_num();
       permutation_rearrange();
       border_node *next_layer_border = new border_node();
-      set_lv_next_layer(index, next_layer_border);
       key_view.remove_prefix(sizeof(key_slice_type));
       /**
        * @attention next_layer_border is the root of next layer.
        */
       static_cast<border_node *>(next_layer_border)->init_border(key_view, value_ptr, true, arg_value_length,
                                                                  value_align);
+      next_layer_border->set_parent(this);
+      set_lv_next_layer(index, next_layer_border);
     } else {
       if (key_view.size() > 0) {
         memcpy(&key_slice, key_view.data(), key_view.size());
+      }
+      if (next_layer) {
+        set_key_length_at(index, sizeof(key_slice_type) + 1); // it means lv is next_layer.
+        set_lv_next_layer(index, reinterpret_cast<base_node *>(value_ptr));
       } else {
-        key_slice = 0;
+        set_key_length_at(index, key_view.size());
       }
       set_key_slice_at(index, key_slice);
-      set_key_length_at(index, key_view.size());
       permutation_.inc_key_num();
       permutation_rearrange();
-      if (next_layer) {
-        set_lv_next_layer(index, reinterpret_cast<base_node *>(value_ptr));
-      }
       set_lv_value(index, value_ptr, arg_value_length, value_align);
     }
   }
@@ -384,28 +394,28 @@ public:
     lv_[index].set_value(value, arg_value_length, value_align);
   }
 
-    void set_lv_next_layer(std::size_t index, base_node *next_layer) {
-      lv_[index].set_next_layer(next_layer);
-    }
+  void set_lv_next_layer(std::size_t index, base_node *next_layer) {
+    lv_[index].set_next_layer(next_layer);
+  }
 
-    void set_next(border_node *nnext) {
-      storeReleaseN(next_, nnext);
-    }
+  void set_next(border_node *nnext) {
+    storeReleaseN(next_, nnext);
+  }
 
-    void set_prev(border_node *prev) {
-      prev_ = prev;
-    }
+  void set_prev(border_node *prev) {
+    prev_ = prev;
+  }
 
-    void shift_left_border_member(std::size_t start_pos, std::size_t shift_size) {
-      memmove(get_lv_at(start_pos - shift_size), get_lv_at(start_pos),
-              sizeof(link_or_value) * (key_slice_length - start_pos));
-    }
+  void shift_left_border_member(std::size_t start_pos, std::size_t shift_size) {
+    memmove(get_lv_at(start_pos - shift_size), get_lv_at(start_pos),
+            sizeof(link_or_value) * (key_slice_length - start_pos));
+  }
 
-    private:
-    // first member of base_node is aligned along with cache line size.
-    /**
-     * @attention This variable is read/written concurrently.
-     */
+private:
+  // first member of base_node is aligned along with cache line size.
+  /**
+   * @attention This variable is read/written concurrently.
+   */
   permutation permutation_{};
   /**
    * @attention This variable is read/written concurrently.
@@ -414,7 +424,7 @@ public:
   /**
    * @attention This is protected by its previous sibling's lock.
    */
-    border_node *prev_{nullptr};
+  border_node *prev_{nullptr};
   /**
    * @attention This variable is read/written concurrently.
    */

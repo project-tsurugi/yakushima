@@ -28,11 +28,19 @@ available options:
 * `-DBUILD_TESTS=OFF` - never build test programs
 * `-DBUILD_DOCUMENTS=OFF` - never build documents by doxygen
 * `-DFORMAT_FILES_WITH_CLANG_FORMAT_BEFORE_EACH_BUILD=ON` - use formatting for source files
-* for debugging only
+* for debugging only<br>
   * `-DENABLE_SANITIZER=OFF` - disable sanitizers (requires `-DCMAKE_BUILD_TYPE=Debug`)
   * `-DENABLE_UB_SANITIZER=ON` - enable undefined behavior sanitizer (requires `-DENABLE_SANITIZER=ON`)
   * `-DENABLE_COVERAGE=ON` - enable code coverage analysis (requires `-DCMAKE_BUILD_TYPE=Debug`)
 * `-DBUILD_SHARED_LIBS=OFF` - create static libraries instead of shared libraries
+<br><br>
+
+You can use one sanitizer from 
+ * address for AddressSanitizer
+ * leak for LeakSanitizer
+ * thread for ThreadSanitizer
+ * undefined for UndefinedBehaviorSanitizer
+ * memory for MemorySanitizer.
 
 ### run tests
 
