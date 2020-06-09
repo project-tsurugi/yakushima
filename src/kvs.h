@@ -140,7 +140,8 @@ retry_fetch_lv:
           || final_check.get_deleted()) {
         goto retry_from_root;
       }
-      if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete()) {
+      if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete() ||
+          final_check.get_vinsert() != v_at_fetch_lv.get_vinsert()) {
         goto retry_fetch_lv;
       }
       return std::make_tuple(reinterpret_cast<ValueType *>(vp), v_size);
@@ -152,7 +153,8 @@ retry_fetch_lv:
         || final_check.get_deleted()) {
       goto retry_from_root;
     }
-    if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete()) {
+    if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete() ||
+        final_check.get_vinsert() != v_at_fetch_lv.get_vinsert()) {
       goto retry_fetch_lv;
     }
     traverse_key_view.remove_prefix(sizeof(key_slice_type));
@@ -265,19 +267,12 @@ retry_fetch_lv:
        */
       goto retry_from_root;
     }
-    /**
-     * if lv == nullptr : insert node into this border_node.
-     * else if lv == some value && final_slice : return status::WARN_UNIQUE_RESTRICTION.
-     * else if lv ==  next_layer && final_slice == true : return status::WARN_UNIQUE_RESTRICTION.
-     * else if lv == next_layer && final_slice == false : root = lv; advance key; goto retry_find_border;
-     * else unreachable; std::abort();
-     */
     if (lv_ptr == nullptr) {
       std::vector<node_version64 *> lock_list;
       target_border->lock();
       lock_list.emplace_back(target_border->get_version_ptr());
-      if (target_border->get_version_deleted()
-          || target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
+      if (target_border->get_version_deleted() ||
+          target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
         /**
          * get_version_deleted() : It was deleted between atomically fetching border node
          * and locking.
@@ -290,8 +285,7 @@ retry_fetch_lv:
       /**
        * Here, border node is the correct.
        */
-      if (target_border->get_version_vinsert() != v_at_fetch_lv.get_vinsert()
-          || target_border->get_version_vdelete() != v_at_fetch_lv.get_vdelete()) {
+      if (target_border->get_version_vinsert() != v_at_fetch_lv.get_vinsert()) {  // It may exist lv_ptr
         /**
          * next_layers may be wrong. However, when it rechecks the next_layers, it can't get the lock down,
          * so it have to try again.
@@ -314,6 +308,7 @@ retry_fetch_lv:
         return status::WARN_UNIQUE_RESTRICTION;
       }
       /**
+       * basically, unreachable.
        * If not a final slice, the key size is larger than the key slice type.
        * The key length of lv pointer cannot be smaller than the key slice type.
        * Therefore, it was interrupted by a parallel operation.
@@ -342,7 +337,8 @@ retry_fetch_lv:
     /**
      * check whether fetching lv is still correct.
      */
-    if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete()) { // fetched lv may be deleted
+    if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete() ||
+        final_check.get_vinsert() != v_at_fetch_lv.get_vinsert()) { // fetched lv may be deleted
       v_at_fb = final_check;
       goto retry_fetch_lv;
     }
@@ -444,17 +440,132 @@ retry_fetch_lv:
       }
       return status::OK_NOT_FOUND;
     }
+
     root = dynamic_cast<base_node *>(lv_ptr->get_next_layer());
     node_version64_body final_check = target_border->get_stable_version();
     if (final_check.get_deleted() || // this border was deleted.
         final_check.get_vsplit() != v_at_fb.get_vsplit()) { // this border is incorrect.
       goto retry_from_root;
     }
-    if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete()) { // fetched lv may be deleted.
+    if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete() || // fetched lv may be deleted.
+        final_check.get_vinsert() != v_at_fetch_lv.get_vinsert()) { // It may exist more closer next_layer to key of searching
       v_at_fb = final_check; // update v_at_fb
       goto retry_fetch_lv;
     }
     traverse_key_view.remove_prefix(sizeof(key_slice_type));
+    goto retry_find_border;
+  }
+
+  /**
+   * @tparam ValueType The returned pointer is cast to the given type information before it is returned.
+   * @param[in] l_key
+   * @param[in] l_key_exclusive
+   * @param[in] r_key
+   * @param[in] r_key_exclusive
+   * @param[out] tuple_list
+   * @return status::OK success.
+   */
+  template<class ValueType>
+  static status
+  scan(std::string_view l_key, bool l_key_exclusive, std::string_view r_key, bool r_key_exclusive,
+       std::vector<std::tuple<ValueType *, std::size_t>> &tuple_list) {
+    tuple_list.clear();
+retry_from_root:
+    base_node *root = base_node::get_root();
+    if (root == nullptr) {
+      return status::OK_ROOT_IS_NULL;
+    }
+    std::string_view traverse_key_view{l_key};
+retry_find_border:
+    /**
+     * prepare key_slice
+     */
+    key_slice_type key_slice(0);
+    key_length_type key_slice_length = traverse_key_view.size();
+    if (traverse_key_view.size() > sizeof(key_slice_type)) {
+      memcpy(&key_slice, traverse_key_view.data(), sizeof(key_slice_type));
+    } else {
+      memcpy(&key_slice, traverse_key_view.data(), traverse_key_view.size());
+    }
+    /**
+     * traverse tree to border node.
+     */
+    status special_status{status::OK};
+    std::tuple<border_node *, node_version64_body> node_and_v = find_border(root, key_slice, key_slice_length,
+                                                                            special_status);
+    if (special_status == status::WARN_RETRY_FROM_ROOT_OF_ALL) {
+      /**
+       * @a root is the root node of the some layer, but it was deleted.
+       * So it must retry from root of the all tree.
+       */
+      goto retry_from_root;
+    }
+    constexpr std::size_t tuple_node_index = 0;
+    constexpr std::size_t tuple_v_index = 1;
+    border_node *target_border = std::get<tuple_node_index>(node_and_v);
+    node_version64_body v_at_fb = std::get<tuple_v_index>(node_and_v);
+retry_fetch_lv:
+    std::vector<std::tuple<ValueType *, std::size_t>> tuple_buffer;
+    tuple_buffer.clear();
+    if (l_key.size() > sizeof(key_slice_type)) {
+      node_version64_body v_at_fetch_lv;
+      std::size_t lv_pos;
+      link_or_value *lv_ptr = target_border->get_lv_of(key_slice, key_slice_length, v_at_fetch_lv, lv_pos);
+
+      if (v_at_fetch_lv.get_vsplit() != v_at_fb.get_vsplit() || v_at_fetch_lv.get_deleted()) {
+        goto retry_from_root;
+      }
+
+      base_node *next_layer = lv_ptr->get_next_layer();
+      node_version64_body final_check = target_border->get_stable_version();
+      if (final_check.get_vsplit() != v_at_fb.get_vsplit()
+          || final_check.get_deleted()) {
+        goto retry_from_root;
+      }
+      if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete() ||
+          final_check.get_vinsert() != v_at_fetch_lv.get_vinsert()) {
+        goto retry_fetch_lv;
+      }
+      traverse_key_view.remove_prefix(sizeof(key_slice_type));
+      root = next_layer;
+      goto retry_find_border;
+    }
+
+    node_version64_body v_at_fetch_lv;
+    std::size_t lv_pos;
+    link_or_value *lv_ptr = target_border->get_lv_of(key_slice, key_slice_length, v_at_fetch_lv, lv_pos);
+    /**
+     * check whether it should get from this node.
+     */
+    if (v_at_fetch_lv.get_vsplit() != v_at_fb.get_vsplit() || v_at_fetch_lv.get_deleted()) {
+      goto retry_from_root;
+    }
+
+    if (target_border->get_key_length_at(lv_pos) <= sizeof(key_slice_type)) {
+      void *vp = lv_ptr->get_v_or_vp_();
+      std::size_t v_size = lv_ptr->get_value_length();
+      node_version64_body final_check = target_border->get_stable_version();
+      if (final_check.get_vsplit() != v_at_fb.get_vsplit()
+          || final_check.get_deleted()) {
+        goto retry_from_root;
+      }
+      if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete()) {
+        goto retry_fetch_lv;
+      }
+      return std::make_tuple(reinterpret_cast<ValueType *>(vp), v_size);
+    }
+
+    base_node *next_layer = lv_ptr->get_next_layer();
+    node_version64_body final_check = target_border->get_stable_version();
+    if (final_check.get_vsplit() != v_at_fb.get_vsplit()
+        || final_check.get_deleted()) {
+      goto retry_from_root;
+    }
+    if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete()) {
+      goto retry_fetch_lv;
+    }
+    traverse_key_view.remove_prefix(sizeof(key_slice_type));
+    root = next_layer;
     goto retry_find_border;
   }
 
