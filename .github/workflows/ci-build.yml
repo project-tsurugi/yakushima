@@ -5,6 +5,7 @@ on: [push, pull_request]
 jobs:
   Build:
     runs-on: [self-hosted, oltp]
+    timeout-minutes: 30
 
     steps:
       - id: Begin
@@ -24,7 +25,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
+          cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
           cmake --build . --target all --clean-first -- -j8
 
       - id: CTest
@@ -47,34 +48,6 @@ jobs:
         run: |
           cd build
           make doxygen 2> >(tee doxygen-error.log)
-          zip -q -r yakushima-doxygen doxygen/html
-
-      - id: Upload_Doxygen_HTML
-        name: Upload_Doxygen_HTML
-        uses: actions/upload-artifact@v2
-        if: contains(github.ref, '/tags/') || contains(github.ref, '/pull/') || contains(github.ref, '/heads/master')
-        with:
-          name: yakushima-doxygen
-          path: build/yakushima-doxygen.zip
-
-      - id: Gcovr
-        name: Gcovr
-        env:
-          GCOVR_COMMON_OPTION: -e ../third_party/ -e ../.*/test.*
-        run: |
-          cd build
-          mkdir gcovr-xml gcovr-html
-          gcovr -j4 -r .. --xml ${GCOVR_COMMON_OPTION} -o gcovr-xml/yakushima-gcovr.xml
-          gcovr -j4 -r .. --html --html-details --html-title "yakushima coverage" ${GCOVR_COMMON_OPTION} -o gcovr-html/yakushima-gcovr.html
-          zip -q -r yakushima-coverage-report gcovr-html
-
-      - id: Upload_Gcovr_HTML
-        name: Upload_Gcovr_HTML
-        uses: actions/upload-artifact@v2
-        if: contains(github.ref, '/tags/') || contains(github.ref, '/pull/') || contains(github.ref, '/heads/master')
-        with:
-          name: yakushima-coverage-report
-          path: build/yakushima-coverage-report.zip
 
       - id: Generate_Annotations
         name: Generate_Annotations
