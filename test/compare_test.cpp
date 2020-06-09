@@ -35,4 +35,24 @@ TEST_F(compare_test, compare_tuple) {
   ASSERT_EQ(tuple[0] < tuple[1], true);
 }
 
+TEST_F(compare_test, compare_string_view) {
+  base_node::key_slice_type key_slice[2];
+  base_node::key_length_type key_length[2];
+  key_slice[0] = 0;
+  key_length[0] = 0;
+  key_slice[1] = 0;
+  key_length[1] = 1;
+  ASSERT_EQ((std::string_view(reinterpret_cast<char *>(&key_slice[0]), key_length[0]) <
+             std::string_view{reinterpret_cast<char *>(&key_slice[1]), key_length[1]}), true);
+  ASSERT_NE((std::string_view(reinterpret_cast<char *>(&key_slice[0]), key_length[0]) ==
+             std::string_view{reinterpret_cast<char *>(&key_slice[1]), key_length[1]}), true);
+  ASSERT_NE((std::string_view(reinterpret_cast<char *>(&key_slice[0]), key_length[0]) >
+             std::string_view{reinterpret_cast<char *>(&key_slice[1]), key_length[1]}), true);
+  ASSERT_EQ((std::string_view(0, 0) <
+             std::string_view{reinterpret_cast<char *>(&key_slice[1]), key_length[1]}), true);
+  ASSERT_NE((std::string_view(0, 0) ==
+             std::string_view{reinterpret_cast<char *>(&key_slice[1]), key_length[1]}), true);
+  ASSERT_NE((std::string_view(0, 0) >
+             std::string_view{reinterpret_cast<char *>(&key_slice[1]), key_length[1]}), true);
+}
 }  // namespace yakushima::testing

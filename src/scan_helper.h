@@ -11,6 +11,12 @@
 
 namespace yakushima {
 
+// forward decralation
+template<class ValueType>
+static status scan_border(border_node **target, std::string_view l_key, bool l_exclusive, std::string_view r_key,
+                          bool r_exclusive, std::tuple<ValueType *, std::size_t> &tuple_list,
+                          node_version64_body &v_at_fetch_lv);
+
 template<class ValueType>
 status scan_check_retry(border_node *const bn, const node_version64_body &v_at_fetch_lv,
                         std::tuple<ValueType *, std::size_t> &tuple_list, const std::size_t &tuple_pushed_num) {
@@ -45,11 +51,35 @@ retry_from_root:
   }
 
   std::tuple<border_node *, node_version64_body> node_and_v;
+  constexpr std::size_t tuple_node_index = 0;
+  constexpr std::size_t tuple_v_index = 1;
   status check_status;
-  if (root->get_version_border() == false) {
-    node_and_v = find_border(root, 0, 0, check_status);
-    if (check_status == status::WARN_RETRY_FROM_ROOT_OF_ALL) {
-      return status::OK_RETRY_FETCH_LV;
+  node_and_v = find_border(root, 0, 0, check_status);
+  if (check_status == status::WARN_RETRY_FROM_ROOT_OF_ALL) {
+    return status::OK_RETRY_FETCH_LV;
+  }
+  border_node *bn(std::get<tuple_node_index>(node_and_v));
+  node_version64_body check_v = std::get<tuple_v_index>(node_and_v);
+
+  for (;;) {
+    check_status = scan_border(bn, std::string_view(0, 0), false, std::string_view(0, 0), false,
+                               tuple_list, check_v);
+    if (check_status == status::OK_SCAN_END) {
+      return status::OK;
+    } else if (check_status == status::OK_SCAN_CONTINUE) {
+      continue;
+    } else if (check_status == status::OK_RETRY_FETCH_LV) {
+      node_version64_body re_check_v = bn->get_stable_version();
+      if (check_v.get_vsplit() != re_check_v.get_vsplit() ||
+          re_check_v.get_deleted()) {
+        return status::OK_RETRY_FETCH_LV;
+      } else if (check_v.get_vinsert() != re_check_v.get_vinsert() ||
+                 check_v.get_vdelete() != re_check_v.get_vdelete()) {
+        check_v = re_check_v;
+        continue;
+      }
+    } else if (check_status == status::OK_RETRY_FROM_ROOT) {
+      return status::OK_RETRY_FROM_ROOT;
     }
   }
 
@@ -79,14 +109,21 @@ static status scan_border(border_node **target, std::string_view l_key, bool l_e
       return status::OK_RETRY_FETCH_LV;
     }
     if (kl > sizeof(key_slice_type)) {
-      if (scan_all(next_layer, tuple_list, tuple_pushed_num) == status::OK_RETRY_FETCH_LV) {
+      check_status = scan_all(next_layer, tuple_list, tuple_pushed_num);
+      if (check_status == status::OK_RETRY_FETCH_LV) {
         return status::OK_RETRY_FETCH_LV;
+      } else if (check_status == status::OK_RETRY_FROM_ROOT) {
+        return status::OK_RETRY_FROM_ROOT;
       }
     } else {
       std::string_view resident{reinterpret_cast<char *>(&ks), kl};
+      std::string_view inf{0, 0};
       if (resident < l_key || (resident == l_key && l_exclusive)) {
         continue;
-      } else if ((l_key < resident && resident < r_key) ||
+      } else if ((l_key == inf && r_key == inf) || // all range
+                 (l_key == inf && resident < r_key) || // left is inf, in range
+                 (l_key < resident && r_key == inf) || // right is inf, in range
+                 (l_key < resident && resident < r_key) || // no inf, in range
                  (resident == l_key && !l_exclusive) ||
                  (resident == r_key && !r_exclusive)) {
         tuple_list.emplace_back(std::make_tuple(reinterpret_cast<ValueType *>(vp), vsize));
