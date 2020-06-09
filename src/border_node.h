@@ -163,12 +163,22 @@ retry_lock_parent:
     cout << "next : " << get_next() << endl;
   }
 
-  [[nodiscard]] std::uint8_t get_permutation_cnk() {
-    return permutation_.get_cnk();
-  }
-
-  [[nodiscard]] std::size_t get_permutation_lowest_key_pos() {
-    return permutation_.get_lowest_key_pos();
+  /**
+   * @post It is necessary for the caller to verify whether the extraction is appropriate.
+   * @param[out] next_layers
+   * @attention layers are stored in ascending order.
+   * @return
+   */
+  void get_all_next_layer(std::vector<base_node *> &next_layers) {
+    next_layers.clear();
+    std::size_t cnk = permutation_.get_cnk();
+    for (std::size_t i = 0; i < cnk; ++i) {
+      link_or_value *lv = get_lv_at(permutation_.get_index_of_rank(i));
+      base_node *nl = lv->get_next_layer();
+      if (nl != nullptr) {
+        next_layers.emplace_back(nl);
+      }
+    }
   }
 
   [[nodiscard]] link_or_value *get_lv() {
@@ -218,24 +228,6 @@ retry_lock_parent:
   }
 
   /**
-   * @post It is necessary for the caller to verify whether the extraction is appropriate.
-   * @param[out] next_layers
-   * @attention layers are stored in ascending order.
-   * @return
-   */
-  void get_all_next_layer(std::vector<base_node *> &next_layers) {
-    next_layers.clear();
-    std::size_t cnk = permutation_.get_cnk();
-    for (std::size_t i = 0; i < cnk; ++i) {
-      link_or_value *lv = get_lv_at(permutation_.get_index_of_rank(i));
-      base_node *nl = lv->get_next_layer();
-      if (nl != nullptr) {
-        next_layers.emplace_back(nl);
-      }
-    }
-  }
-
-  /**
    * @details This function extracts lv without lock (double checking stable version).
    * @param[in] key_slice
    * @param[in] key_length
@@ -258,6 +250,14 @@ retry_lock_parent:
 
   permutation& get_permutation() {
     return permutation_;
+  }
+
+  [[nodiscard]] std::uint8_t get_permutation_cnk() {
+    return permutation_.get_cnk();
+  }
+
+  [[nodiscard]] std::size_t get_permutation_lowest_key_pos() {
+    return permutation_.get_lowest_key_pos();
   }
 
   border_node *get_prev() {

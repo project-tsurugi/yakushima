@@ -39,11 +39,9 @@ TEST_F(scan_test, single_put_get_to_one_border) {
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
   ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
   std::vector<std::tuple<char *, std::size_t>> tuple_list;
-#if 0
   ASSERT_EQ(status::OK, masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(0, 0),
           false, tuple_list));
   ASSERT_EQ(tuple_list.size(), 1);
-#endif
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 

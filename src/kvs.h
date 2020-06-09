@@ -514,14 +514,19 @@ retry_fetch_lv:
     node_version64_body v_at_fetch_lv;
     std::size_t lv_pos;
     link_or_value *lv_ptr = target_border->get_lv_of(key_slice, key_slice_length, v_at_fetch_lv, lv_pos);
-    std::size_t kl = target_border->get_key_length_at(lv_pos);
-    base_node *next_layer = lv_ptr->get_next_layer();
+    std::size_t kl;
+    base_node* next_layer;
+    if (lv_ptr != nullptr) {
+      kl = target_border->get_key_length_at(lv_pos);
+      next_layer = lv_ptr->get_next_layer();
+    }
 
     check_status = scan_check_retry<ValueType>(target_border, v_at_fetch_lv);
     if (check_status == status::OK_RETRY_FROM_ROOT) goto retry_from_root;
     else if (check_status == status::OK_RETRY_FETCH_LV) goto retry_fetch_lv;
 
-    if (kl > sizeof(key_slice_type)) {
+    if (lv_ptr != nullptr &&
+        kl > sizeof(key_slice_type)) {
       traverse_key_view.remove_prefix(sizeof(key_slice_type));
       root = next_layer;
       goto retry_find_border;
