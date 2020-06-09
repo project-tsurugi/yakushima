@@ -10,6 +10,7 @@
 #include <cmath>
 #include <cstdint>
 #include <iostream>
+#include <vector>
 #include <xmmintrin.h>
 
 #include "atomic_wrapper.h"

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <cstring>
+
 #include "atomic_wrapper.h"
 #include "cpu.h"
 #include "scheme.h"
@@ -112,6 +114,10 @@ public:
 
   [[nodiscard]] bool get_version_deleted() {
     return version_.get_deleted();
+  }
+
+  [[nodiscard]] bool get_version_root() {
+    return version_.get_root();
   }
 
   [[nodiscard]] node_version64_body::vdelete_type get_version_vdelete() {
