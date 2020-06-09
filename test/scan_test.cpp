@@ -29,7 +29,6 @@ protected:
   }
 };
 
-#if 0
 TEST_F(scan_test, single_put_get_to_one_border) {
   /**
    * put one key-value
@@ -39,19 +38,16 @@ TEST_F(scan_test, single_put_get_to_one_border) {
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
   ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
-  base_node *root = base_node::get_root(); // this is border node.
-  ASSERT_NE(root, nullptr);
-  key_slice_type lvalue_key_slice = root->get_key_slice_at(0);
-  ASSERT_EQ(memcmp(&lvalue_key_slice, k.data(), k.size()), 0);
-  ASSERT_EQ(root->get_key_length_at(0), k.size());
-  std::tuple<char *, std::size_t> tuple = masstree_kvs::get<char>(std::string_view(k));
-  ASSERT_NE(std::get<0>(tuple), nullptr);
-  ASSERT_EQ(std::get<1>(tuple), v.size());
-  ASSERT_EQ(memcmp(std::get<0>(tuple), v.data(), v.size()), 0);
-  ASSERT_EQ(masstree_kvs::destroy(), status::OK_DESTROY_ALL);
+  std::vector<std::tuple<char *, std::size_t>> tuple_list;
+#if 0
+  ASSERT_EQ(status::OK, masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(0, 0),
+          false, tuple_list));
+  ASSERT_EQ(tuple_list.size(), 1);
+#endif
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
+#if 0
 TEST_F(scan_test, multiple_put_get_same_null_char_key_slice_and_different_key_length_to_single_border) {
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);

@@ -14,12 +14,13 @@ namespace yakushima {
 // forward decralation
 template<class ValueType>
 static status scan_border(border_node **target, std::string_view l_key, bool l_exclusive, std::string_view r_key,
-                          bool r_exclusive, std::tuple<ValueType *, std::size_t> &tuple_list,
+                          bool r_exclusive, std::vector<std::tuple<ValueType *, std::size_t>> &tuple_list,
                           node_version64_body &v_at_fetch_lv);
 
 template<class ValueType>
 status scan_check_retry(border_node *const bn, const node_version64_body &v_at_fetch_lv,
-                        std::tuple<ValueType *, std::size_t> &tuple_list, const std::size_t &tuple_pushed_num) {
+                        std::vector<std::tuple<ValueType *, std::size_t>> &tuple_list,
+                        const std::size_t &tuple_pushed_num) {
   node_version64_body check = bn->get_stable_version();
   if (check != v_at_fetch_lv) {
     if (tuple_pushed_num != 0) {
@@ -37,17 +38,16 @@ status scan_check_retry(border_node *const bn, const node_version64_body &v_at_f
 
 template<class ValueType>
 status scan_check_retry(border_node *const bn, const node_version64_body &v_at_fetch_lv) {
-  std::tuple<ValueType *, std::size_t> dammy_list;
+  std::vector<std::tuple<ValueType *, std::size_t>> dammy_list;
   std::size_t dammy_ctr(0);
   return scan_check_retry<ValueType>(bn, v_at_fetch_lv, dammy_list, dammy_ctr);
 }
 
 template<class ValueType>
-static status scan_all(base_node *root, std::tuple<ValueType *, std::size_t> &tuple_list,
-                       std::size_t &tuple_pushed_num) {
-retry_from_root:
+static status scan_all(base_node *root, std::vector<std::tuple<ValueType *, std::size_t>> &tuple_list) {
+retry:
   if (root->get_version_deleted() || root->get_version_root()) {
-    return status::OK_RETRY_FETCH_LV;
+    return status::OK_RETRY_FROM_ROOT;
   }
 
   std::tuple<border_node *, node_version64_body> node_and_v;
@@ -62,8 +62,8 @@ retry_from_root:
   node_version64_body check_v = std::get<tuple_v_index>(node_and_v);
 
   for (;;) {
-    check_status = scan_border(bn, std::string_view(0, 0), false, std::string_view(0, 0), false,
-                               tuple_list, check_v);
+    check_status = scan_border<ValueType>(&bn, std::string_view(0, 0), false, std::string_view(0, 0), false,
+                                          tuple_list, check_v);
     if (check_status == status::OK_SCAN_END) {
       return status::OK;
     } else if (check_status == status::OK_SCAN_CONTINUE) {
@@ -79,7 +79,7 @@ retry_from_root:
         continue;
       }
     } else if (check_status == status::OK_RETRY_FROM_ROOT) {
-      return status::OK_RETRY_FROM_ROOT;
+      goto retry;
     }
   }
 
@@ -88,8 +88,9 @@ retry_from_root:
 
 template<class ValueType>
 static status scan_border(border_node **target, std::string_view l_key, bool l_exclusive, std::string_view r_key,
-                          bool r_exclusive, std::tuple<ValueType *, std::size_t> &tuple_list,
+                          bool r_exclusive, std::vector<std::tuple<ValueType *, std::size_t>> &tuple_list,
                           node_version64_body &v_at_fetch_lv) {
+retry:
   std::size_t tuple_pushed_num{0};
   border_node *bn = *target;
   border_node *next = bn->get_next();
@@ -106,14 +107,12 @@ static status scan_border(border_node **target, std::string_view l_key, bool l_e
     if (check_status == status::OK_RETRY_FROM_ROOT) {
       return status::OK_RETRY_FROM_ROOT;
     } else if (check_status == status::OK_RETRY_FETCH_LV) {
-      return status::OK_RETRY_FETCH_LV;
+      goto retry;
     }
     if (kl > sizeof(key_slice_type)) {
-      check_status = scan_all(next_layer, tuple_list, tuple_pushed_num);
-      if (check_status == status::OK_RETRY_FETCH_LV) {
-        return status::OK_RETRY_FETCH_LV;
-      } else if (check_status == status::OK_RETRY_FROM_ROOT) {
-        return status::OK_RETRY_FROM_ROOT;
+      check_status = scan_all(next_layer, tuple_list);
+      if (check_status != status::OK) {
+        goto retry;
       }
     } else {
       std::string_view resident{reinterpret_cast<char *>(&ks), kl};

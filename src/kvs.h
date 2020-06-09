@@ -489,7 +489,9 @@ retry_find_border:
     if (traverse_key_view.size() > sizeof(key_slice_type)) {
       memcpy(&key_slice, traverse_key_view.data(), sizeof(key_slice_type));
     } else {
-      memcpy(&key_slice, traverse_key_view.data(), traverse_key_view.size());
+      if (traverse_key_view.size() != 0) {
+        memcpy(&key_slice, traverse_key_view.data(), traverse_key_view.size());
+      }
     }
     /**
      * traverse tree to border node.
@@ -526,8 +528,9 @@ retry_fetch_lv:
     }
     // here, it decides to scan from this nodes.
     for (;;) {
-      check_status = scan_border(&target_border, traverse_key_view, l_exclusive, r_key, r_exclusive, tuple_list,
-                                        v_at_fetch_lv);
+      check_status = scan_border<ValueType>(&target_border, traverse_key_view, l_exclusive, r_key, r_exclusive,
+                                            tuple_list,
+                                            v_at_fetch_lv);
       if (check_status == status::OK_SCAN_END) {
         return status::OK;
       } else if (check_status == status::OK_SCAN_CONTINUE) {
