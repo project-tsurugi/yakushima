@@ -35,6 +35,10 @@ public:
     init();
   }
 
+  permutation(std::uint64_t body) {
+    set_body(body);
+  }
+
   /**
    * @brief decrement key number.
    */

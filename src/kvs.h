@@ -10,6 +10,7 @@
 #include "border_helper.h"
 #include "epoch.h"
 #include "interior_node.h"
+#include "scan_helper.h"
 #include "scheme.h"
 #include "thread_info.h"
 
@@ -448,7 +449,8 @@ retry_fetch_lv:
       goto retry_from_root;
     }
     if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete() || // fetched lv may be deleted.
-        final_check.get_vinsert() != v_at_fetch_lv.get_vinsert()) { // It may exist more closer next_layer to key of searching
+        final_check.get_vinsert() !=
+        v_at_fetch_lv.get_vinsert()) { // It may exist more closer next_layer to key of searching
       v_at_fb = final_check; // update v_at_fb
       goto retry_fetch_lv;
     }
@@ -457,17 +459,18 @@ retry_fetch_lv:
   }
 
   /**
+   * @details todo : add new 3 modes : try-mode : 1 trial : wait-mode : try until success : mid-mode : middle between try and wait.
    * @tparam ValueType The returned pointer is cast to the given type information before it is returned.
    * @param[in] l_key
-   * @param[in] l_key_exclusive
+   * @param[in] l_exclusive
    * @param[in] r_key
-   * @param[in] r_key_exclusive
+   * @param[in] r_exclusive
    * @param[out] tuple_list
    * @return status::OK success.
    */
   template<class ValueType>
   static status
-  scan(std::string_view l_key, bool l_key_exclusive, std::string_view r_key, bool r_key_exclusive,
+  scan(std::string_view l_key, bool l_exclusive, std::string_view r_key, bool r_exclusive,
        std::vector<std::tuple<ValueType *, std::size_t>> &tuple_list) {
     tuple_list.clear();
 retry_from_root:
@@ -505,13 +508,13 @@ retry_find_border:
     border_node *target_border = std::get<tuple_node_index>(node_and_v);
     node_version64_body v_at_fb = std::get<tuple_v_index>(node_and_v);
 retry_fetch_lv:
+    node_version64_body v_at_fetch_lv;
+    std::size_t lv_pos;
+    link_or_value *lv_ptr = target_border->get_lv_of(key_slice, key_slice_length, v_at_fetch_lv, lv_pos);
+
     std::vector<std::tuple<ValueType *, std::size_t>> tuple_buffer;
     tuple_buffer.clear();
-    if (l_key.size() > sizeof(key_slice_type)) {
-      node_version64_body v_at_fetch_lv;
-      std::size_t lv_pos;
-      link_or_value *lv_ptr = target_border->get_lv_of(key_slice, key_slice_length, v_at_fetch_lv, lv_pos);
-
+    if (target_border->get_key_length_at(lv_pos) > sizeof(key_slice_type)) {
       if (v_at_fetch_lv.get_vsplit() != v_at_fb.get_vsplit() || v_at_fetch_lv.get_deleted()) {
         goto retry_from_root;
       }
@@ -530,43 +533,23 @@ retry_fetch_lv:
       root = next_layer;
       goto retry_find_border;
     }
-
-    node_version64_body v_at_fetch_lv;
-    std::size_t lv_pos;
-    link_or_value *lv_ptr = target_border->get_lv_of(key_slice, key_slice_length, v_at_fetch_lv, lv_pos);
-    /**
-     * check whether it should get from this node.
-     */
-    if (v_at_fetch_lv.get_vsplit() != v_at_fb.get_vsplit() || v_at_fetch_lv.get_deleted()) {
-      goto retry_from_root;
-    }
-
-    if (target_border->get_key_length_at(lv_pos) <= sizeof(key_slice_type)) {
-      void *vp = lv_ptr->get_v_or_vp_();
-      std::size_t v_size = lv_ptr->get_value_length();
-      node_version64_body final_check = target_border->get_stable_version();
-      if (final_check.get_vsplit() != v_at_fb.get_vsplit()
-          || final_check.get_deleted()) {
-        goto retry_from_root;
-      }
-      if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete()) {
+    // here, it decides to scan from this nodes.
+    for (;;) {
+      status check_status = scan_border(&target_border, l_key, l_exclusive, r_key, r_exclusive, tuple_list,
+                                        v_at_fetch_lv);
+      if (check_status == status::OK_SCAN_END) {
+        return status::OK;
+      } else if (check_status == status::OK_SCAN_CONTINUE) {
+        continue;
+      } else if (check_status == status::OK_RETRY_FETCH_LV) {
         goto retry_fetch_lv;
+      } else if (check_status == status::OK_RETRY_FROM_ROOT) {
+        goto retry_from_root;
+      } else {
+        std::cerr << __FILE__ << ": " << __LINE__ << std::endl;
+        std::abort();
       }
-      return std::make_tuple(reinterpret_cast<ValueType *>(vp), v_size);
     }
-
-    base_node *next_layer = lv_ptr->get_next_layer();
-    node_version64_body final_check = target_border->get_stable_version();
-    if (final_check.get_vsplit() != v_at_fb.get_vsplit()
-        || final_check.get_deleted()) {
-      goto retry_from_root;
-    }
-    if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete()) {
-      goto retry_fetch_lv;
-    }
-    traverse_key_view.remove_prefix(sizeof(key_slice_type));
-    root = next_layer;
-    goto retry_find_border;
   }
 
 private:

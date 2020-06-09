@@ -26,7 +26,7 @@ find_package_handle_standard_args(gflags DEFAULT_MSG
 
 if(gflags_LIBRARY_FILE AND gflags_INCLUDE_DIR)
     set(gflags_FOUND ON)
-    add_library(gflags::gflags SHARED IMPORTED)
+    add_library(gflags::gflags SHARED IMPORTED ../src/scan_helper.h)
     set_target_properties(gflags::gflags PROPERTIES
         IMPORTED_LOCATION "${gflags_LIBRARY_FILE}"
         INTERFACE_INCLUDE_DIRECTORIES "${gflags_INCLUDE_DIR}")

@@ -58,12 +58,17 @@ enum class status : std::int32_t {
    * @details (get/delete) No corresponding value in this storage engine.
    */
   OK_NOT_FOUND,
+  OK_RETRY_FETCH_LV,
+  OK_RETRY_FROM_ROOT,
+  OK_ROOT_IS_DELETED,
   /**
    * @brief
    * (destroy) Root is nullptr and it could not destroy.
    * (remove) No existing tree.
    */
   OK_ROOT_IS_NULL,
+  OK_SCAN_CONTINUE,
+  OK_SCAN_END,
   /**
    * @brief root is not both interior and border.
    */
@@ -95,13 +100,23 @@ inline constexpr std::string_view to_string_view(status value) noexcept {
       return "OK_NOT_FOUND"sv;
     case status::OK_ROOT_IS_NULL:
       return "OK_ROOT_IS_NULL"sv;
+    case status::OK_RETRY_FETCH_LV:
+      return "OK_RETRY_FETCH_LV"sv;
+    case status::OK_RETRY_FROM_ROOT:
+      return "OK_RETRY_FROM_ROOT"sv;
+    case status::OK_ROOT_IS_DELETED:
+      return "OK_ROOT_IS_DELETED"sv;
+    case status::OK_SCAN_CONTINUE:
+      return "OK_SCAN_CONTINUE"sv;
+    case status::OK_SCAN_END:
+      return "OK_SCAN_END"sv;
     case status::ERR_UNKNOWN_ROOT:
       return "ERR_UNKNOWN_ROOT"sv;
   }
   std::abort();
 }
 
-inline std::ostream& operator<<(std::ostream& out, status value) {
+inline std::ostream &operator<<(std::ostream &out, status value) {
   return out << to_string_view(value);
 }
 

@@ -256,6 +256,10 @@ retry_lock_parent:
     return loadAcquireN(next_);
   }
 
+  permutation& get_permutation() {
+    return permutation_;
+  }
+
   border_node *get_prev() {
     return loadAcquireN(prev_);
   }
