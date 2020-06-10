@@ -17,6 +17,7 @@
   5. delete repeatedly until vanishing the structure which has one interior node having two interior nodes.
 - scan_test.cpp
   1. scan against single put to one border.
+  2. scan against multiple put same null char key whose length is different each other agaisnt single border node.
   
 ## developer-test
 - base_node_test.cpp

@@ -130,20 +130,17 @@ TEST_F(scan_test, multiple_put_get_same_null_char_key_slice_and_different_key_le
     k[i].assign(i, '\0');
     v[i] = std::to_string(i);
     ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k[i]), v[i].data(), v[i].size()));
-    border_node *br = dynamic_cast<border_node *>(base_node::get_root());
-    /**
-     * There are 9 key which has the same slice and the different length.
-     * key length == 0, same_slice and length is 1, 2, ..., 8.
-     */
-    ASSERT_EQ(br->get_permutation_cnk(), i + 1);
   }
+
+  std::vector<std::tuple<char *, std::size_t>> tuple_list;
+  constexpr std::size_t v_index = 0;
   for (std::size_t i = 0; i < ary_size; ++i) {
-    constexpr std::size_t value_index = 0, size_index = 1;
-    std::tuple<char *, std::size_t> tuple = masstree_kvs::get<char>(std::string_view(k[i]));
-    ASSERT_EQ(memcmp(std::get<value_index>(tuple), v[i].data(), v[i].size()), 0);
-    ASSERT_EQ(std::get<size_index>(tuple), v[i].size());
+    masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(k[i]),
+            false, tuple_list);
+    for (std::size_t j = 0; j < i + 1; ++j) {
+      ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v[j].data(), v[j].size()), 0);
+    }
   }
-  ASSERT_EQ(masstree_kvs::destroy(), status::OK_DESTROY_ALL);
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
