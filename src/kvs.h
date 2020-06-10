@@ -473,6 +473,12 @@ retry_fetch_lv:
   static status
   scan(std::string_view l_key, bool l_exclusive, std::string_view r_key, bool r_exclusive,
        std::vector<std::tuple<ValueType *, std::size_t>> &tuple_list) {
+    if ((l_key != std::string_view(0, 0) && r_key != std::string_view(0, 0)) &&
+        l_key == r_key &&
+        (l_exclusive || r_exclusive)) {
+      return status::ERR_BAD_USAGE;
+    }
+
     tuple_list.clear();
 retry_from_root:
     base_node *root = base_node::get_root();
@@ -515,7 +521,7 @@ retry_fetch_lv:
     std::size_t lv_pos;
     link_or_value *lv_ptr = target_border->get_lv_of(key_slice, key_slice_length, v_at_fetch_lv, lv_pos);
     std::size_t kl;
-    base_node* next_layer;
+    base_node *next_layer;
     if (lv_ptr != nullptr) {
       kl = target_border->get_key_length_at(lv_pos);
       next_layer = lv_ptr->get_next_layer();

@@ -40,12 +40,71 @@ TEST_F(scan_test, single_put_get_to_one_border) {
   ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
   std::vector<std::tuple<char *, std::size_t>> tuple_list;
   ASSERT_EQ(status::OK, masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(0, 0),
-          false, tuple_list));
+                                                 false, tuple_list));
   ASSERT_EQ(tuple_list.size(), 1);
+  ASSERT_EQ(std::get<1>(tuple_list.at(0)), v.size());
+  ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(0)), v.data(), v.size()), 0);
+  ASSERT_EQ(status::OK, masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(0, 0),
+                                                 true, tuple_list));
+  ASSERT_EQ(tuple_list.size(), 1);
+  ASSERT_EQ(std::get<1>(tuple_list.at(0)), v.size());
+  ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(0)), v.data(), v.size()), 0);
+  ASSERT_EQ(status::OK, masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(k),
+                                                 false, tuple_list));
+  ASSERT_EQ(tuple_list.size(), 1);
+  ASSERT_EQ(std::get<1>(tuple_list.at(0)), v.size());
+  ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(0)), v.data(), v.size()), 0);
+  ASSERT_EQ(status::OK, masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(k),
+                                                 true, tuple_list));
+  ASSERT_EQ(tuple_list.size(), 0);
+  ASSERT_EQ(status::OK, masstree_kvs::scan<char>(std::string_view(0, 0), true, std::string_view(0, 0),
+                                                 false, tuple_list));
+  ASSERT_EQ(tuple_list.size(), 1);
+  ASSERT_EQ(std::get<1>(tuple_list.at(0)), v.size());
+  ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(0)), v.data(), v.size()), 0);
+  ASSERT_EQ(status::OK, masstree_kvs::scan<char>(std::string_view(0, 0), true, std::string_view(0, 0),
+                                                 true, tuple_list));
+  ASSERT_EQ(tuple_list.size(), 1);
+  ASSERT_EQ(std::get<1>(tuple_list.at(0)), v.size());
+  ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(0)), v.data(), v.size()), 0);
+  ASSERT_EQ(status::OK, masstree_kvs::scan<char>(std::string_view(0, 0), true, std::string_view(k),
+                                                 false, tuple_list));
+  ASSERT_EQ(tuple_list.size(), 1);
+  ASSERT_EQ(std::get<1>(tuple_list.at(0)), v.size());
+  ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(0)), v.data(), v.size()), 0);
+  ASSERT_EQ(status::OK, masstree_kvs::scan<char>(std::string_view(0, 0), true, std::string_view(k),
+                                                 true, tuple_list));
+  ASSERT_EQ(tuple_list.size(), 0);
+  ASSERT_EQ(status::OK, masstree_kvs::scan<char>(std::string_view(k), false, std::string_view(0, 0),
+                                                 false, tuple_list));
+  ASSERT_EQ(tuple_list.size(), 1);
+  ASSERT_EQ(std::get<1>(tuple_list.at(0)), v.size());
+  ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(0)), v.data(), v.size()), 0);
+  ASSERT_EQ(status::OK, masstree_kvs::scan<char>(std::string_view(k), false, std::string_view(0, 0),
+                                                 true, tuple_list));
+  ASSERT_EQ(tuple_list.size(), 1);
+  ASSERT_EQ(std::get<1>(tuple_list.at(0)), v.size());
+  ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(0)), v.data(), v.size()), 0);
+  ASSERT_EQ(status::OK, masstree_kvs::scan<char>(std::string_view(k), false, std::string_view(k),
+                                                 false, tuple_list));
+  ASSERT_EQ(tuple_list.size(), 1);
+  ASSERT_EQ(std::get<1>(tuple_list.at(0)), v.size());
+  ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(0)), v.data(), v.size()), 0);
+  ASSERT_EQ(status::ERR_BAD_USAGE, masstree_kvs::scan<char>(std::string_view(k), false, std::string_view(k),
+                                                 true, tuple_list));
+  ASSERT_EQ(status::OK, masstree_kvs::scan<char>(std::string_view(k), true, std::string_view(0, 0),
+                                                 false, tuple_list));
+  ASSERT_EQ(tuple_list.size(), 0);
+  ASSERT_EQ(status::OK, masstree_kvs::scan<char>(std::string_view(k), true, std::string_view(0, 0),
+                                                 true, tuple_list));
+  ASSERT_EQ(tuple_list.size(), 0);
+  ASSERT_EQ(status::ERR_BAD_USAGE, masstree_kvs::scan<char>(std::string_view(k), true, std::string_view(k),
+                                                 false, tuple_list));
+  ASSERT_EQ(status::ERR_BAD_USAGE, masstree_kvs::scan<char>(std::string_view(k), true, std::string_view(k),
+                                                            true, tuple_list));
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
-#if 0
 TEST_F(scan_test, multiple_put_get_same_null_char_key_slice_and_different_key_length_to_single_border) {
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
@@ -72,6 +131,7 @@ TEST_F(scan_test, multiple_put_get_same_null_char_key_slice_and_different_key_le
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
+#if 0
 TEST_F(scan_test, multiple_put_get_same_null_char_key_slice_and_different_key_length_to_multiple_border) {
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);

@@ -69,6 +69,7 @@ enum class status : std::int32_t {
   OK_ROOT_IS_NULL,
   OK_SCAN_CONTINUE,
   OK_SCAN_END,
+  ERR_BAD_USAGE,
   /**
    * @brief root is not both interior and border.
    */
@@ -110,6 +111,8 @@ inline constexpr std::string_view to_string_view(status value) noexcept {
       return "OK_SCAN_CONTINUE"sv;
     case status::OK_SCAN_END:
       return "OK_SCAN_END"sv;
+    case status::ERR_BAD_USAGE:
+      return "ERR_BAD_USAGE"sv;
     case status::ERR_UNKNOWN_ROOT:
       return "ERR_UNKNOWN_ROOT"sv;
   }
