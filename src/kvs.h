@@ -473,6 +473,11 @@ retry_fetch_lv:
   static status
   scan(std::string_view l_key, bool l_exclusive, std::string_view r_key, bool r_exclusive,
        std::vector<std::tuple<ValueType *, std::size_t>> &tuple_list) {
+    if ((l_key.data() == nullptr && l_key.size() != 0) ||
+        (r_key.data() == nullptr && r_key.size() != 0)) {
+      return status::ERR_BAD_USAGE;
+    }
+
     if ((l_key != std::string_view(0, 0) && r_key != std::string_view(0, 0)) &&
         l_key == r_key &&
         (l_exclusive || r_exclusive)) {
