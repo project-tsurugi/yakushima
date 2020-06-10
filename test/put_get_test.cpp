@@ -29,16 +29,6 @@ protected:
   }
 };
 
-TEST_F(kvs_test, init) {
-  ASSERT_EQ(base_node::get_root(), nullptr);
-  Token token;
-  ASSERT_EQ(masstree_kvs::enter(token), status::OK);
-  std::string k("a"), v("v-a");
-  ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
-  ASSERT_NE(base_node::get_root(), nullptr);
-  ASSERT_EQ(masstree_kvs::leave(token), status::OK);
-}
-
 TEST_F(kvs_test, single_put_get_to_one_border) {
   /**
    * put one key-value
