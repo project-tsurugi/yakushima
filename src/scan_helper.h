@@ -137,6 +137,7 @@ retry:
     return status::OK_SCAN_END;
   } else {
     *target = next;
+    v_at_fetch_lv = next->get_stable_version();
     return status::OK_SCAN_CONTINUE;
   }
 }
