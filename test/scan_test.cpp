@@ -159,7 +159,6 @@ TEST_F(scan_test, multiple_put_get_same_null_char_key_slice_and_different_key_le
   for (std::size_t i = 0; i < ary_size; ++i) {
     ASSERT_EQ(status::OK, masstree_kvs::scan(std::string_view(k[i]), false, std::string_view(0, 0), false,
                                              tuple_list));
-    cout << i << endl;
     for (std::size_t j = i; j < ary_size; ++j) {
       ASSERT_EQ(memcmp(std::get<value_index>(tuple_list.at(j-i)), v[j].data(), v[j].size()), 0);
     }
@@ -167,7 +166,6 @@ TEST_F(scan_test, multiple_put_get_same_null_char_key_slice_and_different_key_le
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
-#if 0
 TEST_F(scan_test, put_until_creating_interior_node) {
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
@@ -180,17 +178,19 @@ TEST_F(scan_test, put_until_creating_interior_node) {
   for (std::size_t i = 0; i < ary_size; ++i) {
     ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view{k[i]}, v[i].data(), v[i].size()));
   }
-  interior_node *in = dynamic_cast<interior_node *>(base_node::get_root());
-  ASSERT_EQ(typeid(*base_node::get_root()), typeid(interior_node));
-  border_node *bn = dynamic_cast<border_node *>(in->get_child_at(0));
-  ASSERT_EQ(bn->get_permutation_cnk(), 8);
-  bn = dynamic_cast<border_node *>(in->get_child_at(1));
-  ASSERT_EQ(bn->get_permutation_cnk(), 8);
-
-  ASSERT_EQ(masstree_kvs::destroy(), status::OK_DESTROY_ALL);
+  constexpr std::size_t value_index = 0;
+  std::vector<std::tuple<char *, std::size_t>> tuple_list;
+  for (std::size_t i = 0; i < ary_size; ++i) {
+    ASSERT_EQ(status::OK, masstree_kvs::scan(std::string_view(k[i]), false, std::string_view(0, 0), false,
+                                             tuple_list));
+    for (std::size_t j = i; j < ary_size; ++j) {
+      ASSERT_EQ(memcmp(std::get<value_index>(tuple_list.at(j-i)), v[j].data(), v[j].size()), 0);
+    }
+  }
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
+#if 0
 TEST_F(scan_test, put_until_first_split_of_interior_node) {
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
