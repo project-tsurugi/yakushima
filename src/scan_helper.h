@@ -46,7 +46,7 @@ status scan_check_retry(border_node *const bn, const node_version64_body &v_at_f
 template<class ValueType>
 static status scan_all(base_node *root, std::vector<std::tuple<ValueType *, std::size_t>> &tuple_list) {
 retry:
-  if (root->get_version_deleted() || root->get_version_root()) {
+  if (root->get_version_deleted() || !root->get_version_root()) {
     return status::OK_RETRY_FROM_ROOT;
   }
 
