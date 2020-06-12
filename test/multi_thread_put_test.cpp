@@ -75,7 +75,8 @@ TEST_F(multi_thread_put_test, put_same_null_char_key_slices_and_different_key_le
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
-TEST_F(multi_thread_put_test, put_same_null_char_key_slices_and_different_key_length_to_multiple_border_by_multi_thread) {
+TEST_F(multi_thread_put_test,
+       put_same_null_char_key_slices_and_different_key_length_to_multiple_border_by_multi_thread) {
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
   constexpr std::size_t ary_size = 15;

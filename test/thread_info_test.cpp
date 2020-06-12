@@ -29,7 +29,7 @@ TEST_F(thread_info_test, thread_info_init_leave) {
     ASSERT_EQ(thread_info::assign_session(token[i]), status::OK);
   }
   for (std::size_t i = 0; i < length; ++i) {
-    thread_info *ti = reinterpret_cast<thread_info*>(token[i]);
+    thread_info *ti = reinterpret_cast<thread_info *>(token[i]);
     ASSERT_EQ(ti->get_running(), true);
     ASSERT_EQ(ti->get_begin_epoch(), 0);
     ASSERT_NE(ti->get_node_container(), nullptr);

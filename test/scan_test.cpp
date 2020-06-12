@@ -160,7 +160,7 @@ TEST_F(scan_test, multiple_put_get_same_null_char_key_slice_and_different_key_le
     ASSERT_EQ(status::OK, masstree_kvs::scan(std::string_view(k[i]), false, std::string_view(0, 0), false,
                                              tuple_list));
     for (std::size_t j = i; j < ary_size; ++j) {
-      ASSERT_EQ(memcmp(std::get<value_index>(tuple_list.at(j-i)), v[j].data(), v[j].size()), 0);
+      ASSERT_EQ(memcmp(std::get<value_index>(tuple_list.at(j - i)), v[j].data(), v[j].size()), 0);
     }
   }
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
@@ -184,7 +184,7 @@ TEST_F(scan_test, put_until_creating_interior_node) {
     ASSERT_EQ(status::OK, masstree_kvs::scan(std::string_view(k[i]), false, std::string_view(0, 0), false,
                                              tuple_list));
     for (std::size_t j = i; j < ary_size; ++j) {
-      ASSERT_EQ(memcmp(std::get<value_index>(tuple_list.at(j-i)), v[j].data(), v[j].size()), 0);
+      ASSERT_EQ(memcmp(std::get<value_index>(tuple_list.at(j - i)), v[j].data(), v[j].size()), 0);
     }
   }
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
@@ -220,7 +220,7 @@ TEST_F(scan_test, put_until_first_split_of_interior_node) {
     ASSERT_EQ(status::OK, masstree_kvs::scan(std::string_view(k[i]), false, std::string_view(0, 0), false,
                                              tuple_list));
     for (std::size_t j = i; j < ary_size; ++j) {
-      ASSERT_EQ(memcmp(std::get<value_index>(tuple_list.at(j-i)), v[j].data(), v[j].size()), 0);
+      ASSERT_EQ(memcmp(std::get<value_index>(tuple_list.at(j - i)), v[j].data(), v[j].size()), 0);
     }
   }
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);

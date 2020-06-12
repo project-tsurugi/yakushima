@@ -60,7 +60,7 @@ public:
     version_.display();
     cout << "parent_ : " << get_parent() << endl;
     for (std::size_t i = 0; i < key_slice_length; ++i) {
-      cout << "key_slice_[" << i << "] : " <<  std::to_string(get_key_slice_at(i))  << endl;
+      cout << "key_slice_[" << i << "] : " << std::to_string(get_key_slice_at(i)) << endl;
       cout << "key_length_[" << i << "] : " << std::to_string(get_key_length_at(i)) << endl;
     }
   }
@@ -84,7 +84,7 @@ public:
     return loadAcquireN(key_slice_[index]);
   }
 
-  [[nodiscard]] bool get_lock() & {
+  [[nodiscard]] bool get_lock() &{
     return version_.get_locked();
   }
 
@@ -124,7 +124,7 @@ public:
     return version_.get_vdelete();
   }
 
-  [[nodiscard]] node_version64_body::vinsert_type  get_version_vinsert() {
+  [[nodiscard]] node_version64_body::vinsert_type get_version_vinsert() {
     return version_.get_vinsert();
   }
 
@@ -179,7 +179,7 @@ public:
     }
   }
 
-  void move_key_to_base_range(base_node* right, std::size_t start) {
+  void move_key_to_base_range(base_node *right, std::size_t start) {
     for (auto i = start; i < key_slice_length; ++i) {
       right->set_key(i - start, get_key_slice_at(i), get_key_length_at(i));
       set_key(i, 0, 0);
@@ -200,7 +200,7 @@ public:
     key_slice_[index] = key_slice;
   }
 
-  void set_parent(base_node* new_parent) {
+  void set_parent(base_node *new_parent) {
     storeReleaseN(parent_, new_parent);
   }
 
@@ -227,6 +227,7 @@ public:
   void set_version_root(bool tf) {
     version_.set_root(tf);
   }
+
   void set_version_splitting(bool tf) {
     version_.set_splitting(tf);
   }
@@ -272,7 +273,7 @@ private:
    * interior's view and border's view.
    * This variable is read/written concurrently.
    */
-  base_node * parent_{nullptr};
+  base_node *parent_{nullptr};
   /**
    * @attention This variable is read/written concurrently.
    */

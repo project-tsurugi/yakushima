@@ -248,7 +248,7 @@ retry_lock_parent:
     return loadAcquireN(next_);
   }
 
-  permutation& get_permutation() {
+  permutation &get_permutation() {
     return permutation_;
   }
 

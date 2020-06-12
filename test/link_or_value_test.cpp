@@ -18,6 +18,7 @@ namespace yakushima::testing {
 class link_or_value_test : public ::testing::Test {
 protected:
   link_or_value_test() = default;
+
   ~link_or_value_test() = default;
 };
 

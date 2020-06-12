@@ -8,8 +8,8 @@
 /**
  * @brief atomic relaxed load.
  */
-template <typename T>
-T loadRelaxed(T& ptr) {
+template<typename T>
+T loadRelaxed(T &ptr) {
   return __atomic_load_n(&ptr, __ATOMIC_RELAXED);
 }
 

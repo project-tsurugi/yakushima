@@ -50,11 +50,13 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
  * @param[out] new_parent This function tells new parent to the caller via this argument.
  */
 template<class interior_node>
-static void create_interior_parent_of_interior(interior_node *left, interior_node *right, std::vector<node_version64 *> &lock_list,
+static void
+create_interior_parent_of_interior(interior_node *left, interior_node *right, std::vector<node_version64 *> &lock_list,
                                    base_node **new_parent);
 
 template<class interior_node>
-static void create_interior_parent_of_interior(interior_node *left, interior_node *right, std::vector<node_version64 *> &lock_list,
+static void
+create_interior_parent_of_interior(interior_node *left, interior_node *right, std::vector<node_version64 *> &lock_list,
                                    base_node **new_parent) {
   interior_node *ni = new interior_node();
   ni->init_interior();
@@ -112,7 +114,8 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
   std::tuple<key_slice_type, key_length_type> visitor{child_node->get_key_slice_at(0),
                                                       child_node->get_key_length_at(0)};
   if (visitor <
-          std::make_tuple<key_slice_type, key_length_type>(new_interior->get_key_slice_at(0), new_interior->get_key_length_at(0))) {
+      std::make_tuple<key_slice_type, key_length_type>(new_interior->get_key_slice_at(0),
+                                                       new_interior->get_key_length_at(0))) {
     interior->template insert<border_node>(child_node);
   } else {
     new_interior->template insert<border_node>(child_node);
@@ -139,16 +142,17 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
        */
       create_interior_parent_of_interior<interior_node>(interior, new_interior, lock_list, &p);
       border_split<interior_node, border_node>(pb, std::string_view{reinterpret_cast<char *>(p->get_key_slice_at(0)),
-                                        p->get_key_length_at(0)}, true, p, 0, 0,
-                   lock_list);
+                                                                    p->get_key_length_at(0)}, true, p, 0, 0,
+                                               lock_list);
       return;
     }
     /**
      * parent border not-full case
      */
-    insert_lv<interior_node, border_node>(pb, std::string_view{reinterpret_cast<char *>(new_interior->get_key_slice_at(0)),
-                                   new_interior->get_key_length_at(0)}, true, p, 0,
-              0, lock_list);
+    insert_lv<interior_node, border_node>(pb,
+                                          std::string_view{reinterpret_cast<char *>(new_interior->get_key_slice_at(0)),
+                                                           new_interior->get_key_length_at(0)}, true, p, 0,
+                                          0, lock_list);
     return;
   }
   interior_node *pi = dynamic_cast<interior_node *>(p);
