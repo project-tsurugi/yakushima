@@ -65,7 +65,7 @@ retry_lock_parent:
             base_node::set_root(get_child_at(!i)); // i == 0 or 1
             base_node::get_root()->atomic_set_version_root(true);
           } else if (pn != get_parent()) {
-            pn->unlock();
+            pn->version_unlock();
             goto retry_lock_parent;
           } else {
             get_child_at(!i)->set_parent(pn);
@@ -104,7 +104,7 @@ retry_lock_parent:
                 in->delete_of<border_node>(token, this, lock_list);
               }
             }
-            pn->unlock();
+            pn->version_unlock();
           }
           set_version_deleted(true);
           reinterpret_cast<thread_info *>(token)->move_node_to_gc_container(this);

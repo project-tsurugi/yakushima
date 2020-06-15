@@ -48,7 +48,7 @@ TEST_F(version_test, basic_node_version_test) {
     node_version64 ver;
     auto vinsert_inc_100 = [&ver]() {
       for (auto i = 0; i < 100; ++i) {
-        ver.atomic_increment_vinsert();
+        ver.atomic_inc_vinsert();
       }
     };
     vinsert_inc_100();
@@ -60,7 +60,7 @@ TEST_F(version_test, basic_node_version_test) {
     node_version64 ver;
     auto vinsert_inc_100 = [&ver]() {
       for (auto i = 0; i < 100; ++i) {
-        ver.atomic_increment_vinsert();
+        ver.atomic_inc_vinsert();
       }
     };
     std::future<void> f = std::async(std::launch::async, vinsert_inc_100);

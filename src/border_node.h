@@ -108,14 +108,14 @@ public:
           if (prev != nullptr) {
             prev->lock();
             if (prev->get_version_deleted()) {
-              prev->unlock();
+              prev->version_unlock();
               prev = nullptr;
             } else {
               prev->set_next(get_next());
               if (get_next() != nullptr) {
                 get_next()->set_prev(prev);
               }
-              prev->unlock();
+              prev->version_unlock();
             }
           }
           /**
@@ -126,7 +126,7 @@ retry_lock_parent:
           if (pn == nullptr) {
             base_node::set_root(nullptr);
           } else if (get_parent() != pn) {
-            pn->unlock();
+            pn->version_unlock();
             goto retry_lock_parent;
           } else {
             if (pn->get_version_border()) {
@@ -134,12 +134,12 @@ retry_lock_parent:
             } else {
               dynamic_cast<interior_node *>(pn)->delete_of<border_node>(token, this, lock_list);
             }
-            pn->unlock();
+            pn->version_unlock();
           }
           set_version_deleted(true);
           reinterpret_cast<thread_info *>(token)->move_node_to_gc_container(this);
         }
-        set_version_vdelete(get_version_vdelete() + 1);
+        version_atomic_inc_vdelete();
         return;
       }
     }

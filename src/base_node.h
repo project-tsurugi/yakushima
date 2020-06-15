@@ -173,7 +173,7 @@ public:
       if (p == check) {
         return p;
       } else {
-        p->unlock();
+        p->version_unlock();
         p = check;
       }
     }
@@ -255,8 +255,12 @@ public:
    * @pre This node was already locked.
    * @return void
    */
-  void unlock() &{
+  void version_unlock() &{
     version_.unlock();
+  }
+
+  void version_atomic_inc_vdelete() {
+    version_.atomic_inc_vdelete();
   }
 
 private:

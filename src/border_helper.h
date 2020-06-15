@@ -282,7 +282,7 @@ retry_lock_parent:
     return;
   }
   if (p != border->get_parent()) {
-    p->unlock();
+    p->version_unlock();
     goto retry_lock_parent;
   }
   lock_list.emplace_back(p->get_version_ptr());

@@ -117,6 +117,18 @@ public:
     return vsplit;
   }
 
+  void inc_vdelete() {
+    vdelete += 1;
+  }
+
+  void inc_vinsert() {
+    vinsert += 1;
+  }
+
+  void inc_vsplit() {
+    vsplit += 1;
+  }
+
   void init() {
     locked = false;
     inserting = false;
@@ -247,11 +259,21 @@ public:
    * @details This is atomic increment.
    * If you use "setter(getter + 1)", that is not atomic increment.
    */
-  void atomic_increment_vinsert() {
+  void atomic_inc_vinsert() {
     node_version64_body expected(get_body()), desired;
     for (;;) {
       desired = expected;
-      desired.set_vinsert(desired.get_vinsert() + 1);
+      desired.inc_vinsert();
+      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
+        break;
+    }
+  }
+
+  void atomic_inc_vdelete() {
+    node_version64_body expected(get_body()), desired;
+    for (;;) {
+      desired = expected;
+      desired.inc_vdelete();
       if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
         break;
     }
@@ -435,11 +457,11 @@ public:
   void unlock() &{
     node_version64_body desired(get_body());
     if (desired.get_inserting()) {
-      desired.set_vinsert(desired.get_vinsert() + 1);
+      desired.inc_vinsert();
       desired.set_inserting(false);
     }
     if (desired.get_splitting()) {
-      desired.set_vsplit(desired.get_vsplit() + 1);
+      desired.inc_vsplit();
       desired.set_splitting(false);
     }
     desired.set_locked(false);
