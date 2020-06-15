@@ -259,13 +259,18 @@ retry_lock_parent:
       constexpr std::size_t visitor_slice = 0;
       constexpr std::size_t visitor_slice_length = 1;
       if (visitor < resident) {
-        if (i == 0) {
+        if (i == 0) { // insert to leftmost points
           shift_right_base_member(i, 1);
+          /**
+           * todo : get lowest key of child[0] and compare these.
+           * node whose lowest key is lower becomes child[0] and the other node's lowest key become key[0].
+           */
           set_key(i, std::get<visitor_slice>(visitor), std::get<visitor_slice_length>(visitor));
           shift_right_children(i);
           set_child_at(i, child);
           n_keys_increment();
-        } else {
+          return;
+        } else { // insert to middle points
           shift_right_base_member(i, 1);
           set_key(i, std::get<visitor_slice>(visitor), std::get<visitor_slice_length>(visitor));
           shift_right_children(i + 1);

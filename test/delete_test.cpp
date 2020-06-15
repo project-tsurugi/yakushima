@@ -247,7 +247,7 @@ TEST_F(delete_test, DISABLED_delete_against_put_until_first_split_of_interior_no
   for (std::size_t i = n_in_bn; i < n_in_bn + to_sb; ++i) {
     ASSERT_EQ(status::OK, masstree_kvs::remove(token, k[i]));
   }
-  ASSERT_EQ(2, dynamic_cast<interior_node *>(dynamic_cast<interior_node *>(base_node::get_root()))->get_n_keys());
+  ASSERT_EQ(1, dynamic_cast<interior_node *>(dynamic_cast<interior_node *>(base_node::get_root()))->get_n_keys());
   for (std::size_t i = n_in_bn + to_sb; i < ary_size; ++i) {
     cout << i << endl;
     ASSERT_EQ(status::OK, masstree_kvs::remove(token, k[i]));
