@@ -58,7 +58,7 @@ public:
     for (std::size_t i = 0; i <= n_key; ++i) {
       if (get_child_at(i) == child) {
         if (n_key == 1) {
-          set_version_deleting(true);
+          set_version_deleting_node(true);
 retry_lock_parent:
           base_node *pn = lock_parent();
           if (pn == nullptr) {
@@ -247,33 +247,38 @@ retry_lock_parent:
  */
   template<class border_node>
   void insert(base_node *child) {
-    std::size_t pos{0};
+    std::tuple<key_slice_type, key_length_type> visitor;
     if (child->get_version_border()) {
-      pos = reinterpret_cast<border_node *>(child)->get_permutation_lowest_key_pos();
+      std::size_t pos = reinterpret_cast<border_node *>(child)->get_permutation_lowest_key_pos();
+      visitor = std::make_tuple(child->get_key_slice_at(pos), child->get_key_length_at(pos));
+    } else {
+      visitor = find_lowest_key<interior_node, border_node>(child);
     }
-    std::tuple<key_slice_type, key_length_type>
-            visitor{child->get_key_slice_at(pos), child->get_key_length_at(pos)};
     n_keys_body_type n_key = get_n_keys();
     for (auto i = 0; i < n_key; ++i) {
       std::tuple<key_slice_type, key_length_type>
               resident{get_key_slice_at(i), get_key_length_at(i)};
-      constexpr std::size_t visitor_slice = 0;
-      constexpr std::size_t visitor_slice_length = 1;
+      constexpr std::size_t slice_pos = 0;
+      constexpr std::size_t slice_length_pos = 1;
       if (visitor < resident) {
         if (i == 0) { // insert to leftmost points
           shift_right_base_member(i, 1);
-          /**
-           * todo : get lowest key of child[0] and compare these.
-           * node whose lowest key is lower becomes child[0] and the other node's lowest key become key[0].
-           */
-          set_key(i, std::get<visitor_slice>(visitor), std::get<visitor_slice_length>(visitor));
-          shift_right_children(i);
-          set_child_at(i, child);
+          std::tuple<key_slice_type, key_length_type> lowest = find_lowest_key<interior_node, border_node>(
+                  get_child_at(0));
+          if (visitor < lowest) {
+            set_key(i, std::get<slice_pos>(lowest), std::get<slice_length_pos>(lowest));
+            shift_right_children(i);
+            set_child_at(i, child);
+          } else {
+            set_key(i, std::get<slice_pos>(visitor), std::get<slice_length_pos>(visitor));
+            shift_right_children(i + 1);
+            set_child_at(i + 1, child);
+          }
           n_keys_increment();
           return;
         } else { // insert to middle points
           shift_right_base_member(i, 1);
-          set_key(i, std::get<visitor_slice>(visitor), std::get<visitor_slice_length>(visitor));
+          set_key(i, std::get<slice_pos>(visitor), std::get<slice_length_pos>(visitor));
           shift_right_children(i + 1);
           set_child_at(i + 1, child);
           n_keys_increment();

@@ -32,16 +32,6 @@ static void insert_lv(border_node *border, std::string_view key_view, bool next_
  */
 
 /**
- * @pre It already acquired lock of this node.
- * @details split interior node.
- * @param[in] interior
- * @param[in] child_node After split, it inserts this @a child_node.
- * @param[out] lock_list
- */
-template<class interior_node, class border_node>
-static void interior_split(interior_node *interior, base_node *child_node, std::vector<node_version64 *> &lock_list);
-
-/**
  * @details This may be called at split function.
  * It creates new interior node as parents of this interior_node and @a right.
  * @param[in] left
@@ -53,6 +43,16 @@ template<class interior_node>
 static void
 create_interior_parent_of_interior(interior_node *left, interior_node *right, std::vector<node_version64 *> &lock_list,
                                    base_node **new_parent);
+
+/**
+ * @pre It already acquired lock of this node.
+ * @details split interior node.
+ * @param[in] interior
+ * @param[in] child_node After split, it inserts this @a child_node.
+ * @param[out] lock_list
+ */
+template<class interior_node, class border_node>
+static void interior_split(interior_node *interior, base_node *child_node, std::vector<node_version64 *> &lock_list);
 
 template<class interior_node>
 static void
@@ -168,6 +168,78 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
    */
   pi->template insert<border_node>(new_interior);
   return;
+}
+
+template<class interior_node, class border_node>
+std::tuple<key_slice_type, key_length_type>
+find_lowest_key(base_node *origin) {
+  for (;;) {
+    base_node *bn = origin;
+    for (;;) {
+      node_version64_body v = bn->get_version();
+      if ((v.get_locked() && ((v.get_inserting() && !v.get_splitting()))) || // simple inserting
+          (v.get_locked() && (!v.get_splitting() && !v.get_deleting_node()))) { // simple deleting
+        _mm_pause();
+        continue;
+      }
+      if (v.get_deleted()) {
+        break;
+      }
+      if (v.get_splitting() || v.get_deleting_node()) {
+        /**
+         * Lock owner of this node wait me, so no need to verify.
+         */
+        if (bn->get_version_border()) {
+          border_node *target = reinterpret_cast<border_node *>(bn);
+          std::size_t low_pos = target->get_permutation_lowest_key_pos();
+          if (bn->get_key_length_at(low_pos) <= sizeof(key_slice_type)) {
+            return std::make_tuple(bn->get_key_slice_at(low_pos), bn->get_key_length_at(low_pos));
+          } else {
+            bn = target->get_lv_at(low_pos)->get_next_layer();
+            continue;
+          }
+        } else {
+          bn = reinterpret_cast<interior_node *>(bn)->get_child_at(0);
+          continue;
+        }
+      }
+      /**
+       * here, it needs to verify using v and occ technique;
+       */
+      if (bn->get_version_border()) {
+        border_node *target = reinterpret_cast<border_node *>(bn);
+        std::size_t low_pos = target->get_permutation_lowest_key_pos();
+        if (bn->get_key_length_at(low_pos) <= sizeof(key_slice_type)) {
+          key_slice_type kslice = bn->get_key_slice_at(low_pos);
+          key_length_type klength = bn->get_key_length_at(low_pos);
+          if (v == bn->get_version()) {
+            return std::make_tuple(kslice, klength);
+          }
+        } else {
+          base_node *ret = target->get_lv_at(low_pos)->get_next_layer();
+          if (v == bn->get_version()) {
+            bn = ret;
+            continue;
+          }
+        }
+        if (bn->get_version_deleted() ||
+            (v.get_vsplit() != bn->get_version_vsplit())) {
+          break;
+        }
+        continue;
+      } else {
+        base_node *ret = reinterpret_cast<interior_node *>(bn)->get_child_at(0);
+        if (v == bn->get_version()) {
+          bn = ret;
+        }
+        if (bn->get_version_deleted() ||
+            (v.get_vsplit() != bn->get_version_vsplit())) {
+          break;
+        }
+        continue;
+      }
+    }
+  }
 }
 
 } // namespace yakushima

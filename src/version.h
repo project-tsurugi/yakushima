@@ -45,7 +45,7 @@ public:
 
   bool operator==(const node_version64_body &rhs) const {
     return locked == rhs.get_locked()
-           && deleting == rhs.get_deleting()
+           && deleting_node == rhs.get_deleting_node()
            && inserting == rhs.get_inserting()
            && splitting == rhs.get_splitting()
            && deleted == rhs.get_deleted()
@@ -63,7 +63,7 @@ public:
   void display() {
     cout << "node_version64_body::display" << endl;
     cout << "locked : " << get_locked() << endl;
-    cout << "deleting : " << get_deleting() << endl;
+    cout << "deleting : " << get_deleting_node() << endl;
     cout << "inserting : " << get_inserting() << endl;
     cout << "splitting : " << get_splitting() << endl;
     cout << "deleted : " << get_deleted() << endl;
@@ -87,8 +87,8 @@ public:
     return deleted;
   }
 
-  [[nodiscard]] bool get_deleting() const {
-    return deleting;
+  [[nodiscard]] bool get_deleting_node() const {
+    return deleting_node;
   }
 
   [[nodiscard]] bool get_inserting() const {
@@ -137,7 +137,7 @@ public:
 
   void init() {
     locked = false;
-    deleting = false;
+    deleting_node = false;
     inserting = false;
     splitting = false;
     deleted = false;
@@ -150,7 +150,7 @@ public:
   }
 
   void make_stable_version_forcibly() {
-    set_deleting(false);
+    set_deleting_node(false);
     set_inserting(false);
     set_locked(false);
     set_splitting(false);
@@ -164,8 +164,8 @@ public:
     deleted = new_deleted;
   }
 
-  void set_deleting(bool tf) &{
-    deleting = tf;
+  void set_deleting_node(bool tf) &{
+    deleting_node = tf;
   }
 
   void set_inserting(bool new_inserting) &{
@@ -211,7 +211,7 @@ private:
   /**
    * @details It shows that this nodes will be deleted.
    */
-  bool deleting: 1;
+  bool deleting_node: 1;
   /**
    * @details It is a dirty bit set during inserting.
    */
@@ -344,7 +344,7 @@ public:
   }
 
   [[nodiscard]] bool get_deleting() {
-    return get_body().get_deleting();
+    return get_body().get_deleting_node();
   }
 
   [[nodiscard]] bool get_inserting() {
@@ -372,8 +372,11 @@ public:
        * Even if the locked version is immutable, the members read at that time may be broken.
        * Therefore, you have to check the lock.
        */
-      if (sv.get_deleting() == false && sv.get_inserting() == false && sv.get_locked() == false && sv.get_splitting() == false)
+      if (sv.get_deleting_node() == false && sv.get_inserting() == false && sv.get_locked() == false && sv.get_splitting() == false) {
         return sv;
+      } else {
+        _mm_pause();
+      }
     }
   }
 
@@ -401,7 +404,7 @@ public:
   }
 
   void make_stable_version_forcibly() {
-    set_deleting(false);
+    set_deleting_node(false);
     set_inserting(false);
     set_locked(false);
     set_splitting(false);
@@ -423,9 +426,9 @@ public:
     set_body(new_body);
   }
 
-  void set_deleting(bool tf) & {
+  void set_deleting_node(bool tf) & {
     node_version64_body new_body = get_body();
-    new_body.set_deleting(tf);
+    new_body.set_deleting_node(tf);
     set_body(new_body);
   }
 
@@ -491,7 +494,7 @@ public:
       desired.inc_vsplit();
       desired.set_splitting(false);
     }
-    desired.set_deleting(false);
+    desired.set_deleting_node(false);
     desired.set_locked(false);
     set_body(desired);
   }
