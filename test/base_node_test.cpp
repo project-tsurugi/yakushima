@@ -42,4 +42,28 @@ TEST_F(base_node_test, type_size) {
   ASSERT_EQ(sizeof(base_node::key_slice_type), 8);
 }
 
+TEST_F(base_node_test, function_base_node) {
+  border_node bn;
+  struct S {
+    static void init(border_node &bn) {
+      for (std::size_t i = 0; i < base_node::key_slice_length; ++i) {
+        bn.set_key(i, i, i);
+      }
+    }
+  };
+  S::init(bn);
+  bn.shift_right_base_member(0, 1); // left-most
+  for (std::size_t i = 1; i < base_node::key_slice_length; ++i) {
+    ASSERT_EQ(bn.get_key_slice_at(i), i - 1);
+  }
+  S::init(bn);
+  bn.shift_right_base_member(5, 1); // middle-point
+  for (std::size_t i = 1; i < base_node::key_slice_length; ++i) {
+    if (i < 6) {
+      ASSERT_EQ(bn.get_key_slice_at(i), i);
+    } else {
+      ASSERT_EQ(bn.get_key_slice_at(i), i - 1);
+    }
+  }
+}
 }  // namespace yakushima::testing

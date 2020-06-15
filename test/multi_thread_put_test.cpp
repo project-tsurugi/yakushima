@@ -164,8 +164,7 @@ TEST_F(multi_thread_put_test, put_until_creating_interior_node) {
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
-#if 0
-TEST_F(multi_thread_put_test, put_between_split_border_and_split_interior) {
+TEST_F(multi_thread_put_test, DISABLED_put_between_split_border_and_split_interior) {
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
   constexpr std::size_t ary_size = 100;
@@ -209,6 +208,7 @@ TEST_F(multi_thread_put_test, put_between_split_border_and_split_interior) {
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
+#if 0
 TEST_F(multi_thread_put_test, put_until_first_split_of_interior_node) {
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);

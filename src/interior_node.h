@@ -259,12 +259,20 @@ retry_lock_parent:
       constexpr std::size_t visitor_slice = 0;
       constexpr std::size_t visitor_slice_length = 1;
       if (visitor < resident) {
-        shift_right_base_member(i, 1);
-        set_key(i, std::get<visitor_slice>(visitor), std::get<visitor_slice_length>(visitor));
-        shift_right_children(i + 1);
-        set_child_at(i + 1, child);
-        n_keys_increment();
-        return;
+        if (i == 0) {
+          shift_right_base_member(i, 1);
+          set_key(i, std::get<visitor_slice>(visitor), std::get<visitor_slice_length>(visitor));
+          shift_right_children(i);
+          set_child_at(i, child);
+          n_keys_increment();
+        } else {
+          shift_right_base_member(i, 1);
+          set_key(i, std::get<visitor_slice>(visitor), std::get<visitor_slice_length>(visitor));
+          shift_right_children(i + 1);
+          set_child_at(i + 1, child);
+          n_keys_increment();
+          return;
+        }
       }
     }
     // insert to rightmost points
@@ -313,7 +321,7 @@ retry_lock_parent:
  */
   void shift_right_children(std::size_t start_pos) {
     std::size_t n_key = get_n_keys();
-    for (std::size_t i = n_key + 1; i > start_pos; --i) {
+    for (std::size_t i = n_key; i > start_pos; --i) {
       set_child_at(i, get_child_at(i - 1));
     }
   }

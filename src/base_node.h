@@ -244,6 +244,14 @@ public:
   }
 
   void shift_right_base_member(std::size_t start, std::size_t shift_size) {
+    if (start >= key_slice_length - 1) {
+      std::cerr << __FILE__ << " : " << __LINE__ << " : " << status::ERR_BOUNDARY  << std::endl;
+      std::abort();
+    } else if (shift_size == 0) {
+      std::cerr << __FILE__ << " : " << __LINE__ << " : " << status::ERR_ARGUMENT  << std::endl;
+      std::abort();
+    }
+
     memmove(&get_key_slice()[start + shift_size], &get_key_slice()[start],
             sizeof(key_slice_type) * (key_slice_length - start - shift_size));
     memmove(&get_key_length()[start + shift_size], &get_key_length()[start],
