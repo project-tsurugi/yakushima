@@ -58,6 +58,7 @@ public:
     for (std::size_t i = 0; i <= n_key; ++i) {
       if (get_child_at(i) == child) {
         if (n_key == 1) {
+          set_version_deleting(true);
 retry_lock_parent:
           base_node *pn = lock_parent();
           if (pn == nullptr) {

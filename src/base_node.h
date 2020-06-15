@@ -220,6 +220,10 @@ public:
     version_.set_deleted(tf);
   }
 
+  void set_version_deleting(bool tf) {
+    version_.set_deleting(tf);
+  }
+
   void set_version_inserting(bool tf) {
     version_.set_inserting(tf);
   }

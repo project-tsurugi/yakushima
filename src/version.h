@@ -45,6 +45,7 @@ public:
 
   bool operator==(const node_version64_body &rhs) const {
     return locked == rhs.get_locked()
+           && deleting == rhs.get_deleting()
            && inserting == rhs.get_inserting()
            && splitting == rhs.get_splitting()
            && deleted == rhs.get_deleted()
@@ -62,6 +63,7 @@ public:
   void display() {
     cout << "node_version64_body::display" << endl;
     cout << "locked : " << get_locked() << endl;
+    cout << "deleting : " << get_deleting() << endl;
     cout << "inserting : " << get_inserting() << endl;
     cout << "splitting : " << get_splitting() << endl;
     cout << "deleted : " << get_deleted() << endl;
@@ -83,6 +85,10 @@ public:
 
   [[nodiscard]] bool get_deleted() const {
     return deleted;
+  }
+
+  [[nodiscard]] bool get_deleting() const {
+    return deleting;
   }
 
   [[nodiscard]] bool get_inserting() const {
@@ -131,6 +137,7 @@ public:
 
   void init() {
     locked = false;
+    deleting = false;
     inserting = false;
     splitting = false;
     deleted = false;
@@ -143,6 +150,7 @@ public:
   }
 
   void make_stable_version_forcibly() {
+    set_deleting(false);
     set_inserting(false);
     set_locked(false);
     set_splitting(false);
@@ -154,6 +162,10 @@ public:
 
   void set_deleted(bool new_deleted) &{
     deleted = new_deleted;
+  }
+
+  void set_deleting(bool tf) &{
+    deleting = tf;
   }
 
   void set_inserting(bool new_inserting) &{
@@ -196,6 +208,10 @@ private:
    * @details It is claimed by update or insert.
    */
   bool locked: 1;
+  /**
+   * @details It shows that this nodes will be deleted.
+   */
+  bool deleting: 1;
   /**
    * @details It is a dirty bit set during inserting.
    */
@@ -327,6 +343,10 @@ public:
     return get_body().get_deleted();
   }
 
+  [[nodiscard]] bool get_deleting() {
+    return get_body().get_deleting();
+  }
+
   [[nodiscard]] bool get_inserting() {
     return get_body().get_inserting();
   }
@@ -352,7 +372,7 @@ public:
        * Even if the locked version is immutable, the members read at that time may be broken.
        * Therefore, you have to check the lock.
        */
-      if (sv.get_inserting() == false && sv.get_locked() == false && sv.get_splitting() == false)
+      if (sv.get_deleting() == false && sv.get_inserting() == false && sv.get_locked() == false && sv.get_splitting() == false)
         return sv;
     }
   }
@@ -381,6 +401,7 @@ public:
   }
 
   void make_stable_version_forcibly() {
+    set_deleting(false);
     set_inserting(false);
     set_locked(false);
     set_splitting(false);
@@ -399,6 +420,12 @@ public:
   void set_deleted(bool new_deleted) &{
     node_version64_body new_body = get_body();
     new_body.set_deleted(new_deleted);
+    set_body(new_body);
+  }
+
+  void set_deleting(bool tf) & {
+    node_version64_body new_body = get_body();
+    new_body.set_deleting(tf);
     set_body(new_body);
   }
 
@@ -464,6 +491,7 @@ public:
       desired.inc_vsplit();
       desired.set_splitting(false);
     }
+    desired.set_deleting(false);
     desired.set_locked(false);
     set_body(desired);
   }

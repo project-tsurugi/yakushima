@@ -121,6 +121,7 @@ public:
           /**
            * lock order is next to prev and lower to higher.
            */
+          set_version_deleting(true);
 retry_lock_parent:
           base_node *pn = lock_parent();
           if (pn == nullptr) {
