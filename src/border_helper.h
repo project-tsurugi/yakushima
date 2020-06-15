@@ -197,9 +197,7 @@ static void border_split(border_node *border,
     if (nl != nullptr) {
       nl->set_parent(new_border);
     }
-    if (std::get<key_pos>(*itr) < remaining_size) {
-      shift_pos.emplace_back(std::get<key_pos>(*itr));
-    }
+    shift_pos.emplace_back(std::get<key_pos>(*itr));
     ++index_ctr;
   }
   /**
@@ -208,8 +206,13 @@ static void border_split(border_node *border,
   std::sort(shift_pos.begin(), shift_pos.end());
   std::size_t shifted_ctr(0);
   for (std::size_t &shift_po : shift_pos) {
-    border->shift_left_base_member(shift_po + 1 - shifted_ctr, 1);
-    border->shift_left_border_member(shift_po + 1 - shifted_ctr, 1);
+    if (shift_po + 1 - shifted_ctr != base_node::key_slice_length - 1) {
+      /**
+       * The if condition is a boundary check for shift (move) and is optimized to avoid tail shifting using L218,L219.
+       */
+      border->shift_left_base_member(shift_po + 1 - shifted_ctr, 1);
+      border->shift_left_border_member(shift_po + 1 - shifted_ctr, 1);
+    }
     ++shifted_ctr;
   }
   /**

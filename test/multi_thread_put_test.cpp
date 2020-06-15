@@ -120,7 +120,6 @@ TEST_F(multi_thread_put_test,
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
-#if 0
 TEST_F(multi_thread_put_test, put_until_creating_interior_node) {
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
@@ -154,7 +153,7 @@ TEST_F(multi_thread_put_test, put_until_creating_interior_node) {
   std::vector<std::tuple<char *, std::size_t>> tuple_list;
   constexpr std::size_t v_index = 0;
   for (std::size_t i = 0; i < ary_size; ++i) {
-    std::string k(i, '\0');
+    std::string k(1, 'a' + i);
     masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(k), false,
                              tuple_list);
     for (std::size_t j = 0; j < i + 1; ++j) {
@@ -165,6 +164,7 @@ TEST_F(multi_thread_put_test, put_until_creating_interior_node) {
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
+#if 0
 TEST_F(multi_thread_put_test, put_until_first_split_of_interior_node) {
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
