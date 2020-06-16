@@ -252,7 +252,7 @@ retry_lock_parent:
     n_keys_body_type n_key = get_n_keys();
     for (auto i = 0; i < n_key; ++i) {
       std::tuple<key_slice_type, key_length_type>
-              resident{get_key_slice_at(i), get_key_length_at(i)};
+              resident = find_lowest_key<interior_node, border_node>(get_child_at(i));
       constexpr std::size_t slice_pos = 0;
       constexpr std::size_t slice_length_pos = 1;
       if (visitor < resident) {
