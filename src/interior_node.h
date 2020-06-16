@@ -332,7 +332,7 @@ retry_lock_parent:
  */
   void shift_right_children(std::size_t start_pos) {
     std::size_t n_key = get_n_keys();
-    for (std::size_t i = n_key; i > start_pos; --i) {
+    for (std::size_t i = n_key + 1; i >= start_pos; --i) {
       set_child_at(i, get_child_at(i - 1));
     }
   }
