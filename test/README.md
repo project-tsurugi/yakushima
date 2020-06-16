@@ -24,6 +24,12 @@
   4. scan against the structure which it has interior node as root, and the interior has some border nodes as children.
   5. scan against the structure which it has interior node as root, root has two interior nodes as children, 
   and each of children has some border nodes as children.
+- multi_thread_put_test.cpp<br>
+put by multi threads and verify final state by scan.
+  1. multiple put same null char key whose length is different each other against single border node.
+  2. multiple put same null char key whose length is different each other against multiple border, which is across some layer.
+  3. multiple put repeatedly until first split of border node.
+  4. multiple put repeatedly until first split of interior node.
   
 ## developer-test
 - base_node_test.cpp
