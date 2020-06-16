@@ -252,7 +252,7 @@ retry_lock_parent:
     n_keys_body_type n_key = get_n_keys();
     for (auto i = 0; i < n_key; ++i) {
       std::tuple<key_slice_type, key_length_type>
-              resident = find_lowest_key<interior_node, border_node>(get_child_at(i));
+              resident{get_key_slice_at(i), get_key_length_at(i)};
       constexpr std::size_t slice_pos = 0;
       constexpr std::size_t slice_length_pos = 1;
       if (visitor < resident) {
@@ -272,10 +272,10 @@ retry_lock_parent:
           n_keys_increment();
           return;
         } else { // insert to middle points
-          shift_right_base_member(i, 1);
-          set_key(i, std::get<slice_pos>(visitor), std::get<slice_length_pos>(visitor));
-          shift_right_children(i + 1);
-          set_child_at(i + 1, child);
+          shift_right_base_member(i + 1, 1);
+          set_key(i + 1, std::get<slice_pos>(visitor), std::get<slice_length_pos>(visitor));
+          shift_right_children(i + 2);
+          set_child_at(i + 2, child);
           n_keys_increment();
           return;
         }
