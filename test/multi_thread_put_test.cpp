@@ -171,10 +171,10 @@ TEST_F(multi_thread_put_test, DISABLED_put_between_split_border_and_split_interi
   std::vector<std::tuple<std::string, std::string>> kv1;
   std::vector<std::tuple<std::string, std::string>> kv2;
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
-    kv1.emplace_back(std::make_tuple(std::string(1, 'a' + i), std::to_string(i)));
+    kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
   }
   for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
-    kv2.emplace_back(std::make_tuple(std::string(1, 'a' + i), std::to_string(i)));
+    kv2.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
   }
   std::random_device seed_gen;
   std::mt19937 engine(seed_gen());
@@ -197,11 +197,12 @@ TEST_F(multi_thread_put_test, DISABLED_put_between_split_border_and_split_interi
   std::vector<std::tuple<char *, std::size_t>> tuple_list;
   constexpr std::size_t v_index = 0;
   for (std::size_t i = 0; i < ary_size; ++i) {
-    std::string k(1, 'a' + i);
+    std::string k(1, i);
     masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(k), false,
                              tuple_list);
     for (std::size_t j = 0; j < i + 1; ++j) {
       std::string v(std::to_string(j));
+      ASSERT_EQ(tuple_list.size(), i + 1);
       ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
     }
   }

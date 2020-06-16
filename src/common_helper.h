@@ -35,8 +35,10 @@ descend:
   /**
    * The caller checks whether it has been deleted.
    */
-  if (n->get_version_border())
+  if (n->get_version_border()) {
+    special_status = status::OK;
     return std::make_tuple(static_cast<border_node *>(n), v);
+  }
   /**
    * @a n points to a interior_node object.
    */
