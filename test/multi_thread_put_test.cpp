@@ -200,9 +200,12 @@ TEST_F(multi_thread_put_test, DISABLED_put_between_split_border_and_split_interi
     std::string k(1, i);
     masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(k), false,
                              tuple_list);
+    if (tuple_list.size() != i + 1) {
+      EXPECT_EQ(tuple_list.size(), i + 1);
+    }
+    ASSERT_EQ(tuple_list.size(), i + 1);
     for (std::size_t j = 0; j < i + 1; ++j) {
       std::string v(std::to_string(j));
-      ASSERT_EQ(tuple_list.size(), i + 1);
       ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
     }
   }

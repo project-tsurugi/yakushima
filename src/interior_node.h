@@ -248,12 +248,7 @@ retry_lock_parent:
   template<class border_node>
   void insert(base_node *child) {
     std::tuple<key_slice_type, key_length_type> visitor;
-    if (child->get_version_border()) {
-      std::size_t pos = reinterpret_cast<border_node *>(child)->get_permutation_lowest_key_pos();
-      visitor = std::make_tuple(child->get_key_slice_at(pos), child->get_key_length_at(pos));
-    } else {
-      visitor = find_lowest_key<interior_node, border_node>(child);
-    }
+    visitor = find_lowest_key<interior_node, border_node>(child);
     n_keys_body_type n_key = get_n_keys();
     for (auto i = 0; i < n_key; ++i) {
       std::tuple<key_slice_type, key_length_type>
