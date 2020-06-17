@@ -341,6 +341,10 @@ retry_lock_parent:
      */
     key_slice_type key_slice(0);
     if (key_view.size() > sizeof(key_slice_type)) {
+      if (next_layer) {
+        std::cerr << __FILE__ << " : " << __LINE__ << " : unreachable point." << endl;
+        std::abort();
+      }
       /**
        * Create multiple border nodes.
        */
