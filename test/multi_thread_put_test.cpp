@@ -165,6 +165,7 @@ TEST_F(multi_thread_put_test, put_until_creating_interior_node) {
 }
 
 TEST_F(multi_thread_put_test, DISABLED_put_between_split_border_and_split_interior_with_no_shuffle) {
+  masstree_kvs::fin(); // fit to test constructor.
   for (size_t i = 0; i < 100; ++i) {
     masstree_kvs::init();
     Token token;
@@ -210,6 +211,7 @@ TEST_F(multi_thread_put_test, DISABLED_put_between_split_border_and_split_interi
     ASSERT_EQ(masstree_kvs::leave(token), status::OK);
     masstree_kvs::fin();
   }
+  masstree_kvs::init(); // fit to test destructor.
 }
 
 TEST_F(multi_thread_put_test, DISABLED_put_between_split_border_and_split_interior_with_shuffle) {
