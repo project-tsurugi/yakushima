@@ -273,10 +273,10 @@ retry_lock_parent:
           n_keys_increment();
           return;
         } else { // insert to middle points
-          shift_right_base_member(i + 1, 1);
-          set_key(i + 1, std::get<slice_pos>(visitor), std::get<slice_length_pos>(visitor));
-          shift_right_children(i + 2);
-          set_child_at(i + 2, child);
+          shift_right_base_member(i, 1);
+          set_key(i, std::get<slice_pos>(visitor), std::get<slice_length_pos>(visitor));
+          shift_right_children(i + 1);
+          set_child_at(i + 1, child);
           n_keys_increment();
           return;
         }
@@ -327,7 +327,7 @@ retry_lock_parent:
  */
   void shift_right_children(std::size_t start_pos) {
     std::size_t n_key = get_n_keys();
-    for (std::size_t i = n_key + 1; i >= start_pos; --i) {
+    for (std::size_t i = n_key + 1; i > start_pos; --i) {
       set_child_at(i, get_child_at(i - 1));
     }
   }

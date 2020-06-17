@@ -169,7 +169,6 @@ static void border_split(border_node *border,
   std::vector<std::tuple<key_slice_type, key_length_type, std::uint8_t>> vec;
   std::uint8_t cnk = border->get_permutation_cnk();
   vec.reserve(cnk);
-  vec.reserve(cnk);
   for (std::uint8_t i = 0; i < cnk; ++i) {
     vec.emplace_back(border->get_key_slice_at(i), border->get_key_length_at(i), i);
   }
