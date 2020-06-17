@@ -263,7 +263,7 @@ retry_fetch_lv:
     /**
      * check whether it should insert into this node.
      */
-    if (v_at_fetch_lv.get_vsplit() != v_at_fb.get_vsplit() || v_at_fetch_lv.get_deleted()) {
+    if ((v_at_fetch_lv.get_vsplit() != v_at_fb.get_vsplit()) || v_at_fetch_lv.get_deleted()) {
       /**
        * It may be change the correct border between atomically fetching border node and atomically fetching lv.
        */
