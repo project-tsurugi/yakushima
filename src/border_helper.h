@@ -89,6 +89,7 @@ create_interior_parent_of_border(border_node *left, border_node *right, std::vec
   interior_node *ni = new interior_node();
   ni->init_interior();
   ni->set_version_root(true);
+  ni->set_version_inserting(true);
   ni->lock();
   lock_list.emplace_back(ni->get_version_ptr());
   /**
@@ -330,7 +331,6 @@ retry_lock_parent:
   /**
    * interior not-full case, it inserts.
    */
-  pi->set_version_inserting(true);
   pi->template insert<border_node>(new_border);
   return;
 }

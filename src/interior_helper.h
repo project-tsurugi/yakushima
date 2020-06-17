@@ -61,6 +61,7 @@ create_interior_parent_of_interior(interior_node *left, interior_node *right, st
   interior_node *ni = new interior_node();
   ni->init_interior();
   ni->set_version_root(true);
+  ni->set_version_inserting(true);
   ni->lock();
   lock_list.emplace_back(ni->get_version_ptr());
   /**
