@@ -70,7 +70,8 @@ descend:
    * If the value of vsplit is different, the read location may be inappropriate.
    * Split propagates upward. It have to start from root.
    */
-  if (v.get_vsplit() != v_check.get_vsplit())
+  if (v.get_vsplit() != v_check.get_vsplit() ||
+      v_check.get_deleted())
     goto retry;
   /**
    * If the vsplit values ​​match, it can continue.
