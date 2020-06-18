@@ -170,7 +170,7 @@ TEST_F(kvs_test, multiple_put_get_same_null_char_key_slice_and_different_key_len
     constexpr std::size_t ary_size = 15;
     std::vector<std::tuple<std::string, std::string>> kv;
     for (std::size_t i = 0; i < ary_size; ++i) {
-      kv.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+      kv.emplace_back(std::make_tuple(std::string(i, 'a'), std::to_string(i)));
     }
 
     std::random_device seed_gen;
@@ -187,9 +187,18 @@ TEST_F(kvs_test, multiple_put_get_same_null_char_key_slice_and_different_key_len
       ASSERT_EQ(std::get<size_index>(tuple), std::get<1>(kv[i]).size());
       ASSERT_EQ(memcmp(std::get<value_index>(tuple), std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()), 0);
     }
-    /**
-     * check next layer is border.
-     */
+
+    std::vector<std::tuple<char *, std::size_t>> tuple_list;
+    for (std::size_t i = 1; i < ary_size; ++i) {
+      std::string k(i, 'a');
+      ASSERT_EQ(status::OK,
+                masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(k), false, tuple_list));
+      ASSERT_EQ(tuple_list.size(), i + 1);
+      for (std::size_t j = 0; j < i + 1; ++j) {
+        std::string v(std::to_string(j));
+        ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(j)), v.data(), v.size()), 0);
+      }
+    }
     ASSERT_EQ(masstree_kvs::destroy(), status::OK_DESTROY_ALL);
     ASSERT_EQ(masstree_kvs::leave(token), status::OK);
     masstree_kvs::fin();

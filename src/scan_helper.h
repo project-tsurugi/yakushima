@@ -44,7 +44,8 @@ status scan_check_retry(border_node *const bn, const node_version64_body &v_at_f
 }
 
 template<class ValueType>
-static status scan_all(base_node *root, std::vector<std::tuple<ValueType *, std::size_t>> &tuple_list) {
+static status scan(base_node *root, std::string_view l_key, bool l_exclusive, std::string_view r_key, bool r_exclusive,
+                   std::vector<std::tuple<ValueType *, std::size_t>> &tuple_list) {
 retry:
   if (root->get_version_deleted() || !root->get_version_root()) {
     return status::OK_RETRY_FROM_ROOT;
@@ -54,7 +55,18 @@ retry:
   constexpr std::size_t tuple_node_index = 0;
   constexpr std::size_t tuple_v_index = 1;
   status check_status;
-  node_and_v = find_border(root, 0, 0, check_status);
+  key_slice_type ks{0};
+  key_length_type kl;
+  if (l_key.size() > sizeof(key_slice_type)) {
+    memcpy(&ks, l_key.data(), sizeof(key_slice_type));
+    kl = sizeof(key_slice_type);
+  } else {
+    if (l_key.size() != 0) {
+      memcpy(&ks, l_key.data(), l_key.size());
+    }
+    kl = l_key.size();
+  }
+  node_and_v = find_border(root, ks, kl, check_status);
   if (check_status == status::WARN_RETRY_FROM_ROOT_OF_ALL) {
     return status::OK_RETRY_FETCH_LV;
   }
@@ -62,8 +74,7 @@ retry:
   node_version64_body check_v = std::get<tuple_v_index>(node_and_v);
 
   for (;;) {
-    check_status = scan_border<ValueType>(&bn, std::string_view(0, 0), false, std::string_view(0, 0), false,
-                                          tuple_list, check_v);
+    check_status = scan_border<ValueType>(&bn, l_key, l_exclusive, r_key, r_exclusive, tuple_list, check_v);
     if (check_status == status::OK_SCAN_END) {
       return status::OK;
     } else if (check_status == status::OK_SCAN_CONTINUE) {
@@ -110,7 +121,40 @@ retry:
       goto retry;
     }
     if (kl > sizeof(key_slice_type)) {
-      check_status = scan_all(next_layer, tuple_list);
+      std::string_view arg_l_key;
+      bool next_l_exclusive(false);
+      std::string_view next_target(reinterpret_cast<char *>(&ks), sizeof(key_slice_type));
+      if (l_key < next_target) {
+        arg_l_key = std::string_view(0, 0);
+      } else if (l_key == next_target) {
+        arg_l_key = std::string_view(0, 0);
+        next_l_exclusive = l_exclusive;
+      } else {
+        continue;
+      }
+      std::string_view arg_r_key;
+      bool next_r_exclusive(false);
+      if (r_key < next_target) {
+        return status::OK_SCAN_END;
+      } else if (r_key == next_target) {
+        if (r_exclusive) return status::OK_SCAN_END;
+        arg_r_key = std::string_view(0, 0);
+      } else {
+        if (r_key.substr(0, sizeof(key_slice_type)) == next_target) {
+          arg_r_key = r_key;
+          arg_r_key.remove_prefix(sizeof(key_slice_type));
+        } else {
+          arg_r_key = std::string_view(0, 0);
+        }
+      }
+      if (r_key != std::string_view(0, 0) && arg_r_key == std::string_view(0, 0)) {
+        /**
+         * r_key was not 0,0, but new one is that. However, originally it was not all range for right direction.
+         * So it is care by exclusive(true).
+         */
+        next_r_exclusive = true;
+      }
+      check_status = scan(next_layer, arg_l_key, next_l_exclusive, arg_r_key, next_r_exclusive, tuple_list);
       if (check_status != status::OK) {
         goto retry;
       }
@@ -119,9 +163,9 @@ retry:
       std::string_view inf{0, 0};
       if (resident < l_key || (resident == l_key && l_exclusive)) {
         continue;
-      } else if ((l_key == inf && r_key == inf) || // all range
-                 (l_key == inf && resident < r_key) || // left is inf, in range
-                 (l_key < resident && r_key == inf) || // right is inf, in range
+      } else if ((l_key == inf && r_key == inf && !l_exclusive && !r_exclusive) || // all range
+                 (l_key == inf && !l_exclusive && resident < r_key) || // left is inf, in range
+                 (l_key < resident && r_key == inf && !r_exclusive) || // right is inf, in range
                  (l_key < resident && resident < r_key) || // no inf, in range
                  (resident == l_key && !l_exclusive) ||
                  (resident == r_key && !r_exclusive)) {
