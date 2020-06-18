@@ -134,25 +134,29 @@ retry:
       }
       std::string_view arg_r_key;
       bool next_r_exclusive(false);
-      if (r_key < next_target) {
-        return status::OK_SCAN_END;
-      } else if (r_key == next_target) {
-        if (r_exclusive) return status::OK_SCAN_END;
-        arg_r_key = std::string_view(0, 0);
+      if (r_key == std::string_view(0, 0) && !r_exclusive) {
+        arg_r_key = r_key;
       } else {
-        if (r_key.substr(0, sizeof(key_slice_type)) == next_target) {
-          arg_r_key = r_key;
-          arg_r_key.remove_prefix(sizeof(key_slice_type));
-        } else {
+        if (r_key < next_target) {
+          return status::OK_SCAN_END;
+        } else if (r_key == next_target) {
+          if (r_exclusive) return status::OK_SCAN_END;
           arg_r_key = std::string_view(0, 0);
+        } else {
+          if (r_key.substr(0, sizeof(key_slice_type)) == next_target) {
+            arg_r_key = r_key;
+            arg_r_key.remove_prefix(sizeof(key_slice_type));
+          } else {
+            arg_r_key = std::string_view(0, 0);
+          }
         }
-      }
-      if (r_key != std::string_view(0, 0) && arg_r_key == std::string_view(0, 0)) {
-        /**
-         * r_key was not 0,0, but new one is that. However, originally it was not all range for right direction.
-         * So it is care by exclusive(true).
-         */
-        next_r_exclusive = true;
+        if (r_key != std::string_view(0, 0) && arg_r_key == std::string_view(0, 0)) {
+          /**
+           * r_key was not 0,0, but new one is that. However, originally it was not all range for right direction.
+           * So it is care by exclusive(true).
+           */
+          next_r_exclusive = true;
+        }
       }
       check_status = scan(next_layer, arg_l_key, next_l_exclusive, arg_r_key, next_r_exclusive, tuple_list);
       if (check_status != status::OK) {

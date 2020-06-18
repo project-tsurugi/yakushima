@@ -46,9 +46,7 @@ TEST_F(scan_test, single_put_get_to_one_border) {
   ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(0)), v.data(), v.size()), 0);
   ASSERT_EQ(status::OK, masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(0, 0),
                                                  true, tuple_list));
-  ASSERT_EQ(tuple_list.size(), 1);
-  ASSERT_EQ(std::get<1>(tuple_list.at(0)), v.size());
-  ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(0)), v.data(), v.size()), 0);
+  ASSERT_EQ(tuple_list.size(), 0);
   ASSERT_EQ(status::OK, masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(k),
                                                  false, tuple_list));
   ASSERT_EQ(tuple_list.size(), 1);
@@ -60,13 +58,9 @@ TEST_F(scan_test, single_put_get_to_one_border) {
   ASSERT_EQ(status::OK, masstree_kvs::scan<char>(std::string_view(0, 0), true, std::string_view(0, 0),
                                                  false, tuple_list));
   ASSERT_EQ(tuple_list.size(), 1);
-  ASSERT_EQ(std::get<1>(tuple_list.at(0)), v.size());
-  ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(0)), v.data(), v.size()), 0);
   ASSERT_EQ(status::OK, masstree_kvs::scan<char>(std::string_view(0, 0), true, std::string_view(0, 0),
                                                  true, tuple_list));
-  ASSERT_EQ(tuple_list.size(), 1);
-  ASSERT_EQ(std::get<1>(tuple_list.at(0)), v.size());
-  ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(0)), v.data(), v.size()), 0);
+  ASSERT_EQ(tuple_list.size(), 0);
   ASSERT_EQ(status::OK, masstree_kvs::scan<char>(std::string_view(0, 0), true, std::string_view(k),
                                                  false, tuple_list));
   ASSERT_EQ(tuple_list.size(), 1);
@@ -159,6 +153,7 @@ TEST_F(scan_test, multiple_put_get_same_null_char_key_slice_and_different_key_le
   for (std::size_t i = 0; i < ary_size; ++i) {
     ASSERT_EQ(status::OK, masstree_kvs::scan(std::string_view(k[i]), false, std::string_view(0, 0), false,
                                              tuple_list));
+    ASSERT_EQ(tuple_list.size(), ary_size - i);
     for (std::size_t j = i; j < ary_size; ++j) {
       ASSERT_EQ(memcmp(std::get<value_index>(tuple_list.at(j - i)), v[j].data(), v[j].size()), 0);
     }
