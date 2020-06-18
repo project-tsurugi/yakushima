@@ -135,6 +135,14 @@ TEST_F(scan_test, multiple_put_get_same_null_char_key_slice_and_different_key_le
       ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v[j].data(), v[j].size()), 0);
     }
   }
+
+  for (std::size_t i = ary_size - 1; i > 1; --i) {
+    masstree_kvs::scan<char>(std::string_view(k[i]), false, std::string_view(0, 0), false, tuple_list);
+    ASSERT_EQ(tuple_list.size(), ary_size - i);
+    for (std::size_t j = i; j < ary_size; ++j) {
+      ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j - i)), v[j].data(), v[j].size()), 0);
+    }
+  }
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
@@ -156,6 +164,13 @@ TEST_F(scan_test, multiple_put_get_same_null_char_key_slice_and_different_key_le
     ASSERT_EQ(tuple_list.size(), ary_size - i);
     for (std::size_t j = i; j < ary_size; ++j) {
       ASSERT_EQ(memcmp(std::get<value_index>(tuple_list.at(j - i)), v[j].data(), v[j].size()), 0);
+    }
+  }
+  for (std::size_t i = ary_size - 1; i > 1; --i) {
+    ASSERT_EQ(status::OK, masstree_kvs::scan(std::string_view(0, 0), false, std::string_view(k[i]), false, tuple_list));
+    ASSERT_EQ(tuple_list.size(), i + 1);
+    for (std::size_t j = 0; j < i; ++j) {
+      ASSERT_EQ(memcmp(std::get<value_index>(tuple_list.at(j)), v[j].data(), v[j].size()), 0);
     }
   }
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
@@ -220,5 +235,6 @@ TEST_F(scan_test, put_until_first_split_of_interior_node) {
   }
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
+
 } // namespace yakushima
 

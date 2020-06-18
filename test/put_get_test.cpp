@@ -116,6 +116,18 @@ TEST_F(kvs_test, multiple_put_get_same_null_char_key_slice_and_different_key_len
         ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(j)), v.data(), v.size()), 0);
       }
     }
+
+    for (std::size_t i = ary_size - 1; i < 1; --i) {
+      std::string k(i, '\0');
+      ASSERT_EQ(status::OK,
+                masstree_kvs::scan<char>(std::string_view(k), false, std::string_view(0, 0), false, tuple_list));
+      ASSERT_EQ(tuple_list.size(), ary_size - i);
+      for (std::size_t j = i; j < ary_size; ++j) {
+        std::string v(std::to_string(j));
+        ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(j)), v.data(), v.size()), 0);
+      }
+    }
+
     ASSERT_EQ(masstree_kvs::leave(token), status::OK);
     masstree_kvs::fin();
   }
