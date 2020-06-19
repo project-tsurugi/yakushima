@@ -18,9 +18,10 @@
 - delete_test.cpp
   1. delete against single put to one border.
   2. delete repeatedly until vanishing only one border node.
-  3. delete repeatedly until vanishing two border nodes which is across layer.
-  4. delete repeatedly until vanishing the structure which has one interior node having two border nodes.
-  5. delete repeatedly until vanishing the structure which has one interior node having two interior nodes.
+  3. test of 2 which is using shuffled data.
+  4. delete repeatedly until vanishing two border nodes which is across layer.
+  5. delete repeatedly until vanishing the structure which has one interior node having two border nodes.
+  6. delete repeatedly until vanishing the structure which has one interior node having two interior nodes.
 - scan_test.cpp
   1. scan against single put to one border.
   2. scan against multiple put same null char key whose length is different each other agaisnt single border node.

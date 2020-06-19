@@ -2,7 +2,9 @@
  * @file delete_test.cpp
  */
 
+#include <algorithm>
 #include <future>
+#include <random>
 #include <thread>
 #include <tuple>
 
@@ -66,6 +68,41 @@ TEST_F(delete_test, delte_against_multiple_put_same_null_char_key_slice_and_diff
   }
   ASSERT_EQ(masstree_kvs::destroy(), status::OK_ROOT_IS_NULL);
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
+}
+
+TEST_F(delete_test,
+       delte_against_multiple_put_same_null_char_key_slice_and_different_key_length_to_single_border_with_shuffle) {
+  masstree_kvs::fin();
+  for (std::size_t h = 0; h < 10; ++h) {
+    masstree_kvs::init();
+    Token token;
+    ASSERT_EQ(masstree_kvs::enter(token), status::OK);
+    constexpr std::size_t ary_size = 9;
+    std::vector<std::tuple<std::string, std::string>> kv;
+    for (std::size_t i = 0; i < ary_size; ++i) {
+      kv.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+    }
+
+    std::random_device seed_gen;
+    std::mt19937 engine(seed_gen());
+    std::shuffle(kv.begin(), kv.end(), engine);
+    for (std::size_t i = 0; i < ary_size; ++i) {
+      ASSERT_EQ(status::OK, masstree_kvs::put(std::get<0>(kv.at(i)),
+                                              std::get<1>(kv.at(i)).data(), std::get<1>(kv.at(i)).size()));
+    }
+
+    for (std::size_t i = 0; i < ary_size; ++i) {
+      ASSERT_EQ(status::OK, masstree_kvs::remove(token, std::get<0>(kv.at(i))));
+      border_node *br = dynamic_cast<border_node *>(base_node::get_root());
+      if (i != ary_size - 1) {
+        ASSERT_EQ(br->get_permutation_cnk(), ary_size - i - 1);
+      }
+    }
+    ASSERT_EQ(masstree_kvs::destroy(), status::OK_ROOT_IS_NULL);
+    ASSERT_EQ(masstree_kvs::leave(token), status::OK);
+    masstree_kvs::fin();
+  }
+  masstree_kvs::init();
 }
 
 TEST_F(delete_test, delete_against_multiple_put_same_null_char_key_slice_and_different_key_length_to_multiple_border) {
