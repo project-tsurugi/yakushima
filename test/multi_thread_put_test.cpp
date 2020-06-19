@@ -214,7 +214,7 @@ TEST_F(multi_thread_put_test, put_between_split_border_and_split_interior_with_n
   masstree_kvs::init(); // fit to test destructor.
 }
 
-TEST_F(multi_thread_put_test, DISABLED_put_between_split_border_and_split_interior_with_shuffle) {
+TEST_F(multi_thread_put_test, put_between_split_border_and_split_interior_with_shuffle) {
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
   constexpr std::size_t ary_size = 100;
@@ -263,7 +263,7 @@ TEST_F(multi_thread_put_test, DISABLED_put_between_split_border_and_split_interi
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
-TEST_F(multi_thread_put_test, DISABLED_put_until_first_split_of_interior_node_with_no_shuffle) {
+TEST_F(multi_thread_put_test, put_until_first_split_of_interior_node_with_no_shuffle) {
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
   std::size_t ary_size = 241;
@@ -304,7 +304,7 @@ TEST_F(multi_thread_put_test, DISABLED_put_until_first_split_of_interior_node_wi
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
-TEST_F(multi_thread_put_test, DISABLED_put_until_first_split_of_interior_node_with_shuffle) {
+TEST_F(multi_thread_put_test, put_until_first_split_of_interior_node_with_shuffle) {
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
   std::size_t ary_size = 241;
