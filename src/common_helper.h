@@ -27,6 +27,7 @@ find_border(base_node *root, key_slice_type key_slice, key_length_type key_slice
 retry:
   base_node *n = root;
   node_version64_body v = n->get_stable_version();
+  node_version64_body ret_v = v;
   if (v.get_deleted() || !v.get_root()) {
     special_status = status::WARN_RETRY_FROM_ROOT_OF_ALL;
     return std::make_tuple(nullptr, node_version64_body());
@@ -37,12 +38,13 @@ descend:
    */
   if (n->get_version_border()) {
     special_status = status::OK;
-    return std::make_tuple(static_cast<border_node *>(n), v);
+    return std::make_tuple(static_cast<border_node *>(n), ret_v);
   }
   /**
    * @a n points to a interior_node object.
    */
   base_node *n_child = static_cast<interior_node *>(n)->get_child_of(key_slice, key_slice_length);
+  ret_v = n_child->get_stable_version();
   /**
    * As soon as you it finished operating the contents of node, read version (v_check).
    */
