@@ -368,7 +368,7 @@ TEST_F(kvs_test, put_until_first_split_of_interior_node) {
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
-TEST_F(kvs_test, DISABLED_put_until_first_split_of_interior_node_with_shuffle) {
+TEST_F(kvs_test, put_until_first_split_of_interior_node_with_shuffle) {
   masstree_kvs::fin();
   for (std::size_t h = 0; h < 30; ++h) {
     masstree_kvs::init();
@@ -404,6 +404,7 @@ TEST_F(kvs_test, DISABLED_put_until_first_split_of_interior_node_with_shuffle) {
       }
     }
 
+    std::sort(kv.begin(), kv.end());
     for (std::size_t i = 0; i <= putctr; ++i) {
       std::vector<std::tuple<char *, std::size_t>> tuple_list;
       masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(std::get<0>(kv[i])), false, tuple_list);
