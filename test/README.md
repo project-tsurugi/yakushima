@@ -5,11 +5,16 @@
   1. initialization.
 - put_get_test.cpp
   1. single put/get to one border.
-  2. multiple put/get same null char key whose length is different each other against single border node.
-  3. multiple put/get same null char key whose length is different each other against multiple border, 
-  which is across some layer.
-  4. put repeatedly until first split of border node.
-  5. put repeatedly until first split of interior node.
+  2. multiple put/get same null char key whose length is different each other 
+  against single border node.
+  3. test of 2 which is using shuffled data.
+  4. multiple put/get same null char key whose length is different each other 
+  against multiple border, which is across some layer.
+  5. test of 4 which is using shuffled data.
+  6. put repeatedly until first split of border node.
+  7. test of 6 which is using shuffled data.
+  8. put repeatedly until first split of interior node.
+  9. test of 8 which is using shuffled data.
 - delete_test.cpp
   1. delete against single put to one border.
   2. delete repeatedly until vanishing only one border node.
