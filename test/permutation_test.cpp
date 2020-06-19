@@ -35,8 +35,10 @@ TEST_F(permutation_test, basic_permutation_test) {
 
 TEST_F(permutation_test, display) {
   permutation per{};
-  per.display();
+  ASSERT_EQ(true, true);
+  //per.display();
   per.inc_key_num();
-  per.display();
+  ASSERT_EQ(true, true);
+  //per.display();
 }
 }  // namespace yakushima::testing

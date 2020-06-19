@@ -21,8 +21,10 @@ protected:
 
 TEST_F(interior_node_test, display) {
   interior_node in;
-  in.display();
+  ASSERT_EQ(true, true);
+  //in.display();
   in.init_interior();
-  in.display();
+  ASSERT_EQ(true, true);
+  //in.display();
 }
 }  // namespace yakushima::testing

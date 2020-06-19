@@ -304,7 +304,7 @@ TEST_F(multi_thread_put_test, put_until_first_split_of_interior_node_with_no_shu
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
-TEST_F(multi_thread_put_test, put_until_first_split_of_interior_node_with_shuffle) {
+TEST_F(multi_thread_put_test, DISABLED_put_until_first_split_of_interior_node_with_shuffle) {
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
   std::size_t ary_size = 241;
