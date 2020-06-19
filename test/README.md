@@ -45,7 +45,10 @@ put by multi threads and verify final state by scan.
   8. test of 7 which is using shuffled data.
   9. multiple put repeatedly until first split of interior node.
   10. test of 9 which is using shuffled data.
-  
+- multi_thread_put_delete_test.cpp<br>
+test about concurrent put/delete along with 
+multi_thread_put_test.cpp.
+
 ## developer-test
 - base_node_test.cpp
 - border_node_test.cpp
