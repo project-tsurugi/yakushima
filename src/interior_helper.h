@@ -39,7 +39,7 @@ static void insert_lv(border_node *border, std::string_view key_view, bool next_
  * @param[out] lock_list
  * @param[out] new_parent This function tells new parent to the caller via this argument.
  */
-template<class interior_node>
+template<class interior_node, class border_node>
 static void
 create_interior_parent_of_interior(interior_node *left, interior_node *right, std::vector<node_version64 *> &lock_list,
                                    base_node **new_parent);
@@ -54,7 +54,18 @@ create_interior_parent_of_interior(interior_node *left, interior_node *right, st
 template<class interior_node, class border_node>
 static void interior_split(interior_node *interior, base_node *child_node, std::vector<node_version64 *> &lock_list);
 
-template<class interior_node>
+/**
+ * @attention I have to traverse through the verification process. Because you might use an incorrect value.
+ * @tparam interior_node
+ * @tparam border_node
+ * @param origin
+ * @return
+ */
+template<class interior_node, class border_node>
+std::tuple<key_slice_type, key_length_type>
+find_lowest_key(base_node *origin);
+
+template<class interior_node, class border_node>
 static void
 create_interior_parent_of_interior(interior_node *left, interior_node *right, std::vector<node_version64 *> &lock_list,
                                    base_node **new_parent) {
@@ -67,7 +78,8 @@ create_interior_parent_of_interior(interior_node *left, interior_node *right, st
   /**
    * process base members
    */
-  ni->set_key(0, right->get_key_slice_at(0), right->get_key_length_at(0));
+  std::tuple<key_slice_type, key_length_type> pivot = find_lowest_key<interior_node, border_node>(right);
+  ni->set_key(0, std::get<0>(pivot), std::get<1>(pivot));
   /**
    * process interior node members
    */
@@ -112,11 +124,9 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
   /**
    * It inserts child_node.
    */
-  std::tuple<key_slice_type, key_length_type> visitor{child_node->get_key_slice_at(0),
-                                                      child_node->get_key_length_at(0)};
-  if (visitor <
-      std::make_tuple<key_slice_type, key_length_type>(new_interior->get_key_slice_at(0),
-                                                       new_interior->get_key_length_at(0))) {
+  std::tuple<key_slice_type, key_length_type> visitor = find_lowest_key<interior_node, border_node>(child_node);
+
+  if (visitor < find_lowest_key<interior_node, border_node>(new_interior)) {
     interior->template insert<border_node>(child_node);
   } else {
     new_interior->template insert<border_node>(child_node);
@@ -124,7 +134,7 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
 
   base_node *p = interior->lock_parent();
   if (p == nullptr) {
-    create_interior_parent_of_interior<interior_node>(interior, new_interior, lock_list, &p);
+    create_interior_parent_of_interior<interior_node, border_node>(interior, new_interior, lock_list, &p);
     /**
      * p became new root.
      */
@@ -141,7 +151,7 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
       /**
        * parent border full case
        */
-      create_interior_parent_of_interior<interior_node>(interior, new_interior, lock_list, &p);
+      create_interior_parent_of_interior<interior_node, border_node>(interior, new_interior, lock_list, &p);
       border_split<interior_node, border_node>(pb, std::string_view{reinterpret_cast<char *>(p->get_key_slice_at(0)),
                                                                     p->get_key_length_at(0)}, true, p, 0, 0,
                                                lock_list);
@@ -171,13 +181,6 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
   return;
 }
 
-/**
- * @attention I have to traverse through the verification process. Because you might use an incorrect value.
- * @tparam interior_node
- * @tparam border_node
- * @param origin
- * @return
- */
 template<class interior_node, class border_node>
 std::tuple<key_slice_type, key_length_type>
 find_lowest_key(base_node *origin) {
@@ -185,7 +188,8 @@ find_lowest_key(base_node *origin) {
     base_node *bn = origin;
     for (;;) {
       node_version64_body v = bn->get_version();
-      if ((v.get_locked() && ((v.get_inserting() && !v.get_splitting() && !v.get_deleting_node()))) || // simple inserting
+      if ((v.get_locked() && ((v.get_inserting() && !v.get_splitting() && !v.get_deleting_node()))) ||
+          // simple inserting
           (v.get_locked() && (!v.get_inserting() && !v.get_splitting() && !v.get_deleting_node()))) { // simple deleting
         _mm_pause();
         continue;

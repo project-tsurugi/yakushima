@@ -304,7 +304,7 @@ TEST_F(multi_thread_put_test, put_until_first_split_of_interior_node_with_no_shu
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
-TEST_F(multi_thread_put_test, DISABLED_put_until_first_split_of_interior_node_with_shuffle) {
+TEST_F(multi_thread_put_test, put_until_first_split_of_interior_node_with_shuffle) {
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
   std::size_t ary_size = 241;
@@ -340,7 +340,9 @@ TEST_F(multi_thread_put_test, DISABLED_put_until_first_split_of_interior_node_wi
     std::string k(1, i);
     masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(k), false,
                              tuple_list);
-    ASSERT_EQ(tuple_list.size(), i + 1);
+    if (tuple_list.size() != i + 1) {
+      ASSERT_EQ(tuple_list.size(), i + 1);
+    }
     for (std::size_t j = 0; j < i + 1; ++j) {
       std::string v(std::to_string(j));
       ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
