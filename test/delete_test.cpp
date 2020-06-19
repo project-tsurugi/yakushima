@@ -105,7 +105,8 @@ TEST_F(delete_test,
   masstree_kvs::init();
 }
 
-TEST_F(delete_test, delete_against_multiple_put_same_null_char_key_slice_and_different_key_length_to_multiple_border) {
+TEST_F(delete_test,
+       delete_against_multiple_put_same_null_char_key_slice_and_different_key_length_to_multiple_border) {
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
   constexpr std::size_t ary_size = 10;
@@ -137,6 +138,36 @@ TEST_F(delete_test, delete_against_multiple_put_same_null_char_key_slice_and_dif
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
+TEST_F(delete_test,
+       delete_against_multiple_put_same_null_char_key_slice_and_different_key_length_to_multiple_border_with_shuffle) {
+  masstree_kvs::fin();
+  for (std::size_t h = 0; h < 10; ++h) {
+    masstree_kvs::init();
+    Token token;
+    ASSERT_EQ(masstree_kvs::enter(token), status::OK);
+    constexpr std::size_t ary_size = 10;
+    std::vector<std::tuple<std::string, std::string>> kv;
+    for (std::size_t i = 0; i < ary_size; ++i) {
+      kv.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+    }
+
+    std::random_device seed_gen;
+    std::mt19937 engine(seed_gen());
+    std::shuffle(kv.begin(), kv.end(), engine);
+    for (std::size_t i = 0; i < ary_size; ++i) {
+      ASSERT_EQ(status::OK, masstree_kvs::put(std::get<0>(kv.at(i)),
+                                              std::get<1>(kv.at(i)).data(), std::get<1>(kv.at(i)).size()));
+    }
+    for (std::size_t i = 0; i < ary_size; ++i) {
+      ASSERT_EQ(status::OK, masstree_kvs::remove(token, std::get<0>(kv.at(i))));
+    }
+    ASSERT_EQ(masstree_kvs::destroy(), status::OK_ROOT_IS_NULL);
+    ASSERT_EQ(masstree_kvs::leave(token), status::OK);
+    masstree_kvs::fin();
+  }
+  masstree_kvs::init();
+}
+
 TEST_F(delete_test, delete_against_all_after_put_until_creating_interior_node) {
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
@@ -160,6 +191,43 @@ TEST_F(delete_test, delete_against_all_after_put_until_creating_interior_node) {
   }
   ASSERT_EQ(base_node::get_root(), nullptr);
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
+}
+
+TEST_F(delete_test,
+       delete_against_all_after_put_until_creating_interior_node_with_shuffle) {
+  masstree_kvs::fin();
+  for (std::size_t h = 0; h < 10; ++h) {
+    masstree_kvs::init();
+    Token token;
+    ASSERT_EQ(masstree_kvs::enter(token), status::OK);
+    constexpr std::size_t ary_size = base_node::key_slice_length + 1;
+    std::vector<std::tuple<std::string, std::string>> kv;
+    for (std::size_t i = 0; i < ary_size; ++i) {
+      kv.emplace_back(std::make_tuple(std::string(1, i), std::string(1, i)));
+    }
+    std::random_device seed_gen;
+    std::mt19937 engine(seed_gen());
+    std::shuffle(kv.begin(), kv.end(), engine);
+
+    for (std::size_t i = 0; i < ary_size; ++i) {
+      ASSERT_EQ(status::OK, masstree_kvs::put(std::get<0>(kv.at(i)),
+                                              std::get<1>(kv.at(i)).data(), std::get<1>(kv.at(i)).size()));
+    }
+
+    std::sort(kv.begin(), kv.end());
+    std::size_t lb_n{ary_size / 2 + 1};
+    for (std::size_t i = 0; i < lb_n; ++i) {
+      ASSERT_EQ(status::OK, masstree_kvs::remove(token, std::get<0>(kv.at(i))));
+    }
+    ASSERT_EQ(base_node::get_root()->get_version_border(), true);
+    for (std::size_t i = lb_n; i < ary_size; ++i) {
+      ASSERT_EQ(status::OK, masstree_kvs::remove(token, std::get<0>(kv.at(i))));
+    }
+    ASSERT_EQ(base_node::get_root(), nullptr);
+    ASSERT_EQ(masstree_kvs::leave(token), status::OK);
+    masstree_kvs::fin();
+  }
+  masstree_kvs::init();
 }
 
 TEST_F(delete_test, delete_against_put_until_first_split_of_interior_node) {
@@ -291,6 +359,38 @@ TEST_F(delete_test, delete_against_put_until_first_split_of_interior_node) {
 
   ASSERT_EQ(base_node::get_root(), nullptr);
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
+}
+
+TEST_F(delete_test,
+       delete_against_put_until_first_split_of_interior_node_with_shuffle) {
+  masstree_kvs::fin();
+  for (std::size_t h = 0; h < 10; ++h) {
+    masstree_kvs::init();
+    Token token;
+    ASSERT_EQ(masstree_kvs::enter(token), status::OK);
+    std::size_t ary_size = base_node::key_slice_length * interior_node::child_length + 1;
+
+    std::vector<std::tuple<std::string, std::string>> kv;
+    kv.reserve(ary_size);
+    std::string k[ary_size], v[ary_size];
+    for (std::size_t i = 0; i < ary_size; ++i) {
+      kv.emplace_back(std::make_tuple(std::string(1, i), std::string(1, i)));
+    }
+
+    for (std::size_t i = 0; i < ary_size; ++i) {
+      ASSERT_EQ(status::OK, masstree_kvs::put(std::get<0>(kv.at(i)),
+                                              std::get<1>(kv.at(i)).data(), std::get<1>(kv.at(i)).size()));
+    }
+
+    for (std::size_t i = 0; i < ary_size; ++i) {
+      ASSERT_EQ(status::OK, masstree_kvs::remove(token, std::get<0>(kv.at(i))));
+    }
+
+    ASSERT_EQ(base_node::get_root(), nullptr);
+    ASSERT_EQ(masstree_kvs::leave(token), status::OK);
+    masstree_kvs::fin();
+  }
+  masstree_kvs::init();
 }
 
 }  // namespace yakushima::testing
