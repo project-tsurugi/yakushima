@@ -1,4 +1,4 @@
-# yakushima - Storage Engine.
+# yakushima - Data structure (Concurrent Tree).
 
 ## Requirements
 
