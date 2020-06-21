@@ -46,7 +46,6 @@ public:
     std::uint64_t per_body(body_.load(std::memory_order_acquire));
     // decrement key number
     std::size_t cnk = per_body & cnk_mask;
-    if (cnk >= pow(2, cnk_bit_size) - 1) std::abort();
     --cnk;
     per_body &= ~cnk_mask;
     per_body |= cnk;
