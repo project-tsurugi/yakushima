@@ -265,10 +265,9 @@ TEST_F(multi_thread_put_delete_test, test4) {
   ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
 }
 
-#if 0
-TEST_F(multi_thread_put_delete_test, put_until_creating_interior_node) {
+TEST_F(multi_thread_put_delete_test, DISABLED_test5) {
   /**
-   * put until first split of interior node.
+   * The number of puts that can be split only once and the deletes are repeated in multiple threads.
    */
   Token token[2];
   ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
@@ -322,6 +321,7 @@ TEST_F(multi_thread_put_delete_test, put_until_creating_interior_node) {
   ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
 }
 
+#if 0
 TEST_F(multi_thread_put_delete_test, put_until_creating_interior_node_with_shuffle) {
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);

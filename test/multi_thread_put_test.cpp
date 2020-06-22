@@ -289,7 +289,7 @@ TEST_F(multi_thread_put_test, put_until_creating_interior_node_with_shuffle) {
 
 TEST_F(multi_thread_put_test, put_between_split_border_and_split_interior_with_no_shuffle) {
   masstree_kvs::fin(); // fit to test constructor.
-  for (size_t i = 0; i < 100; ++i) {
+  for (size_t i = 0; i < 10; ++i) {
     masstree_kvs::init();
     Token token;
     ASSERT_EQ(masstree_kvs::enter(token), status::OK);
