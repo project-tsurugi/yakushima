@@ -126,7 +126,7 @@ retry_lock_parent:
             set_child_at(n_key, nullptr);
           }
         }
-        set_version_vdelete(get_version_vdelete() + 1);
+        version_atomic_inc_vdelete();
         n_keys_decrement();
         return;
       }

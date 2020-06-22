@@ -44,12 +44,20 @@ descend:
    * @a n points to a interior_node object.
    */
   base_node *n_child = static_cast<interior_node *>(n)->get_child_of(key_slice, key_slice_length);
-  ret_v = n_child->get_stable_version();
+  if (n_child != nullptr) {
+    ret_v = n_child->get_stable_version();
+  }
   /**
    * As soon as you it finished operating the contents of node, read version (v_check).
    */
   node_version64_body v_check = n->get_stable_version();
   if (v == v_check) {
+#ifndef NDEBUG
+    if (n_child == nullptr) {
+      std::cerr << __FILE__ << " : " << __LINE__ << " : fatal error." << std::endl;
+      std::abort();
+    }
+#endif
     /**
      * This check is different with original paper's check.
      * Original paper approach merely check whether it is locked now.

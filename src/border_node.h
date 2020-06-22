@@ -47,6 +47,7 @@ public:
     } else { // not-tail
       shift_left_base_member(pos + 1, 1);
       shift_left_border_member(pos + 1, 1);
+      init_border(permutation_.get_cnk() - 1);
     }
     permutation_.dec_key_num();
     permutation_rearrange();
@@ -421,6 +422,12 @@ retry_lock_parent:
   }
 
   void shift_left_border_member(std::size_t start_pos, std::size_t shift_size) {
+#ifndef NDEBUG
+    if (start_pos < shift_size) {
+      std::cerr << __FILE__ << " : " << __LINE__ << " : fatal error." << std::endl;
+      std::abort();
+    }
+#endif
     memmove(get_lv_at(start_pos - shift_size), get_lv_at(start_pos),
             sizeof(link_or_value) * (key_slice_length - start_pos));
   }
