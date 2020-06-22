@@ -132,6 +132,7 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
     new_interior->template insert<border_node>(child_node);
   }
 
+retry_lock_parent:
   base_node *p = interior->lock_parent();
   if (p == nullptr) {
     create_interior_parent_of_interior<interior_node, border_node>(interior, new_interior, lock_list, &p);
@@ -140,6 +141,10 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
      */
     base_node::set_root(p);
     return;
+  }
+  if (p != interior->get_parent()) {
+    p->version_unlock();
+    goto retry_lock_parent;
   }
   /**
    * p exists.

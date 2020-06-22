@@ -192,12 +192,12 @@ public:
   }
 
   void set_key_length_at(std::size_t index, key_length_type length) {
-    key_length_[index] = length;
+    storeReleaseN(key_length_[index], length);
   }
 
   void set_key_slice_at(std::size_t index, key_slice_type key_slice) {
     if (index >= key_slice_length) std::abort();
-    key_slice_[index] = key_slice;
+    storeReleaseN(key_slice_[index], key_slice);
   }
 
   void set_parent(base_node *new_parent) {

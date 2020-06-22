@@ -81,8 +81,9 @@ retry_lock_parent:
                 key_length = sibling->get_key_length_at(lowest_key_pos);
                 key_view = std::string_view(reinterpret_cast<const char *>(&key_slice), key_length);
               } else {
-                key_slice = sibling->get_key_slice_at(0);
-                key_length = sibling->get_key_length_at(0);
+                std::tuple<key_slice_type, key_length_type> lowest = find_lowest_key<interior_node, border_node>(sibling);
+                key_slice = std::get<0>(lowest);
+                key_length = std::get<1>(lowest);
                 key_view = std::string_view(reinterpret_cast<const char *>(&key_slice), key_length);
               }
               if (bn->get_permutation_cnk() == base_node::key_slice_length) {
@@ -113,19 +114,17 @@ retry_lock_parent:
         } else { // n_key > 1
           if (i == 0) { // leftmost points
             shift_left_base_member(1, 1);
-            set_key(n_key - 1, 0, 0);
             shift_left_children(1, 1);
             set_child_at(n_key, nullptr);
           } else if (i == n_key) { // rightmost points
             // no unique process
-            set_key(n_key - 1, 0, 0);
             set_child_at(i, nullptr);
           } else { // middle points
             shift_left_base_member(i, 1);
-            set_key(n_key - 1, 0, 0);
             shift_left_children(i + 1, 1);
             set_child_at(n_key, nullptr);
           }
+          set_key(n_key - 1, 0, 0);
         }
         version_atomic_inc_vdelete();
         n_keys_decrement();
@@ -141,51 +140,24 @@ retry_lock_parent:
  * @brief release all heap objects and clean up.
  * @pre This function is called by single thread.
  */
-  status
-
-  destroy()
-
-  final {
-    for (
-            auto i = 0;
-            i < n_keys_ + 1; ++i) {
-      get_child_at(i)
-              ->
-
-                      destroy();
+  status destroy() final {
+    for (auto i = 0; i < n_keys_ + 1; ++i) {
+      get_child_at(i)->destroy();
     }
     delete this;
-    return
-            status::OK_DESTROY_INTERIOR;
+    return status::OK_DESTROY_INTERIOR;
   }
 
 /**
  * @details display function for analysis and debug.
  */
-  void display()
-
-  final {
+  void display() final {
     display_base();
 
-    cout << "interior_node::display" <<
-         endl;
-    cout << "nkeys_ : " <<
-
-         std::to_string(get_n_keys())
-
-         <<
-         endl;
-    for (
-            std::size_t i = 0;
-            i <=
-
-            get_n_keys();
-
-            ++i) {
-      cout << "child : " << i << " : " <<
-           get_child_at(i)
-           <<
-           endl;
+    cout << "interior_node::display" << endl;
+    cout << "nkeys_ : " << std::to_string(get_n_keys()) << endl;
+    for (std::size_t i = 0; i <= get_n_keys(); ++i) {
+      cout << "child : " << i << " : " << get_child_at(i) << endl;
     }
   }
 

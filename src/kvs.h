@@ -431,7 +431,8 @@ retry_fetch_lv:
           node_version64::unlock(lock_list);
           goto retry_from_root;
         } // here border is correct.
-        if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete()) { // the lv may be deleted.
+        if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete() || // the lv may be deleted.
+            final_check.get_vinsert() != v_at_fetch_lv.get_vinsert()) { // the lv may be next_layer.
           node_version64::unlock(lock_list);
           goto retry_fetch_lv;
         }

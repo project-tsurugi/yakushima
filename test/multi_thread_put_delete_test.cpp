@@ -427,85 +427,12 @@ TEST_F(multi_thread_put_delete_test, test6) {
   masstree_kvs::init();
 }
 
-TEST_F(multi_thread_put_delete_test, test7) {
+TEST_F(multi_thread_put_delete_test, DISABLED_test7) {
   /**
    * concurrent put/delete in the state between none to split of interior with shuffle.
    */
-  Token token[2];
-  ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
-  ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
-  constexpr std::size_t ary_size = interior_node::child_length * base_node::key_slice_length * 1.4;
-  std::vector<std::tuple<std::string, std::string>> kv1;
-  std::vector<std::tuple<std::string, std::string>> kv2;
-  for (std::size_t i = 0; i < ary_size / 2; ++i) {
-    if (i <= UINT8_MAX) {
-      kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
-    } else {
-      kv1.emplace_back(std::make_tuple(std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i), std::to_string(i)));
-    }
-  }
-  for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
-    if (i <= UINT8_MAX) {
-      kv2.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
-    } else {
-      kv2.emplace_back(std::make_tuple(std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i), std::to_string(i)));
-    }
-  }
-
-  struct S {
-    static void work(std::vector<std::tuple<std::string, std::string>> &kv, Token &token) {
-      for (std::size_t j = 0; j < 10; ++j) {
-        for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
-          ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
-        }
-        for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
-          ASSERT_EQ(status::OK, masstree_kvs::remove(token, std::string_view(k)));
-        }
-      }
-      for (auto &i : kv) {
-        std::string k(std::get<0>(i)), v(std::get<1>(i));
-        ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
-      }
-    }
-  };
-
-  std::thread t(S::work, std::ref(kv2), std::ref(token[0]));
-  S::work(std::ref(kv1), std::ref(token[1]));
-  t.join();
-
-  std::vector<std::tuple<char *, std::size_t>> tuple_list;
-  constexpr std::size_t v_index = 0;
-  for (std::size_t i = 0; i < ary_size; ++i) {
-    std::string k;
-    if (i <= UINT8_MAX) {
-      k = std::string(1, i);
-    } else {
-      k = std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i);
-    }
-    masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(k), false,
-                             tuple_list);
-    if (tuple_list.size() != i + 1) {
-      masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(k), false,
-                               tuple_list);
-      ASSERT_EQ(tuple_list.size(), i + 1);
-    }
-    for (std::size_t j = 0; j < i + 1; ++j) {
-      std::string v(std::to_string(j));
-      ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
-    }
-  }
-  ASSERT_EQ(masstree_kvs::leave(token[0]), status::OK);
-  ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
-}
-
-TEST_F(multi_thread_put_delete_test, test8) {
-  /**
-   * concurrent put/delete in the state between none to split of interior with shuffle.
-   */
-  masstree_kvs::fin(); // fit to test constructor.
-  for (size_t h = 0; h < 3; ++h) {
+  masstree_kvs::fin();
+  for (std::size_t h = 0; h < 10; ++h) {
     masstree_kvs::init();
     Token token[2];
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
@@ -525,6 +452,87 @@ TEST_F(multi_thread_put_delete_test, test8) {
         kv2.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
       } else {
         kv2.emplace_back(std::make_tuple(std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i), std::to_string(i)));
+      }
+    }
+
+    struct S {
+      static void work(std::vector<std::tuple<std::string, std::string>> &kv, Token &token) {
+        for (std::size_t j = 0; j < 10; ++j) {
+          for (auto &i : kv) {
+            std::string k(std::get<0>(i)), v(std::get<1>(i));
+            ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+          }
+          for (auto &i : kv) {
+            std::string k(std::get<0>(i)), v(std::get<1>(i));
+            ASSERT_EQ(status::OK, masstree_kvs::remove(token, std::string_view(k)));
+          }
+        }
+        for (auto &i : kv) {
+          std::string k(std::get<0>(i)), v(std::get<1>(i));
+          ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+        }
+      }
+    };
+
+    std::thread t(S::work, std::ref(kv2), std::ref(token[0]));
+    S::work(std::ref(kv1), std::ref(token[1]));
+    t.join();
+
+    std::vector<std::tuple<char *, std::size_t>> tuple_list;
+    constexpr std::size_t v_index = 0;
+    for (std::size_t i = 0; i < ary_size; ++i) {
+      std::string k;
+      if (i <= UINT8_MAX) {
+        k = std::string(1, i);
+      } else {
+        k = std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i);
+      }
+      masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(k), false,
+                               tuple_list);
+      if (tuple_list.size() != i + 1) {
+        masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(k), false,
+                                 tuple_list);
+        ASSERT_EQ(tuple_list.size(), i + 1);
+      }
+      for (std::size_t j = 0; j < i + 1; ++j) {
+        std::string v(std::to_string(j));
+        ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
+      }
+    }
+    ASSERT_EQ(masstree_kvs::leave(token[0]), status::OK);
+    ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
+    masstree_kvs::fin();
+  }
+  masstree_kvs::init();
+}
+
+TEST_F(multi_thread_put_delete_test, DISABLED_test8) {
+  /**
+   * concurrent put/delete in the state between none to split of interior with shuffle.
+   */
+  masstree_kvs::fin(); // fit to test constructor.
+  for (size_t h = 0; h < 3; ++h) {
+    masstree_kvs::init();
+    Token token[2];
+    ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
+    ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
+    constexpr std::size_t ary_size = interior_node::child_length * base_node::key_slice_length * 1.4;
+    std::vector<std::tuple<std::string, std::string>> kv1;
+    std::vector<std::tuple<std::string, std::string>> kv2;
+    for (std::size_t i = 0; i < ary_size / 2; ++i) {
+      if (i <= UINT8_MAX) {
+        kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
+      } else {
+        kv1.emplace_back(
+                std::make_tuple(std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i), std::to_string(i)));
+      }
+    }
+    for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
+      if (i <= UINT8_MAX) {
+        kv2.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
+      } else {
+        kv2.emplace_back(
+                std::make_tuple(std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i), std::to_string(i)));
       }
     }
 
@@ -602,14 +610,16 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test9) {
       if (i <= UINT8_MAX) {
         kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
       } else {
-        kv1.emplace_back(std::make_tuple(std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i), std::to_string(i)));
+        kv1.emplace_back(
+                std::make_tuple(std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i), std::to_string(i)));
       }
     }
     for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
       if (i <= UINT8_MAX) {
         kv2.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
       } else {
-        kv2.emplace_back(std::make_tuple(std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i), std::to_string(i)));
+        kv2.emplace_back(
+                std::make_tuple(std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i), std::to_string(i)));
       }
     }
 
@@ -643,7 +653,7 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test9) {
 
     std::vector<std::tuple<char *, std::size_t>> tuple_list;
     constexpr std::size_t v_index = 0;
-    for (std::size_t i = 0; i < ary_size/100; ++i) {
+    for (std::size_t i = 0; i < ary_size / 100; ++i) {
       std::string k;
       if (i <= UINT8_MAX) {
         k = std::string(1, i);
