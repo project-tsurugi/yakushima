@@ -145,6 +145,7 @@ public:
     } catch (std::bad_alloc &e) {
       std::cout << e.what() << std::endl;
       std::cerr << __FILE__ << ": " << __LINE__ << std::endl;
+      std::abort();
     }
   }
 

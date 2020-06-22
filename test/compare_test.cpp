@@ -65,6 +65,10 @@ TEST_F(compare_test, compare_string_view) {
   std::string_view tmp(a);
   tmp.remove_prefix(8);
   ASSERT_EQ(tmp == std::string_view(0, 0), true);
+  a.assign("9");
+  b.assign("10");
+  ASSERT_EQ(a > b, true);
+  ASSERT_EQ(std::string_view(a) > std::string_view(b), true);
 #if 0
   /**
    * runtime error

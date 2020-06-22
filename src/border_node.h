@@ -374,7 +374,7 @@ retry_lock_parent:
       if (next_layer) {
         set_key_length_at(index, sizeof(key_slice_type) + 1); // it means lv is next_layer.
         set_lv_next_layer(index, reinterpret_cast<base_node *>(value_ptr));
-        reinterpret_cast<base_node*>(next_layer)->set_parent(this);
+        reinterpret_cast<base_node*>(value_ptr)->set_parent(this);
       } else {
         set_key_length_at(index, key_view.size());
       }

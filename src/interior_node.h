@@ -69,7 +69,6 @@ retry_lock_parent:
             pn->version_unlock();
             goto retry_lock_parent;
           } else {
-            get_child_at(!i)->set_parent(pn);
             if (pn->get_version_border()) {
               border_node *bn = dynamic_cast<border_node *>(pn);
               base_node *sibling = get_child_at(!i);
@@ -95,6 +94,7 @@ retry_lock_parent:
                 insert_lv<interior_node, border_node>(bn, key_view, true, sibling, 0, 0, lock_list);
                 bn->delete_of(token, this, lock_list);
               }
+              sibling->atomic_set_version_root(true);
             } else {
               interior_node *in = dynamic_cast<interior_node *>(pn);
               if (in->get_n_keys() == base_node::key_slice_length) {
@@ -105,6 +105,7 @@ retry_lock_parent:
                 in->delete_of<border_node>(token, this, lock_list);
               }
             }
+            get_child_at(!i)->set_parent(pn);
             pn->version_unlock();
           }
           set_version_deleted(true);
