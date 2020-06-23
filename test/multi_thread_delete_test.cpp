@@ -281,7 +281,6 @@ TEST_F(multi_thread_delete_test, test4) {
   }
   masstree_kvs::init();
 }
-#if 0
 
 TEST_F(multi_thread_delete_test, test5) {
   /**
@@ -308,14 +307,22 @@ TEST_F(multi_thread_delete_test, test5) {
       static void put_work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
           std::string k(std::get<0>(i)), v(std::get<1>(i));
-          ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          if (ret != status::OK) {
+            EXPECT_EQ(status::OK, ret); // output log
+            std::abort();
+          }
         }
       }
 
       static void remove_work(Token &token, std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
           std::string k(std::get<0>(i)), v(std::get<1>(i));
-          ASSERT_EQ(status::OK, masstree_kvs::remove(token, std::string_view(k)));
+          status ret = masstree_kvs::remove(token, std::string_view(k));
+          if (ret != status::OK) {
+            EXPECT_EQ(status::OK, ret); // output log
+            std::abort();
+          }
         }
       }
     };
@@ -335,6 +342,7 @@ TEST_F(multi_thread_delete_test, test5) {
   masstree_kvs::init();
 }
 
+#if 0
 TEST_F(multi_thread_delete_test, put_until_creating_interior_node_with_shuffle) {
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
