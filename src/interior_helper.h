@@ -69,6 +69,8 @@ template<class interior_node, class border_node>
 static void
 create_interior_parent_of_interior(interior_node *left, interior_node *right, std::vector<node_version64 *> &lock_list,
                                    base_node **new_parent) {
+  left->set_version_root(false);
+  right->set_version_root(false);
   interior_node *ni = new interior_node();
   ni->init_interior();
   ni->set_version_root(true);
@@ -135,6 +137,10 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
 retry_lock_parent:
   base_node *p = interior->lock_parent();
   if (p == nullptr) {
+    /**
+     * The disappearance of the parent node may have made this node the root node in parallel.
+     * It cares in below function.
+     */
     create_interior_parent_of_interior<interior_node, border_node>(interior, new_interior, lock_list, &p);
     /**
      * p became new root.

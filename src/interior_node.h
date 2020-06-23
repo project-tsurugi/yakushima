@@ -62,9 +62,15 @@ public:
 retry_lock_parent:
           base_node *pn = lock_parent();
           if (pn == nullptr) {
-            get_child_at(!i)->set_parent(nullptr);
+#ifndef NDEBUG
+            if (get_root() != this) {
+              std::cerr << __FILE__ << " : " << __LINE__ <<  " : " << std::endl;
+              std::abort();
+            }
+#endif
             base_node::set_root(get_child_at(!i)); // i == 0 or 1
             base_node::get_root()->atomic_set_version_root(true);
+            get_child_at(!i)->set_parent(nullptr);
           } else if (pn != get_parent()) {
             pn->version_unlock();
             goto retry_lock_parent;
@@ -72,6 +78,7 @@ retry_lock_parent:
             if (pn->get_version_border()) {
               border_node *bn = dynamic_cast<border_node *>(pn);
               base_node *sibling = get_child_at(!i);
+              sibling->set_parent(pn);
               std::string_view key_view;
               key_slice_type key_slice;
               key_length_type key_length;
@@ -106,7 +113,6 @@ retry_lock_parent:
                 in->delete_of<border_node>(token, this, lock_list);
               }
             }
-            get_child_at(!i)->set_parent(pn);
             pn->version_unlock();
           }
           set_version_deleted(true);

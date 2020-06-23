@@ -460,16 +460,25 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test7) {
         for (std::size_t j = 0; j < 10; ++j) {
           for (auto &i : kv) {
             std::string k(std::get<0>(i)), v(std::get<1>(i));
-            ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+            status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+            if (ret != status::OK) {
+              ASSERT_EQ(ret, status::OK);
+            }
           }
           for (auto &i : kv) {
             std::string k(std::get<0>(i)), v(std::get<1>(i));
-            ASSERT_EQ(status::OK, masstree_kvs::remove(token, std::string_view(k)));
+            status ret = masstree_kvs::remove(token, std::string_view(k));
+            if (ret != status::OK) {
+              ASSERT_EQ(ret, status::OK);
+            }
           }
         }
         for (auto &i : kv) {
           std::string k(std::get<0>(i)), v(std::get<1>(i));
-          ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          if (ret != status::OK) {
+            ASSERT_EQ(ret, status::OK);
+          }
         }
       }
     };

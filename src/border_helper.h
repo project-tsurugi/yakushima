@@ -83,6 +83,8 @@ template<class interior_node, class border_node>
 static void
 create_interior_parent_of_border(border_node *left, border_node *right, std::vector<node_version64 *> &lock_list,
                                  interior_node **new_parent) {
+  left->set_version_root(false);
+  right->set_version_root(false);
   /**
    * create a new interior node p with children n, n'
    */
@@ -273,6 +275,8 @@ retry_lock_parent:
   if (p == nullptr) {
     /**
      * create interior as parents and insert k.
+     * The disappearance of the parent node may have made this node the root node in parallel.
+     * It cares in below function.
      */
     create_interior_parent_of_border<interior_node, border_node>(border, new_border, lock_list,
                                                                  reinterpret_cast<interior_node **>(&p));
