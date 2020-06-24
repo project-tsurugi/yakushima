@@ -427,9 +427,9 @@ TEST_F(multi_thread_put_delete_test, test6) {
   masstree_kvs::init();
 }
 
-TEST_F(multi_thread_put_delete_test, DISABLED_test7) {
+TEST_F(multi_thread_put_delete_test, test7) {
   /**
-   * concurrent put/delete in the state between none to split of interior with shuffle.
+   * concurrent put/delete in the state between none to split of interior.
    */
   masstree_kvs::fin();
   for (std::size_t h = 0; h < 1; ++h) {
@@ -515,12 +515,12 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test7) {
   masstree_kvs::init();
 }
 
-TEST_F(multi_thread_put_delete_test, DISABLED_test8) {
+TEST_F(multi_thread_put_delete_test, test8) {
   /**
    * concurrent put/delete in the state between none to split of interior with shuffle.
    */
   masstree_kvs::fin(); // fit to test constructor.
-  for (size_t h = 0; h < 3; ++h) {
+  for (size_t h = 0; h < 1; ++h) {
     masstree_kvs::init();
     Token token[2];
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);

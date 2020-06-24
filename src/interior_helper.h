@@ -170,23 +170,11 @@ retry_lock_parent:
   lock_list.emplace_back(p->get_version_ptr());
   if (p->get_version_border()) {
     border_node *pb = dynamic_cast<border_node *>(p);
-    if (pb->get_permutation_cnk() == base_node::key_slice_length) {
-      /**
-       * parent border full case
-       */
-      create_interior_parent_of_interior<interior_node, border_node>(interior, new_interior, lock_list, &p);
-      border_split<interior_node, border_node>(pb, std::string_view{reinterpret_cast<char *>(p->get_key_slice_at(0)),
-                                                                    p->get_key_length_at(0)}, true, p, 0, 0,
-                                               lock_list);
-      return;
-    }
-    /**
-     * parent border not-full case
-     */
-    insert_lv<interior_node, border_node>(pb,
-                                          std::string_view{reinterpret_cast<char *>(new_interior->get_key_slice_at(0)),
-                                                           new_interior->get_key_length_at(0)}, true, p, 0,
-                                          0, lock_list);
+    pb->set_version_inserting(true);
+    base_node *new_p;
+    create_interior_parent_of_interior<interior_node, border_node>(interior, new_interior, lock_list, &new_p);
+    link_or_value *lv = pb->get_lv(dynamic_cast<base_node *>(interior));
+    lv->set_next_layer(new_p);
     return;
   }
   interior_node *pi = dynamic_cast<interior_node *>(p);
