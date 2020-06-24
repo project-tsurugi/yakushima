@@ -210,6 +210,8 @@ private:
   bool locked: 1;
   /**
    * @details It shows that this nodes will be deleted.
+   * The function find_lowest_key takes the value from the node when this flag is up. Read. When we raise this flag,
+   * we guarantee that no problems will occur with it.
    */
   bool deleting_node: 1;
   /**
@@ -218,6 +220,9 @@ private:
   bool inserting: 1;
   /**
    * @details It is a dirty bit set during splitting.
+   * If this flag is set, vsplit is incremented when the lock is unlocked.
+   * The function find_lowest_key takes the value from the node when this flag is up. Read. When we raise this flag,
+   * we guarantee that no problems will occur with it.
    */
   bool splitting: 1;
   /**

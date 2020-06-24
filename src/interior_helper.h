@@ -101,7 +101,11 @@ template<class interior_node, class border_node>
 static void interior_split(interior_node *interior, base_node *child_node, std::vector<node_version64 *> &lock_list) {
   interior_node *new_interior = new interior_node();
   new_interior->init_interior();
-  interior->set_version_splitting(true);
+  /**
+   * attention : After making changes to this node, it sets a splitting flag.
+   * If a splitting flag is raised, the find_lowest_keys function may read the broken value.
+   */
+  interior->set_version_splitting(false);
   interior->set_version_root(false);
   /**
    * new interior is initially locked.
@@ -123,16 +127,24 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
   interior->move_children_to_interior_range(new_interior, split_children_points);
   interior->set_key(pivot_key, 0, 0);
 
+  interior->set_version_splitting(true);
+  new_interior->set_version_splitting(true);
   /**
    * It inserts child_node.
    */
   std::tuple<key_slice_type, key_length_type> visitor = find_lowest_key<interior_node, border_node>(child_node);
+  std::tuple<key_slice_type, key_length_type> pivot_view = find_lowest_key<interior_node, border_node>(new_interior);
 
-  if (visitor < find_lowest_key<interior_node, border_node>(new_interior)) {
+  if (visitor < pivot_view) {
+    interior->set_version_splitting(false);
     interior->template insert<border_node>(child_node);
+    interior->set_version_splitting(true);
   } else {
+    new_interior->set_version_splitting(false);
     new_interior->template insert<border_node>(child_node);
+    new_interior->set_version_splitting(true);
   }
+
 
 retry_lock_parent:
   base_node *p = interior->lock_parent();

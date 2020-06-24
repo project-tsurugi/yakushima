@@ -53,18 +53,21 @@ public:
    * @param[in] lock_list
    */
   template<class border_node>
-  void delete_of(Token token, base_node *child, std::vector<node_version64 *> &lock_list) {
+  void delete_of(Token token, base_node *child) {
     std::size_t n_key = get_n_keys();
+    if (n_key == 1) {
+      set_version_deleted(true);
+      set_version_deleting_node(true);
+    }
     for (std::size_t i = 0; i <= n_key; ++i) {
       if (get_child_at(i) == child) {
         if (n_key == 1) {
-          set_version_deleting_node(true);
 retry_lock_parent:
           base_node *pn = lock_parent();
           if (pn == nullptr) {
 #ifndef NDEBUG
             if (get_root() != this) {
-              std::cerr << __FILE__ << " : " << __LINE__ <<  " : " << std::endl;
+              std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
               std::abort();
             }
 #endif
@@ -75,47 +78,22 @@ retry_lock_parent:
             pn->version_unlock();
             goto retry_lock_parent;
           } else {
+            get_child_at(!i)->set_parent(pn);
             if (pn->get_version_border()) {
               border_node *bn = dynamic_cast<border_node *>(pn);
+              bn->set_version_inserting(true);
               base_node *sibling = get_child_at(!i);
               sibling->set_parent(pn);
-              std::string_view key_view;
-              key_slice_type key_slice;
-              key_length_type key_length;
-              if (sibling->get_version_border()) {
-                std::size_t lowest_key_pos = bn->get_permutation_lowest_key_pos();
-                key_slice = sibling->get_key_slice_at(lowest_key_pos);
-                key_length = sibling->get_key_length_at(lowest_key_pos);
-                key_view = std::string_view(reinterpret_cast<const char *>(&key_slice), key_length);
-              } else {
-                std::tuple<key_slice_type, key_length_type> lowest = find_lowest_key<interior_node, border_node>(sibling);
-                key_slice = std::get<0>(lowest);
-                key_length = std::get<1>(lowest);
-                key_view = std::string_view(reinterpret_cast<const char *>(&key_slice), key_length);
-              }
-              if (bn->get_permutation_cnk() == base_node::key_slice_length) {
-                // to prevent split
-                bn->delete_of(token, this, lock_list);
-                insert_lv<interior_node, border_node>(bn, key_view, true, sibling, 0, 0, lock_list);
-              } else {
-                // to prevent delete node entity.
-                insert_lv<interior_node, border_node>(bn, key_view, true, sibling, 0, 0, lock_list);
-                bn->delete_of(token, this, lock_list);
-              }
-              sibling->atomic_set_version_root(true);
+              link_or_value* lv = bn->get_lv(this);
+              lv->set_next_layer(sibling);
             } else {
-              interior_node *in = dynamic_cast<interior_node *>(pn);
-              if (in->get_n_keys() == base_node::key_slice_length) {
-                in->delete_of<border_node>(token, this, lock_list);
-                in->insert<border_node>(get_child_at(!i));
-              } else {
-                in->insert<border_node>(get_child_at(!i));
-                in->delete_of<border_node>(token, this, lock_list);
-              }
+              interior_node* in = dynamic_cast<interior_node *>(pn);
+              in->set_version_inserting(true);
+              in->swap_child(this, get_child_at(!i));
             }
+            pn->version_atomic_inc_vdelete();
             pn->version_unlock();
           }
-          set_version_deleted(true);
           reinterpret_cast<thread_info *>(token)->move_node_to_gc_container(this);
         } else { // n_key > 1
           if (i == 0) { // leftmost points
@@ -131,9 +109,9 @@ retry_lock_parent:
             set_child_at(n_key, nullptr);
           }
           set_key(n_key - 1, 0, 0);
+          version_atomic_inc_vdelete();
+          n_keys_decrement();
         }
-        version_atomic_inc_vdelete();
-        n_keys_decrement();
         return;
       }
     }
@@ -318,6 +296,20 @@ retry_lock_parent:
 
   void n_keys_increment() {
     n_keys_.fetch_add(1);
+  }
+
+  void swap_child(base_node *old_child, base_node *new_child) {
+    for (std::size_t i = 0; i < child_length; ++i) {
+      if (get_child_at(i) == old_child) {
+        set_child_at(i, new_child);
+        return;
+      }
+    }
+    /**
+     * unreachable point.
+     */
+     std::cerr << __FILE__ << " : " << __LINE__ << " : " << "fatal error" << std::endl;
+     std::abort();
   }
 
 private:

@@ -134,7 +134,7 @@ retry_lock_parent:
             if (pn->get_version_border()) {
               dynamic_cast<border_node *>(pn)->delete_of(token, this, lock_list);
             } else {
-              dynamic_cast<interior_node *>(pn)->delete_of<border_node>(token, this, lock_list);
+              dynamic_cast<interior_node *>(pn)->delete_of<border_node>(token, this);
             }
             pn->version_unlock();
           }
@@ -185,6 +185,25 @@ retry_lock_parent:
 
   [[nodiscard]] link_or_value *get_lv() {
     return lv_;
+  }
+
+  /**
+   * @details Find link_or_value element whose next_layer is the same as @a next_layer of the argument.
+   * @pre Executor has lock of this node. There is always a lv that points to a pointer given as an argument.
+   * @param[in] next_layer
+   * @return link_or_value*
+   */
+  [[nodiscard]] link_or_value *get_lv(base_node *next_layer) {
+    for (std::size_t i = 0; i < base_node::key_slice_length; ++i) {
+      if (lv_[i].get_next_layer() == next_layer) {
+        return &lv_[i];
+      }
+    }
+    /**
+     * unreachable point.
+     */
+    std::cerr << __FILE__ << " : " << __LINE__ << " : " << "fatal error." << std::endl;
+    std::abort();
   }
 
   [[nodiscard]] link_or_value *get_lv_at(std::size_t index) {
@@ -374,7 +393,7 @@ retry_lock_parent:
       if (next_layer) {
         set_key_length_at(index, sizeof(key_slice_type) + 1); // it means lv is next_layer.
         set_lv_next_layer(index, reinterpret_cast<base_node *>(value_ptr));
-        reinterpret_cast<base_node*>(value_ptr)->set_parent(this);
+        reinterpret_cast<base_node *>(value_ptr)->set_parent(this);
       } else {
         set_key_length_at(index, key_view.size());
       }

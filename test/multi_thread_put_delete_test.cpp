@@ -37,7 +37,7 @@ TEST_F(multi_thread_put_delete_test, test1) {
    * by multi threads.
    */
   masstree_kvs::fin();
-  for (std::size_t h = 0; h < 30; ++h) {
+  for (std::size_t h = 0; h < 1; ++h) {
     masstree_kvs::init();
     Token token[2];
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
@@ -98,7 +98,7 @@ TEST_F(multi_thread_put_delete_test, test2) {
    * test1 variant which is the test using shuffle order data.
    */
   masstree_kvs::fin();
-  for (std::size_t h = 0; h < 30; ++h) {
+  for (std::size_t h = 0; h < 1; ++h) {
     masstree_kvs::init();
     Token token[2];
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
@@ -164,7 +164,7 @@ TEST_F(multi_thread_put_delete_test, test3) {
    * which is across some layer.
    */
   masstree_kvs::fin();
-  for (std::size_t h = 0; h < 20; ++h) {
+  for (std::size_t h = 0; h < 1; ++h) {
     masstree_kvs::init();
     Token token[2];
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
@@ -229,7 +229,7 @@ TEST_F(multi_thread_put_delete_test, test4) {
    * test3 variant which is the test using shuffle order data.
    */
   masstree_kvs::fin();
-  for (std::size_t h = 0; h < 30; ++h) {
+  for (std::size_t h = 0; h < 1; ++h) {
     masstree_kvs::init();
     Token token[2];
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
@@ -294,7 +294,7 @@ TEST_F(multi_thread_put_delete_test, test5) {
    * The number of puts that can be split only once and the deletes are repeated in multiple threads.
    */
   masstree_kvs::fin();
-  for (std::size_t h = 0; h < 50; ++h) {
+  for (std::size_t h = 0; h < 1; ++h) {
     masstree_kvs::init();
     Token token[2];
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
@@ -361,7 +361,7 @@ TEST_F(multi_thread_put_delete_test, test6) {
    * Use shuffled data.
    */
   masstree_kvs::fin();
-  for (std::size_t h = 0; h < 30; ++h) {
+  for (std::size_t h = 0; h < 1; ++h) {
     masstree_kvs::init();
     Token token[2];
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
@@ -432,7 +432,7 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test7) {
    * concurrent put/delete in the state between none to split of interior with shuffle.
    */
   masstree_kvs::fin();
-  for (std::size_t h = 0; h < 30; ++h) {
+  for (std::size_t h = 0; h < 1; ++h) {
     masstree_kvs::init();
     Token token[2];
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);

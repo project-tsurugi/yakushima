@@ -7,6 +7,7 @@
 
 #include "base_node.h"
 #include "interior_helper.h"
+#include "link_or_value.h"
 
 #include "../test/include/debug.hh"
 
@@ -150,8 +151,11 @@ static void border_split(border_node *border,
   new_border->set_next(border->get_next());
   new_border->set_prev(border);
   border->set_next(new_border);
-  border->set_version_root(false);
-  border->set_version_splitting(true);
+  /**
+   * attention : After making changes to this node, it sets a splitting flag.
+   * If a splitting flag is raised, the find_lowest_keys function may read the broken value.
+   */
+  border->set_version_splitting(false);
   /**
    * new border is initially locked
    */
@@ -267,6 +271,9 @@ static void border_split(border_node *border,
     std::abort();
   }
 
+  border->set_version_splitting(true);
+  new_border->set_version_splitting(true);
+
   std::vector<base_node *> next_layers;
   std::vector<node_version64 *> next_layers_lock;
 retry_lock_parent:
@@ -294,26 +301,15 @@ retry_lock_parent:
      * The old border node which is before this split was root of the some layer.
      * So it creates new interior nodes in the layer and insert its interior pointer
      * to the (parent) border node.
+     * attention : The parent border node had this border node as one of the next_layer before the split.
+     * The pointer is exchanged for a new parent interior node.
      */
     auto pb = dynamic_cast<border_node *>(p);
     pb->set_version_inserting(true);
     interior_node *pi;
     create_interior_parent_of_border<interior_node, border_node>(border, new_border, lock_list, &pi);
-    if (pb->get_permutation_cnk() == base_node::key_slice_length) {
-      /**
-       * border full case, it splits and inserts.
-       */
-      border_split<interior_node, border_node>(pb, key_view, true, pi, 0, 0, lock_list);
-      return;
-    }
-    /**
-     * border not-full case, it inserts.
-     */
-    key_slice = pi->get_key_slice_at(0);
-    key_length = pi->get_key_length_at(0);
-    insert_lv<interior_node, border_node>(pb,
-                                          std::string_view{reinterpret_cast<char *>(&key_slice), key_length},
-                                          true, pi, 0, 0, lock_list);
+    link_or_value *lv = pb->get_lv(dynamic_cast<base_node *>(border));
+    lv->set_next_layer(pi);
     return;
   }
   /**
