@@ -427,7 +427,7 @@ TEST_F(multi_thread_put_delete_test, test6) {
   masstree_kvs::init();
 }
 
-TEST_F(multi_thread_put_delete_test, test7) {
+TEST_F(multi_thread_put_delete_test, DISABLED_test7) {
   /**
    * concurrent put/delete in the state between none to split of interior.
    */
@@ -642,16 +642,25 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test9) {
         for (std::size_t j = 0; j < 10; ++j) {
           for (auto &i : kv) {
             std::string k(std::get<0>(i)), v(std::get<1>(i));
-            ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+            status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+            if (status::OK != ret) {
+              ASSERT_EQ(status::OK, ret);
+            }
           }
           for (auto &i : kv) {
             std::string k(std::get<0>(i)), v(std::get<1>(i));
-            ASSERT_EQ(status::OK, masstree_kvs::remove(token, std::string_view(k)));
+            status ret = masstree_kvs::remove(token, std::string_view(k));
+            if (status::OK != ret) {
+              ASSERT_EQ(status::OK, ret);
+            }
           }
         }
         for (auto &i : kv) {
           std::string k(std::get<0>(i)), v(std::get<1>(i));
-          ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          if (status::OK != ret) {
+            ASSERT_EQ(status::OK, ret);
+          }
         }
       }
     };
