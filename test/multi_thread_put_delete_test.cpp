@@ -541,7 +541,7 @@ TEST_F(multi_thread_put_delete_test, test6) {
   masstree_kvs::init();
 }
 
-TEST_F(multi_thread_put_delete_test, DISABLED_test7) {
+TEST_F(multi_thread_put_delete_test, test7) {
   /**
    * concurrent put/delete in the state between none to split of interior, which is using shuffled data.
    */
@@ -569,9 +569,9 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test7) {
   std::mt19937 engine(seed_gen());
 
 #ifndef NDEBUG
-  for (std::size_t h = 0; h < 100; ++h) {
+  for (std::size_t h = 0; h < 1; ++h) {
 #else
-  for (std::size_t h = 0; h < 20; ++h) {
+  for (std::size_t h = 0; h < 200; ++h) {
 #endif
     masstree_kvs::init();
     Token token[2];
