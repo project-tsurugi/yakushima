@@ -71,8 +71,8 @@ retry_lock_parent:
               std::abort();
             }
 #endif
+            get_child_at(!i)->atomic_set_version_root(true);
             base_node::set_root(get_child_at(!i)); // i == 0 or 1
-            base_node::get_root()->atomic_set_version_root(true);
             get_child_at(!i)->set_parent(nullptr);
           } else if (pn != get_parent()) {
             pn->version_unlock();
@@ -84,10 +84,10 @@ retry_lock_parent:
               bn->set_version_inserting(true);
               base_node *sibling = get_child_at(!i);
               sibling->set_parent(pn);
-              link_or_value* lv = bn->get_lv(this);
+              link_or_value *lv = bn->get_lv(this);
               lv->set_next_layer(sibling);
             } else {
-              interior_node* in = dynamic_cast<interior_node *>(pn);
+              interior_node *in = dynamic_cast<interior_node *>(pn);
               in->set_version_inserting(true);
               in->swap_child(this, get_child_at(!i));
             }
@@ -96,6 +96,7 @@ retry_lock_parent:
           }
           version_atomic_inc_vdelete();
           reinterpret_cast<thread_info *>(token)->move_node_to_gc_container(this);
+          set_version_deleted(true);
         } else { // n_key > 1
           if (i == 0) { // leftmost points
             shift_left_base_member(1, 1);
@@ -309,8 +310,8 @@ retry_lock_parent:
     /**
      * unreachable point.
      */
-     std::cerr << __FILE__ << " : " << __LINE__ << " : " << "fatal error" << std::endl;
-     std::abort();
+    std::cerr << __FILE__ << " : " << __LINE__ << " : " << "fatal error" << std::endl;
+    std::abort();
   }
 
 private:

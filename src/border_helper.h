@@ -280,6 +280,12 @@ retry_lock_parent:
   base_node *p = border->get_parent();
   p = border->lock_parent();
   if (p == nullptr) {
+#ifndef NDEBUG
+    if (base_node::get_root() != border) {
+      std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
+      std::abort();
+    }
+#endif
     /**
      * create interior as parents and insert k.
      * The disappearance of the parent node may have made this node the root node in parallel.

@@ -149,6 +149,12 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
 retry_lock_parent:
   base_node *p = interior->lock_parent();
   if (p == nullptr) {
+#ifndef NDEBUG
+    if (base_node::get_root() != interior) {
+      std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
+      std::abort();
+    }
+#endif
     /**
      * The disappearance of the parent node may have made this node the root node in parallel.
      * It cares in below function.

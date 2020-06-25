@@ -105,12 +105,14 @@ public:
           /**
            * After this delete operation, this border node is empty.
            */
+retry_prev_lock:
           border_node *prev = get_prev();
           if (prev != nullptr) {
             prev->lock();
-            if (prev->get_version_deleted()) {
+            if (prev->get_version_deleted() ||
+                prev != get_prev()) {
               prev->version_unlock();
-              prev = nullptr;
+              goto retry_prev_lock;
             } else {
               prev->set_next(get_next());
               if (get_next() != nullptr) {
@@ -118,6 +120,8 @@ public:
               }
               prev->version_unlock();
             }
+          } else if (prev == nullptr && get_next() != nullptr) {
+            get_next()->set_prev(nullptr);
           }
           /**
            * lock order is next to prev and lower to higher.
@@ -126,6 +130,12 @@ public:
 retry_lock_parent:
           base_node *pn = lock_parent();
           if (pn == nullptr) {
+#ifndef NDEBUG
+            if (get_root() != this) {
+              std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
+              std::abort();
+            }
+#endif
             base_node::set_root(nullptr);
           } else if (get_parent() != pn) {
             pn->version_unlock();

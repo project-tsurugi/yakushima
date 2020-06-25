@@ -569,9 +569,9 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test7) {
   std::mt19937 engine(seed_gen());
 
 #ifndef NDEBUG
-  for (std::size_t h = 0; h < 1; ++h) {
+  for (std::size_t h = 0; h < 100; ++h) {
 #else
-  for (std::size_t h = 0; h < 6; ++h) {
+  for (std::size_t h = 0; h < 50; ++h) {
 #endif
     masstree_kvs::init();
     Token token[2];
