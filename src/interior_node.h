@@ -94,6 +94,7 @@ retry_lock_parent:
             pn->version_atomic_inc_vdelete();
             pn->version_unlock();
           }
+          version_atomic_inc_vdelete();
           reinterpret_cast<thread_info *>(token)->move_node_to_gc_container(this);
         } else { // n_key > 1
           if (i == 0) { // leftmost points
