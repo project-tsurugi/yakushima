@@ -589,6 +589,7 @@ TEST_F(multi_thread_put_delete_test, test7) {
             status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
+              std::abort();
             }
           }
           for (auto &i : kv) {
@@ -596,6 +597,7 @@ TEST_F(multi_thread_put_delete_test, test7) {
             status ret = masstree_kvs::remove(token, std::string_view(k));
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
+              std::abort();
             }
           }
         }
@@ -604,6 +606,7 @@ TEST_F(multi_thread_put_delete_test, test7) {
           status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
+            std::abort();
           }
         }
       }
@@ -668,7 +671,7 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test8) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-  for (std::size_t h = 0; h < 2; ++h) {
+  for (std::size_t h = 0; h < 200; ++h) {
 #endif
     masstree_kvs::init();
     Token token[2];
@@ -683,6 +686,7 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test8) {
             status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
+              std::abort();
             }
           }
           for (auto &i : kv) {
@@ -690,6 +694,7 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test8) {
             status ret = masstree_kvs::remove(token, std::string_view(k));
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
+              std::abort();
             }
           }
         }
@@ -698,6 +703,7 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test8) {
           status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
+            std::abort();
           }
         }
       }
@@ -767,7 +773,7 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test9) {
 #ifndef NDEBUG
   for (size_t h = 0; h < 1; ++h) {
 #else
-  for (size_t h = 0; h < 3; ++h) {
+  for (size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token[2];
@@ -782,16 +788,28 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test9) {
         for (std::size_t j = 0; j < 10; ++j) {
           for (auto &i : kv) {
             std::string k(std::get<0>(i)), v(std::get<1>(i));
-            ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+            status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+            if (ret != status::OK) {
+              ASSERT_EQ(ret, status::OK);
+              std::abort();
+            }
           }
           for (auto &i : kv) {
             std::string k(std::get<0>(i)), v(std::get<1>(i));
-            ASSERT_EQ(status::OK, masstree_kvs::remove(token, std::string_view(k)));
+            status ret = masstree_kvs::remove(token, std::string_view(k));
+            if (ret != status::OK) {
+              ASSERT_EQ(ret, status::OK);
+              std::abort();
+            }
           }
         }
         for (auto &i : kv) {
           std::string k(std::get<0>(i)), v(std::get<1>(i));
-          ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          if (ret != status::OK) {
+            ASSERT_EQ(ret, status::OK);
+            std::abort();
+          }
         }
       }
     };
@@ -879,6 +897,7 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test10) {
             status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
             if (status::OK != ret) {
               ASSERT_EQ(status::OK, ret);
+              std::abort();
             }
           }
           for (auto &i : kv) {
@@ -886,6 +905,7 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test10) {
             status ret = masstree_kvs::remove(token, std::string_view(k));
             if (status::OK != ret) {
               ASSERT_EQ(status::OK, ret);
+              std::abort();
             }
           }
         }
@@ -894,6 +914,7 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test10) {
           status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
           if (status::OK != ret) {
             ASSERT_EQ(status::OK, ret);
+            std::abort();
           }
         }
       }
