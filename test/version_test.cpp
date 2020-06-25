@@ -32,17 +32,6 @@ TEST_F(version_test, operator_node_version64_body_test) {
 }
 
 TEST_F(version_test, basic_node_version_test) {
-// basic member test.
-  {
-    node_version64 ver;
-    node_version64_body verbody;
-    ASSERT_EQ(ver.get_body().get_locked(), false);
-    verbody = ver.get_body();
-    verbody.set_locked(true);
-    ver.set_body(verbody);
-    ASSERT_EQ(ver.get_body().get_locked(), true);
-  }
-
   // single update test.
   {
     node_version64 ver;
@@ -55,7 +44,7 @@ TEST_F(version_test, basic_node_version_test) {
     ASSERT_EQ(ver.get_body().get_vinsert(), 100);
   }
 
-// concurrent update test.
+  // concurrent update test.
   {
     node_version64 ver;
     auto vinsert_inc_100 = [&ver]() {

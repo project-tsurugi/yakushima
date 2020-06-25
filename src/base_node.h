@@ -221,19 +221,19 @@ public:
   }
 
   void set_version_deleting_node(bool tf) {
-    version_.set_deleting_node(tf);
+    version_.atomic_set_deleting_node(tf);
   }
 
   void set_version_inserting(bool tf) {
-    version_.set_inserting(tf);
+    version_.atomic_set_inserting(tf);
   }
 
   void set_version_root(bool tf) {
-    version_.set_root(tf);
+    version_.atomic_set_root(tf);
   }
 
   void set_version_splitting(bool tf) {
-    version_.set_splitting(tf);
+    version_.atomic_set_splitting(tf);
   }
 
   void shift_left_base_member(std::size_t start_pos, std::size_t shift_size) {

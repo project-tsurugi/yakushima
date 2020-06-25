@@ -320,11 +320,51 @@ public:
     }
   }
 
+  void atomic_set_deleting_node(bool tf) &{
+    node_version64_body expected(get_body()), desired;
+    for (;;) {
+      desired = expected;
+      desired.set_deleting_node(tf);
+      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
+        break;
+    }
+  }
+
+  void atomic_set_inserting(bool tf) &{
+    node_version64_body expected(get_body()), desired;
+    for (;;) {
+      desired = expected;
+      desired.set_inserting(tf);
+      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
+        break;
+    }
+  }
+
+  void atomic_set_locked(bool tf) {
+    node_version64_body expected(get_body()), desired;
+    for (;;) {
+      desired = expected;
+      desired.set_locked(tf);
+      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
+        break;
+    }
+  }
+
   void atomic_set_root(bool tf) {
     node_version64_body expected(get_body()), desired;
     for (;;) {
       desired = expected;
       desired.set_root(tf);
+      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
+        break;
+    }
+  }
+
+  void atomic_set_splitting(bool tf) {
+    node_version64_body expected(get_body()), desired;
+    for (;;) {
+      desired = expected;
+      desired.set_splitting(tf);
       if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
         break;
     }
@@ -430,44 +470,14 @@ public:
   }
 
   void make_stable_version_forcibly() {
-    set_deleting_node(false);
-    set_inserting(false);
-    set_locked(false);
-    set_splitting(false);
+    atomic_set_deleting_node(false);
+    atomic_set_inserting(false);
+    atomic_set_locked(false);
+    atomic_set_splitting(false);
   }
 
   void set_body(node_version64_body newv) &{
     body_.store(newv, std::memory_order_release);
-  }
-
-  void set_deleting_node(bool tf) &{
-    node_version64_body new_body = get_body();
-    new_body.set_deleting_node(tf);
-    set_body(new_body);
-  }
-
-  void set_inserting(bool new_inserting) &{
-    node_version64_body new_body = get_body();
-    new_body.set_inserting(new_inserting);
-    set_body(new_body);
-  }
-
-  void set_locked(bool new_locked) &{
-    node_version64_body new_body = get_body();
-    new_body.set_locked(new_locked);
-    set_body(new_body);
-  }
-
-  void set_root(bool new_root) &{
-    node_version64_body new_body = get_body();
-    new_body.set_root(new_root);
-    set_body(new_body);
-  }
-
-  void set_splitting(bool new_splitting) &{
-    node_version64_body new_body = get_body();
-    new_body.set_splitting(new_splitting);
-    set_body(new_body);
   }
 
   /**
