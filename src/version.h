@@ -300,6 +300,26 @@ public:
     }
   }
 
+  void atomic_set_border(bool tf) {
+    node_version64_body expected(get_body()), desired;
+    for (;;) {
+      desired = expected;
+      desired.set_border(tf);
+      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
+        break;
+    }
+  }
+
+  void atomic_set_deleted(bool tf) {
+    node_version64_body expected(get_body()), desired;
+    for (;;) {
+      desired = expected;
+      desired.set_deleted(tf);
+      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
+        break;
+    }
+  }
+
   void atomic_set_root(bool tf) {
     node_version64_body expected(get_body()), desired;
     for (;;) {
@@ -377,7 +397,8 @@ public:
        * Even if the locked version is immutable, the members read at that time may be broken.
        * Therefore, you have to check the lock.
        */
-      if (sv.get_deleting_node() == false && sv.get_inserting() == false && sv.get_locked() == false && sv.get_splitting() == false) {
+      if (sv.get_deleting_node() == false && sv.get_inserting() == false && sv.get_locked() == false &&
+          sv.get_splitting() == false) {
         return sv;
       } else {
         _mm_pause();
@@ -419,19 +440,7 @@ public:
     body_.store(newv, std::memory_order_release);
   }
 
-  void set_border(bool new_border) &{
-    node_version64_body new_body = get_body();
-    new_body.set_border(new_border);
-    set_body(new_body);
-  }
-
-  void set_deleted(bool new_deleted) &{
-    node_version64_body new_body = get_body();
-    new_body.set_deleted(new_deleted);
-    set_body(new_body);
-  }
-
-  void set_deleting_node(bool tf) & {
+  void set_deleting_node(bool tf) &{
     node_version64_body new_body = get_body();
     new_body.set_deleting_node(tf);
     set_body(new_body);
@@ -461,12 +470,6 @@ public:
     set_body(new_body);
   }
 
-  void set_unused(bool new_unused) &{
-    node_version64_body new_body = get_body();
-    new_body.set_unused(new_unused);
-    set_body(new_body);
-  }
-
   void set_vdelete(node_version64_body::vdelete_type new_vdelete) &{
     node_version64_body new_body = get_body();
     new_body.set_vdelete(new_vdelete);
@@ -486,22 +489,25 @@ public:
   }
 
   /**
-   * @details This function unlocks atomically.
+   * @details This function unlocks @a atomically.
    * @pre The caller already succeeded acquiring lock.
    */
   void unlock() &{
-    node_version64_body desired(get_body());
-    if (desired.get_inserting()) {
-      desired.inc_vinsert();
-      desired.set_inserting(false);
+    node_version64_body expected(get_body()), desired;
+    for (;;) {
+      desired = expected;
+      if (desired.get_inserting()) {
+        desired.inc_vinsert();
+        desired.set_inserting(false);
+      }
+      if (desired.get_splitting()) {
+        desired.inc_vsplit();
+        desired.set_splitting(false);
+      }
+      desired.set_deleting_node(false);
+      desired.set_locked(false);
+      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire)) break;
     }
-    if (desired.get_splitting()) {
-      desired.inc_vsplit();
-      desired.set_splitting(false);
-    }
-    desired.set_deleting_node(false);
-    desired.set_locked(false);
-    set_body(desired);
   }
 
   static void unlock(std::vector<node_version64 *> &lock_list) {

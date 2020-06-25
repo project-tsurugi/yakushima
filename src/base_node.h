@@ -208,16 +208,16 @@ public:
     root_.store(nr, std::memory_order_release);
   }
 
-  void set_version(node_version64_body nv) {
+  void set_version(node_version64_body nv) { // this function is used.
     version_.set_body(nv);
   }
 
   void set_version_border(bool tf) {
-    version_.set_border(tf);
+    version_.atomic_set_border(tf);
   }
 
   void set_version_deleted(bool tf) {
-    version_.set_deleted(tf);
+    version_.atomic_set_deleted(tf);
   }
 
   void set_version_deleting_node(bool tf) {
@@ -234,10 +234,6 @@ public:
 
   void set_version_splitting(bool tf) {
     version_.set_splitting(tf);
-  }
-
-  void set_version_vdelete(std::size_t vdelete) {
-    version_.set_vdelete(vdelete);
   }
 
   void shift_left_base_member(std::size_t start_pos, std::size_t shift_size) {
