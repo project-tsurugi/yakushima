@@ -37,36 +37,54 @@ TEST_F(multi_thread_put_delete_test, test1) {
    * by multi threads.
    */
   masstree_kvs::fin();
+
+  constexpr std::size_t ary_size = 9;
+  std::vector<std::tuple<std::string, std::string>> kv1;
+  std::vector<std::tuple<std::string, std::string>> kv2;
+  for (std::size_t i = 0; i < 5; ++i) {
+    kv1.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+  }
+  for (std::size_t i = 5; i < ary_size; ++i) {
+    kv2.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+  }
+
+#ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
+#else
+  for (std::size_t h = 0; h < 100; ++h) {
+#endif
     masstree_kvs::init();
     Token token[2];
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
     ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
-    constexpr std::size_t ary_size = 9;
-    std::vector<std::tuple<std::string, std::string>> kv1;
-    std::vector<std::tuple<std::string, std::string>> kv2;
-    for (std::size_t i = 0; i < 5; ++i) {
-      kv1.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
-    }
-    for (std::size_t i = 5; i < ary_size; ++i) {
-      kv2.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
-    }
 
     struct S {
       static void work(std::vector<std::tuple<std::string, std::string>> &kv, Token &token) {
         for (std::size_t j = 0; j < 10; ++j) {
           for (auto &i : kv) {
             std::string k(std::get<0>(i)), v(std::get<1>(i));
-            ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+            status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+            if (ret != status::OK) {
+              ASSERT_EQ(ret, status::OK);
+              std::abort();
+            }
           }
           for (auto &i : kv) {
             std::string k(std::get<0>(i)), v(std::get<1>(i));
-            ASSERT_EQ(status::OK, masstree_kvs::remove(token, std::string_view(k)));
+            status ret = masstree_kvs::remove(token, std::string_view(k));
+            if (ret != status::OK) {
+              ASSERT_EQ(ret, status::OK);
+              std::abort();
+            }
           }
         }
         for (auto &i : kv) {
           std::string k(std::get<0>(i)), v(std::get<1>(i));
-          ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          if (ret != status::OK) {
+            ASSERT_EQ(ret, status::OK);
+            std::abort();
+          }
         }
       }
     };
@@ -98,40 +116,60 @@ TEST_F(multi_thread_put_delete_test, test2) {
    * test1 variant which is the test using shuffle order data.
    */
   masstree_kvs::fin();
+
+  constexpr std::size_t ary_size = 9;
+  std::vector<std::tuple<std::string, std::string>> kv1;
+  std::vector<std::tuple<std::string, std::string>> kv2;
+  for (std::size_t i = 0; i < 5; ++i) {
+    kv1.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+  }
+  for (std::size_t i = 5; i < ary_size; ++i) {
+    kv2.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+  }
+
+  std::random_device seed_gen;
+  std::mt19937 engine(seed_gen());
+
+#ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
+#else
+  for (std::size_t h = 0; h < 100; ++h) {
+#endif
     masstree_kvs::init();
     Token token[2];
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
     ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
-    constexpr std::size_t ary_size = 9;
-    std::vector<std::tuple<std::string, std::string>> kv1;
-    std::vector<std::tuple<std::string, std::string>> kv2;
-    for (std::size_t i = 0; i < 5; ++i) {
-      kv1.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
-    }
-    for (std::size_t i = 5; i < ary_size; ++i) {
-      kv2.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
-    }
 
-    std::random_device seed_gen;
-    std::mt19937 engine(seed_gen());
     std::shuffle(kv1.begin(), kv1.end(), engine);
     std::shuffle(kv2.begin(), kv2.end(), engine);
+
     struct S {
       static void work(std::vector<std::tuple<std::string, std::string>> &kv, Token &token) {
         for (std::size_t j = 0; j < 10; ++j) {
           for (auto &i : kv) {
             std::string k(std::get<0>(i)), v(std::get<1>(i));
-            ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+            status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+            if (ret != status::OK) {
+              ASSERT_EQ(ret, status::OK);
+              std::abort();
+            }
           }
           for (auto &i : kv) {
             std::string k(std::get<0>(i)), v(std::get<1>(i));
-            ASSERT_EQ(status::OK, masstree_kvs::remove(token, std::string_view(k)));
+            status ret = masstree_kvs::remove(token, std::string_view(k));
+            if (ret != status::OK) {
+              ASSERT_EQ(ret, status::OK);
+              std::abort();
+            }
           }
         }
         for (auto &i : kv) {
           std::string k(std::get<0>(i)), v(std::get<1>(i));
-          ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          if (ret != status::OK) {
+            ASSERT_EQ(ret, status::OK);
+            std::abort();
+          }
         }
       }
     };
@@ -164,23 +202,30 @@ TEST_F(multi_thread_put_delete_test, test3) {
    * which is across some layer.
    */
   masstree_kvs::fin();
+
+  constexpr std::size_t ary_size = 15;
+  std::vector<std::tuple<std::string, std::string>> kv1;
+  std::vector<std::tuple<std::string, std::string>> kv2;
+  for (std::size_t i = 0; i < ary_size / 2; ++i) {
+    kv1.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+  }
+  for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
+    kv2.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+  }
+
+  std::random_device seed_gen;
+  std::mt19937 engine(seed_gen());
+
+#ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
+#else
+  for (std::size_t h = 0; h < 100; ++h) {
+#endif
     masstree_kvs::init();
     Token token[2];
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
     ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
-    constexpr std::size_t ary_size = 15;
-    std::vector<std::tuple<std::string, std::string>> kv1;
-    std::vector<std::tuple<std::string, std::string>> kv2;
-    for (std::size_t i = 0; i < 5; ++i) {
-      kv1.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
-    }
-    for (std::size_t i = 5; i < ary_size; ++i) {
-      kv2.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
-    }
 
-    std::random_device seed_gen;
-    std::mt19937 engine(seed_gen());
     std::shuffle(kv1.begin(), kv1.end(), engine);
     std::shuffle(kv2.begin(), kv2.end(), engine);
     struct S {
@@ -188,16 +233,28 @@ TEST_F(multi_thread_put_delete_test, test3) {
         for (std::size_t j = 0; j < 10; ++j) {
           for (auto &i : kv) {
             std::string k(std::get<0>(i)), v(std::get<1>(i));
-            ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+            status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+            if (ret != status::OK) {
+              ASSERT_EQ(ret, status::OK);
+              std::abort();
+            }
           }
           for (auto &i : kv) {
             std::string k(std::get<0>(i)), v(std::get<1>(i));
-            ASSERT_EQ(status::OK, masstree_kvs::remove(token, std::string_view(k)));
+            status ret = masstree_kvs::remove(token, std::string_view(k));
+            if (ret != status::OK) {
+              ASSERT_EQ(ret, status::OK);
+              std::abort();
+            }
           }
         }
         for (auto &i : kv) {
           std::string k(std::get<0>(i)), v(std::get<1>(i));
-          ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          if (ret != status::OK) {
+            ASSERT_EQ(ret, status::OK);
+            std::abort();
+          }
         }
       }
     };
@@ -229,40 +286,60 @@ TEST_F(multi_thread_put_delete_test, test4) {
    * test3 variant which is the test using shuffle order data.
    */
   masstree_kvs::fin();
+
+  constexpr std::size_t ary_size = 15;
+  std::vector<std::tuple<std::string, std::string>> kv1;
+  std::vector<std::tuple<std::string, std::string>> kv2;
+  for (std::size_t i = 0; i < 5; ++i) {
+    kv1.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+  }
+  for (std::size_t i = 5; i < ary_size; ++i) {
+    kv2.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+  }
+
+  std::random_device seed_gen;
+  std::mt19937 engine(seed_gen());
+
+#ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
+#else
+  for (std::size_t h = 0; h < 100; ++h) {
+#endif
     masstree_kvs::init();
     Token token[2];
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
     ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
-    constexpr std::size_t ary_size = 15;
-    std::vector<std::tuple<std::string, std::string>> kv1;
-    std::vector<std::tuple<std::string, std::string>> kv2;
-    for (std::size_t i = 0; i < 5; ++i) {
-      kv1.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
-    }
-    for (std::size_t i = 5; i < ary_size; ++i) {
-      kv2.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
-    }
 
-    std::random_device seed_gen;
-    std::mt19937 engine(seed_gen());
     std::shuffle(kv1.begin(), kv1.end(), engine);
     std::shuffle(kv2.begin(), kv2.end(), engine);
+
     struct S {
       static void work(std::vector<std::tuple<std::string, std::string>> &kv, Token &token) {
         for (std::size_t j = 0; j < 10; ++j) {
           for (auto &i : kv) {
             std::string k(std::get<0>(i)), v(std::get<1>(i));
-            ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+            status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+            if (ret != status::OK) {
+              ASSERT_EQ(ret, status::OK);
+              std::abort();
+            }
           }
           for (auto &i : kv) {
             std::string k(std::get<0>(i)), v(std::get<1>(i));
-            ASSERT_EQ(status::OK, masstree_kvs::remove(token, std::string_view(k)));
+            status ret = masstree_kvs::remove(token, std::string_view(k));
+            if (ret != status::OK) {
+              ASSERT_EQ(ret, status::OK);
+              std::abort();
+            }
           }
         }
         for (auto &i : kv) {
           std::string k(std::get<0>(i)), v(std::get<1>(i));
-          ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          if (ret != status::OK) {
+            ASSERT_EQ(ret, status::OK);
+            std::abort();
+          }
         }
       }
     };
@@ -294,36 +371,54 @@ TEST_F(multi_thread_put_delete_test, test5) {
    * The number of puts that can be split only once and the deletes are repeated in multiple threads.
    */
   masstree_kvs::fin();
+
+  constexpr std::size_t ary_size = base_node::key_slice_length + 1;
+  std::vector<std::tuple<std::string, std::string>> kv1;
+  std::vector<std::tuple<std::string, std::string>> kv2;
+  for (std::size_t i = 0; i < ary_size / 2; ++i) {
+    kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
+  }
+  for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
+    kv2.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
+  }
+
+#ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
+#else
+  for (std::size_t h = 0; h < 100; ++h) {
+#endif
     masstree_kvs::init();
     Token token[2];
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
     ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
-    constexpr std::size_t ary_size = base_node::key_slice_length + 1;
-    std::vector<std::tuple<std::string, std::string>> kv1;
-    std::vector<std::tuple<std::string, std::string>> kv2;
-    for (std::size_t i = 0; i < ary_size / 2; ++i) {
-      kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
-    }
-    for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
-      kv2.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
-    }
 
     struct S {
       static void work(std::vector<std::tuple<std::string, std::string>> &kv, Token &token) {
         for (std::size_t j = 0; j < 10; ++j) {
           for (auto &i : kv) {
             std::string k(std::get<0>(i)), v(std::get<1>(i));
-            ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+            status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+            if (ret != status::OK) {
+              ASSERT_EQ(ret, status::OK);
+              std::abort();
+            }
           }
           for (auto &i : kv) {
             std::string k(std::get<0>(i)), v(std::get<1>(i));
-            ASSERT_EQ(status::OK, masstree_kvs::remove(token, std::string_view(k)));
+            status ret = masstree_kvs::remove(token, std::string_view(k));
+            if (ret != status::OK) {
+              ASSERT_EQ(ret, status::OK);
+              std::abort();
+            }
           }
         }
         for (auto &i : kv) {
           std::string k(std::get<0>(i)), v(std::get<1>(i));
-          ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          if (ret != status::OK) {
+            ASSERT_EQ(ret, status::OK);
+            std::abort();
+          }
         }
       }
     };
@@ -361,23 +456,30 @@ TEST_F(multi_thread_put_delete_test, test6) {
    * Use shuffled data.
    */
   masstree_kvs::fin();
+
+  constexpr std::size_t ary_size = base_node::key_slice_length + 1;
+  std::vector<std::tuple<std::string, std::string>> kv1;
+  std::vector<std::tuple<std::string, std::string>> kv2;
+  for (std::size_t i = 0; i < ary_size / 2; ++i) {
+    kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
+  }
+  for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
+    kv2.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
+  }
+
+  std::random_device seed_gen;
+  std::mt19937 engine(seed_gen());
+
+#ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
+#else
+  for (std::size_t h = 0; h < 100; ++h) {
+#endif
     masstree_kvs::init();
     Token token[2];
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
     ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
-    constexpr std::size_t ary_size = base_node::key_slice_length + 1;
-    std::vector<std::tuple<std::string, std::string>> kv1;
-    std::vector<std::tuple<std::string, std::string>> kv2;
-    for (std::size_t i = 0; i < ary_size / 2; ++i) {
-      kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
-    }
-    for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
-      kv2.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
-    }
 
-    std::random_device seed_gen;
-    std::mt19937 engine(seed_gen());
     std::shuffle(kv1.begin(), kv1.end(), engine);
     std::shuffle(kv2.begin(), kv2.end(), engine);
 
@@ -386,16 +488,28 @@ TEST_F(multi_thread_put_delete_test, test6) {
         for (std::size_t j = 0; j < 10; ++j) {
           for (auto &i : kv) {
             std::string k(std::get<0>(i)), v(std::get<1>(i));
-            ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+            status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+            if (ret != status::OK) {
+              ASSERT_EQ(ret, status::OK);
+              std::abort();
+            }
           }
           for (auto &i : kv) {
             std::string k(std::get<0>(i)), v(std::get<1>(i));
-            ASSERT_EQ(status::OK, masstree_kvs::remove(token, std::string_view(k)));
+            status ret = masstree_kvs::remove(token, std::string_view(k));
+            if (ret != status::OK) {
+              ASSERT_EQ(ret, status::OK);
+              std::abort();
+            }
           }
         }
         for (auto &i : kv) {
           std::string k(std::get<0>(i)), v(std::get<1>(i));
-          ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          if (ret != status::OK) {
+            ASSERT_EQ(ret, status::OK);
+            std::abort();
+          }
         }
       }
     };

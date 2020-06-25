@@ -48,7 +48,7 @@ TEST_F(multi_thread_put_test,
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 20; ++h) {
 #else
-    for (std::size_t h = 0; h < 100; ++h) {
+  for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
@@ -59,7 +59,11 @@ TEST_F(multi_thread_put_test,
       static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
           std::string k(std::get<0>(i)), v(std::get<1>(i));
-          ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          if (ret != status::OK) {
+            ASSERT_EQ(ret, status::OK);
+            std::abort();
+          }
         }
       }
     };
@@ -82,6 +86,7 @@ TEST_F(multi_thread_put_test,
     ASSERT_EQ(masstree_kvs::leave(token), status::OK);
     masstree_kvs::fin();
   }
+
   masstree_kvs::init();
 }
 
@@ -104,7 +109,7 @@ TEST_F(multi_thread_put_test,
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 5; ++h) {
 #else
-    for (std::size_t h = 0; h < 100; ++h) {
+  for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
@@ -117,7 +122,11 @@ TEST_F(multi_thread_put_test,
       static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
           std::string k(std::get<0>(i)), v(std::get<1>(i));
-          ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          if (ret != status::OK) {
+            ASSERT_EQ(status::OK, ret);
+            std::abort();
+          }
         }
       }
     };
@@ -161,7 +170,7 @@ TEST_F(multi_thread_put_test,
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 20; ++h) {
 #else
-    for (std::size_t h = 0; h < 100; ++h) {
+  for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
@@ -171,7 +180,11 @@ TEST_F(multi_thread_put_test,
       static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
           std::string k(std::get<0>(i)), v(std::get<1>(i));
-          ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          if (ret != status::OK) {
+            ASSERT_EQ(ret, status::OK);
+            std::abort();
+          }
         }
       }
     };
@@ -216,7 +229,7 @@ TEST_F(multi_thread_put_test,
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 5; ++h) {
 #else
-    for (std::size_t h = 0; h < 30; ++h) {
+  for (std::size_t h = 0; h < 30; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
@@ -229,7 +242,11 @@ TEST_F(multi_thread_put_test,
       static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
           std::string k(std::get<0>(i)), v(std::get<1>(i));
-          ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          if (ret != status::OK) {
+            ASSERT_EQ(ret, status::OK);
+            std::abort();
+          }
         }
       }
     };
@@ -271,7 +288,7 @@ TEST_F(multi_thread_put_test, put_until_creating_interior_node) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 3; ++h) {
 #else
-    for (std::size_t h = 0; h < 100; ++h) {
+  for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
@@ -281,7 +298,11 @@ TEST_F(multi_thread_put_test, put_until_creating_interior_node) {
       static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
           std::string k(std::get<0>(i)), v(std::get<1>(i));
-          ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          if (ret != status::OK) {
+            ASSERT_EQ(ret, status::OK);
+            std::abort();
+          }
         }
       }
     };
@@ -325,7 +346,7 @@ TEST_F(multi_thread_put_test, put_until_creating_interior_node_with_shuffle) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-    for (std::size_t h = 0; h < 100; ++h) {
+  for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
@@ -338,7 +359,11 @@ TEST_F(multi_thread_put_test, put_until_creating_interior_node_with_shuffle) {
       static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
           std::string k(std::get<0>(i)), v(std::get<1>(i));
-          ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          if (ret != status::OK) {
+            ASSERT_EQ(ret, status::OK);
+            std::abort();
+          }
         }
       }
     };
@@ -380,7 +405,7 @@ TEST_F(multi_thread_put_test, put_between_split_border_and_split_interior_with_n
 #ifndef NDEBUG
   for (size_t h = 0; h < 1; ++h) {
 #else
-    for (size_t h = 0; h < 100; ++h) {
+  for (size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
@@ -390,7 +415,11 @@ TEST_F(multi_thread_put_test, put_between_split_border_and_split_interior_with_n
       static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
           std::string k(std::get<0>(i)), v(std::get<1>(i));
-          ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          if (ret != status::OK) {
+            ASSERT_EQ(ret, status::OK);
+            std::abort();
+          }
         }
       }
     };
@@ -439,7 +468,7 @@ TEST_F(multi_thread_put_test, put_between_split_border_and_split_interior_with_s
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-    for (std::size_t h = 0; h < 100; ++h) {
+  for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
@@ -452,7 +481,11 @@ TEST_F(multi_thread_put_test, put_between_split_border_and_split_interior_with_s
       static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
           std::string k(std::get<0>(i)), v(std::get<1>(i));
-          ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          if (ret != status::OK) {
+            ASSERT_EQ(ret, status::OK);
+            std::abort();
+          }
         }
       }
     };
@@ -498,7 +531,7 @@ TEST_F(multi_thread_put_test, put_until_first_split_of_interior_node_with_no_shu
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-    for (std::size_t h = 0; h < 100; ++h) {
+  for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
@@ -508,7 +541,11 @@ TEST_F(multi_thread_put_test, put_until_first_split_of_interior_node_with_no_shu
       static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
           std::string k(std::get<0>(i)), v(std::get<1>(i));
-          ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          if (ret != status::OK) {
+            ASSERT_EQ(ret, status::OK);
+            std::abort();
+          }
         }
       }
     };
@@ -554,7 +591,7 @@ TEST_F(multi_thread_put_test, put_until_first_split_of_interior_node_with_shuffl
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-    for (std::size_t h = 0; h < 100; ++h) {
+  for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
@@ -567,33 +604,43 @@ TEST_F(multi_thread_put_test, put_until_first_split_of_interior_node_with_shuffl
       static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
           std::string k(std::get<0>(i)), v(std::get<1>(i));
-          ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));
+          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          if (ret != status::OK) {
+            ASSERT_EQ(ret, status::OK);
+            std::abort();
+          }
         }
       }
     };
 
     std::thread t(S::work, std::ref(kv2));
+
     S::work(std::ref(kv1));
+
     t.join();
 
     std::vector<std::tuple<char *, std::size_t>> tuple_list;
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(1, i);
-      masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(k), false,
-                               tuple_list);
+      masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(k), false, tuple_list);
       if (tuple_list.size() != i + 1) {
         ASSERT_EQ(tuple_list.size(), i + 1);
       }
+
       for (std::size_t j = 0; j < i + 1; ++j) {
         std::string v(std::to_string(j));
         ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
       }
     }
     ASSERT_EQ(masstree_kvs::leave(token), status::OK);
+
     masstree_kvs::fin();
+
   }
+
   masstree_kvs::init();
+
 }
 
 }  // namespace yakushima::testing
