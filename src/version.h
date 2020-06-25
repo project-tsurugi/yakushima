@@ -470,24 +470,6 @@ public:
     set_body(new_body);
   }
 
-  void set_vdelete(node_version64_body::vdelete_type new_vdelete) &{
-    node_version64_body new_body = get_body();
-    new_body.set_vdelete(new_vdelete);
-    set_body(new_body);
-  }
-
-  void set_vinsert(node_version64_body::vinsert_type new_vinsert) &{
-    node_version64_body new_body = get_body();
-    new_body.set_vinsert(new_vinsert);
-    set_body(new_body);
-  }
-
-  void set_vsplit(node_version64_body::vsplit_type new_vsplit) &{
-    node_version64_body new_body = get_body();
-    new_body.set_vsplit(new_vsplit);
-    set_body(new_body);
-  }
-
   /**
    * @details This function unlocks @a atomically.
    * @pre The caller already succeeded acquiring lock.
