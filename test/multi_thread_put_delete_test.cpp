@@ -22,13 +22,9 @@ namespace yakushima::testing {
 
 class multi_thread_put_delete_test : public ::testing::Test {
 protected:
-  multi_thread_put_delete_test() {
-    masstree_kvs::init();
-  }
+  multi_thread_put_delete_test() {}
 
-  ~multi_thread_put_delete_test() {
-    masstree_kvs::fin();
-  }
+  ~multi_thread_put_delete_test() {}
 };
 
 TEST_F(multi_thread_put_delete_test, test1) {
@@ -36,8 +32,6 @@ TEST_F(multi_thread_put_delete_test, test1) {
    * concurrent put/delete same null char key slices and different key length to single border
    * by multi threads.
    */
-  masstree_kvs::fin();
-
   constexpr std::size_t ary_size = 9;
   std::vector<std::tuple<std::string, std::string>> kv1;
   std::vector<std::tuple<std::string, std::string>> kv2;
@@ -108,14 +102,12 @@ TEST_F(multi_thread_put_delete_test, test1) {
     ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
     masstree_kvs::fin();
   }
-  masstree_kvs::init();
 }
 
 TEST_F(multi_thread_put_delete_test, test2) {
   /**
    * test1 variant which is the test using shuffle order data.
    */
-  masstree_kvs::fin();
 
   constexpr std::size_t ary_size = 9;
   std::vector<std::tuple<std::string, std::string>> kv1;
@@ -193,7 +185,6 @@ TEST_F(multi_thread_put_delete_test, test2) {
     ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
     masstree_kvs::fin();
   }
-  masstree_kvs::init();
 }
 
 TEST_F(multi_thread_put_delete_test, test3) {
@@ -201,7 +192,6 @@ TEST_F(multi_thread_put_delete_test, test3) {
    * multiple put same null char key whose length is different each other against multiple border,
    * which is across some layer.
    */
-  masstree_kvs::fin();
 
   constexpr std::size_t ary_size = 15;
   std::vector<std::tuple<std::string, std::string>> kv1;
@@ -278,14 +268,12 @@ TEST_F(multi_thread_put_delete_test, test3) {
     ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
     masstree_kvs::fin();
   }
-  masstree_kvs::init();
 }
 
 TEST_F(multi_thread_put_delete_test, test4) {
   /**
    * test3 variant which is the test using shuffle order data.
    */
-  masstree_kvs::fin();
 
   constexpr std::size_t ary_size = 15;
   std::vector<std::tuple<std::string, std::string>> kv1;
@@ -363,14 +351,12 @@ TEST_F(multi_thread_put_delete_test, test4) {
     ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
     masstree_kvs::fin();
   }
-  masstree_kvs::init();
 }
 
 TEST_F(multi_thread_put_delete_test, test5) {
   /**
    * The number of puts that can be split only once and the deletes are repeated in multiple threads.
    */
-  masstree_kvs::fin();
 
   constexpr std::size_t ary_size = base_node::key_slice_length + 1;
   std::vector<std::tuple<std::string, std::string>> kv1;
@@ -447,7 +433,6 @@ TEST_F(multi_thread_put_delete_test, test5) {
     ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
     masstree_kvs::fin();
   }
-  masstree_kvs::init();
 }
 
 TEST_F(multi_thread_put_delete_test, test6) {
@@ -455,7 +440,6 @@ TEST_F(multi_thread_put_delete_test, test6) {
    * The number of puts that can be split only once and the deletes are repeated in multiple threads.
    * Use shuffled data.
    */
-  masstree_kvs::fin();
 
   constexpr std::size_t ary_size = base_node::key_slice_length + 1;
   std::vector<std::tuple<std::string, std::string>> kv1;
@@ -538,14 +522,12 @@ TEST_F(multi_thread_put_delete_test, test6) {
     ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
     masstree_kvs::fin();
   }
-  masstree_kvs::init();
 }
 
 TEST_F(multi_thread_put_delete_test, test7) {
   /**
    * concurrent put/delete in the state between none to split of interior, which is using shuffled data.
    */
-  masstree_kvs::fin();
 
   constexpr std::size_t ary_size = interior_node::child_length * base_node::key_slice_length / 2;
   std::vector<std::tuple<std::string, std::string>> kv1;
@@ -641,14 +623,12 @@ TEST_F(multi_thread_put_delete_test, test7) {
     ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
     masstree_kvs::fin();
   }
-  masstree_kvs::init();
 }
 
 TEST_F(multi_thread_put_delete_test, DISABLED_test8) {
   /**
    * concurrent put/delete in the state between none to many split of interior.
    */
-  masstree_kvs::fin();
 
   constexpr std::size_t ary_size = interior_node::child_length * base_node::key_slice_length * 1.4;
   std::vector<std::tuple<std::string, std::string>> kv1;
@@ -657,19 +637,19 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test8) {
     if (i <= UINT8_MAX) {
       kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
     } else {
-      kv1.emplace_back(std::make_tuple(std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i), std::to_string(i)));
+      kv1.emplace_back(std::make_tuple(std::string(i / UINT8_MAX, 1) + std::string(1, i), std::to_string(i)));
     }
   }
   for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
     if (i <= UINT8_MAX) {
       kv2.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
     } else {
-      kv2.emplace_back(std::make_tuple(std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i), std::to_string(i)));
+      kv2.emplace_back(std::make_tuple(std::string(i / UINT8_MAX, 1) + std::string(1, i), std::to_string(i)));
     }
   }
 
 #ifndef NDEBUG
-  for (std::size_t h = 0; h < 1; ++h) {
+  for (std::size_t h = 0; h < 100; ++h) {
 #else
   for (std::size_t h = 0; h < 200; ++h) {
 #endif
@@ -738,14 +718,12 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test8) {
     ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
     masstree_kvs::fin();
   }
-  masstree_kvs::init();
 }
 
 TEST_F(multi_thread_put_delete_test, DISABLED_test9) {
   /**
    * concurrent put/delete in the state between none to many split of interior with shuffle.
    */
-  masstree_kvs::fin(); // fit to test constructor.
 
   constexpr std::size_t ary_size = interior_node::child_length * base_node::key_slice_length * 1.4;
   std::vector<std::tuple<std::string, std::string>> kv1;
@@ -843,7 +821,6 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test9) {
     ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
     masstree_kvs::fin();
   }
-  masstree_kvs::init(); // fit to test destructor.
 }
 
 TEST_F(multi_thread_put_delete_test, DISABLED_test10) {
@@ -851,7 +828,6 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test10) {
    * Reason of DISABLED_ : If you are using a laptop or VM, bad_alloc may occur due to insufficient memory.
    * long version of test 8.
    */
-  masstree_kvs::fin(); // fit to test constructor.
 
   constexpr std::size_t ary_size = interior_node::child_length * base_node::key_slice_length * 10;
   std::vector<std::tuple<std::string, std::string>> kv1;
@@ -949,7 +925,6 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test10) {
     ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
     masstree_kvs::fin();
   }
-  masstree_kvs::init(); // fit to test destructor.
 }
 
 }  // namespace yakushima::testing
