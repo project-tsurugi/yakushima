@@ -68,7 +68,7 @@ descend:
      * However,  It is never used after that scope.
      * Therefore, this can execute within if scope.
      */
-    v = n_child->get_stable_version();
+    v = ret_v;
     goto descend;
   }
   /**
