@@ -52,6 +52,10 @@ TEST_F(multi_thread_delete_test, test1) {
     Token token[2];
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
     ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
+
+    std::reverse(kv1.begin(), kv1.end());
+    std::reverse(kv2.begin(), kv2.end());
+
     struct S {
       static void put_work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
@@ -185,6 +189,9 @@ TEST_F(multi_thread_delete_test, test3) {
     Token token[2];
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
     ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
+
+    std::reverse(kv1.begin(), kv1.end());
+    std::reverse(kv2.begin(), kv2.end());
 
     struct S {
       static void put_work(std::vector<std::tuple<std::string, std::string>> &kv) {
@@ -320,6 +327,9 @@ TEST_F(multi_thread_delete_test, test5) {
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
     ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
 
+    std::reverse(kv1.begin(), kv1.end());
+    std::reverse(kv2.begin(), kv2.end());
+
     struct S {
       static void put_work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
@@ -452,6 +462,9 @@ TEST_F(multi_thread_delete_test, test7) {
     Token token[2];
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
     ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
+
+    std::reverse(kv1.begin(), kv1.end());
+    std::reverse(kv2.begin(), kv2.end());
 
     struct S {
       static void put_work(std::vector<std::tuple<std::string, std::string>> &kv) {
@@ -587,6 +600,9 @@ TEST_F(multi_thread_delete_test, test9) {
     Token token[2];
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
     ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
+
+    std::reverse(kv1.begin(), kv1.end());
+    std::reverse(kv2.begin(), kv2.end());
 
     struct S {
       static void put_work(std::vector<std::tuple<std::string, std::string>> &kv) {

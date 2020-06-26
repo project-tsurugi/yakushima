@@ -3,7 +3,6 @@
  */
 
 #include <algorithm>
-#include <future>
 #include <random>
 #include <thread>
 #include <tuple>
@@ -29,7 +28,6 @@ protected:
 
 TEST_F(multi_thread_put_test,
        put_same_null_char_key_slices_and_different_key_length_to_single_border_by_multi_thread) {
-
   constexpr std::size_t ary_size = 9;
   std::vector<std::tuple<std::string, std::string>> kv1;
   std::vector<std::tuple<std::string, std::string>> kv2;
@@ -43,12 +41,14 @@ TEST_F(multi_thread_put_test,
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 20; ++h) {
 #else
-    for (std::size_t h = 0; h < 100; ++h) {
+  for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
     ASSERT_EQ(masstree_kvs::enter(token), status::OK);
 
+    std::reverse(kv1.begin(), kv1.end());
+    std::reverse(kv2.begin(), kv2.end());
 
     struct S {
       static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
@@ -101,7 +101,7 @@ TEST_F(multi_thread_put_test,
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 5; ++h) {
 #else
-    for (std::size_t h = 0; h < 100; ++h) {
+  for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
@@ -160,11 +160,14 @@ TEST_F(multi_thread_put_test,
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 20; ++h) {
 #else
-    for (std::size_t h = 0; h < 100; ++h) {
+  for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
     ASSERT_EQ(masstree_kvs::enter(token), status::OK);
+
+    std::reverse(kv1.begin(), kv1.end());
+    std::reverse(kv2.begin(), kv2.end());
 
     struct S {
       static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
@@ -217,7 +220,7 @@ TEST_F(multi_thread_put_test,
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 5; ++h) {
 #else
-    for (std::size_t h = 0; h < 30; ++h) {
+  for (std::size_t h = 0; h < 30; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
@@ -274,11 +277,14 @@ TEST_F(multi_thread_put_test, put_until_creating_interior_node) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 3; ++h) {
 #else
-    for (std::size_t h = 0; h < 100; ++h) {
+  for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
     ASSERT_EQ(masstree_kvs::enter(token), status::OK);
+
+    std::reverse(kv1.begin(), kv1.end());
+    std::reverse(kv2.begin(), kv2.end());
 
     struct S {
       static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
@@ -330,7 +336,7 @@ TEST_F(multi_thread_put_test, put_until_creating_interior_node_with_shuffle) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-    for (std::size_t h = 0; h < 100; ++h) {
+  for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
@@ -387,11 +393,14 @@ TEST_F(multi_thread_put_test, put_between_split_border_and_split_interior_with_n
 #ifndef NDEBUG
   for (size_t h = 0; h < 1; ++h) {
 #else
-    for (size_t h = 0; h < 100; ++h) {
+  for (size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
     ASSERT_EQ(masstree_kvs::enter(token), status::OK);
+
+    std::reverse(kv1.begin(), kv1.end());
+    std::reverse(kv2.begin(), kv2.end());
 
     struct S {
       static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
@@ -448,7 +457,7 @@ TEST_F(multi_thread_put_test, put_between_split_border_and_split_interior_with_s
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-    for (std::size_t h = 0; h < 100; ++h) {
+  for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
@@ -509,11 +518,14 @@ TEST_F(multi_thread_put_test, put_until_first_split_of_interior_node_with_no_shu
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-    for (std::size_t h = 0; h < 100; ++h) {
+  for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
     ASSERT_EQ(masstree_kvs::enter(token), status::OK);
+
+    std::reverse(kv1.begin(), kv1.end());
+    std::reverse(kv2.begin(), kv2.end());
 
     struct S {
       static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
@@ -567,7 +579,7 @@ TEST_F(multi_thread_put_test, put_until_first_split_of_interior_node_with_shuffl
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-    for (std::size_t h = 0; h < 100; ++h) {
+  for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token;

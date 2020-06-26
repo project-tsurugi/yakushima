@@ -52,6 +52,9 @@ TEST_F(multi_thread_put_delete_test, test1) {
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
     ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
 
+    std::reverse(kv1.begin(), kv1.end());
+    std::reverse(kv2.begin(), kv2.end());
+
     struct S {
       static void work(std::vector<std::tuple<std::string, std::string>> &kv, Token &token) {
         for (std::size_t j = 0; j < 10; ++j) {
@@ -378,6 +381,9 @@ TEST_F(multi_thread_put_delete_test, test5) {
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
     ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
 
+    std::reverse(kv1.begin(), kv1.end());
+    std::reverse(kv2.begin(), kv2.end());
+
     struct S {
       static void work(std::vector<std::tuple<std::string, std::string>> &kv, Token &token) {
         for (std::size_t j = 0; j < 10; ++j) {
@@ -524,7 +530,7 @@ TEST_F(multi_thread_put_delete_test, test6) {
   }
 }
 
-TEST_F(multi_thread_put_delete_test, test7) {
+TEST_F(multi_thread_put_delete_test, DISABLED_test7) {
   /**
    * concurrent put/delete in the state between none to split of interior, which is using shuffled data.
    */

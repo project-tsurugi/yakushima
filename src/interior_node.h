@@ -218,7 +218,7 @@ retry_lock_parent:
       constexpr std::size_t slice_pos = 0;
       constexpr std::size_t slice_length_pos = 1;
       if (visitor < resident) {
-        if (i == 0) { // insert to leftmost points
+        if (i == 0) { // insert to child[0] or child[1].
           shift_right_base_member(i, 1);
           std::tuple<key_slice_type, key_length_type> lowest = find_lowest_key<interior_node, border_node>(
                   get_child_at(0));
