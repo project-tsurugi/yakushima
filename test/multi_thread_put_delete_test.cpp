@@ -631,7 +631,7 @@ TEST_F(multi_thread_put_delete_test, test7) {
   }
 }
 
-TEST_F(multi_thread_put_delete_test, DISABLED_test8) {
+TEST_F(multi_thread_put_delete_test, test8) {
   /**
    * concurrent put/delete in the state between none to many split of interior.
    */
@@ -655,9 +655,9 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test8) {
   }
 
 #ifndef NDEBUG
-  for (std::size_t h = 0; h < 100; ++h) {
+  for (std::size_t h = 0; h < 1; ++h) {
 #else
-  for (std::size_t h = 0; h < 20; ++h) {
+  for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token[2];
@@ -729,7 +729,7 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test8) {
   }
 }
 
-TEST_F(multi_thread_put_delete_test, DISABLED_test9) {
+TEST_F(multi_thread_put_delete_test, test9) {
   /**
    * concurrent put/delete in the state between none to many split of interior with shuffle.
    */
@@ -864,7 +864,7 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test10) {
 #ifndef NDEBUG
   for (size_t h = 0; h < 1; ++h) {
 #else
-  for (size_t h = 0; h < 3; ++h) {
+  for (size_t h = 0; h < 1; ++h) {
 #endif
     masstree_kvs::init();
     Token token[2];
