@@ -530,7 +530,7 @@ TEST_F(multi_thread_put_delete_test, test6) {
   }
 }
 
-TEST_F(multi_thread_put_delete_test, DISABLED_test7) {
+TEST_F(multi_thread_put_delete_test, test7) {
   /**
    * concurrent put/delete in the state between none to split of interior, which is using shuffled data.
    */
@@ -657,12 +657,15 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test8) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 100; ++h) {
 #else
-  for (std::size_t h = 0; h < 200; ++h) {
+  for (std::size_t h = 0; h < 20; ++h) {
 #endif
     masstree_kvs::init();
     Token token[2];
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
     ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
+
+    std::reverse(kv1.begin(), kv1.end());
+    std::reverse(kv2.begin(), kv2.end());
 
     struct S {
       static void work(std::vector<std::tuple<std::string, std::string>> &kv, Token &token) {
