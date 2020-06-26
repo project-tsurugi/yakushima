@@ -88,7 +88,9 @@ public:
     std::uint64_t per_body(body_.load(std::memory_order_acquire));
     // increment key number
     std::size_t cnk = per_body & cnk_mask;
+#ifndef NDEBUG
     if (cnk >= pow(2, cnk_bit_size) - 1) std::abort();
+#endif
     ++cnk;
     per_body &= ~cnk_mask;
     per_body |= cnk;
@@ -138,7 +140,12 @@ public:
   }
 
   status set_cnk(uint8_t new_cnk) &{
-    if (powl(2, cnk_bit_size) <= new_cnk) return status::WARN_BAD_USAGE;
+#ifndef NDEBUG
+    if (powl(2, cnk_bit_size) <= new_cnk) {
+      std::cerr << __FILE__ << " : " << __LINE__ << " : fatal error." << std::endl;
+      std::abort();
+    }
+#endif
     std::uint64_t body = body_.load(std::memory_order_acquire);
     body &= ~cnk_mask;
     body |= new_cnk;

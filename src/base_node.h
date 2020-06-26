@@ -271,6 +271,10 @@ public:
     version_.atomic_inc_vdelete();
   }
 
+  void version_atomic_inc_vinsert() {
+    version_.atomic_inc_vinsert();
+  }
+
 private:
   friend masstree_kvs;
   /**

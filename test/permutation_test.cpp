@@ -29,7 +29,6 @@ TEST_F(permutation_test, basic_permutation_test) {
   ASSERT_EQ(per.get_cnk(), 0);
   ASSERT_EQ(per.set_cnk(1), status::OK);
   ASSERT_EQ(per.get_cnk(), 1);
-  ASSERT_EQ(per.set_cnk(16), status::WARN_BAD_USAGE);
   ASSERT_EQ(per.get_cnk(), 1); // check invariant.
 }
 

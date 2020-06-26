@@ -91,6 +91,7 @@ retry_lock_parent:
               in->set_version_inserting(true);
               in->swap_child(this, get_child_at(!i));
             }
+            pn->version_atomic_inc_vinsert();
             pn->version_atomic_inc_vdelete();
             pn->version_unlock();
           }

@@ -637,14 +637,14 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test8) {
     if (i <= UINT8_MAX) {
       kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
     } else {
-      kv1.emplace_back(std::make_tuple(std::string(i / UINT8_MAX, 1) + std::string(1, i), std::to_string(i)));
+      kv1.emplace_back(std::make_tuple(std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i), std::to_string(i)));
     }
   }
   for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
     if (i <= UINT8_MAX) {
       kv2.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
     } else {
-      kv2.emplace_back(std::make_tuple(std::string(i / UINT8_MAX, 1) + std::string(1, i), std::to_string(i)));
+      kv2.emplace_back(std::make_tuple(std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i), std::to_string(i)));
     }
   }
 
