@@ -862,7 +862,7 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test10) {
   std::mt19937 engine(seed_gen());
 
 #ifndef NDEBUG
-  for (size_t h = 0; h < 1; ++h) {
+  for (size_t h = 0; h < 100; ++h) {
 #else
   for (size_t h = 0; h < 1; ++h) {
 #endif

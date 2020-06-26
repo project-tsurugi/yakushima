@@ -86,6 +86,7 @@ retry_lock_parent:
               sibling->set_parent(pn);
               link_or_value *lv = bn->get_lv(this);
               lv->set_next_layer(sibling);
+              sibling->atomic_set_version_root(true);
             } else {
               interior_node *in = dynamic_cast<interior_node *>(pn);
               in->set_version_inserting(true);
