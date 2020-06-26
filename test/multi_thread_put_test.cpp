@@ -22,18 +22,13 @@ namespace yakushima::testing {
 
 class multi_thread_put_test : public ::testing::Test {
 protected:
-  multi_thread_put_test() {
-    masstree_kvs::init();
-  }
+  multi_thread_put_test() {}
 
-  ~multi_thread_put_test() {
-    masstree_kvs::fin();
-  }
+  ~multi_thread_put_test() {}
 };
 
 TEST_F(multi_thread_put_test,
        put_same_null_char_key_slices_and_different_key_length_to_single_border_by_multi_thread) {
-  masstree_kvs::fin();
 
   constexpr std::size_t ary_size = 9;
   std::vector<std::tuple<std::string, std::string>> kv1;
@@ -48,7 +43,7 @@ TEST_F(multi_thread_put_test,
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 20; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
@@ -86,13 +81,10 @@ TEST_F(multi_thread_put_test,
     ASSERT_EQ(masstree_kvs::leave(token), status::OK);
     masstree_kvs::fin();
   }
-
-  masstree_kvs::init();
 }
 
 TEST_F(multi_thread_put_test,
        put_same_null_char_key_slices_and_different_key_length_to_single_border_by_multi_thread_with_shuffle) {
-  masstree_kvs::fin();
 
   constexpr std::size_t ary_size = 9;
   std::vector<std::tuple<std::string, std::string>> kv1;
@@ -109,7 +101,7 @@ TEST_F(multi_thread_put_test,
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 5; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
@@ -150,12 +142,10 @@ TEST_F(multi_thread_put_test,
     masstree_kvs::destroy();
     masstree_kvs::fin();
   }
-  masstree_kvs::init();
 }
 
 TEST_F(multi_thread_put_test,
        put_same_null_char_key_slices_and_different_key_length_to_multiple_border_by_multi_thread) {
-  masstree_kvs::fin();
 
   constexpr std::size_t ary_size = 15;
   std::vector<std::tuple<std::string, std::string>> kv1;
@@ -170,7 +160,7 @@ TEST_F(multi_thread_put_test,
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 20; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
@@ -207,12 +197,10 @@ TEST_F(multi_thread_put_test,
     ASSERT_EQ(masstree_kvs::leave(token), status::OK);
     masstree_kvs::fin();
   }
-  masstree_kvs::init();
 }
 
 TEST_F(multi_thread_put_test,
        put_same_null_char_key_slices_and_different_key_length_to_multiple_border_by_multi_thread_with_shuffle) {
-  masstree_kvs::fin();
 
   constexpr std::size_t ary_size = 15;
   std::vector<std::tuple<std::string, std::string>> kv1;
@@ -229,7 +217,7 @@ TEST_F(multi_thread_put_test,
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 5; ++h) {
 #else
-  for (std::size_t h = 0; h < 30; ++h) {
+    for (std::size_t h = 0; h < 30; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
@@ -269,11 +257,9 @@ TEST_F(multi_thread_put_test,
     ASSERT_EQ(masstree_kvs::leave(token), status::OK);
     masstree_kvs::fin();
   }
-  masstree_kvs::init();
 }
 
 TEST_F(multi_thread_put_test, put_until_creating_interior_node) {
-  masstree_kvs::fin();
 
   constexpr std::size_t ary_size = base_node::key_slice_length + 1;
   std::vector<std::tuple<std::string, std::string>> kv1;
@@ -288,7 +274,7 @@ TEST_F(multi_thread_put_test, put_until_creating_interior_node) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 3; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
@@ -325,11 +311,9 @@ TEST_F(multi_thread_put_test, put_until_creating_interior_node) {
     ASSERT_EQ(masstree_kvs::leave(token), status::OK);
     masstree_kvs::fin();
   }
-  masstree_kvs::init();
 }
 
 TEST_F(multi_thread_put_test, put_until_creating_interior_node_with_shuffle) {
-  masstree_kvs::fin();
 
   constexpr std::size_t ary_size = base_node::key_slice_length + 1;
   std::vector<std::tuple<std::string, std::string>> kv1;
@@ -346,7 +330,7 @@ TEST_F(multi_thread_put_test, put_until_creating_interior_node_with_shuffle) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
@@ -386,11 +370,9 @@ TEST_F(multi_thread_put_test, put_until_creating_interior_node_with_shuffle) {
     ASSERT_EQ(masstree_kvs::leave(token), status::OK);
     masstree_kvs::fin();
   }
-  masstree_kvs::init();
 }
 
 TEST_F(multi_thread_put_test, put_between_split_border_and_split_interior_with_no_shuffle) {
-  masstree_kvs::fin(); // fit to test constructor.
 
   constexpr std::size_t ary_size = 100;
   std::vector<std::tuple<std::string, std::string>> kv1;
@@ -405,7 +387,7 @@ TEST_F(multi_thread_put_test, put_between_split_border_and_split_interior_with_n
 #ifndef NDEBUG
   for (size_t h = 0; h < 1; ++h) {
 #else
-  for (size_t h = 0; h < 100; ++h) {
+    for (size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
@@ -446,11 +428,9 @@ TEST_F(multi_thread_put_test, put_between_split_border_and_split_interior_with_n
     ASSERT_EQ(masstree_kvs::leave(token), status::OK);
     masstree_kvs::fin();
   }
-  masstree_kvs::init(); // fit to test destructor.
 }
 
 TEST_F(multi_thread_put_test, put_between_split_border_and_split_interior_with_shuffle) {
-  masstree_kvs::fin();
 
   constexpr std::size_t ary_size = 100;
   std::vector<std::tuple<std::string, std::string>> kv1;
@@ -468,7 +448,7 @@ TEST_F(multi_thread_put_test, put_between_split_border_and_split_interior_with_s
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
@@ -512,11 +492,9 @@ TEST_F(multi_thread_put_test, put_between_split_border_and_split_interior_with_s
     ASSERT_EQ(masstree_kvs::leave(token), status::OK);
     masstree_kvs::fin();
   }
-  masstree_kvs::init();
 }
 
 TEST_F(multi_thread_put_test, put_until_first_split_of_interior_node_with_no_shuffle) {
-  masstree_kvs::fin();
 
   std::size_t ary_size = 241;
   std::vector<std::tuple<std::string, std::string>> kv1;
@@ -531,7 +509,7 @@ TEST_F(multi_thread_put_test, put_until_first_split_of_interior_node_with_no_shu
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
@@ -569,11 +547,9 @@ TEST_F(multi_thread_put_test, put_until_first_split_of_interior_node_with_no_shu
     ASSERT_EQ(masstree_kvs::leave(token), status::OK);
     masstree_kvs::fin();
   }
-  masstree_kvs::init();
 }
 
 TEST_F(multi_thread_put_test, put_until_first_split_of_interior_node_with_shuffle) {
-  masstree_kvs::fin();
 
   std::size_t ary_size = 241;
   std::vector<std::tuple<std::string, std::string>> kv1;
@@ -591,7 +567,7 @@ TEST_F(multi_thread_put_test, put_until_first_split_of_interior_node_with_shuffl
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token;
@@ -614,9 +590,7 @@ TEST_F(multi_thread_put_test, put_until_first_split_of_interior_node_with_shuffl
     };
 
     std::thread t(S::work, std::ref(kv2));
-
     S::work(std::ref(kv1));
-
     t.join();
 
     std::vector<std::tuple<char *, std::size_t>> tuple_list;
@@ -636,11 +610,7 @@ TEST_F(multi_thread_put_test, put_until_first_split_of_interior_node_with_shuffl
     ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 
     masstree_kvs::fin();
-
   }
-
-  masstree_kvs::init();
-
 }
 
 }  // namespace yakushima::testing
