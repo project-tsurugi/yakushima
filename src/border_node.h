@@ -410,10 +410,12 @@ retry_lock_parent:
      */
     key_slice_type key_slice(0);
     if (key_view.size() > sizeof(key_slice_type)) {
+#ifndef NDEBUG
       if (next_layer) {
         std::cerr << __FILE__ << " : " << __LINE__ << " : unreachable point." << endl;
         std::abort();
       }
+#endif
       /**
        * Create multiple border nodes.
        */
@@ -424,8 +426,6 @@ retry_lock_parent:
        * key_length_type must be a large size type.
        */
       set_key_length_at(index, sizeof(key_slice_type) + 1);
-      permutation_.inc_key_num();
-      permutation_rearrange();
       border_node *next_layer_border = new border_node();
       key_view.remove_prefix(sizeof(key_slice_type));
       /**
@@ -436,29 +436,27 @@ retry_lock_parent:
       next_layer_border->set_parent(this);
       set_lv_next_layer(index, next_layer_border);
     } else {
-      if (key_view.size() > 0) {
-        memcpy(&key_slice, key_view.data(), key_view.size());
-      }
+      memcpy(&key_slice, key_view.data(), key_view.size());
+      set_key_slice_at(index, key_slice);
       if (next_layer) {
         set_key_length_at(index, sizeof(key_slice_type) + 1); // it means lv is next_layer.
         set_lv_next_layer(index, reinterpret_cast<base_node *>(value_ptr));
         reinterpret_cast<base_node *>(value_ptr)->set_parent(this);
       } else {
         set_key_length_at(index, key_view.size());
+        set_lv_value(index, value_ptr, arg_value_length, value_align);
       }
-      set_key_slice_at(index, key_slice);
-      permutation_.inc_key_num();
-      permutation_rearrange();
-      set_lv_value(index, value_ptr, arg_value_length, value_align);
     }
+    permutation_.inc_key_num();
+    permutation_rearrange();
   }
 
   void permutation_rearrange() {
     permutation_.rearrange(get_key_slice(), get_key_length());
   }
 
-  void set_permutation_cnk(std::uint8_t ncnk) {
-    permutation_.set_cnk(ncnk);
+  void set_permutation_cnk(std::uint8_t n) {
+    permutation_.set_cnk(n);
   }
 
   /**

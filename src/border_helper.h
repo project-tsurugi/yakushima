@@ -237,7 +237,7 @@ static void border_split(border_node *border,
   key_length_type key_length;
   if (key_view.size() > sizeof(key_slice_type)) {
     memcpy(&key_slice, key_view.data(), sizeof(key_slice_type));
-    key_length = sizeof(key_slice_type);
+    key_length = sizeof(key_slice_type) + 1;
   } else {
     if (key_view.size() > 0) {
       memcpy(&key_slice, key_view.data(), key_view.size());
@@ -254,7 +254,7 @@ static void border_split(border_node *border,
      */
     insert_lv<interior_node, border_node>(border, key_view, next_layer, value_ptr, value_length, value_align,
                                           lock_list);
-  } else if (visitor > r_low) {
+  } else {
     /**
      * insert to higher border node.
      * @attention lock_list will not be added new lock.
@@ -262,13 +262,6 @@ static void border_split(border_node *border,
     insert_lv<interior_node, border_node>(new_border, key_view, next_layer, value_ptr, value_length,
                                           value_align,
                                           lock_list);
-  } else {
-    /**
-     * It did not have a matching key, so it ran inert_lv.
-     * There should be no matching keys even if it splited this border.
-     */
-    std::cerr << __FILE__ << " : " << __LINE__ << " : " << "split fatal error" << std::endl;
-    std::abort();
   }
 
   border->set_version_splitting(true);
