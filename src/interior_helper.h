@@ -173,6 +173,12 @@ retry_lock_parent:
   /**
    * p exists.
    */
+#ifndef NDEBUG
+  if (p->get_version_deleted()) {
+    std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
+    std::abort();
+  }
+#endif
   lock_list.emplace_back(p->get_version_ptr());
   if (p->get_version_border()) {
     border_node *pb = dynamic_cast<border_node *>(p);
@@ -181,6 +187,7 @@ retry_lock_parent:
     create_interior_parent_of_interior<interior_node, border_node>(interior, new_interior, lock_list, &new_p);
     link_or_value *lv = pb->get_lv(dynamic_cast<base_node *>(interior));
     lv->set_next_layer(new_p);
+    p->version_atomic_inc_vdelete();
     return;
   }
   interior_node *pi = dynamic_cast<interior_node *>(p);
