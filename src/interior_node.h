@@ -55,13 +55,10 @@ public:
   template<class border_node>
   void delete_of(Token token, base_node *child) {
     std::size_t n_key = get_n_keys();
-    if (n_key == 1) {
-      set_version_deleted(true);
-      set_version_deleting_node(true);
-    }
     for (std::size_t i = 0; i <= n_key; ++i) {
       if (get_child_at(i) == child) {
         if (n_key == 1) {
+          set_version_deleting_node(true);
 retry_lock_parent:
           base_node *pn = lock_parent();
           if (pn == nullptr) {
@@ -73,6 +70,7 @@ retry_lock_parent:
 #endif
             get_child_at(!i)->atomic_set_version_root(true);
             base_node::set_root(get_child_at(!i)); // i == 0 or 1
+            std::atomic_thread_fence(std::memory_order_release); // wait store (base_node::set_root).
             get_child_at(!i)->set_parent(nullptr);
           } else if (pn != get_parent()) {
             pn->version_unlock();
@@ -90,7 +88,13 @@ retry_lock_parent:
               bn->set_version_inserting(true);
               base_node *sibling = get_child_at(!i);
               sibling->set_parent(pn);
-              link_or_value *lv = bn->get_lv(this);
+              link_or_value *lv = bn->get_lv_without_lock(this);
+#ifndef NDEBUG
+              if (lv == nullptr) {
+                std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
+                std::abort();
+              }
+#endif
               lv->set_next_layer(sibling);
               sibling->atomic_set_version_root(true);
             } else {
