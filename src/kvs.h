@@ -149,7 +149,7 @@ retry_fetch_lv:
       return std::make_tuple(reinterpret_cast<ValueType *>(vp), v_size);
     }
 
-    base_node *next_layer = lv_ptr->get_next_layer();
+    root = lv_ptr->get_next_layer();
     node_version64_body final_check = target_border->get_stable_version();
     if (final_check.get_vsplit() != v_at_fb.get_vsplit()
         || final_check.get_deleted()) {
@@ -160,7 +160,6 @@ retry_fetch_lv:
       goto retry_fetch_lv;
     }
     traverse_key_view.remove_prefix(sizeof(key_slice_type));
-    root = next_layer;
     goto retry_find_border;
   }
 
