@@ -216,6 +216,39 @@ retry_lock_parent:
     std::abort();
   }
 
+  /**
+   * @details Find link_or_value element whose next_layer is the same as @a next_layer of the argument.
+   * @pre it is called at functions about deleting node.
+   * @param[in] next_layer
+   * @return link_or_value*
+   */
+  [[nodiscard]] link_or_value *get_lv_without_lock(base_node *next_layer) {
+    for (;;) {
+      node_version64_body v = get_version();
+      if ((v.get_locked() && ((v.get_inserting() && !v.get_splitting() && !v.get_deleting_node()))) ||
+          // simple inserting
+          (v.get_locked() && (!v.get_inserting() && !v.get_splitting() && !v.get_deleting_node()))) { // simple deleting
+        _mm_pause();
+        continue;
+      }
+
+      link_or_value *ret = nullptr;
+      for (std::size_t i = 0; i < base_node::key_slice_length; ++i) {
+        if (lv_[i].get_next_layer() == next_layer) {
+          ret = &lv_[i];
+          break;
+        }
+      }
+
+      node_version64_body check = get_version();
+      if (v == check) {
+        return ret;
+      } else {
+        continue;
+      }
+    }
+  }
+
   [[nodiscard]] link_or_value *get_lv_at(std::size_t index) {
     return &lv_[index];
   }
