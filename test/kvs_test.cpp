@@ -31,7 +31,7 @@ protected:
 
 TEST_F(kvs_test, init) {
   ASSERT_EQ(base_node::get_root(), nullptr);
-  Token token;
+  Token token{};
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
   std::string k("a"), v("v-a");
   ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view(k), v.data(), v.size()));

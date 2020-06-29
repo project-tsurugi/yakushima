@@ -224,18 +224,10 @@ find_lowest_key(base_node *origin) {
       if (bn->get_version_border()) {
         border_node *target = reinterpret_cast<border_node *>(bn);
         std::size_t low_pos = target->get_permutation_lowest_key_pos();
-        if (bn->get_key_length_at(low_pos) <= sizeof(key_slice_type)) {
-          key_slice_type kslice = bn->get_key_slice_at(low_pos);
-          key_length_type klength = bn->get_key_length_at(low_pos);
-          if (v == bn->get_version()) {
-            return std::make_tuple(kslice, klength);
-          }
-        } else {
-          base_node *ret = target->get_lv_at(low_pos)->get_next_layer();
-          if (v == bn->get_version()) {
-            bn = ret;
-            continue;
-          }
+        key_slice_type kslice = bn->get_key_slice_at(low_pos);
+        key_length_type klength = bn->get_key_length_at(low_pos);
+        if (v == bn->get_version()) {
+          return std::make_tuple(kslice, klength);
         }
         if (bn->get_version_deleted() ||
             (v.get_vsplit() != bn->get_version_vsplit())) {

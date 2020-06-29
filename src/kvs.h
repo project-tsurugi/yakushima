@@ -118,7 +118,7 @@ retry_find_border:
     node_version64_body v_at_fb = std::get<tuple_v_index>(node_and_v);
 retry_fetch_lv:
     node_version64_body v_at_fetch_lv;
-    std::size_t lv_pos;
+    std::size_t lv_pos{0};
     link_or_value *lv_ptr = target_border->get_lv_of(key_slice, key_slice_length, v_at_fetch_lv, lv_pos);
     /**
      * check whether it should get from this node.
