@@ -141,6 +141,12 @@ retry_lock_parent:
             pn->version_unlock();
             goto retry_lock_parent;
           } else {
+#ifndef NDEBUG
+            if (pn->get_version_deleted()) {
+              std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
+              std::abort();
+            }
+#endif
             if (pn->get_version_border()) {
               dynamic_cast<border_node *>(pn)->delete_of(token, this, lock_list);
             } else {

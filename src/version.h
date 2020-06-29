@@ -503,6 +503,9 @@ public:
   }
 
   static void unlock(std::vector<node_version64 *> &lock_list) {
+    /**
+     * todo : performance improvement. reverse order release improves performance due to releasing from up to bottom.
+     */
     for (auto &l : lock_list) {
       l->unlock();
     }

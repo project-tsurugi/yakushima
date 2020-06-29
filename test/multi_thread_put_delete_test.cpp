@@ -760,7 +760,7 @@ TEST_F(multi_thread_put_delete_test, test9) {
 #ifndef NDEBUG
   for (size_t h = 0; h < 1; ++h) {
 #else
-  for (size_t h = 0; h < 100; ++h) {
+  for (size_t h = 0; h < 1000; ++h) {
 #endif
     masstree_kvs::init();
     Token token[2];
@@ -834,8 +834,7 @@ TEST_F(multi_thread_put_delete_test, test9) {
 
 TEST_F(multi_thread_put_delete_test, DISABLED_test10) {
   /**
-   * Reason of DISABLED_ : If you are using a laptop or VM, bad_alloc may occur due to insufficient memory.
-   * long version of test 8.
+   * multi-layer put-delete test.
    */
 
   constexpr std::size_t ary_size = interior_node::child_length * base_node::key_slice_length * 10;
@@ -864,9 +863,10 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test10) {
 #ifndef NDEBUG
   for (size_t h = 0; h < 100; ++h) {
 #else
-  for (size_t h = 0; h < 1; ++h) {
+  for (size_t h = 0; h < 20; ++h) {
 #endif
     masstree_kvs::init();
+    ASSERT_EQ(base_node::get_root(), nullptr);
     Token token[2];
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
     ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);

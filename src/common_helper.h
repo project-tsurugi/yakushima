@@ -36,7 +36,7 @@ descend:
   /**
    * The caller checks whether it has been deleted.
    */
-  if (n->get_version_border()) {
+  if (v.get_border()) {
     special_status = status::OK;
     return std::make_tuple(static_cast<border_node *>(n), ret_v);
   }

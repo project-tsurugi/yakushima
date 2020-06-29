@@ -341,7 +341,6 @@ retry_fetch_lv:
      */
     if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete() ||
         final_check.get_vinsert() != v_at_fetch_lv.get_vinsert()) { // fetched lv may be deleted
-      v_at_fb = final_check;
       goto retry_fetch_lv;
     }
     /**
@@ -368,13 +367,13 @@ retry_from_root:
       return status::OK_ROOT_IS_NULL;
     }
 
-    std::string_view traverse_key_view{key_view};
+    std::string_view traverse_key_view = key_view;
 retry_find_border:
     /**
      * prepare key_slice
      */
-    key_slice_type key_slice(0);
-    key_length_type key_slice_length(traverse_key_view.size());
+    key_slice_type key_slice = 0;
+    key_length_type key_slice_length = traverse_key_view.size();
     if (traverse_key_view.size() > sizeof(key_slice_type)) {
       memcpy(&key_slice, traverse_key_view.data(), sizeof(key_slice_type));
     } else {
@@ -401,7 +400,7 @@ retry_find_border:
     node_version64_body v_at_fb = std::get<tuple_v_index>(node_and_v);
 retry_fetch_lv:
     node_version64_body v_at_fetch_lv;
-    std::size_t lv_pos{0};
+    std::size_t lv_pos = 0;
     link_or_value *lv_ptr = target_border->get_lv_of(key_slice, key_slice_length, v_at_fetch_lv, lv_pos);
     /**
      * check whether it should delete against this node.
@@ -420,28 +419,25 @@ retry_fetch_lv:
      * Here, lv_ptr != nullptr.
      * If lv_ptr has some value && final_slice
      */
-    if (target_border->get_key_length_at(lv_pos) <= sizeof(key_slice_type)) {
-      if (key_slice_length <= sizeof(key_slice_type)) {
-        target_border->lock();
-        std::vector<node_version64 *> lock_list;
-        lock_list.emplace_back(target_border->get_version_ptr());
-        node_version64_body final_check = target_border->get_version();
-        if (final_check.get_deleted() || // the border was deleted.
-            final_check.get_vsplit() != v_at_fb.get_vsplit()) { // the border may be incorrect.
-          node_version64::unlock(lock_list);
-          goto retry_from_root;
-        } // here border is correct.
-        if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete() || // the lv may be deleted.
-            final_check.get_vinsert() != v_at_fetch_lv.get_vinsert()) { // the lv may be next_layer.
-          node_version64::unlock(lock_list);
-          goto retry_fetch_lv;
-        }
-
-        target_border->delete_of<true>(token, key_slice, key_slice_length, lock_list);
+    if (key_slice_length <= sizeof(key_slice_type)) {
+      target_border->lock();
+      std::vector<node_version64 *> lock_list;
+      lock_list.emplace_back(target_border->get_version_ptr());
+      node_version64_body final_check = target_border->get_version();
+      if (final_check.get_deleted() || // the border was deleted.
+          final_check.get_vsplit() != v_at_fb.get_vsplit()) { // the border may be incorrect.
         node_version64::unlock(lock_list);
-        return status::OK;
+        goto retry_from_root;
+      } // here border is correct.
+      if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete() || // the lv may be deleted.
+          final_check.get_vinsert() != v_at_fetch_lv.get_vinsert()) { // the lv may be next_layer.
+        node_version64::unlock(lock_list);
+        goto retry_fetch_lv;
       }
-      return status::OK_NOT_FOUND;
+
+      target_border->delete_of<true>(token, key_slice, key_slice_length, lock_list);
+      node_version64::unlock(lock_list);
+      return status::OK;
     }
 
     root = dynamic_cast<base_node *>(lv_ptr->get_next_layer());
@@ -453,7 +449,6 @@ retry_fetch_lv:
     if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete() || // fetched lv may be deleted.
         final_check.get_vinsert() !=
         v_at_fetch_lv.get_vinsert()) { // It may exist more closer next_layer to key of searching
-      v_at_fb = final_check; // update v_at_fb
       goto retry_fetch_lv;
     }
     traverse_key_view.remove_prefix(sizeof(key_slice_type));

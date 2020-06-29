@@ -119,7 +119,7 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
   std::size_t split_children_points = pivot_key + 1;
   interior->move_key_to_base_range(new_interior, split_children_points);
   interior->set_n_keys(pivot_key);
-  if (pivot_key % 2) {
+  if (pivot_key & 1) {
     new_interior->set_n_keys(pivot_key);
   } else {
     new_interior->set_n_keys(pivot_key - 1);

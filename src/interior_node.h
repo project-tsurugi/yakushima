@@ -55,6 +55,12 @@ public:
   template<class border_node>
   void delete_of(Token token, base_node *child) {
     std::size_t n_key = get_n_keys();
+#ifndef NDEBUG
+    if (n_key == 0) {
+      std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
+      std::abort();
+    }
+#endif
     for (std::size_t i = 0; i <= n_key; ++i) {
       if (get_child_at(i) == child) {
         if (n_key == 1) {
@@ -70,7 +76,6 @@ retry_lock_parent:
 #endif
             get_child_at(!i)->atomic_set_version_root(true);
             base_node::set_root(get_child_at(!i)); // i == 0 or 1
-            std::atomic_thread_fence(std::memory_order_release); // wait store (base_node::set_root).
             get_child_at(!i)->set_parent(nullptr);
           } else if (pn != get_parent()) {
             pn->version_unlock();
@@ -83,12 +88,11 @@ retry_lock_parent:
             }
 #endif
             get_child_at(!i)->set_parent(pn);
+            pn->set_version_inserting(true);
             if (pn->get_version_border()) {
               border_node *bn = dynamic_cast<border_node *>(pn);
-              bn->set_version_inserting(true);
               base_node *sibling = get_child_at(!i);
-              sibling->set_parent(pn);
-              link_or_value *lv = bn->get_lv_without_lock(this);
+              link_or_value *lv = bn->get_lv(this);
 #ifndef NDEBUG
               if (lv == nullptr) {
                 std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
@@ -99,10 +103,9 @@ retry_lock_parent:
               sibling->atomic_set_version_root(true);
             } else {
               interior_node *in = dynamic_cast<interior_node *>(pn);
-              in->set_version_inserting(true);
               in->swap_child(this, get_child_at(!i));
-              get_child_at(!i)->set_parent(in);
             }
+            get_child_at(!i)->set_parent(pn);
             pn->version_atomic_inc_vdelete();
             pn->version_unlock();
           }
@@ -124,8 +127,8 @@ retry_lock_parent:
           }
           set_key(n_key - 1, 0, 0);
           version_atomic_inc_vdelete();
-          n_keys_decrement();
         }
+        n_keys_decrement();
         return;
       }
     }
