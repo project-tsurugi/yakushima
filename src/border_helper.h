@@ -150,7 +150,6 @@ static void border_split(border_node *border,
   new_border->init_border();
   new_border->set_next(border->get_next());
   new_border->set_prev(border);
-  border->set_next(new_border);
   /**
    * attention : After making changes to this node, it sets a splitting flag.
    * If a splitting flag is raised, the find_lowest_keys function may read the broken value.
@@ -160,6 +159,7 @@ static void border_split(border_node *border,
    * new border is initially locked
    */
   new_border->set_version(border->get_version());
+  border->set_next(new_border);
   lock_list.emplace_back(new_border->get_version_ptr());
   if (new_border->get_next() != nullptr) {
     /**
@@ -316,6 +316,7 @@ retry_lock_parent:
     create_interior_parent_of_border<interior_node, border_node>(border, new_border, lock_list, &pi);
     link_or_value *lv = pb->get_lv(dynamic_cast<base_node *>(border));
     lv->set_next_layer(pi);
+    p->version_atomic_inc_vdelete();
     return;
   }
   /**
