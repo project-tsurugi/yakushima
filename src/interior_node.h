@@ -78,6 +78,12 @@ retry_lock_parent:
             pn->version_unlock();
             goto retry_lock_parent;
           } else {
+#ifndef NDEBUG
+            if (pn->get_version_deleted()) {
+              std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
+              std::abort();
+            }
+#endif
             get_child_at(!i)->set_parent(pn);
             if (pn->get_version_border()) {
               border_node *bn = dynamic_cast<border_node *>(pn);
@@ -91,8 +97,8 @@ retry_lock_parent:
               interior_node *in = dynamic_cast<interior_node *>(pn);
               in->set_version_inserting(true);
               in->swap_child(this, get_child_at(!i));
+              get_child_at(!i)->set_parent(in);
             }
-            pn->version_atomic_inc_vinsert();
             pn->version_atomic_inc_vdelete();
             pn->version_unlock();
           }
