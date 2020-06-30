@@ -19,12 +19,12 @@ using value_length_type = base_node::value_length_type;
  * start : forward declaration due to resolve dependency.
  */
 template<class interior_node, class border_node>
-static void border_split(border_node *border, std::string_view key_view, bool next_layer, void *value_ptr,
+static void border_split(border_node *border, std::string_view key_view, void *value_ptr,
                          value_length_type value_length, value_align_type value_align,
                          std::vector<node_version64 *> &lock_list);
 
 template<class interior_node, class border_node>
-static void insert_lv(border_node *border, std::string_view key_view, bool next_layer, void *value_ptr,
+static void insert_lv(border_node *border, std::string_view key_view, void *value_ptr,
                       value_length_type arg_value_length, value_align_type value_align,
                       std::vector<node_version64 *> &lock_list);
 /**

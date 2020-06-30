@@ -294,7 +294,7 @@ retry_fetch_lv:
         node_version64::unlock(lock_list);
         goto retry_fetch_lv;
       }
-      insert_lv<interior_node, border_node>(target_border, traverse_key_view, false, value, arg_value_length,
+      insert_lv<interior_node, border_node>(target_border, traverse_key_view, value, arg_value_length,
                                             value_align, lock_list);
       node_version64::unlock(lock_list);
       return status::OK;

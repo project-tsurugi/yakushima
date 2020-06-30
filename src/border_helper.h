@@ -53,7 +53,7 @@ create_interior_parent_of_border(border_node *left, border_node *right, std::vec
  * @param[out] lock_list Hold the lock so that the caller can release the lock from below.
  */
 template<class interior_node, class border_node>
-static void insert_lv(border_node *border, std::string_view key_view, bool next_layer, void *value_ptr,
+static void insert_lv(border_node *border, std::string_view key_view, void *value_ptr,
                       value_length_type arg_value_length, value_align_type value_align,
                       std::vector<node_version64 *> &lock_list);
 
@@ -62,7 +62,6 @@ static void insert_lv(border_node *border, std::string_view key_view, bool next_
  * @details border node split.
  * @param[in] border
  * @param[in] key_view
- * @param[in] next_layer
  * @param[in] value_ptr
  * @param[in] value_length
  * @param[in] value_align
@@ -71,7 +70,6 @@ static void insert_lv(border_node *border, std::string_view key_view, bool next_
 template<class interior_node, class border_node>
 static void border_split(border_node *border,
                          std::string_view key_view,
-                         bool next_layer,
                          void *value_ptr,
                          value_length_type value_length,
                          value_align_type value_align,
@@ -116,7 +114,6 @@ create_interior_parent_of_border(border_node *left, border_node *right, std::vec
 template<class interior_node, class border_node>
 static void insert_lv(border_node *border,
                       std::string_view key_view,
-                      bool next_layer,
                       void *value_ptr,
                       value_length_type arg_value_length,
                       value_align_type value_align,
@@ -127,7 +124,7 @@ static void insert_lv(border_node *border,
     /**
      * It needs splitting
      */
-    border_split<interior_node, border_node>(border, key_view, next_layer, value_ptr, arg_value_length,
+    border_split<interior_node, border_node>(border, key_view, value_ptr, arg_value_length,
                                              value_align,
                                              lock_list);
   } else {
@@ -141,7 +138,6 @@ static void insert_lv(border_node *border,
 template<class interior_node, class border_node>
 static void border_split(border_node *border,
                          std::string_view key_view,
-                         bool next_layer,
                          void *value_ptr,
                          value_length_type value_length,
                          value_align_type value_align,
@@ -252,14 +248,14 @@ static void border_split(border_node *border,
      * insert to lower border node.
      * @attention lock_list will not be added new lock.
      */
-    insert_lv<interior_node, border_node>(border, key_view, next_layer, value_ptr, value_length, value_align,
+    insert_lv<interior_node, border_node>(border, key_view, value_ptr, value_length, value_align,
                                           lock_list);
   } else {
     /**
      * insert to higher border node.
      * @attention lock_list will not be added new lock.
      */
-    insert_lv<interior_node, border_node>(new_border, key_view, next_layer, value_ptr, value_length,
+    insert_lv<interior_node, border_node>(new_border, key_view, value_ptr, value_length,
                                           value_align,
                                           lock_list);
   }
