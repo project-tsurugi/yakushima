@@ -106,7 +106,6 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
    * If a splitting flag is raised, the find_lowest_keys function may read the broken value.
    */
   interior->set_version_splitting(false);
-  interior->set_version_root(false);
   /**
    * new interior is initially locked.
    */

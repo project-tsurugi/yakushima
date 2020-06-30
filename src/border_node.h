@@ -374,7 +374,7 @@ retry_lock_parent:
     init_border();
     set_version_root(root);
     set_version_border(true);
-    insert_lv_at(0, key_view, false, value_ptr, arg_value_length, value_align);
+    insert_lv_at(0, key_view, value_ptr, arg_value_length, value_align);
   }
 
   void init_border_member_range(std::size_t start, std::size_t end) {
@@ -391,14 +391,12 @@ retry_lock_parent:
    * @pre It already locked this node.
    * @param[in] index
    * @param[in] key_view
-   * @param[in] next_layer If it is true, value_ptr points to next_layer.
    * @param[in] value_ptr
    * @param[in] arg_value_length
    * @param[in] value_align
    */
   void insert_lv_at(std::size_t index,
                     std::string_view key_view,
-                    bool next_layer,
                     void *value_ptr,
                     value_length_type arg_value_length,
                     value_align_type value_align) {
@@ -410,12 +408,6 @@ retry_lock_parent:
      */
     key_slice_type key_slice(0);
     if (key_view.size() > sizeof(key_slice_type)) {
-#ifndef NDEBUG
-      if (next_layer) {
-        std::cerr << __FILE__ << " : " << __LINE__ << " : unreachable point." << endl;
-        std::abort();
-      }
-#endif
       /**
        * Create multiple border nodes.
        */
@@ -438,14 +430,8 @@ retry_lock_parent:
     } else {
       memcpy(&key_slice, key_view.data(), key_view.size());
       set_key_slice_at(index, key_slice);
-      if (next_layer) {
-        set_key_length_at(index, sizeof(key_slice_type) + 1); // it means lv is next_layer.
-        set_lv_next_layer(index, reinterpret_cast<base_node *>(value_ptr));
-        reinterpret_cast<base_node *>(value_ptr)->set_parent(this);
-      } else {
-        set_key_length_at(index, key_view.size());
-        set_lv_value(index, value_ptr, arg_value_length, value_align);
-      }
+      set_key_length_at(index, key_view.size());
+      set_lv_value(index, value_ptr, arg_value_length, value_align);
     }
     permutation_.inc_key_num();
     permutation_rearrange();

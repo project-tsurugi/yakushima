@@ -134,7 +134,7 @@ static void insert_lv(border_node *border,
     /**
      * Insert into this nodes.
      */
-    border->insert_lv_at(cnk, key_view, next_layer, value_ptr, arg_value_length, value_align);
+    border->insert_lv_at(cnk, key_view, value_ptr, arg_value_length, value_align);
   }
 }
 
