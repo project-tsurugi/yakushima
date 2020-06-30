@@ -227,15 +227,13 @@ retry_find_border:
      * prepare key_slice
      */
     key_slice_type key_slice(0);
-    key_length_type key_slice_length;
+    key_length_type  key_slice_length = traverse_key_view.size();
     if (traverse_key_view.size() > sizeof(key_slice_type)) {
       memcpy(&key_slice, traverse_key_view.data(), sizeof(key_slice_type));
-      key_slice_length = traverse_key_view.size();
     } else {
       if (traverse_key_view.size() > 0) {
         memcpy(&key_slice, traverse_key_view.data(), traverse_key_view.size());
       }
-      key_slice_length = traverse_key_view.size();
     }
     /**
      * traverse tree to border node.
@@ -412,6 +410,16 @@ retry_fetch_lv:
     }
 
     if (lv_ptr == nullptr) {
+      node_version64_body final_check = target_border->get_version();
+      if (final_check.get_deleted() || // the border was deleted.
+          final_check.get_vsplit() != v_at_fb.get_vsplit()) { // the border may be incorrect.
+        goto retry_from_root;
+      } // here border is correct.
+      if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete() || // the lv may be deleted.
+          final_check.get_vinsert() != v_at_fetch_lv.get_vinsert()) { // the lv may be next_layer.
+        goto retry_fetch_lv;
+      }
+
       return status::OK_NOT_FOUND;
     }
     /**
@@ -446,8 +454,7 @@ retry_fetch_lv:
       goto retry_from_root;
     }
     if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete() || // fetched lv may be deleted.
-        final_check.get_vinsert() !=
-        v_at_fetch_lv.get_vinsert()) { // It may exist more closer next_layer to key of searching
+        final_check.get_vinsert() != v_at_fetch_lv.get_vinsert()) {
       goto retry_fetch_lv;
     }
     traverse_key_view.remove_prefix(sizeof(key_slice_type));

@@ -96,7 +96,8 @@ create_interior_parent_of_border(border_node *left, border_node *right, std::vec
   /**
    * process base node members
    */
-  ni->set_key(0, right->get_key_slice_at(0), right->get_key_length_at(0));
+   std::size_t pos = right->get_permutation_lowest_key_pos();
+  ni->set_key(0, right->get_key_slice_at(pos), right->get_key_length_at(pos));
   /**
    * process interior node members
    */
@@ -311,6 +312,12 @@ retry_lock_parent:
   /**
    * parent is interior node.
    */
+#ifndef NDEBUG
+  if (p->get_version_deleted()) {
+    std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
+    std::abort();
+  }
+#endif
   auto pi = dynamic_cast<interior_node *>(p);
   if (pi->get_n_keys() == base_node::key_slice_length) {
     /**

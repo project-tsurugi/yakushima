@@ -407,6 +407,7 @@ retry_lock_parent:
      * It is possible that undefined values may remain from initialization.
      */
     key_slice_type key_slice(0);
+    border_node *next_layer_border{};
     if (key_view.size() > sizeof(key_slice_type)) {
       /**
        * Create multiple border nodes.
@@ -418,7 +419,7 @@ retry_lock_parent:
        * key_length_type must be a large size type.
        */
       set_key_length_at(index, sizeof(key_slice_type) + 1);
-      border_node *next_layer_border = new border_node();
+      next_layer_border = new border_node();
       key_view.remove_prefix(sizeof(key_slice_type));
       /**
        * @attention next_layer_border is the root of next layer.
