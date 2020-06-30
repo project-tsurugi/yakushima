@@ -877,7 +877,7 @@ TEST_F(multi_thread_put_delete_get_test, test9) {
   }
 }
 
-TEST_F(multi_thread_put_delete_get_test, test10) {
+TEST_F(multi_thread_put_delete_get_test, DISABLED_test10) {
   /**
    * multi-layer put-delete-get test.
    */
