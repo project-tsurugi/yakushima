@@ -505,12 +505,10 @@ TEST_F(multi_thread_put_delete_test, test5_2) {
     S::work(std::ref(kv1), std::ref(token[1]));
     t.join();
 
-#if 0
     std::vector<std::tuple<char *, std::size_t>> tuple_list;
     constexpr std::size_t v_index = 0;
-    // todo scan debug
     for (std::size_t i = 1; i < ary_size; ++i) {
-      std::string k(1, i);
+      std::string k = std::string(8, UINT8_MAX) + std::string(1, i);
       masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(k), false,
                                tuple_list);
       if (tuple_list.size() != i + 1) {
@@ -527,7 +525,6 @@ TEST_F(multi_thread_put_delete_test, test5_2) {
         ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
       }
     }
-#endif
     ASSERT_EQ(masstree_kvs::leave(token[0]), status::OK);
     ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
     masstree_kvs::fin();
