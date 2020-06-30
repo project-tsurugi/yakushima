@@ -97,7 +97,9 @@ retry_find_border:
     if (traverse_key_view.size() > sizeof(key_slice_type)) {
       memcpy(&key_slice, traverse_key_view.data(), sizeof(key_slice_type));
     } else {
-      memcpy(&key_slice, traverse_key_view.data(), traverse_key_view.size());
+      if (traverse_key_view.size() > 0) {
+        memcpy(&key_slice, traverse_key_view.data(), traverse_key_view.size());
+      }
     }
     /**
      * traverse tree to border node.
@@ -364,7 +366,7 @@ retry_from_root:
       return status::OK_ROOT_IS_NULL;
     }
 
-    std::string_view traverse_key_view = key_view;
+    std::string_view traverse_key_view{key_view};
 retry_find_border:
     /**
      * prepare key_slice
@@ -381,7 +383,7 @@ retry_find_border:
     /**
      * traverse tree to border node.
      */
-    status special_status;
+    status special_status{status::OK};
     std::tuple<border_node *, node_version64_body> node_and_v = find_border(root, key_slice, key_slice_length,
                                                                             special_status);
     if (special_status == status::WARN_RETRY_FROM_ROOT_OF_ALL) {
@@ -426,7 +428,7 @@ retry_fetch_lv:
      * Here, lv_ptr != nullptr.
      * If lv_ptr has some value && final_slice
      */
-    if (key_slice_length <= sizeof(key_slice_type)) {
+    if (target_border->get_key_length_at(lv_pos) <= sizeof(key_slice_type)) {
       target_border->lock();
       std::vector<node_version64 *> lock_list;
       lock_list.emplace_back(target_border->get_version_ptr());
@@ -447,7 +449,7 @@ retry_fetch_lv:
       return status::OK;
     }
 
-    root = dynamic_cast<base_node *>(lv_ptr->get_next_layer());
+    root = lv_ptr->get_next_layer();
     node_version64_body final_check = target_border->get_stable_version();
     if (final_check.get_deleted() || // this border was deleted.
         final_check.get_vsplit() != v_at_fb.get_vsplit()) { // this border is incorrect.

@@ -51,6 +51,9 @@ multi_thread_put_test.cpp.
 - multi_thread_put_delete_test.cpp<br>
 test about concurrent put/delete along with 
 multi_thread_put_test.cpp.
+- multi_thread_put_delete_get_test.cpp<br>
+test about concurrent put/delete/get along with 
+multi_thread_put_test.cpp.
 
 ## developer-test
 - base_node_test.cpp

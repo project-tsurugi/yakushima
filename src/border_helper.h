@@ -304,6 +304,7 @@ retry_lock_parent:
     pb->set_version_inserting(true);
     interior_node *pi;
     create_interior_parent_of_border<interior_node, border_node>(border, new_border, lock_list, &pi);
+    pi->set_parent(p);
     link_or_value *lv = pb->get_lv(dynamic_cast<base_node *>(border));
     lv->set_next_layer(pi);
     p->version_atomic_inc_vdelete();
@@ -319,6 +320,8 @@ retry_lock_parent:
   }
 #endif
   auto pi = dynamic_cast<interior_node *>(p);
+  border->set_version_root(false);
+  new_border->set_version_root(false);
   if (pi->get_n_keys() == base_node::key_slice_length) {
     /**
      * interior full case, it splits and inserts.

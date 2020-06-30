@@ -877,7 +877,7 @@ TEST_F(multi_thread_put_delete_get_test, test9) {
   }
 }
 
-TEST_F(multi_thread_put_delete_get_test, DISABLED_test10) {
+TEST_F(multi_thread_put_delete_get_test, test10) {
   /**
    * multi-layer put-delete-get test.
    */
@@ -929,6 +929,11 @@ TEST_F(multi_thread_put_delete_get_test, DISABLED_test10) {
               ASSERT_EQ(status::OK, ret);
               std::abort();
             }
+          }
+          for (auto &i : kv) {
+            std::string k(std::get<0>(i)), v(std::get<1>(i));
+            std::tuple<char *, std::size_t> ret = masstree_kvs::get<char>(std::string_view(k));
+            ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
           }
           for (auto &i : kv) {
             std::string k(std::get<0>(i)), v(std::get<1>(i));
