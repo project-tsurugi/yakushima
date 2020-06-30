@@ -716,18 +716,10 @@ TEST_F(multi_thread_put_delete_test, test7) {
   std::vector<std::tuple<std::string, std::string>> kv1;
   std::vector<std::tuple<std::string, std::string>> kv2;
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
-    if (i <= UINT8_MAX) {
       kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
-    } else {
-      kv1.emplace_back(std::make_tuple(std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i), std::to_string(i)));
-    }
   }
   for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
-    if (i <= UINT8_MAX) {
       kv2.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
-    } else {
-      kv2.emplace_back(std::make_tuple(std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i), std::to_string(i)));
-    }
   }
 
   std::random_device seed_gen;
@@ -785,11 +777,7 @@ TEST_F(multi_thread_put_delete_test, test7) {
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k;
-      if (i <= UINT8_MAX) {
         k = std::string(1, i);
-      } else {
-        k = std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i);
-      }
       masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(k), false,
                                tuple_list);
       if (tuple_list.size() != i + 1) {
