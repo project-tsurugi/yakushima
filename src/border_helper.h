@@ -96,7 +96,7 @@ create_interior_parent_of_border(border_node *left, border_node *right, std::vec
   /**
    * process base node members
    */
-   std::size_t pos = right->get_permutation_lowest_key_pos();
+  std::size_t pos = right->get_permutation_lowest_key_pos();
   ni->set_key(0, right->get_key_slice_at(pos), right->get_key_length_at(pos));
   /**
    * process interior node members
@@ -266,7 +266,7 @@ static void border_split(border_node *border,
 
   std::vector<base_node *> next_layers;
   std::vector<node_version64 *> next_layers_lock;
-retry_lock_parent:
+
   base_node *p = border->get_parent();
   p = border->lock_parent();
   if (p == nullptr) {
@@ -286,10 +286,14 @@ retry_lock_parent:
     base_node::set_root(dynamic_cast<base_node *>(p));
     return;
   }
+
+#ifndef NDEBUG
   if (p != border->get_parent()) {
-    p->version_unlock();
-    goto retry_lock_parent;
+    std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
+    std::abort();
   }
+#endif
+
   lock_list.emplace_back(p->get_version_ptr());
   if (p->get_version_border()) {
     /**

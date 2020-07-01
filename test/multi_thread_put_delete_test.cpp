@@ -45,7 +45,7 @@ TEST_F(multi_thread_put_delete_test, test1) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+  for (std::size_t h = 0; h < 500; ++h) {
 #endif
     masstree_kvs::init();
     Token token[2];
@@ -128,7 +128,7 @@ TEST_F(multi_thread_put_delete_test, test2) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+  for (std::size_t h = 0; h < 500; ++h) {
 #endif
     masstree_kvs::init();
     Token token[2];
@@ -1015,7 +1015,7 @@ TEST_F(multi_thread_put_delete_test, test9) {
 #ifndef NDEBUG
   for (size_t h = 0; h < 1; ++h) {
 #else
-  for (size_t h = 0; h < 1000; ++h) {
+  for (size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token[2];
@@ -1087,7 +1087,7 @@ TEST_F(multi_thread_put_delete_test, test9) {
   }
 }
 
-TEST_F(multi_thread_put_delete_test, DISABLED_test10) {
+TEST_F(multi_thread_put_delete_test, test10) {
   /**
    * multi-layer put-delete test.
    */
@@ -1136,6 +1136,7 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test10) {
             std::string k(std::get<0>(i)), v(std::get<1>(i));
             status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
             if (status::OK != ret) {
+              ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
               ASSERT_EQ(status::OK, ret);
               std::abort();
             }
@@ -1144,6 +1145,7 @@ TEST_F(multi_thread_put_delete_test, DISABLED_test10) {
             std::string k(std::get<0>(i)), v(std::get<1>(i));
             status ret = masstree_kvs::remove(token, std::string_view(k));
             if (status::OK != ret) {
+              ret = masstree_kvs::remove(token, std::string_view(k));
               ASSERT_EQ(status::OK, ret);
               std::abort();
             }

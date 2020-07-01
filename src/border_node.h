@@ -67,6 +67,10 @@ public:
         return;
       }
     }
+#ifndef NDEBUG
+    std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
+    std::abort();
+#endif
   }
 
   /**
@@ -127,7 +131,6 @@ retry_prev_lock:
            * lock order is next to prev and lower to higher.
            */
           set_version_deleting_node(true);
-retry_lock_parent:
           base_node *pn = lock_parent();
           if (pn == nullptr) {
 #ifndef NDEBUG
@@ -137,12 +140,10 @@ retry_lock_parent:
             }
 #endif
             base_node::set_root(nullptr);
-          } else if (get_parent() != pn) {
-            pn->version_unlock();
-            goto retry_lock_parent;
           } else {
 #ifndef NDEBUG
-            if (pn->get_version_deleted()) {
+            if (pn->get_version_deleted() ||
+                pn != get_parent()) {
               std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
               std::abort();
             }

@@ -144,8 +144,6 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
     new_interior->set_version_splitting(true);
   }
 
-
-retry_lock_parent:
   base_node *p = interior->lock_parent();
   if (p == nullptr) {
 #ifndef NDEBUG
@@ -165,15 +163,12 @@ retry_lock_parent:
     base_node::set_root(p);
     return;
   }
-  if (p != interior->get_parent()) {
-    p->version_unlock();
-    goto retry_lock_parent;
-  }
   /**
    * p exists.
    */
 #ifndef NDEBUG
-  if (p->get_version_deleted()) {
+  if (p->get_version_deleted() ||
+      p != interior->get_parent()) {
     std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
     std::abort();
   }
@@ -185,8 +180,9 @@ retry_lock_parent:
     base_node *new_p;
     create_interior_parent_of_interior<interior_node, border_node>(interior, new_interior, lock_list, &new_p);
     link_or_value *lv = pb->get_lv(dynamic_cast<base_node *>(interior));
-    lv->set_next_layer(new_p);
     p->version_atomic_inc_vdelete();
+    lv->set_next_layer(new_p);
+    new_p->set_parent(pb);
     return;
   }
   interior_node *pi = dynamic_cast<interior_node *>(p);

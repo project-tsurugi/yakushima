@@ -65,7 +65,6 @@ public:
       if (get_child_at(i) == child) {
         if (n_key == 1) {
           set_version_deleting_node(true);
-retry_lock_parent:
           base_node *pn = lock_parent();
           if (pn == nullptr) {
 #ifndef NDEBUG
@@ -76,34 +75,35 @@ retry_lock_parent:
 #endif
             get_child_at(!i)->atomic_set_version_root(true);
             base_node::set_root(get_child_at(!i)); // i == 0 or 1
-            get_child_at(!i)->set_parent(nullptr);
-          } else if (pn != get_parent()) {
-            pn->version_unlock();
-            goto retry_lock_parent;
-          } else {
 #ifndef NDEBUG
-            if (pn->get_version_deleted()) {
+            if (base_node::get_root() != get_child_at(!i)) {
               std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
               std::abort();
             }
 #endif
-            get_child_at(!i)->set_parent(pn);
+            get_child_at(!i)->set_parent(nullptr);
+          } else {
+#ifndef NDEBUG
+            if (pn->get_version_deleted() ||
+                pn != get_parent()) {
+              std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
+              std::abort();
+            }
+#endif
             pn->set_version_inserting(true);
             if (pn->get_version_border()) {
-              border_node *bn = dynamic_cast<border_node *>(pn);
-              base_node *sibling = get_child_at(!i);
-              link_or_value *lv = bn->get_lv(this);
+              link_or_value *lv = dynamic_cast<border_node *>(pn)->get_lv(this);
 #ifndef NDEBUG
               if (lv == nullptr) {
                 std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
                 std::abort();
               }
 #endif
+              base_node *sibling = get_child_at(!i);
               lv->set_next_layer(sibling);
               sibling->atomic_set_version_root(true);
             } else {
-              interior_node *in = dynamic_cast<interior_node *>(pn);
-              in->swap_child(this, get_child_at(!i));
+              dynamic_cast<interior_node *>(pn)->swap_child(this, get_child_at(!i));
             }
             get_child_at(!i)->set_parent(pn);
             pn->version_atomic_inc_vdelete();
@@ -133,8 +133,10 @@ retry_lock_parent:
       }
     }
 
+#ifndef NDEBUG
     std::cerr << __FILE__ << " : " << __LINE__ << " : precondition failure." << std::endl;
     std::abort();
+#endif
   }
 
 /**
