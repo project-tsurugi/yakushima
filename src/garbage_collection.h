@@ -10,7 +10,6 @@
 
 #include "base_node.h"
 #include "cpu.h"
-#include "debug.hh"
 
 namespace yakushima {
 

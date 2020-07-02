@@ -5,6 +5,10 @@
 
 #pragma once
 
+#include <cstdint>
+#include <cstdlib>
+#include <string_view>
+
 namespace yakushima {
 
 /**

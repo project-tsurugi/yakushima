@@ -5,6 +5,9 @@
 
 #pragma once
 
+#include <algorithm>
+#include <utility>
+
 #include "base_node.h"
 #include "interior_helper.h"
 #include "link_or_value.h"

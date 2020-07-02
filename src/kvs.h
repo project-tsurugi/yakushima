@@ -15,8 +15,6 @@
 #include "scheme.h"
 #include "thread_info.h"
 
-#include "debug.hh"
-
 namespace yakushima {
 
 class masstree_kvs {
