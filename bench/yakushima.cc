@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+#include <algorithm>
+#include <random>
+#include <thread>
+#include <vector>
+
 // yakushima
 #include "kvs.h"
 
@@ -23,7 +28,9 @@
 #include "cpu.h"
 
 // yakushima/bench/include
+#include "affinity.h"
 #include "random.h"
+#include "tsc.h"
 #include "zipf.h"
 
 #include "gflags/gflags.h"
@@ -38,6 +45,7 @@ DEFINE_string(instruction, "get", "put or get. The default is insert.");
 DEFINE_uint64(put_records, 1000000, "# records for put bench");
 DEFINE_double(skew, 0.0, "access skew of transaction.");
 DEFINE_uint64(thread, 1, "# worker threads.");
+DEFINE_uint32(value_size, 4, "value size");
 
 static void check_flags() {
   if (FLAGS_thread == 0) {
@@ -52,8 +60,8 @@ static void check_flags() {
 
   if (FLAGS_cpumhz == 0) {
     std::cerr << "CPU MHz of execution environment. It is used measuring some time. "
-            "It must be larger than 0."
-         << std::endl;
+                 "It must be larger than 0."
+              << std::endl;
     exit(1);
   }
   if (FLAGS_get_duration == 0) {
@@ -91,8 +99,8 @@ void get_worker(const size_t thid, char &ready, const bool &start, const bool &q
   std::size_t local_res{0};
 
   // this function can be used in Linux environment only.
-#ifdef yakushima_Linux
-  setThreadAffinity(thid);
+#ifdef YAKUSHIMA_LINUX
+  set_thread_affinity(thid);
 #endif
 
   storeReleaseN(ready, 1);
@@ -116,40 +124,38 @@ void get_worker(const size_t thid, char &ready, const bool &start, const bool &q
 }
 
 void put_worker(const size_t thid, char &ready, const bool &start, std::size_t &res) {
-  // init work
-  Xoroshiro128Plus rnd;
-  FastZipf zipf(&rnd, FLAGS_skew, FLAGS_initial_record);
-  std::size_t local_res{0};
-
   // this function can be used in Linux environment only.
-#ifdef yakushima_Linux
-  setThreadAffinity(thid);
+#ifdef YAKUSHIMA_LINUX
+  set_thread_affinity(thid);
 #endif
+
+  Token token;
+  masstree_kvs::enter(token);
+  std::size_t left_edge(FLAGS_put_records / FLAGS_thread * thid),
+          right_edge(FLAGS_put_records / FLAGS_thread * (thid + 1));
+  std::vector<std::size_t> key_vec;
+  key_vec.reserve(right_edge - left_edge);
+  for (std::size_t i = left_edge; i < right_edge; ++i) {
+    key_vec.emplace_back(i);
+  }
+  std::random_device seed_gen;
+  std::mt19937 engine(seed_gen());
+  std::shuffle(key_vec.begin(), key_vec.end(), engine);
+
+  std::string value(FLAGS_value_size, '0');
 
   storeReleaseN(ready, 1);
   while (!loadAcquireN(start)) _mm_pause();
 
-  Token token;
-  masstree_kvs::enter(token);
-#if 0
-  while (!loadAcquireN(quit)) {
-    std::size_t start(UINT64_MAX / FLAGS_thread * thid),
-            end(UINT64_MAX / FLAGS_thread * (thid + 1));
-    for (auto i = start; i < end; ++i) {
-      uint64_t keybs = __builtin_bswap64(i);
-      std::string value(FLAGS_val_length, '0');
-      make_string(value, rnd);
-      insert(token, storage, reinterpret_cast<char *>(&keybs),
-             sizeof(uint64_t), value.data(), FLAGS_val_length);
-      commit(token);
-      ++myres.local_commit_counts_;
-      if (loadAcquire(quit)) break;
-    }
+  std::size_t begin_time{rdtscp()};
+  for (auto &itr : key_vec) {
+    std::string key{reinterpret_cast<char *>(&itr), sizeof(std::size_t)};
+    masstree_kvs::put(std::string_view(key), value.data(), value.size());
   }
-#endif
+  std::size_t end_time{rdtscp()};
   masstree_kvs::leave(token);
 
-  res = local_res;
+  res = end_time - begin_time;
 }
 
 static void invoke_leader() {
@@ -208,7 +214,8 @@ static void invoke_leader() {
   std::uint64_t fin_res{0};
   for (auto i = 0; i < FLAGS_thread; ++i) {
     if ((UINT64_MAX - fin_res) < res[i]) {
-      std::cout << __FILE__ << " : " << __LINE__ << " : experimental setting is bad, which leads to overflow." << std::endl;
+      std::cout << __FILE__ << " : " << __LINE__ << " : experimental setting is bad, which leads to overflow."
+                << std::endl;
       exit(1);
     }
     fin_res += res[i];
@@ -218,7 +225,7 @@ static void invoke_leader() {
   } else if (FLAGS_instruction == "put") {
     std::uint64_t clocks = fin_res / FLAGS_thread / FLAGS_put_records;
     long double l{static_cast<long double>(clocks)};
-    l /= FLAGS_cpumhz;
+    l /= (FLAGS_cpumhz * 1000 * 1000);
     std::cout << "latency[s/op]: " << l << std::endl;
   }
 

@@ -29,6 +29,7 @@ endif ()
 
 add_definitions(-D YAKUSHIMA_EPOCH_TIME=40)
 add_definitions(-D YAKUSHIMA_MAX_PARALLEL_SESSIONS=250)
+add_definitions(-D YAKUSHIMA_LINUX)
 
 function(set_compile_options target_name)
   target_compile_options(${target_name}
