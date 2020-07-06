@@ -154,8 +154,7 @@ void get_worker(const size_t thid, char &ready, const bool &start, const bool &q
   std::uint64_t local_res{0};
   while (!loadAcquireN(quit)) {
     uint64_t keynm = zipf() % FLAGS_get_initial_record;
-    uint64_t keybs = __builtin_bswap64(keynm);
-    std::string key{reinterpret_cast<char *>(&keybs), sizeof(std::uint64_t)};
+    std::string key{reinterpret_cast<char *>(&keynm), sizeof(std::uint64_t)};
     std::tuple<char *, std::size_t> ret = masstree_kvs::get<char>(std::string_view(key));
     if (std::get<0>(ret) == nullptr) {
       Failure.store(true, std::memory_order_release);
