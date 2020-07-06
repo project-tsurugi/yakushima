@@ -83,7 +83,7 @@ void worker(const size_t thid, char &ready, const bool &start, const bool &quit,
   while (!loadAcquireN(start)) _mm_pause();
 
   std::uint64_t local_res{0};
-  while (loadAcquireN(quit)) {
+  while (!loadAcquireN(quit)) {
     vec.emplace_back(new std::size_t(local_res));
     ++local_res;
   }
