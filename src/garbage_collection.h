@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -41,22 +42,46 @@ public:
    */
   template<class interior_node, class border_node>
   static void fin() {
-    for (auto container = kGarbageNodes.begin(); container != kGarbageNodes.end(); ++container) {
-      for (auto itr = container->begin(); itr != container->end(); ++itr) {
-        if (std::get<gc_target_index>(*itr)->get_version_border()) {
-          delete dynamic_cast<border_node *>(std::get<gc_target_index>(*itr));
-        } else {
-          delete dynamic_cast<interior_node *>(std::get<gc_target_index>(*itr));
+    struct S {
+      static void parallel_worker(std::uint64_t left_edge, std::uint64_t right_edge) {
+        for (std::size_t i = left_edge; i < right_edge; ++i) {
+          auto &ncontainer = kGarbageNodes.at(i);
+          for (auto itr = ncontainer.begin(); itr != ncontainer.end(); ++itr) {
+            if (std::get<gc_target_index>(*itr)->get_version_border()) {
+              delete dynamic_cast<border_node *>(std::get<gc_target_index>(*itr));
+            } else {
+              delete dynamic_cast<interior_node *>(std::get<gc_target_index>(*itr));
+            }
+          }
+          ncontainer.clear();
+
+          auto &vcontainer = kGarbageValues.at(i);
+          for (auto itr = vcontainer.begin(); itr != vcontainer.end(); ++itr) {
+            ::operator delete(std::get<gc_target_index>(*itr));
+          }
+          vcontainer.clear();
         }
       }
-      container->clear();
+    };
+    std::vector<std::thread> thv;
+    for (std::size_t i = 0; i < std::thread::hardware_concurrency(); ++i) {
+      if (std::thread::hardware_concurrency() != 1) {
+        if (i != std::thread::hardware_concurrency() - 1) {
+          thv.emplace_back(S::parallel_worker,
+                           YAKUSHIMA_MAX_PARALLEL_SESSIONS / std::thread::hardware_concurrency() * i,
+                           YAKUSHIMA_MAX_PARALLEL_SESSIONS / std::thread::hardware_concurrency() * (i + 1));
+        } else {
+          thv.emplace_back(S::parallel_worker,
+                           YAKUSHIMA_MAX_PARALLEL_SESSIONS / std::thread::hardware_concurrency() * i,
+                           YAKUSHIMA_MAX_PARALLEL_SESSIONS);
+        }
+      } else {
+        thv.emplace_back(S::parallel_worker, 0, YAKUSHIMA_MAX_PARALLEL_SESSIONS);
+      }
     }
 
-    for (auto container = kGarbageValues.begin(); container != kGarbageValues.end(); ++container) {
-      for (auto itr = container->begin(); itr != container->end(); ++itr) {
-        ::operator delete(std::get<gc_target_index>(*itr));
-      }
-      container->clear();
+    for (auto &th : thv) {
+      th.join();
     }
   }
 
@@ -152,9 +177,9 @@ private:
   std::vector<std::pair<Epoch, void *>> *value_container_{nullptr};
 };
 
-alignas(CACHE_LINE_SIZE)
 std::array<std::vector<std::pair<Epoch, base_node *>>, YAKUSHIMA_MAX_PARALLEL_SESSIONS> gc_container::kGarbageNodes;
 std::array<std::vector<std::pair<Epoch, void *>>, YAKUSHIMA_MAX_PARALLEL_SESSIONS> gc_container::kGarbageValues;
+alignas(CACHE_LINE_SIZE)
 std::atomic<Epoch> gc_container::kGCEpoch{0};
 
 } // namespace yakushima

@@ -172,9 +172,9 @@ private:
   std::atomic<bool> running_{false};
 };
 
-alignas(CACHE_LINE_SIZE)
 std::array<thread_info, YAKUSHIMA_MAX_PARALLEL_SESSIONS> thread_info::kThreadInfoTable;
 std::thread thread_info::kEpochThread;
+alignas(CACHE_LINE_SIZE)
 std::atomic<bool> thread_info::kEpochThreadEnd{false};
 
 } // namespace yakushima
