@@ -16,24 +16,24 @@ namespace yakushima {
 
 class gc_container {
 public:
-  class node_container {
+  class alignas(CACHE_LINE_SIZE) node_container {
   public:
     std::vector<std::pair<Epoch, base_node *>> &get_body() {
       return body_;
     }
 
   private:
-    alignas(CACHE_LINE_SIZE) std::vector<std::pair<Epoch, base_node *>> body_;
+    std::vector<std::pair<Epoch, base_node *>> body_;
   };
 
-  class value_container {
+  class alignas(CACHE_LINE_SIZE) value_container {
   public:
     std::vector<std::pair<Epoch, void *>> &get_body() {
       return body_;
     }
 
   private:
-    alignas(CACHE_LINE_SIZE) std::vector<std::pair<Epoch, void *>> body_;
+    std::vector<std::pair<Epoch, void *>> body_;
   };
 
   void set(std::size_t index) {

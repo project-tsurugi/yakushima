@@ -19,7 +19,7 @@
 
 namespace yakushima {
 
-class thread_info {
+class alignas(CACHE_LINE_SIZE) thread_info {
 public:
   /**
    * @brief Allocates a free session.
@@ -166,7 +166,6 @@ private:
   /**
    * @details This is updated by worker and is read by leader.
    */
-  alignas(CACHE_LINE_SIZE)
   std::atomic<Epoch> begin_epoch_{0};
   gc_container gc_container_;
   std::atomic<bool> running_{false};

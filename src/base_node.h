@@ -18,7 +18,7 @@ namespace yakushima {
  */
 class masstree_kvs;
 
-class base_node {
+class alignas(CACHE_LINE_SIZE) base_node {
 public:
   static constexpr std::size_t key_slice_length = 15;
   using key_slice_type = std::uint64_t;
@@ -245,10 +245,10 @@ public:
 
   void shift_right_base_member(std::size_t start, std::size_t shift_size) {
     if (start >= key_slice_length - 1) {
-      std::cerr << __FILE__ << " : " << __LINE__ << " : " << status::ERR_BOUNDARY  << std::endl;
+      std::cerr << __FILE__ << " : " << __LINE__ << " : " << status::ERR_BOUNDARY << std::endl;
       std::abort();
     } else if (shift_size == 0) {
-      std::cerr << __FILE__ << " : " << __LINE__ << " : " << status::ERR_ARGUMENT  << std::endl;
+      std::cerr << __FILE__ << " : " << __LINE__ << " : " << status::ERR_ARGUMENT << std::endl;
       std::abort();
     }
 
@@ -280,7 +280,6 @@ private:
   /**
    * @attention This variable is read/written concurrently.
    */
-  alignas(CACHE_LINE_SIZE)
   node_version64 version_{};
   /**
    * @attention This member is protected by its parent's lock.
