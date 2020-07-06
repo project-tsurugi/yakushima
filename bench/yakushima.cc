@@ -39,13 +39,14 @@
 using namespace yakushima;
 
 DEFINE_uint64(cpumhz, 2100, "# cpu MHz of execution environment. It is used measuring some time.");
-DEFINE_uint64(get_duration, 3, "Duration of get benchmark in seconds.");
-DEFINE_uint64(initial_record, 1000000, "# initial key-values for get bench");
+DEFINE_uint64(duration, 3, "Duration of benchmark in seconds.");
+DEFINE_uint64(get_initial_record, 1000000, "# initial key-values for get bench");
 DEFINE_string(instruction, "get", "put or get. The default is insert.");
-DEFINE_uint64(put_records, 1000000, "# records for put bench");
-DEFINE_double(skew, 0.0, "access skew of transaction.");
+DEFINE_double(get_skew, 0.0, "access skew of get operations.");
 DEFINE_uint64(thread, 1, "# worker threads.");
 DEFINE_uint32(value_size, 4, "value size");
+
+std::atomic<bool> Failure{false};
 
 static void check_flags() {
   if (FLAGS_thread == 0) {
@@ -53,7 +54,7 @@ static void check_flags() {
     exit(1);
   }
 
-  if (FLAGS_initial_record == 0 && FLAGS_instruction == "get") {
+  if (FLAGS_get_initial_record == 0 && FLAGS_instruction == "get") {
     std::cerr << "It can't execute get bench against 0 size table." << std::endl;
     exit(1);
   }
@@ -64,7 +65,7 @@ static void check_flags() {
               << std::endl;
     exit(1);
   }
-  if (FLAGS_get_duration == 0) {
+  if (FLAGS_duration == 0) {
     std::cerr << "Duration of benchmark in seconds must be larger than 0." << std::endl;
     exit(1);
   }
@@ -73,7 +74,7 @@ static void check_flags() {
     exit(1);
   }
 
-  if (FLAGS_skew < 0 || FLAGS_skew > 1) {
+  if (FLAGS_get_skew < 0 || FLAGS_get_skew > 1) {
     std::cerr << "access skew must be in the range 0 to 0.999..." << std::endl;
     exit(1);
   }
@@ -92,34 +93,78 @@ static void waitForReady(const std::vector<char> &readys) {
   }
 }
 
+void parallel_build_tree() {
+  struct S {
+    static void parallel_build_worker(std::uint64_t left_edge, std::uint64_t right_edge) {
+      Token token;
+      masstree_kvs::enter(token);
+      std::string value(FLAGS_value_size, '0');
+      for (std::size_t i = left_edge; i < right_edge; ++i) {
+        std::string key{reinterpret_cast<char *>(&i), sizeof(std::uint64_t)};
+        masstree_kvs::put(std::string_view(key), value.data(), value.size());
+      }
+      masstree_kvs::leave(token);
+    }
+  };
+
+  if (FLAGS_get_initial_record < 1000) {
+    // small tree is built by single thread.
+    std::cout << "parallel_build_tree : concurrency : 1" << std::endl;
+    S::parallel_build_worker(0, FLAGS_get_initial_record);
+  } else {
+    // large tree is built by multi thread.
+    std::cout << "parallel_build_tree : concurrency : " << std::thread::hardware_concurrency() << std::endl;
+    std::vector<std::thread> thv;
+    for (std::size_t i = 0; i < std::thread::hardware_concurrency(); ++i) {
+      if (i != std::thread::hardware_concurrency() - 1) {
+        thv.emplace_back(S::parallel_build_worker, FLAGS_get_initial_record / std::thread::hardware_concurrency() * i,
+                         FLAGS_get_initial_record / std::thread::hardware_concurrency() * (i + 1));
+      } else {
+        // if FLAGS_get_initial_record is odd number and hardware_concurrency() is even number, you should care surplus.
+        thv.emplace_back(S::parallel_build_worker, FLAGS_get_initial_record / std::thread::hardware_concurrency() * i,
+                         FLAGS_get_initial_record);
+      }
+    }
+    for (auto &th : thv) {
+      th.join();
+    }
+  }
+}
+
 void get_worker(const size_t thid, char &ready, const bool &start, const bool &quit, std::size_t &res) {
   // init work
   Xoroshiro128Plus rnd;
-  FastZipf zipf(&rnd, FLAGS_skew, FLAGS_initial_record);
-  std::size_t local_res{0};
+  FastZipf zipf(&rnd, FLAGS_get_skew, FLAGS_get_initial_record);
 
   // this function can be used in Linux environment only.
 #ifdef YAKUSHIMA_LINUX
   set_thread_affinity(thid);
 #endif
 
+  // build initial tree
+  std::cout << "get_worker :: start parallel build initial tree." << std::endl;
+  parallel_build_tree();
+  std::cout << "get_worker :: end parallel build initial tree." << std::endl;
+
   storeReleaseN(ready, 1);
   while (!loadAcquireN(start)) _mm_pause();
 
   Token token;
   masstree_kvs::enter(token);
+  std::uint64_t local_res{0};
   while (!loadAcquireN(quit)) {
-#if 0
-    uint64_t keynm = zipf() % FLAGS_record;
+    uint64_t keynm = zipf() % FLAGS_get_initial_record;
     uint64_t keybs = __builtin_bswap64(keynm);
-    kvs::Record* record;
-    record = MTDB.get_value((char*)&keybs, sizeof(uint64_t));
-    if (record == nullptr) ERR;
-    ++myres.local_commit_counts_;
-#endif
+    std::string key{reinterpret_cast<char *>(&keybs), sizeof(std::uint64_t)};
+    std::tuple<char *, std::size_t> ret = masstree_kvs::get<char>(std::string_view(key));
+    if (std::get<0>(ret) == nullptr) {
+      Failure.store(true, std::memory_order_release);
+    } else {
+      if (Failure.load(std::memory_order_acquire)) break;
+    }
+    ++local_res;
   }
   masstree_kvs::leave(token);
-
   res = local_res;
 }
 
@@ -131,31 +176,26 @@ void put_worker(const size_t thid, char &ready, const bool &start, std::size_t &
 
   Token token;
   masstree_kvs::enter(token);
-  std::size_t left_edge(FLAGS_put_records / FLAGS_thread * thid),
-          right_edge(FLAGS_put_records / FLAGS_thread * (thid + 1));
-  std::vector<std::size_t> key_vec;
-  key_vec.reserve(right_edge - left_edge);
-  for (std::size_t i = left_edge; i < right_edge; ++i) {
-    key_vec.emplace_back(i);
-  }
-  std::random_device seed_gen;
-  std::mt19937 engine(seed_gen());
-  std::shuffle(key_vec.begin(), key_vec.end(), engine);
-
+  std::uint64_t left_edge(UINT64_MAX / FLAGS_thread * thid),
+          right_edge(UINT64_MAX / FLAGS_thread * (thid + 1));
   std::string value(FLAGS_value_size, '0');
 
   storeReleaseN(ready, 1);
   while (!loadAcquireN(start)) _mm_pause();
 
-  std::size_t begin_time{rdtscp()};
-  for (auto &itr : key_vec) {
-    std::string key{reinterpret_cast<char *>(&itr), sizeof(std::size_t)};
+  std::uint64_t local_res{0};
+  for (std::uint64_t i = left_edge; i < right_edge; ++i) {
+    std::string key{reinterpret_cast<char *>(&i), sizeof(std::uint64_t)};
     masstree_kvs::put(std::string_view(key), value.data(), value.size());
+    ++local_res;
+    if (i == right_edge - 1) {
+      Failure.store(true, std::memory_order_release);
+    } else {
+      if (Failure.load(std::memory_order_acquire)) break;
+    }
   }
-  std::size_t end_time{rdtscp()};
   masstree_kvs::leave(token);
-
-  res = end_time - begin_time;
+  res = local_res;
 }
 
 static void invoke_leader() {
@@ -166,9 +206,6 @@ static void invoke_leader() {
   std::cout << "[start] init masstree database." << std::endl;
   masstree_kvs::init();
   std::cout << "[end] init masstree database." << std::endl;
-  if (FLAGS_instruction == "put" || FLAGS_instruction == "get") {
-    // build_initial_table(FLAGS_initial_record, FLAGS_thread);
-  }
 
   std::cout << "[report] This experiments use ";
   if (FLAGS_instruction == "get") {
@@ -193,23 +230,30 @@ static void invoke_leader() {
   waitForReady(readys);
   storeReleaseN(start, true);
   std::cout << "[start] measurement." << std::endl;
-  if (FLAGS_instruction == "get") {
-    for (size_t i = 0; i < FLAGS_get_duration; ++i) {
-      sleepMs(1000);
+  for (size_t i = 0; i < FLAGS_duration; ++i) {
+    sleepMs(1000);
+    if (Failure.load(std::memory_order_acquire)) break;
+  }
+  std::cout << "[end] measurement." << std::endl;
+  storeReleaseN(quit, true);
+  std::cout << "[start] join worker threads." << std::endl;
+  for (auto &th : thv) th.join();
+  std::cout << "[end] join worker threads." << std::endl;
+
+  if (Failure.load(std::memory_order_acquire)) {
+    if (FLAGS_instruction == "put") {
+
+      std::cout << __FILE__ << " : " << __LINE__ << " : experimental setting is bad, which leads to overflow.\n"
+                << "please set less durations." << std::endl;
+    } else if (FLAGS_instruction == "get") {
+      std::cout << __FILE__ << " : " << __LINE__ << "fatal error." << std::endl;
     }
-    std::cout << "[end] measurement." << std::endl;
-    storeReleaseN(quit, true);
-    std::cout << "[start] join worker threads." << std::endl;
-    for (auto &th : thv) th.join();
-    std::cout << "[end] join worker threads." << std::endl;
-  } else if (FLAGS_instruction == "put") {
-    for (auto &th : thv) th.join();
-    std::cout << "[end] measurement." << std::endl;
+    exit(1);
   }
 
   /**
    * get test : read records.
-   * put test : latency.
+   * put test : put records.
    */
   std::uint64_t fin_res{0};
   for (auto i = 0; i < FLAGS_thread; ++i) {
@@ -220,14 +264,7 @@ static void invoke_leader() {
     }
     fin_res += res[i];
   }
-  if (FLAGS_instruction == "get") {
-    std::cout << "throughput[ops/s]: " << fin_res / FLAGS_get_duration << std::endl;
-  } else if (FLAGS_instruction == "put") {
-    std::uint64_t clocks = fin_res / FLAGS_thread / FLAGS_put_records;
-    long double l{static_cast<long double>(clocks)};
-    l /= (FLAGS_cpumhz * 1000 * 1000);
-    std::cout << "latency[s/op]: " << l << std::endl;
-  }
+  std::cout << "throughput[ops/s]: " << fin_res / FLAGS_duration << std::endl;
 
   std::cout << "[start] fin masstree." << std::endl;
   masstree_kvs::fin();
