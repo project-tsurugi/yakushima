@@ -4,7 +4,9 @@
 
 #pragma once
 
+#include <array>
 #include <cstring>
+#include <functional>
 
 #include "atomic_wrapper.h"
 #include "cpu.h"
@@ -65,23 +67,20 @@ public:
     }
   }
 
-  [[nodiscard]] key_length_type *get_key_length() {
-    return key_length_;
+  [[nodiscard]] std::array<key_length_type, key_slice_length> &get_key_length() {
+    return std::ref(key_length_);
   }
 
   [[nodiscard]] key_length_type get_key_length_at(std::size_t index) {
-    return loadAcquireN(key_length_[index]);
+    return loadAcquireN(key_length_.at(index));
   }
 
-  [[nodiscard]] key_slice_type *get_key_slice() {
-    return key_slice_;
+  [[nodiscard]] std::array<key_slice_type, key_slice_length> &get_key_slice() {
+    return std::ref(key_slice_);
   }
 
   [[nodiscard]] key_slice_type get_key_slice_at(std::size_t index) {
-    if (index > static_cast<std::size_t>(key_slice_length)) {
-      std::abort();
-    }
-    return loadAcquireN(key_slice_[index]);
+    return loadAcquireN(key_slice_.at(index));
   }
 
   [[nodiscard]] bool get_lock() &{
@@ -192,12 +191,11 @@ public:
   }
 
   void set_key_length_at(std::size_t index, key_length_type length) {
-    storeReleaseN(key_length_[index], length);
+    storeReleaseN(key_length_.at(index), length);
   }
 
   void set_key_slice_at(std::size_t index, key_slice_type key_slice) {
-    if (index >= key_slice_length) std::abort();
-    storeReleaseN(key_slice_[index], key_slice);
+    storeReleaseN(key_slice_.at(index), key_slice);
   }
 
   void set_parent(base_node *new_parent) {
@@ -237,24 +235,16 @@ public:
   }
 
   void shift_left_base_member(std::size_t start_pos, std::size_t shift_size) {
-    memmove(&get_key_slice()[start_pos - shift_size], &get_key_slice()[start_pos],
+    memmove(&key_slice_.at(start_pos - shift_size), &key_slice_.at(start_pos),
             sizeof(key_slice_type) * (key_slice_length - start_pos));
-    memmove(&get_key_length()[start_pos - shift_size], &get_key_length()[start_pos],
+    memmove(&key_length_.at(start_pos - shift_size), &key_length_.at(start_pos),
             sizeof(key_length_type) * (key_slice_length - start_pos));
   }
 
   void shift_right_base_member(std::size_t start, std::size_t shift_size) {
-    if (start >= key_slice_length - 1) {
-      std::cerr << __FILE__ << " : " << __LINE__ << " : " << status::ERR_BOUNDARY << std::endl;
-      std::abort();
-    } else if (shift_size == 0) {
-      std::cerr << __FILE__ << " : " << __LINE__ << " : " << status::ERR_ARGUMENT << std::endl;
-      std::abort();
-    }
-
-    memmove(&get_key_slice()[start + shift_size], &get_key_slice()[start],
+    memmove(&key_slice_.at(start + shift_size), &key_slice_.at(start),
             sizeof(key_slice_type) * (key_slice_length - start - shift_size));
-    memmove(&get_key_length()[start + shift_size], &get_key_length()[start],
+    memmove(&key_length_.at(start + shift_size), &key_length_.at(start),
             sizeof(key_length_type) * (key_slice_length - start - shift_size));
   }
 
@@ -292,7 +282,7 @@ private:
   /**
    * @attention This variable is read/written concurrently.
    */
-  key_slice_type key_slice_[key_slice_length]{};
+  std::array<key_slice_type, key_slice_length> key_slice_{};
   /**
    * @attention This variable is read/written concurrently.
    * @details This is used for distinguishing the identity of link or value and same slices.
@@ -301,7 +291,7 @@ private:
    * These keys have same key_slices (0) but different key_length.
    * If the length is more than 8, the lv points out to next layer.
    */
-  key_length_type key_length_[key_slice_length]{};
+  std::array<key_length_type, key_slice_length> key_length_{};
 
 /**
  * @details

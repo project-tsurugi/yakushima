@@ -107,7 +107,8 @@ public:
    * @param key_slice
    * @param key_length
    */
-  void rearrange(std::uint64_t *key_slice, std::uint8_t *key_length) {
+  void rearrange(std::array<base_node::key_slice_type, base_node::key_slice_length> &key_slice,
+                 std::array<base_node::key_length_type, base_node::key_slice_length> &key_length) {
     std::uint64_t per_body(body_.load(std::memory_order_acquire));
     // get current number of keys
     std::size_t cnk = per_body & cnk_mask;
@@ -117,7 +118,7 @@ public:
     std::vector<std::tuple<base_node::key_slice_type, base_node::key_length_type, std::uint8_t>> vec;
     vec.reserve(cnk);
     for (std::uint8_t i = 0; i < cnk; ++i) {
-      vec.emplace_back(key_slice[i], key_length[i], i);
+      vec.emplace_back(key_slice.at(i), key_length.at(i), i);
     }
     /**
      * sort based on key_slice and key_length for dictionary order.
@@ -135,20 +136,20 @@ public:
     body_.store(new_body, std::memory_order_release);
   }
 
-  void set_body(std::uint64_t new_body) &{
-    body_.store(new_body, std::memory_order_release);
+  void set_body(std::uint64_t nb) &{
+    body_.store(nb, std::memory_order_release);
   }
 
-  status set_cnk(uint8_t new_cnk) &{
+  status set_cnk(uint8_t cnk) &{
 #ifndef NDEBUG
-    if (powl(2, cnk_bit_size) <= new_cnk) {
+    if (powl(2, cnk_bit_size) <= cnk) {
       std::cerr << __FILE__ << " : " << __LINE__ << " : fatal error." << std::endl;
       std::abort();
     }
 #endif
     std::uint64_t body = body_.load(std::memory_order_acquire);
     body &= ~cnk_mask;
-    body |= new_cnk;
+    body |= cnk;
     body_.store(body, std::memory_order_release);
     return status::OK;
   }
