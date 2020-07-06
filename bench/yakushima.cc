@@ -40,15 +40,24 @@ using namespace yakushima;
 
 DEFINE_uint64(cpumhz, 2100, "# cpu MHz of execution environment. It is used measuring some time.");
 DEFINE_uint64(duration, 3, "Duration of benchmark in seconds.");
-DEFINE_uint64(get_initial_record, 1000000, "# initial key-values for get bench");
-DEFINE_string(instruction, "get", "put or get. The default is insert.");
+DEFINE_uint64(get_initial_record, 1000, "# initial key-values for get bench");
 DEFINE_double(get_skew, 0.0, "access skew of get operations.");
+DEFINE_string(instruction, "get", "put or get. The default is insert.");
 DEFINE_uint64(thread, 1, "# worker threads.");
 DEFINE_uint32(value_size, 4, "value size");
 
 std::atomic<bool> Failure{false};
 
 static void check_flags() {
+  std::cout << "parameter settings\n"
+            << "cpumhz :\t\t" << FLAGS_cpumhz << "\n"
+            << "duration :\t\t" << FLAGS_duration << "\n"
+            << "get_initial_record :\t" << FLAGS_get_initial_record << "\n"
+            << "get_skew :\t\t" << FLAGS_get_skew << "\n"
+            << "instruction :\t\t" << FLAGS_instruction << "\n"
+            << "thread :\t\t" << FLAGS_thread << "\n"
+            << "value_size :\t\t" << FLAGS_value_size << std::endl;
+
   if (FLAGS_thread == 0) {
     std::cerr << "Number of threads must be larger than 0." << std::endl;
     exit(1);
