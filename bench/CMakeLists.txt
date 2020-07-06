@@ -13,21 +13,42 @@
 # limitations under the License.
 
 file(GLOB YAKUSHIMA_SOURCES
-  "yakushima.cc"
-)
+        "yakushima.cc"
+        )
 
 add_executable(yakushima_bench
-  ${YAKUSHIMA_SOURCES}
-)
+        ${YAKUSHIMA_SOURCES}
+        )
 
 target_link_libraries(yakushima_bench
-  PRIVATE Threads::Threads
-  PRIVATE gflags::gflags
-)
+        PRIVATE Threads::Threads
+        PRIVATE gflags::gflags
+        )
 
 target_include_directories(yakushima_bench
-  PRIVATE .
-  PRIVATE ./include
-  PRIVATE ./../src
-  PRIVATE ${gflags_INCLUDE_DIR}
-)
+        PRIVATE .
+        PRIVATE ./include
+        PRIVATE ./../src
+        PRIVATE ${gflags_INCLUDE_DIR}
+        )
+
+file(GLOB MALLOC_SOURCES
+        "malloc.cc"
+        )
+
+add_executable(malloc_bench
+        ${MALLOC_SOURCES}
+        )
+
+target_link_libraries(malloc_bench
+        PRIVATE Threads::Threads
+        PRIVATE gflags::gflags
+        )
+
+target_include_directories(malloc_bench
+        PRIVATE .
+        PRIVATE ./include
+        PRIVATE ./../src
+        PRIVATE ${gflags_INCLUDE_DIR}
+        )
+
