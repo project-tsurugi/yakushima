@@ -169,7 +169,7 @@ public:
   }
 
   [[nodiscard]] base_node *get_child_at(std::size_t index) {
-    return loadAcquireN(children[index]);
+    return loadAcquireN(children.at(index));
   }
 
   base_node *get_child_of(key_slice_type key_slice, key_length_type key_length) {
@@ -209,9 +209,7 @@ public:
   void init_interior() {
     init_base();
     set_version_border(false);
-    for (std::size_t i = 0; i < child_length; ++i) {
-      set_child_at(i, nullptr);
-    }
+    children.fill(nullptr);
     set_n_keys(0);
   }
 
@@ -278,7 +276,7 @@ public:
   }
 
   void set_child_at(std::size_t index, base_node *new_child) {
-    storeReleaseN(children[index], new_child);
+    storeReleaseN(children.at(index), new_child);
   }
 
   void set_n_keys(n_keys_body_type new_n_key) {
@@ -339,7 +337,7 @@ private:
 /**
  * @attention This variable is read/written concurrently.
  */
-  base_node *children[child_length]{};
+  std::array<base_node *, child_length> children{};
 /**
  * @attention This variable is read/written concurrently.
  */

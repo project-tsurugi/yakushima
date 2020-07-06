@@ -68,7 +68,7 @@ public:
   }
 
   [[nodiscard]] std::array<key_length_type, key_slice_length> &get_key_length() {
-    return std::ref(key_length_);
+    return key_length_;
   }
 
   [[nodiscard]] key_length_type get_key_length_at(std::size_t index) {
@@ -76,7 +76,7 @@ public:
   }
 
   [[nodiscard]] std::array<key_slice_type, key_slice_length> &get_key_slice() {
-    return std::ref(key_slice_);
+    return key_slice_;
   }
 
   [[nodiscard]] key_slice_type get_key_slice_at(std::size_t index) {
@@ -134,7 +134,8 @@ public:
   void init_base() {
     version_.init();
     set_parent(nullptr);
-    init_base_member_range(0, key_slice_length - 1);
+    key_slice_.fill(0);
+    key_length_.fill(0);
   }
 
   /**

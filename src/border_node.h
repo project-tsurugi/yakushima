@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include <cstdint>
+#include <functional>
 #include <iostream>
 
 #include "atomic_wrapper.h"
@@ -35,9 +36,9 @@ public:
   void delete_at(Token token, std::size_t pos, bool target_is_value) {
     thread_info *ti = reinterpret_cast<thread_info *>(token);
     if (target_is_value) {
-      ti->move_value_to_gc_container(lv_[pos].get_v_or_vp_());
+      ti->move_value_to_gc_container(lv_.at(pos).get_v_or_vp_());
     }
-    lv_[pos].init_lv();
+    lv_.at(pos).init_lv();
 
     /**
      * rearrangement.
@@ -62,7 +63,7 @@ public:
   void delete_of(Token token, base_node *child, std::vector<node_version64 *> &lock_list) {
     std::size_t cnk = get_permutation_cnk();
     for (std::size_t i = 0; i < cnk; ++i) {
-      if (child == lv_[i].get_next_layer()) {
+      if (child == lv_.at(i).get_next_layer()) {
         delete_of < false > (token, get_key_slice_at(i), get_key_length_at(i), lock_list);
         return;
       }
@@ -78,7 +79,7 @@ public:
    */
   status destroy() final {
     for (auto i = 0; i < permutation_.get_cnk(); ++i) {
-      lv_[i].destroy();
+      lv_.at(i).destroy();
     }
     delete this;
     return status::OK_DESTROY_BORDER;
@@ -177,7 +178,7 @@ retry_prev_lock:
     cout << "border_node::display" << endl;
     permutation_.display();
     for (std::size_t i = 0; i < get_permutation_cnk(); ++i) {
-      lv_[i].display();
+      lv_.at(i).display();
     }
     cout << "next : " << get_next() << endl;
   }
@@ -200,7 +201,7 @@ retry_prev_lock:
     }
   }
 
-  [[nodiscard]] link_or_value *get_lv() {
+  [[nodiscard]] std::array<link_or_value, key_slice_length> &get_lv() {
     return lv_;
   }
 
@@ -212,8 +213,8 @@ retry_prev_lock:
    */
   [[nodiscard]] link_or_value *get_lv(base_node *next_layer) {
     for (std::size_t i = 0; i < base_node::key_slice_length; ++i) {
-      if (lv_[i].get_next_layer() == next_layer) {
-        return &lv_[i];
+      if (lv_.at(i).get_next_layer() == next_layer) {
+        return &lv_.at(i);
       }
     }
     /**
@@ -241,8 +242,8 @@ retry_prev_lock:
 
       link_or_value *ret = nullptr;
       for (std::size_t i = 0; i < base_node::key_slice_length; ++i) {
-        if (lv_[i].get_next_layer() == next_layer) {
-          ret = &lv_[i];
+        if (lv_.at(i).get_next_layer() == next_layer) {
+          ret = &lv_.at(i);
           break;
         }
       }
@@ -257,7 +258,7 @@ retry_prev_lock:
   }
 
   [[nodiscard]] link_or_value *get_lv_at(std::size_t index) {
-    return &lv_[index];
+    return &lv_.at(index);
   }
 
   /**
@@ -340,7 +341,7 @@ retry_prev_lock:
     init_border_member_range(0, key_slice_length - 1);
     set_version_border(true);
     permutation_.init();
-    next_ = nullptr;
+    set_next(nullptr);
     set_prev(nullptr);
   }
 
@@ -385,7 +386,7 @@ retry_prev_lock:
   }
 
   void init_lv_at(std::size_t index) {
-    lv_[index].init_lv();
+    lv_.at(index).init_lv();
   }
 
   /**
@@ -453,18 +454,18 @@ retry_prev_lock:
    * @param nlv
    */
   void set_lv(std::size_t index, link_or_value *nlv) {
-    lv_[index].set(nlv);
+    lv_.at(index).set(nlv);
   }
 
   void set_lv_value(std::size_t index,
                     void *value,
                     value_length_type arg_value_length,
                     value_align_type value_align) {
-    lv_[index].set_value(value, arg_value_length, value_align);
+    lv_.at(index).set_value(value, arg_value_length, value_align);
   }
 
   void set_lv_next_layer(std::size_t index, base_node *next_layer) {
-    lv_[index].set_next_layer(next_layer);
+    lv_.at(index).set_next_layer(next_layer);
   }
 
   void set_next(border_node *nnext) {
@@ -476,12 +477,6 @@ retry_prev_lock:
   }
 
   void shift_left_border_member(std::size_t start_pos, std::size_t shift_size) {
-#ifndef NDEBUG
-    if (start_pos < shift_size) {
-      std::cerr << __FILE__ << " : " << __LINE__ << " : fatal error." << std::endl;
-      std::abort();
-    }
-#endif
     memmove(get_lv_at(start_pos - shift_size), get_lv_at(start_pos),
             sizeof(link_or_value) * (key_slice_length - start_pos));
   }
@@ -495,7 +490,7 @@ private:
   /**
    * @attention This variable is read/written concurrently.
    */
-  link_or_value lv_[key_slice_length]{};
+  std::array<link_or_value, key_slice_length> lv_{};
   /**
    * @attention This is protected by its previous sibling's lock.
    */
