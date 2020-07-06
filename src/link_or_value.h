@@ -62,11 +62,11 @@ public:
    * @details display function for analysis and debug.
    */
   void display() {
-    cout << "need_delete_value_ : " << get_need_delete_value() << endl;
-    cout << "next_layer_ : " << get_next_layer() << endl;
-    cout << "v_or_vp_ : " << get_v_or_vp_() << endl;
-    cout << "value_length_ : " << get_value_length() << endl;
-    cout << "value_align_ : " << get_value_align() << endl;
+    std::cout << "need_delete_value_ : " << get_need_delete_value() << std::endl;
+    std::cout << "next_layer_ : " << get_next_layer()               << std::endl;
+    std::cout << "v_or_vp_ : " << get_v_or_vp_()                    << std::endl;
+    std::cout << "value_length_ : " << get_value_length()           << std::endl;
+    std::cout << "value_align_ : " << get_value_align()             << std::endl;
   }
 
   [[nodiscard]] bool get_need_delete_value() {

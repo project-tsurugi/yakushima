@@ -125,7 +125,7 @@ retry_fetch_lv:
      */
     if (v_at_fetch_lv.get_vsplit() != v_at_fb.get_vsplit() || v_at_fetch_lv.get_deleted()) {
       /**
-       * The correct border was changed between atomically fetching bordr node and atomically fetching lv.
+       * The correct border was changed between atomically fetching border node and atomically fetching lv.
        */
       goto retry_from_root;
     }
@@ -168,7 +168,7 @@ retry_fetch_lv:
    */
   static void init() {
     /**
-     * initialize thread infomation table (kThreadInfoTable)
+     * initialize thread information table (kThreadInfoTable)
      */
     thread_info::init();
     thread_info::invoke_epoch_thread();

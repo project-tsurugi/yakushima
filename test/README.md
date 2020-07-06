@@ -27,8 +27,8 @@
   9. test of 8 which is using shuffled data.
 - scan_test.cpp
   1. scan against single put to one border.
-  2. scan against multiple put same null char key whose length is different each other agaisnt single border node.
-  3. scan against multiple put same null char key whose length is different each other agaisnt multiple border node, 
+  2. scan against multiple put same null char key whose length is different each other against single border node.
+  3. scan against multiple put same null char key whose length is different each other against multiple border node, 
   which is across some layer.
   4. scan against the structure which it has interior node as root, and the interior has some border nodes as children.
   5. scan against the structure which it has interior node as root, root has two interior nodes as children, 

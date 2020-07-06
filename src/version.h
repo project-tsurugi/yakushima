@@ -15,8 +15,6 @@
 
 #include "atomic_wrapper.h"
 
-using std::cout, std::endl;
-
 namespace yakushima {
 
 /**
@@ -60,54 +58,54 @@ public:
   /**
    * @details display function for analysis and debug.
    */
-  void display() {
-    cout << "node_version64_body::display" << endl;
-    cout << "locked : " << get_locked() << endl;
-    cout << "deleting : " << get_deleting_node() << endl;
-    cout << "inserting : " << get_inserting() << endl;
-    cout << "splitting : " << get_splitting() << endl;
-    cout << "deleted : " << get_deleted() << endl;
-    cout << "root : " << get_root() << endl;
-    cout << "border : " << get_border() << endl;
-    cout << "unused : " << get_unused() << endl;
-    cout << "vdelete : " << get_vdelete() << endl;
-    cout << "vinsert : " << get_vinsert() << endl;
-    cout << "vsplit: " << get_vsplit() << endl;
+  void display() const {
+    std::cout << "node_version64_body::display" << std::endl;
+    std::cout << "locked : " << get_locked() << std::endl;
+    std::cout << "deleting : " << get_deleting_node() << std::endl;
+    std::cout << "inserting : " << get_inserting() << std::endl;
+    std::cout << "splitting : " << get_splitting() << std::endl;
+    std::cout << "deleted : " << get_deleted() << std::endl;
+    std::cout << "root : " << get_root() << std::endl;
+    std::cout << "border : " << get_border() << std::endl;
+    std::cout << "unused : " << get_unused() << std::endl;
+    std::cout << "vdelete : " << get_vdelete() << std::endl;
+    std::cout << "vinsert : " << get_vinsert() << std::endl;
+    std::cout << "vsplit: " << get_vsplit() << std::endl;
   }
 
   bool operator!=(const node_version64_body &rhs) const {
     return !(*this == rhs);
   }
 
-  [[nodiscard]] bool get_border() const {
+  [[nodiscard]] int get_border() const {
     return border;
   }
 
-  [[nodiscard]] bool get_deleted() const {
+  [[nodiscard]] int get_deleted() const {
     return deleted;
   }
 
-  [[nodiscard]] bool get_deleting_node() const {
+  [[nodiscard]] int get_deleting_node() const {
     return deleting_node;
   }
 
-  [[nodiscard]] bool get_inserting() const {
+  [[nodiscard]] int get_inserting() const {
     return inserting;
   }
 
-  [[nodiscard]] bool get_locked() const {
+  [[nodiscard]] int get_locked() const {
     return locked;
   }
 
-  [[nodiscard]] bool get_root() const {
+  [[nodiscard]] int get_root() const {
     return root;
   }
 
-  [[nodiscard]] bool get_splitting() const {
+  [[nodiscard]] int get_splitting() const {
     return splitting;
   }
 
-  [[nodiscard]] bool get_unused() const {
+  [[nodiscard]] int get_unused() const {
     return unused;
   }
 
@@ -281,92 +279,110 @@ public:
    * If you use "setter(getter + 1)", that is not atomic increment.
    */
   void atomic_inc_vinsert() {
-    node_version64_body expected(get_body()), desired;
+    node_version64_body expected(get_body());
+    node_version64_body desired{};
     for (;;) {
       desired = expected;
       desired.inc_vinsert();
-      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
+      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire)) {
         break;
+}
     }
   }
 
   void atomic_inc_vdelete() {
-    node_version64_body expected(get_body()), desired;
+    node_version64_body expected(get_body());
+    node_version64_body desired{};
     for (;;) {
       desired = expected;
       desired.inc_vdelete();
-      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
+      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire)) {
         break;
+}
     }
   }
 
   void atomic_set_border(bool tf) {
-    node_version64_body expected(get_body()), desired;
+    node_version64_body expected(get_body());
+    node_version64_body desired{};
     for (;;) {
       desired = expected;
       desired.set_border(tf);
-      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
+      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire)) {
         break;
+}
     }
   }
 
   void atomic_set_deleted(bool tf) {
-    node_version64_body expected(get_body()), desired;
+    node_version64_body expected(get_body());
+    node_version64_body desired{};
     for (;;) {
       desired = expected;
       desired.set_deleted(tf);
-      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
+      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire)) {
         break;
+}
     }
   }
 
   void atomic_set_deleting_node(bool tf) &{
-    node_version64_body expected(get_body()), desired;
+    node_version64_body expected(get_body());
+    node_version64_body desired{};
     for (;;) {
       desired = expected;
       desired.set_deleting_node(tf);
-      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
+      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire)) {
         break;
+}
     }
   }
 
   void atomic_set_inserting(bool tf) &{
-    node_version64_body expected(get_body()), desired;
+    node_version64_body expected(get_body());
+    node_version64_body desired{};
     for (;;) {
       desired = expected;
       desired.set_inserting(tf);
-      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
+      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire)) {
         break;
+}
     }
   }
 
   void atomic_set_locked(bool tf) {
-    node_version64_body expected(get_body()), desired;
+    node_version64_body expected(get_body());
+    node_version64_body desired{};
     for (;;) {
       desired = expected;
       desired.set_locked(tf);
-      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
+      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire)) {
         break;
+      }
     }
   }
 
   void atomic_set_root(bool tf) {
-    node_version64_body expected(get_body()), desired;
+    node_version64_body expected(get_body());
+    node_version64_body desired{};
     for (;;) {
       desired = expected;
       desired.set_root(tf);
-      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
+      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire)) {
         break;
+      }
     }
   }
 
   void atomic_set_splitting(bool tf) {
-    node_version64_body expected(get_body()), desired;
+    node_version64_body expected(get_body());
+    node_version64_body desired{};
     for (;;) {
       desired = expected;
       desired.set_splitting(tf);
-      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
+      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire)) {
         break;
+      }
     }
   }
 
@@ -382,7 +398,8 @@ public:
    * @return void
    */
   void lock() {
-    node_version64_body expected(get_body()), desired;
+    node_version64_body expected(get_body());
+    node_version64_body desired{};
     for (;;) {
       if (expected.get_locked()) {
         _mm_pause();
@@ -391,8 +408,9 @@ public:
       }
       desired = expected;
       desired.set_locked(true);
-      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire))
+      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire)) {
         break;
+      }
     }
   }
 
@@ -437,12 +455,10 @@ public:
        * Even if the locked version is immutable, the members read at that time may be broken.
        * Therefore, you have to check the lock.
        */
-      if (sv.get_deleting_node() == false && sv.get_inserting() == false && sv.get_locked() == false &&
-          sv.get_splitting() == false) {
+      if (!sv.get_deleting_node() && !sv.get_inserting() && !sv.get_locked() && !sv.get_splitting()) {
         return sv;
-      } else {
-        _mm_pause();
       }
+      _mm_pause();
     }
   }
 
@@ -485,7 +501,8 @@ public:
    * @pre The caller already succeeded acquiring lock.
    */
   void unlock() &{
-    node_version64_body expected(get_body()), desired;
+    node_version64_body expected(get_body());
+    node_version64_body desired{};
     for (;;) {
       desired = expected;
       if (desired.get_inserting()) {

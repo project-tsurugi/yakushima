@@ -3,7 +3,6 @@
  */
 
 #include <algorithm>
-#include <future>
 #include <random>
 #include <thread>
 #include <tuple>

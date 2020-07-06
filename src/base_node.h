@@ -58,12 +58,12 @@ public:
   virtual void display() = 0;
 
   void display_base() {
-    cout << "base_node::display_base" << endl;
+    std::cout << "base_node::display_base" << std::endl;
     version_.display();
-    cout << "parent_ : " << get_parent() << endl;
+    std::cout << "parent_ : " << get_parent() << std::endl;
     for (std::size_t i = 0; i < key_slice_length; ++i) {
-      cout << "key_slice_[" << i << "] : " << std::to_string(get_key_slice_at(i)) << endl;
-      cout << "key_length_[" << i << "] : " << std::to_string(get_key_length_at(i)) << endl;
+      std::cout << "key_slice_[" << i << "] : " << std::to_string(get_key_slice_at(i))   << std::endl;
+      std::cout << "key_length_[" << i << "] : " << std::to_string(get_key_length_at(i)) << std::endl;
     }
   }
 

@@ -93,8 +93,6 @@ retry:
       goto retry;
     }
   }
-
-  return status::OK;
 }
 
 template<class ValueType>

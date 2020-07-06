@@ -5,7 +5,6 @@
 #include "gtest/gtest.h"
 
 #include "border_node.h"
-#include "version.h"
 
 using namespace yakushima;
 using std::cout;

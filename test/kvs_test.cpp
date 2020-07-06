@@ -2,15 +2,11 @@
  * @file kvs_test.cpp
  */
 
-#include <future>
-#include <thread>
 #include <tuple>
 
 #include "gtest/gtest.h"
 
 #include "kvs.h"
-
-#include "debug.hh"
 
 using namespace yakushima;
 using std::cout;

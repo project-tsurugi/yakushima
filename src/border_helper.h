@@ -185,7 +185,7 @@ static void border_split(border_node *border,
    * split
    * If the fan-out is odd, keep more than half to improve the performance.
    */
-  std::size_t remaining_size{0};
+  std::size_t remaining_size;
   if (base_node::key_slice_length % 2) {
     remaining_size = base_node::key_slice_length / 2 + 1;
   } else {

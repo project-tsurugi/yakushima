@@ -3,7 +3,6 @@
  */
 
 #include <future>
-#include <thread>
 
 #include "gtest/gtest.h"
 
@@ -21,10 +20,6 @@ protected:
 
   ~link_or_value_test() = default;
 };
-
-TEST_F(link_or_value_test, link_or_value_test) {
-  link_or_value lv;
-}
 
 TEST_F(link_or_value_test, display) {
   link_or_value lv;

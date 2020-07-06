@@ -186,13 +186,14 @@ public:
     return value_container_;
   }
 
-private:
+protected:
   static constexpr std::size_t gc_epoch_index = 0;
   static constexpr std::size_t gc_target_index = 1;
   static std::array<node_container, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kGarbageNodes;
   static std::array<value_container, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kGarbageValues;
   static std::atomic<Epoch> kGCEpoch;
 
+private:
   node_container *node_container_{nullptr};
   value_container *value_container_{nullptr};
 };

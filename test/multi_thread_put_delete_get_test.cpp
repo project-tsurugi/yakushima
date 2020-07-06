@@ -45,7 +45,7 @@ TEST_F(multi_thread_put_delete_get_test, test1) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+  for (std::size_t h = 0; h < 50; ++h) {
 #endif
     masstree_kvs::init();
     Token token[2];
@@ -133,7 +133,7 @@ TEST_F(multi_thread_put_delete_get_test, test2) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+  for (std::size_t h = 0; h < 50; ++h) {
 #endif
     masstree_kvs::init();
     Token token[2];

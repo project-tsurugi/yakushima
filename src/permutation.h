@@ -54,7 +54,7 @@ public:
 
   void display() {
     std::bitset<64> bs{get_body()};
-    cout << " perm : " << bs << endl;
+    std::cout << " perm : " << bs << std::endl;
   }
 
   std::uint64_t get_body() &{

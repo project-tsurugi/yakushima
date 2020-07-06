@@ -23,7 +23,8 @@ protected:
 };
 
 TEST_F(version_test, operator_node_version64_body_test) {
-  node_version64_body b1, b2;
+  node_version64_body b1{};
+  node_version64_body b2{};
   b1.init();
   b2.init();
   ASSERT_EQ(b1, b2);
@@ -61,12 +62,12 @@ TEST_F(version_test, basic_node_version_test) {
 }
 
 TEST_F(version_test, display) {
-  node_version64_body vb;
+  node_version64_body vb{};
   vb.init();
   ASSERT_EQ(true, true);
   //vb.display();
 
-  node_version64 v;
+  node_version64 v{};
   v.init();
   ASSERT_EQ(true, true);
   //v.display();
