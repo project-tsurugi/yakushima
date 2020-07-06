@@ -66,18 +66,18 @@ public:
       static void parallel_worker(std::uint64_t left_edge, std::uint64_t right_edge) {
         for (std::size_t i = left_edge; i < right_edge; ++i) {
           auto &ncontainer = kGarbageNodes.at(i);
-          for (auto itr = ncontainer.get_body().begin(); itr != ncontainer.get_body().end(); ++itr) {
-            if (std::get<gc_target_index>(*itr)->get_version_border()) {
-              delete dynamic_cast<border_node *>(std::get<gc_target_index>(*itr));
+          for (auto &&elem : ncontainer.get_body()) {
+            if (std::get<gc_target_index>(elem)->get_version_border()) {
+              delete dynamic_cast<border_node *>(std::get<gc_target_index>(elem));
             } else {
-              delete dynamic_cast<interior_node *>(std::get<gc_target_index>(*itr));
+              delete dynamic_cast<interior_node *>(std::get<gc_target_index>(elem));
             }
           }
           ncontainer.get_body().clear();
 
           auto &vcontainer = kGarbageValues.at(i);
-          for (auto itr = vcontainer.get_body().begin(); itr != vcontainer.get_body().end(); ++itr) {
-            ::operator delete(std::get<gc_target_index>(*itr));
+          for (auto &&elem : vcontainer.get_body()) {
+            ::operator delete(std::get<gc_target_index>(elem));
           }
           vcontainer.get_body().clear();
         }
