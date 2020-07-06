@@ -28,10 +28,10 @@ public:
    * @return status::WARN_MAX_SESSIONS The maximum number of sessions is already up and running.
    */
   static status assign_session(Token &token) {
-    for (auto itr = kThreadInfoTable.begin(); itr != kThreadInfoTable.end(); ++itr) {
-      if (itr->gain_the_right()) {
-        itr->set_begin_epoch(epoch_management::get_epoch());
-        token = static_cast<void *>(&(*itr));
+    for (auto &&elem : kThreadInfoTable) {
+      if (elem.gain_the_right()) {
+        elem.set_begin_epoch(epoch_management::get_epoch());
+        token = static_cast<void *>(&(elem));
         return status::OK;
       }
     }
@@ -47,8 +47,8 @@ public:
        * attention : type of epoch is uint64_t
        */
       Epoch min_epoch(UINT64_MAX);
-      for (auto itr = kThreadInfoTable.begin(); itr != kThreadInfoTable.end(); ++itr) {
-        Epoch itr_epoch = itr->get_begin_epoch();
+      for (auto &&elem : kThreadInfoTable) {
+        Epoch itr_epoch = elem.get_begin_epoch();
         if (itr_epoch != 0) {
           /**
            * itr_epoch is valid.
@@ -92,11 +92,11 @@ public:
    */
   template<class interior_node, class border_node>
   static status leave_session(Token &token) {
-    for (auto itr = kThreadInfoTable.begin(); itr != kThreadInfoTable.end(); ++itr) {
-      if (token == static_cast<void *>(&(*itr))) {
-        itr->gc_container_.gc<interior_node, border_node>();
-        itr->set_running(false);
-        itr->set_begin_epoch(0);
+    for (auto &&elem : kThreadInfoTable) {
+      if (token == static_cast<void *>(&(elem))) {
+        elem.gc_container_.gc<interior_node, border_node>();
+        elem.set_running(false);
+        elem.set_begin_epoch(0);
         return status::OK;
       }
     }

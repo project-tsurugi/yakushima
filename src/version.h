@@ -124,15 +124,15 @@ public:
   }
 
   void inc_vdelete() {
-    vdelete += 1;
+    ++vdelete;
   }
 
   void inc_vinsert() {
-    vinsert += 1;
+    ++vinsert;
   }
 
   void inc_vsplit() {
-    vsplit += 1;
+    ++vsplit;
   }
 
   void init() {
@@ -503,10 +503,7 @@ public:
   }
 
   static void unlock(std::vector<node_version64 *> &lock_list) {
-    /**
-     * todo : performance improvement. reverse order release improves performance due to releasing from up to bottom.
-     */
-    for (auto &l : lock_list) {
+    for (auto &&l : lock_list) {
       l->unlock();
     }
   }
