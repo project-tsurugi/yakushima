@@ -122,7 +122,7 @@ public:
     return begin_epoch_.load(std::memory_order_acquire);
   }
 
-  std::vector<std::pair<Epoch, base_node *>> *get_node_container() {
+  gc_container::node_container *get_node_container() {
     return gc_container_.get_node_container();
   }
 
@@ -130,7 +130,7 @@ public:
     return running_.load(std::memory_order_acquire);
   }
 
-  std::vector<std::pair<Epoch, void *>> *get_value_container() {
+  gc_container::value_container *get_value_container() {
     return gc_container_.get_value_container();
   }
 
