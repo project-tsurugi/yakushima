@@ -150,11 +150,6 @@ void get_worker(const size_t thid, char &ready, const bool &start, const bool &q
   set_thread_affinity(thid);
 #endif
 
-  // build initial tree
-  std::cout << "get_worker :: start parallel build initial tree." << std::endl;
-  parallel_build_tree();
-  std::cout << "get_worker :: end parallel build initial tree." << std::endl;
-
   storeReleaseN(ready, 1);
   while (!loadAcquireN(start)) _mm_pause();
 
@@ -176,7 +171,7 @@ void get_worker(const size_t thid, char &ready, const bool &start, const bool &q
   res = local_res;
 }
 
-void put_worker(const size_t thid, char &ready, const bool &start, std::size_t &res) {
+void put_worker(const size_t thid, char &ready, const bool &start, const bool &quit, std::size_t &res) {
   // this function can be used in Linux environment only.
 #ifdef YAKUSHIMA_LINUX
   set_thread_affinity(thid);
@@ -199,7 +194,10 @@ void put_worker(const size_t thid, char &ready, const bool &start, std::size_t &
     if (i == right_edge - 1) {
       Failure.store(true, std::memory_order_release);
     } else {
-      if (Failure.load(std::memory_order_acquire)) break;
+      if (Failure.load(std::memory_order_acquire) ||
+          loadAcquireN(quit)) {
+        break;
+      }
     }
   }
   masstree_kvs::leave(token);
@@ -218,6 +216,10 @@ static void invoke_leader() {
   std::cout << "[report] This experiments use ";
   if (FLAGS_instruction == "get") {
     std::cout << "get" << std::endl;
+    // build initial tree
+    std::cout << "[start] parallel build initial tree." << std::endl;
+    parallel_build_tree();
+    std::cout << "[end] parallel build initial tree." << std::endl;
   } else if (FLAGS_instruction == "put") {
     std::cout << "put" << std::endl;
   } else {
@@ -231,7 +233,7 @@ static void invoke_leader() {
     if (FLAGS_instruction == "get") {
       thv.emplace_back(get_worker, i, std::ref(readys[i]), std::ref(start), std::ref(quit), std::ref(res[i]));
     } else if (FLAGS_instruction == "put") {
-      thv.emplace_back(put_worker, i, std::ref(readys[i]), std::ref(start), std::ref(res[i]));
+      thv.emplace_back(put_worker, i, std::ref(readys[i]), std::ref(start), std::ref(quit), std::ref(res[i]));
     }
   }
 
