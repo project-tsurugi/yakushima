@@ -115,20 +115,19 @@ public:
 
     // tuple<key_slice, key_length, index>
     constexpr std::size_t key_pos = 2;
-    std::vector<std::tuple<base_node::key_slice_type, base_node::key_length_type, std::uint8_t>> vec;
-    vec.reserve(cnk);
+    std::array<std::tuple<base_node::key_slice_type, base_node::key_length_type, std::uint8_t>, base_node::key_slice_length> ar;
     for (std::uint8_t i = 0; i < cnk; ++i) {
-      vec.emplace_back(key_slice.at(i), key_length.at(i), i);
+      ar.at(i) = {key_slice.at(i), key_length.at(i), i};
     }
     /**
      * sort based on key_slice and key_length for dictionary order.
      * So <key_slice_type, key_length_type, ...>
      */
-    std::sort(vec.begin(), vec.end());
+    std::sort(ar.begin(), ar.begin() + cnk);
 
     // rearrange
     std::uint64_t new_body(0);
-    for (auto itr = std::crbegin(vec); itr != std::crend(vec); ++itr) {
+    for (auto itr = ar.begin() + cnk - 1; itr != ar.begin() - 1; --itr) {
       new_body |= std::get<key_pos>(*itr);
       new_body <<= pkey_bit_size;
     }
