@@ -18,7 +18,7 @@ static status scan_border(border_node **target, std::string_view l_key, bool l_e
                           node_version64_body &v_at_fetch_lv);
 
 template<class ValueType>
-status scan_check_retry(border_node *const bn, const node_version64_body &v_at_fetch_lv,
+status scan_check_retry(border_node *const bn, node_version64_body &v_at_fetch_lv,
                         std::vector<std::tuple<ValueType *, std::size_t>> &tuple_list,
                         const std::size_t &tuple_pushed_num) {
   node_version64_body check = bn->get_stable_version();
@@ -30,6 +30,7 @@ status scan_check_retry(border_node *const bn, const node_version64_body &v_at_f
         check.get_deleted()) {
       return status::OK_RETRY_FROM_ROOT;
     } else {
+      v_at_fetch_lv = check;
       return status::OK_RETRY_FETCH_LV;
     }
   }
@@ -37,7 +38,7 @@ status scan_check_retry(border_node *const bn, const node_version64_body &v_at_f
 }
 
 template<class ValueType>
-status scan_check_retry(border_node *const bn, const node_version64_body &v_at_fetch_lv) {
+status scan_check_retry(border_node *const bn, node_version64_body &v_at_fetch_lv) {
   std::vector<std::tuple<ValueType *, std::size_t>> dammy_list;
   std::size_t dammy_ctr(0);
   return scan_check_retry<ValueType>(bn, v_at_fetch_lv, dammy_list, dammy_ctr);
