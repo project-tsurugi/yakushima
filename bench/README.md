@@ -22,7 +22,7 @@ LD_PRELOAD=[/path/to/jemalloc lib] ./yakushima
 
 Available options
 - `-duration`
-  - This is experimental time.
+  - This is experimental time [seconds].
   - default : `3`
 - `-get_initial_record`
   - This is the number of initial key-values for get benchmarking.
