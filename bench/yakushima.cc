@@ -38,7 +38,6 @@
 
 using namespace yakushima;
 
-DEFINE_uint64(cpumhz, 2100, "# cpu MHz of execution environment. It is used measuring some time.");
 DEFINE_uint64(duration, 3, "Duration of benchmark in seconds.");
 DEFINE_uint64(get_initial_record, 1000, "# initial key-values for get bench");
 DEFINE_double(get_skew, 0.0, "access skew of get operations.");
@@ -50,7 +49,6 @@ std::atomic<bool> Failure{false};
 
 static void check_flags() {
   std::cout << "parameter settings\n"
-            << "cpumhz :\t\t" << FLAGS_cpumhz << "\n"
             << "duration :\t\t" << FLAGS_duration << "\n"
             << "get_initial_record :\t" << FLAGS_get_initial_record << "\n"
             << "get_skew :\t\t" << FLAGS_get_skew << "\n"
@@ -68,12 +66,6 @@ static void check_flags() {
     exit(1);
   }
 
-  if (FLAGS_cpumhz == 0) {
-    std::cerr << "CPU MHz of execution environment. It is used measuring some time. "
-                 "It must be larger than 0."
-              << std::endl;
-    exit(1);
-  }
   if (FLAGS_duration == 0) {
     std::cerr << "Duration of benchmark in seconds must be larger than 0." << std::endl;
     exit(1);
