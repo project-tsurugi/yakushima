@@ -222,7 +222,6 @@ public:
   template<class border_node>
   void insert(base_node *child) {
     set_version_inserting(true);
-    child->set_parent(this);
     std::tuple<key_slice_type, key_length_type> visitor;
     visitor = find_lowest_key<interior_node, border_node>(child);
     n_keys_body_type n_key = get_n_keys();

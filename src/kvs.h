@@ -227,7 +227,7 @@ retry_find_border:
      * prepare key_slice
      */
     key_slice_type key_slice(0);
-    key_length_type  key_slice_length = traverse_key_view.size();
+    key_length_type key_slice_length = traverse_key_view.size();
     if (traverse_key_view.size() > sizeof(key_slice_type)) {
       memcpy(&key_slice, traverse_key_view.data(), sizeof(key_slice_type));
     } else {
@@ -267,9 +267,7 @@ retry_fetch_lv:
       goto retry_from_root;
     }
     if (lv_ptr == nullptr) {
-      std::vector<node_version64 *> lock_list;
       target_border->lock();
-      lock_list.emplace_back(target_border->get_version_ptr());
       if (target_border->get_version_deleted() ||
           target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
         /**
@@ -278,7 +276,7 @@ retry_fetch_lv:
          * vsplit comparison : It may be change the correct border node between
          * atomically fetching border and lock.
          */
-        node_version64::unlock(lock_list);
+        target_border->version_unlock();
         goto retry_from_root;
       }
       /**
@@ -289,12 +287,10 @@ retry_fetch_lv:
          * next_layers may be wrong. However, when it rechecks the next_layers, it can't get the lock down,
          * so it have to try again.
          */
-        node_version64::unlock(lock_list);
+        target_border->version_unlock();
         goto retry_fetch_lv;
       }
-      insert_lv<interior_node, border_node>(target_border, traverse_key_view, value, arg_value_length,
-                                            value_align, lock_list);
-      node_version64::unlock(lock_list);
+      insert_lv<interior_node, border_node>(target_border, traverse_key_view, value, arg_value_length, value_align);
       return status::OK;
     }
 

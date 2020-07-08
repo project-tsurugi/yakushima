@@ -22,7 +22,7 @@ namespace yakushima {
  */
 template<class interior_node, class border_node>
 static void
-interior_split(interior_node *interior, base_node *child_node, std::vector<node_version64 *> &lock_list);
+interior_split(interior_node *interior, base_node *child_node);
 
 using key_slice_type = base_node::key_slice_type;
 using key_length_type = base_node::key_length_type;
@@ -54,12 +54,11 @@ create_interior_parent_of_border(border_node *left, border_node *right, std::vec
  * @param[in] value_ptr
  * @param[in] arg_value_length
  * @param[in] value_align
- * @param[out] lock_list Hold the lock so that the caller can release the lock from below.
  */
 template<class interior_node, class border_node>
-static void insert_lv(border_node *border, std::string_view key_view, void *value_ptr,
-                      value_length_type arg_value_length, value_align_type value_align,
-                      std::vector<node_version64 *> &lock_list);
+static void
+insert_lv(border_node *border, std::string_view key_view, void *value_ptr, value_length_type arg_value_length,
+          value_align_type value_align);
 
 /**
  * @pre It already locked this node.
@@ -69,23 +68,18 @@ static void insert_lv(border_node *border, std::string_view key_view, void *valu
  * @param[in] value_ptr
  * @param[in] value_length
  * @param[in] value_align
- * @param[out] lock_list Hold the lock so that the caller can release the lock from below.
  */
 template<class interior_node, class border_node>
-static void border_split(border_node *border,
-                         std::string_view key_view,
-                         void *value_ptr,
-                         value_length_type value_length,
-                         value_align_type value_align,
-                         std::vector<node_version64 *> &lock_list);
+static void
+border_split(border_node *border, std::string_view key_view, void *value_ptr, value_length_type value_length,
+             value_align_type value_align);
 
 /**
  * Start impl.
  */
 template<class interior_node, class border_node>
 static void
-create_interior_parent_of_border(border_node *left, border_node *right, std::vector<node_version64 *> &lock_list,
-                                 interior_node **new_parent) {
+create_interior_parent_of_border(border_node *left, border_node *right, interior_node **new_parent) {
   left->set_version_root(false);
   right->set_version_root(false);
   /**
@@ -96,7 +90,6 @@ create_interior_parent_of_border(border_node *left, border_node *right, std::vec
   ni->set_version_root(true);
   ni->set_version_inserting(true);
   ni->lock();
-  lock_list.emplace_back(ni->get_version_ptr());
   /**
    * process base node members
    */
@@ -117,36 +110,29 @@ create_interior_parent_of_border(border_node *left, border_node *right, std::vec
 }
 
 template<class interior_node, class border_node>
-static void insert_lv(border_node *border,
-                      std::string_view key_view,
-                      void *value_ptr,
-                      value_length_type arg_value_length,
-                      value_align_type value_align,
-                      std::vector<node_version64 *> &lock_list) {
+static void
+insert_lv(border_node *border, std::string_view key_view, void *value_ptr, value_length_type arg_value_length,
+          value_align_type value_align) {
   border->set_version_inserting(true);
   std::size_t cnk = border->get_permutation_cnk();
   if (cnk == base_node::key_slice_length) {
     /**
      * It needs splitting
      */
-    border_split<interior_node, border_node>(border, key_view, value_ptr, arg_value_length,
-                                             value_align,
-                                             lock_list);
+    border_split<interior_node, border_node>(border, key_view, value_ptr, arg_value_length, value_align);
   } else {
     /**
      * Insert into this nodes.
      */
     border->insert_lv_at(cnk, key_view, value_ptr, arg_value_length, value_align);
+    border->version_unlock();
   }
 }
 
 template<class interior_node, class border_node>
-static void border_split(border_node *border,
-                         std::string_view key_view,
-                         void *value_ptr,
-                         value_length_type value_length,
-                         value_align_type value_align,
-                         std::vector<node_version64 *> &lock_list) {
+static void
+border_split(border_node *border, std::string_view key_view, void *value_ptr, value_length_type value_length,
+             value_align_type value_align) {
   border_node *new_border = new border_node();
   new_border->init_border();
   new_border->set_next(border->get_next());
@@ -161,7 +147,6 @@ static void border_split(border_node *border,
    */
   new_border->set_version(border->get_version());
   border->set_next(new_border);
-  lock_list.emplace_back(new_border->get_version_ptr());
   if (new_border->get_next() != nullptr) {
     /**
      * The prev of border next can be updated if it posesses the border lock.
@@ -253,16 +238,14 @@ static void border_split(border_node *border,
      * insert to lower border node.
      * @attention lock_list will not be added new lock.
      */
-    insert_lv<interior_node, border_node>(border, key_view, value_ptr, value_length, value_align,
-                                          lock_list);
+    border->insert_lv_at(remaining_size, key_view, value_ptr, value_length, value_align);
   } else {
     /**
      * insert to higher border node.
      * @attention lock_list will not be added new lock.
      */
-    insert_lv<interior_node, border_node>(new_border, key_view, value_ptr, value_length,
-                                          value_align,
-                                          lock_list);
+    new_border->insert_lv_at(base_node::key_slice_length - remaining_size, key_view, value_ptr, value_length,
+                             value_align);
   }
 
   border->set_version_splitting(true);
@@ -285,9 +268,12 @@ static void border_split(border_node *border,
      * The disappearance of the parent node may have made this node the root node in parallel.
      * It cares in below function.
      */
-    create_interior_parent_of_border<interior_node, border_node>(border, new_border, lock_list,
+    create_interior_parent_of_border<interior_node, border_node>(border, new_border,
                                                                  reinterpret_cast<interior_node **>(&p));
+    border->version_unlock();
+    new_border->version_unlock();
     base_node::set_root(dynamic_cast<base_node *>(p));
+    p->version_unlock();
     return;
   }
 
@@ -298,7 +284,6 @@ static void border_split(border_node *border,
   }
 #endif
 
-  lock_list.emplace_back(p->get_version_ptr());
   if (p->get_version_border()) {
     /**
      * parent is border node.
@@ -311,11 +296,15 @@ static void border_split(border_node *border,
     auto pb = dynamic_cast<border_node *>(p);
     pb->set_version_inserting(true);
     interior_node *pi;
-    create_interior_parent_of_border<interior_node, border_node>(border, new_border, lock_list, &pi);
+    create_interior_parent_of_border<interior_node, border_node>(border, new_border, &pi);
+    border->version_unlock();
+    new_border->version_unlock();
     pi->set_parent(p);
+    pi->version_unlock();
     link_or_value *lv = pb->get_lv(dynamic_cast<base_node *>(border));
     lv->set_next_layer(pi);
     p->version_atomic_inc_vdelete();
+    p->version_unlock();
     return;
   }
   /**
@@ -330,17 +319,22 @@ static void border_split(border_node *border,
   auto pi = dynamic_cast<interior_node *>(p);
   border->set_version_root(false);
   new_border->set_version_root(false);
+  border->version_unlock();
   if (pi->get_n_keys() == base_node::key_slice_length) {
     /**
      * interior full case, it splits and inserts.
      */
-    interior_split<interior_node, border_node>(pi, reinterpret_cast<base_node *>(new_border), lock_list);
+    new_border->version_unlock();
+    interior_split<interior_node, border_node>(pi, reinterpret_cast<base_node *>(new_border));
     return;
   }
   /**
    * interior not-full case, it inserts.
    */
+  new_border->set_parent(pi);
+  new_border->version_unlock();
   pi->template insert<border_node>(new_border);
+  pi->version_unlock();
   return;
 }
 
