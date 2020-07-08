@@ -16,6 +16,7 @@
 
 #include <xmmintrin.h>
 
+#include <cstring>
 #include <thread>
 #include <vector>
 
@@ -32,6 +33,7 @@
 
 using namespace yakushima;
 
+DEFINE_uint64(alloc_size, 4, "allocation size.");
 DEFINE_uint64(cpumhz, 2100, "# cpu MHz of execution environment. It is used measuring some time.");
 DEFINE_uint64(duration, 3, "Duration of benchmark in seconds.");
 DEFINE_uint64(thread, 1, "# worker threads.");
@@ -78,19 +80,37 @@ void worker(const size_t thid, char &ready, const bool &start, const bool &quit,
   set_thread_affinity(thid);
 #endif
 
-  std::vector<std::size_t *> vec;
+  /**
+   * tools used in experiments.
+   */
+  std::vector<char *> vec;
+  std::uint64_t local_res{0};
+
+  /**
+   * initialize source array.
+   */
+  char own_str[FLAGS_alloc_size];
+  for (std::size_t i = 0; i < FLAGS_alloc_size; ++i) {
+    /**
+     * thid means that it creates unique str among thread.
+     * If you use more threads than CHAR_MAX, rewrite this part.
+     */
+    own_str[i] = thid;
+  }
+
   storeReleaseN(ready, 1);
   while (!loadAcquireN(start)) _mm_pause();
 
-  std::uint64_t local_res{0};
   while (!loadAcquireN(quit)) {
-    vec.emplace_back(new std::size_t(local_res));
+    char* str = new char[FLAGS_alloc_size];
+    std::memcpy(str, own_str, FLAGS_alloc_size);
+    vec.emplace_back(str);
     ++local_res;
   }
   res = local_res;
 
   for (auto &&elem : vec) {
-    delete elem;
+    delete[] elem;
   }
 }
 
