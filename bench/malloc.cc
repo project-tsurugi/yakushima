@@ -38,13 +38,11 @@
 using namespace yakushima;
 
 DEFINE_uint64(alloc_size, 4, "allocation size.");
-DEFINE_uint64(cpumhz, 2100, "# cpu MHz of execution environment. It is used measuring some time.");
 DEFINE_uint64(duration, 3, "Duration of benchmark in seconds.");
 DEFINE_uint64(thread, 1, "# worker threads.");
 
 static void check_flags() {
   std::cout << "parameter settings\n"
-            << "cpumhz :\t\t" << FLAGS_cpumhz << "\n"
             << "duration :\t\t" << FLAGS_duration << "\n"
             << "thread :\t\t" << FLAGS_thread << "\n" << std::endl;
 
@@ -53,12 +51,6 @@ static void check_flags() {
     exit(1);
   }
 
-  if (FLAGS_cpumhz == 0) {
-    std::cerr << "CPU MHz of execution environment. It is used measuring some time. "
-                 "It must be larger than 0."
-              << std::endl;
-    exit(1);
-  }
   if (FLAGS_duration == 0) {
     std::cerr << "Duration of benchmark in seconds must be larger than 0." << std::endl;
     exit(1);

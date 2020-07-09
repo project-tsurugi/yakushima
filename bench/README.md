@@ -18,9 +18,10 @@ cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..
 cd [/path/to/project_root]
 cd build-release/bench
 LD_PRELOAD=[/path/to/jemalloc lib] ./yakushima
+LD_PRELOAD=[/path/to/jemalloc lib] ./malloc
 ```
 
-Available options
+yakushima : Available options
 - `-duration`
   - This is experimental time [seconds].
   - default : `3`
@@ -43,7 +44,18 @@ Available options
   - Please set very small size if you want to check sharpness of parallel logic. Otherwise, if you want to check 
   the realistic performance, you should set appropriate size.
 
-## Example
+malloc : Available options
+- `-alloc_size`
+  - Memory allocation size for bench.
+  - default : `4`
+- `-duration`
+  - This is experimental time [seconds].
+  - default : `3`
+- `-thread`
+  - This is the number of worker threads.
+  - default : `1`
+  
+## yakushima Example
 - Get benchmark.
   - duration : `10`
   - get_initial_record : `1000000`
@@ -63,4 +75,13 @@ LD_PRELOAD=[/path/to/jemalloc lib] ./yakushima -duration 10 -get_initial_record 
   - value_size : default : `4`
 ```
 LD_PRELOAD=[/path/to/jemalloc lib] ./yakushima -instruction put -duration 10 -thread 200
+```
+
+## malloc Example
+- benchmark.
+  - alloc_size : `1000`
+  - duration : `10`
+  - thread : `224`
+```
+LD_PRELOAD=[/path/to/jemalloc lib] ./malloc -alloc_size 1000 -duration 10 -thread 224
 ```
