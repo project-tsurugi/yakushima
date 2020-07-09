@@ -25,15 +25,22 @@ ninja
 ```
 
 available options:
-* `-DBUILD_TESTS=OFF` - never build test programs
-* `-DBUILD_DOCUMENTS=OFF` - never build documents by doxygen
-* `-DFORMAT_FILES_WITH_CLANG_FORMAT_BEFORE_EACH_BUILD=ON` - use formatting for source files
+* `-DBUILD_TESTS=OFF` : never build test programs<br>
+default : `ON`
+* `-DBUILD_DOCUMENTS=OFF` : never build documents by doxygen<br>
+default : `ON`
+* `-DFORMAT_FILES_WITH_CLANG_FORMAT_BEFORE_EACH_BUILD=ON` : use formatting for source files<br>
+default : `OFF`
 * for debugging only<br>
-  * `-DENABLE_SANITIZER=OFF` - disable sanitizers (requires `-DCMAKE_BUILD_TYPE=Debug`)
-  * `-DENABLE_UB_SANITIZER=ON` - enable undefined behavior sanitizer (requires `-DENABLE_SANITIZER=ON`)
-  * `-DENABLE_COVERAGE=ON` - enable code coverage analysis (requires `-DCMAKE_BUILD_TYPE=Debug`)
-* `-DBUILD_SHARED_LIBS=OFF` - create static libraries instead of shared libraries
-<br><br>
+  * `-DENABLE_SANITIZER=OFF` : disable sanitizers (requires `-DCMAKE_BUILD_TYPE=Debug`)<br>
+  default : `ON`
+  * `-DENABLE_UB_SANITIZER=OFF` : enable undefined behavior sanitizer (requires `-DENABLE_SANITIZER=ON`)<br>
+  default : `ON`
+  * `-DENABLE_COVERAGE=ON` : enable code coverage analysis (requires `-DCMAKE_BUILD_TYPE=Debug`)<br>
+  default : `OFF`
+* for bench/malloc.cc
+  * `-DENABLE_JEMALLOC=ON` : enable jemalloc as memory allocator.<br>
+  default : `OFF`
 
 You can use one sanitizer from 
  * address for AddressSanitizer
