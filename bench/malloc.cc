@@ -31,6 +31,10 @@
 #include "gflags/gflags.h"
 #include "glog/logging.h"
 
+#ifdef ENABLE_JEMALLOC
+#include <jemalloc/jemalloc.h>
+#endif
+
 using namespace yakushima;
 
 DEFINE_uint64(alloc_size, 4, "allocation size.");
@@ -124,6 +128,10 @@ static void invoke_leader() {
   for (size_t i = 0; i < FLAGS_thread; ++i) {
     thv.emplace_back(worker, i, std::ref(readys[i]), std::ref(start), std::ref(quit), std::ref(res[i]));
   }
+
+#ifdef ENABLE_JEMALLOC
+  std::cout << "[report] use jemalloc." << std::endl;
+#endif
 
   waitForReady(readys);
   storeReleaseN(start, true);

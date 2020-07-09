@@ -49,6 +49,7 @@ target_include_directories(malloc_bench
         PRIVATE .
         PRIVATE ./include
         PRIVATE ./../src
+        PRIVATE ./../third_party/jemalloc/include
         PRIVATE ${gflags_INCLUDE_DIR}
         )
 

@@ -14,6 +14,7 @@ option(BUILD_DOCUMENTS "Build documents" ON)
 option(ENABLE_SANITIZER "enable sanitizer on debug build" ON)
 option(ENABLE_UB_SANITIZER "enable undefined behavior sanitizer on debug build" ON)
 option(ENABLE_COVERAGE "enable coverage on debug build" OFF)
+option(ENABLE_JEMALLOC "use jemalloc as memory allocator." OFF)
 
 find_package(Doxygen REQUIRED)
 find_package(Threads REQUIRED)
