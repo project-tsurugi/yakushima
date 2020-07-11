@@ -3,13 +3,11 @@
  */
 
 #include <memory>
-#include <typeinfo>
 
 #include "gtest/gtest.h"
 
 #include "base_node.h"
 #include "border_node.h"
-#include "interior_node.h"
 
 using namespace yakushima;
 using std::cout;

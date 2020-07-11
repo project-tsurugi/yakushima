@@ -17,6 +17,7 @@
 #include <xmmintrin.h>
 
 #include <cstring>
+#include <memory>
 #include <thread>
 #include <vector>
 
@@ -37,9 +38,9 @@
 
 using namespace yakushima;
 
-DEFINE_uint64(alloc_size, 4, "allocation size.");
-DEFINE_uint64(duration, 3, "Duration of benchmark in seconds.");
-DEFINE_uint64(thread, 1, "# worker threads.");
+DEFINE_uint64(alloc_size, 4, "allocation size."); // NOLINT
+DEFINE_uint64(duration, 3, "Duration of benchmark in seconds."); // NOLINT
+DEFINE_uint64(thread, 1, "# worker threads."); // NOLINT
 
 static void check_flags() {
   std::cout << "parameter settings\n"
@@ -59,7 +60,7 @@ static void check_flags() {
 
 static bool isReady(const std::vector<char> &readys) {
   for (const char &b : readys) {
-    if (!loadAcquireN(b)) return false;
+    if (loadAcquireN(b) == 0) return false;
   }
   return true;
 }
@@ -73,41 +74,37 @@ static void waitForReady(const std::vector<char> &readys) {
 void worker(const size_t thid, char &ready, const bool &start, const bool &quit, std::size_t &res) {
   // this function can be used in Linux environment only.
 #ifdef YAKUSHIMA_LINUX
-  set_thread_affinity(thid);
+  set_thread_affinity(static_cast<int>(thid));
 #endif
 
   /**
    * tools used in experiments.
    */
-  std::vector<char *> vec;
   std::uint64_t local_res{0};
 
   /**
    * initialize source array.
    */
-  char own_str[FLAGS_alloc_size];
+  std::unique_ptr<char[]> own_str(new char[FLAGS_alloc_size]);
   for (std::size_t i = 0; i < FLAGS_alloc_size; ++i) {
     /**
      * thid means that it creates unique str among thread.
      * If you use more threads than CHAR_MAX, rewrite this part.
      */
-    own_str[i] = thid;
+    own_str.get()[i] = static_cast<char>(thid);
   }
 
   storeReleaseN(ready, 1);
   while (!loadAcquireN(start)) _mm_pause();
 
+  std::vector<std::unique_ptr<char[]>> vec;
   while (!loadAcquireN(quit)) {
-    char* str = new char[FLAGS_alloc_size];
-    std::memcpy(str, own_str, FLAGS_alloc_size);
-    vec.emplace_back(str);
+    std::unique_ptr<char[]> str(new char[FLAGS_alloc_size]);
+    std::memcpy(str.get(), own_str.get(), FLAGS_alloc_size);
+    vec.emplace_back(std::move(str));
     ++local_res;
   }
   res = local_res;
-
-  for (auto &&elem : vec) {
-    delete[] elem;
-  }
 }
 
 static void invoke_leader() {
@@ -151,7 +148,7 @@ static void invoke_leader() {
 
 int main(int argc, char *argv[]) {
   std::cout << "start yakushima bench." << std::endl;
-  gflags::SetUsageMessage("micro-benchmark for yakushima");
+  gflags::SetUsageMessage(static_cast<const std::string &>("micro-benchmark for yakushima"));
   gflags::ParseCommandLineFlags(&argc, &argv, true);
   check_flags();
   invoke_leader();
