@@ -135,7 +135,7 @@ static void invoke_leader() {
   std::cout << "[end] join worker threads." << std::endl;
 
   std::uint64_t fin_res{0};
-  for (auto i = 0; i < FLAGS_thread; ++i) {
+  for (std::uint64_t i = 0; i < FLAGS_thread; ++i) {
     if ((UINT64_MAX - fin_res) < res[i]) {
       std::cout << __FILE__ << " : " << __LINE__ << " : experimental setting is bad, which leads to overflow."
                 << std::endl;
