@@ -173,8 +173,8 @@ void put_worker(const size_t thid, char &ready, const bool &start, const bool &q
 
   Token token;
   masstree_kvs::enter(token);
-  std::uint64_t left_edge(UINT64_MAX / FLAGS_thread * thid),
-          right_edge(UINT64_MAX / FLAGS_thread * (thid + 1));
+  std::uint64_t left_edge(UINT64_MAX / FLAGS_thread * thid);
+  std::uint64_t right_edge(UINT64_MAX / FLAGS_thread * (thid + 1));
   std::string value(FLAGS_value_size, '0');
 
   storeReleaseN(ready, 1);
