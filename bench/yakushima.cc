@@ -101,7 +101,8 @@ void parallel_build_tree() {
       masstree_kvs::enter(token);
       std::string value(FLAGS_value_size, '0');
       for (std::size_t i = left_edge; i < right_edge; ++i) {
-        std::string key{reinterpret_cast<char *>(&i), sizeof(std::uint64_t)};
+        void* p =(&i);
+        std::string key{static_cast<char *>(p), sizeof(std::uint64_t)};
         masstree_kvs::put(std::string_view(key), value.data(), value.size());
       }
       masstree_kvs::leave(token);
@@ -150,7 +151,8 @@ void get_worker(const size_t thid, char &ready, const bool &start, const bool &q
   std::uint64_t local_res{0};
   while (!loadAcquireN(quit)) {
     uint64_t keynm = zipf() % FLAGS_get_initial_record;
-    std::string key{reinterpret_cast<char *>(&keynm), sizeof(std::uint64_t)};
+    void* p = (&keynm);
+    std::string key{static_cast<char *>(p), sizeof(std::uint64_t)};
     std::tuple<char *, std::size_t> ret = masstree_kvs::get<char>(std::string_view(key));
     if (std::get<0>(ret) == nullptr) {
       Failure.store(true, std::memory_order_release);
@@ -180,7 +182,8 @@ void put_worker(const size_t thid, char &ready, const bool &start, const bool &q
 
   std::uint64_t local_res{0};
   for (std::uint64_t i = left_edge; i < right_edge; ++i) {
-    std::string key{reinterpret_cast<char *>(&i), sizeof(std::uint64_t)};
+    void* p = (&i);
+    std::string key{static_cast<char *>(p), sizeof(std::uint64_t)};
     masstree_kvs::put(std::string_view(key), value.data(), value.size());
     ++local_res;
     if (i == right_edge - 1) {
@@ -195,7 +198,8 @@ void put_worker(const size_t thid, char &ready, const bool &start, const bool &q
 
   // parallel delete existing tree to reduce deleting time by single thread.
   for (std::uint64_t i = left_edge; i < left_edge + local_res; ++i) {
-    std::string key{reinterpret_cast<char *>(&i), sizeof(std::uint64_t)};
+    void* p = (&i);
+    std::string key{static_cast<char *>(p), sizeof(std::uint64_t)};
     masstree_kvs::remove(token, std::string_view(key));
   }
 
