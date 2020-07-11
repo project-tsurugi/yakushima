@@ -5,7 +5,6 @@
 #include "gtest/gtest.h"
 
 #include "border_node.h"
-#include "interior_node.h"
 #include "thread_info.h"
 
 using namespace yakushima;
