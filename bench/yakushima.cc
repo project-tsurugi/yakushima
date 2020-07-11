@@ -83,7 +83,7 @@ static void check_flags() {
 
 static bool isReady(const std::vector<char> &readys) {
   for (const char &b : readys) {
-    if (!loadAcquireN(b)) return false;
+    if (loadAcquireN(b)==0) return false;
   }
   return true;
 }
