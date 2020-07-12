@@ -15,7 +15,6 @@
  */
 
 #include <algorithm>
-#include <random>
 #include <thread>
 #include <vector>
 
@@ -38,12 +37,12 @@
 
 using namespace yakushima;
 
-DEFINE_uint64(duration, 3, "Duration of benchmark in seconds.");
-DEFINE_uint64(get_initial_record, 1000, "# initial key-values for get bench");
-DEFINE_double(get_skew, 0.0, "access skew of get operations.");
-DEFINE_string(instruction, "get", "put or get. The default is insert.");
-DEFINE_uint64(thread, 1, "# worker threads.");
-DEFINE_uint32(value_size, 4, "value size");
+DEFINE_uint64(duration, 3, "Duration of benchmark in seconds."); // NOLINT
+DEFINE_uint64(get_initial_record, 1000, "# initial key-values for get bench"); // NOLINT
+DEFINE_double(get_skew, 0.0, "access skew of get operations."); // NOLINT
+DEFINE_string(instruction, "get", "put or get. The default is insert."); // NOLINT
+DEFINE_uint64(thread, 1, "# worker threads."); // NOLINT
+DEFINE_uint32(value_size, 4, "value size"); // NOLINT
 
 std::atomic<bool> Failure{false};
 
@@ -97,7 +96,7 @@ static void waitForReady(const std::vector<char> &readys) {
 void parallel_build_tree() {
   struct S {
     static void parallel_build_worker(std::uint64_t left_edge, std::uint64_t right_edge) {
-      Token token;
+      Token token{};
       masstree_kvs::enter(token);
       std::string value(FLAGS_value_size, '0');
       for (std::size_t i = left_edge; i < right_edge; ++i) {
@@ -140,13 +139,13 @@ void get_worker(const size_t thid, char &ready, const bool &start, const bool &q
 
   // this function can be used in Linux environment only.
 #ifdef YAKUSHIMA_LINUX
-  set_thread_affinity(thid);
+  set_thread_affinity(static_cast<const int>(thid));
 #endif
 
   storeReleaseN(ready, 1);
   while (!loadAcquireN(start)) _mm_pause();
 
-  Token token;
+  Token token{};
   masstree_kvs::enter(token);
   std::uint64_t local_res{0};
   while (!loadAcquireN(quit)) {
@@ -168,10 +167,10 @@ void get_worker(const size_t thid, char &ready, const bool &start, const bool &q
 void put_worker(const size_t thid, char &ready, const bool &start, const bool &quit, std::size_t &res) {
   // this function can be used in Linux environment only.
 #ifdef YAKUSHIMA_LINUX
-  set_thread_affinity(thid);
+  set_thread_affinity(static_cast<const int>(thid));
 #endif
 
-  Token token;
+  Token token{};
   masstree_kvs::enter(token);
   std::uint64_t left_edge(UINT64_MAX / FLAGS_thread * thid);
   std::uint64_t right_edge(UINT64_MAX / FLAGS_thread * (thid + 1));
@@ -286,7 +285,7 @@ static void invoke_leader() {
 
 int main(int argc, char *argv[]) {
   std::cout << "start yakushima bench." << std::endl;
-  gflags::SetUsageMessage("micro-benchmark for yakushima");
+  gflags::SetUsageMessage(static_cast<const std::string &>("micro-benchmark for yakushima"));
   gflags::ParseCommandLineFlags(&argc, &argv, true);
   check_flags();
   invoke_leader();

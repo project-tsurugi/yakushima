@@ -85,7 +85,10 @@ void worker(const size_t thid, char &ready, const bool &start, const bool &quit,
   /**
    * initialize source array.
    */
-  std::unique_ptr<char[]> own_str(new char[FLAGS_alloc_size]);
+  std::unique_ptr<char[]> own_str(new char[FLAGS_alloc_size]); // NOLINT
+  /**
+   * c-style array NOLINT reasons : It wants to decide array size after compile. So it wants to use c-style array.
+   */
   for (std::size_t i = 0; i < FLAGS_alloc_size; ++i) {
     /**
      * thid means that it creates unique str among thread.
@@ -97,9 +100,9 @@ void worker(const size_t thid, char &ready, const bool &start, const bool &quit,
   storeReleaseN(ready, 1);
   while (!loadAcquireN(start)) _mm_pause();
 
-  std::vector<std::unique_ptr<char[]>> vec;
+  std::vector<std::unique_ptr<char[]>> vec; // NOLINT
   while (!loadAcquireN(quit)) {
-    std::unique_ptr<char[]> str(new char[FLAGS_alloc_size]);
+    std::unique_ptr<char[]> str(new char[FLAGS_alloc_size]); // NOLINT
     std::memcpy(str.get(), own_str.get(), FLAGS_alloc_size);
     vec.emplace_back(std::move(str));
     ++local_res;
