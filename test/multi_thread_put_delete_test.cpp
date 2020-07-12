@@ -12,8 +12,6 @@
 
 #include "kvs.h"
 
-#include "debug.hh"
-
 using namespace yakushima;
 using std::cout;
 using std::endl;

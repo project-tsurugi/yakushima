@@ -15,8 +15,6 @@
 #include "interior_helper.h"
 #include "thread_info.h"
 
-#include "../test/include/debug.hh"
-
 using std::cout, std::endl;
 
 namespace yakushima {

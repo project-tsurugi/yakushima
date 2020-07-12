@@ -13,8 +13,6 @@
 #include "interior_helper.h"
 #include "link_or_value.h"
 
-#include "../test/include/debug.hh"
-
 namespace yakushima {
 
 /**

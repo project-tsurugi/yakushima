@@ -6,7 +6,6 @@
 #pragma once
 
 #include "border_helper.h"
-#include "../test/include/debug.hh"
 
 namespace yakushima {
 
