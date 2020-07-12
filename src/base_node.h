@@ -20,7 +20,7 @@ namespace yakushima {
  */
 class masstree_kvs;
 
-class alignas(CACHE_LINE_SIZE) base_node {
+class base_node {
 public:
   static constexpr std::size_t key_slice_length = 15;
   using key_slice_type = std::uint64_t;

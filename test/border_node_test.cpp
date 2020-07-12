@@ -19,6 +19,10 @@ protected:
   ~border_node_test() = default;
 };
 
+TEST_F(border_node_test, alignment) {
+  ASSERT_EQ(alignof(border_node), CACHE_LINE_SIZE);
+}
+
 TEST_F(border_node_test, display) {
   border_node bn;
   ASSERT_EQ(true, true);

@@ -19,6 +19,10 @@ protected:
   ~interior_node_test() = default;
 };
 
+TEST_F(interior_node_test, alignment) {
+  ASSERT_EQ(alignof(interior_node), CACHE_LINE_SIZE);
+}
+
 TEST_F(interior_node_test, display) {
   interior_node in;
   ASSERT_EQ(true, true);

@@ -29,7 +29,7 @@ static void insert_lv(border_node *border, std::string_view key_view, void *valu
                       std::size_t arg_value_length, std::size_t value_align,
                       std::vector<node_version64 *> &lock_list);
 
-class interior_node final : public base_node {
+class alignas(CACHE_LINE_SIZE) interior_node final : public base_node {
 public:
   /**
    * @details The structure is "ptr, key, ptr, key, ..., ptr".
