@@ -11,9 +11,10 @@
 #include "common_helper.h"
 #include "epoch.h"
 #include "interior_node.h"
+#include "manager_thread.h"
 #include "scan_helper.h"
 #include "scheme.h"
-#include "thread_info.h"
+#include "thread_info_table.h"
 
 namespace yakushima {
 
@@ -31,7 +32,7 @@ public:
    * @return status::WARN_MAX_SESSIONS The maximum number of sessions is already up and running.
    */
   static status enter(Token &token) {
-    return thread_info::assign_session(token);
+    return thread_info_table::assign_session(token);
   }
 
   /**
@@ -42,7 +43,7 @@ public:
    * @return status::WARN_INVALID_TOKEN @a token of argument is invalid.
    */
   static status leave(Token &token) {
-    return thread_info::leave_session<interior_node, border_node>(token);
+    return thread_info_table::leave_session<interior_node, border_node>(token);
   }
 
   /**
@@ -67,8 +68,8 @@ public:
    */
   static void fin() {
     destroy();
-    thread_info::set_epoch_thread_end();
-    thread_info::join_epoch_thread();
+    epoch_manager::set_epoch_thread_end();
+    epoch_manager::join_epoch_thread();
     gc_container::fin<interior_node, border_node>();
   }
 
@@ -170,8 +171,8 @@ retry_fetch_lv:
     /**
      * initialize thread information table (kThreadInfoTable)
      */
-    thread_info::init();
-    thread_info::invoke_epoch_thread();
+    thread_info_table::init();
+    epoch_manager::invoke_epoch_thread();
   }
 
   /**

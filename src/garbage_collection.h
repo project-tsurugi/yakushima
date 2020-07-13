@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "base_node.h"
+#include "epoch.h"
 #include "cpu.h"
 
 namespace yakushima {
@@ -188,18 +189,13 @@ public:
 
   static constexpr std::size_t gc_epoch_index = 0;
   static constexpr std::size_t gc_target_index = 1;
-  static std::array<node_container, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kGarbageNodes;
-  static std::array<value_container, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kGarbageValues;
-  static std::atomic<Epoch> kGCEpoch;
+  static inline std::array<node_container, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kGarbageNodes;
+  static inline std::array<value_container, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kGarbageValues;
+  alignas(CACHE_LINE_SIZE) static inline std::atomic<Epoch> kGCEpoch;
 
 private:
   node_container *node_container_{nullptr};
   value_container *value_container_{nullptr};
 };
-
-std::array<gc_container::node_container, YAKUSHIMA_MAX_PARALLEL_SESSIONS> gc_container::kGarbageNodes;
-std::array<gc_container::value_container, YAKUSHIMA_MAX_PARALLEL_SESSIONS> gc_container::kGarbageValues;
-alignas(CACHE_LINE_SIZE)
-std::atomic<Epoch> gc_container::kGCEpoch{0};
 
 } // namespace yakushima

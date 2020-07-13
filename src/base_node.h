@@ -298,9 +298,7 @@ private:
  * @details
  * Todo : It will be container to be able to switch database.
  */
-  static std::atomic<base_node *> root_;
+  static inline std::atomic<base_node *> root_;
 };
-
-std::atomic<base_node *> base_node::root_ = nullptr;
 
 } // namespace yakushima
