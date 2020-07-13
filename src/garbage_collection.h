@@ -69,9 +69,9 @@ public:
           auto &ncontainer = kGarbageNodes.at(i);
           for (auto &&elem : ncontainer.get_body()) {
             if (std::get<gc_target_index>(elem)->get_version_border()) {
-              delete dynamic_cast<border_node *>(std::get<gc_target_index>(elem));
+              delete dynamic_cast<border_node *>(std::get<gc_target_index>(elem)); // NOLINT
             } else {
-              delete dynamic_cast<interior_node *>(std::get<gc_target_index>(elem));
+              delete dynamic_cast<interior_node *>(std::get<gc_target_index>(elem)); // NOLINT
             }
           }
           ncontainer.get_body().clear();
@@ -130,12 +130,11 @@ public:
       if (std::get<gc_epoch_index>(*itr) >= gc_epoch) {
         gc_end_itr = itr;
         break;
+      }
+      if (std::get<gc_target_index>(*itr)->get_version_border()) {
+        delete dynamic_cast<border_node *>(std::get<gc_target_index>(*itr)); // NOLINT
       } else {
-        if (std::get<gc_target_index>(*itr)->get_version_border()) {
-          delete dynamic_cast<border_node *>(std::get<gc_target_index>(*itr));
-        } else {
-          delete dynamic_cast<interior_node *>(std::get<gc_target_index>(*itr));
-        }
+        delete dynamic_cast<interior_node *>(std::get<gc_target_index>(*itr)); // NOLINT
       }
     }
     if (std::distance(node_container_->get_body().begin(), gc_end_itr) > 0) {
@@ -150,9 +149,8 @@ public:
       if (std::get<gc_epoch_index>(*itr) >= gc_epoch) {
         gc_end_itr = itr;
         break;
-      } else {
-        ::operator delete(std::get<gc_target_index>(*itr));
       }
+      ::operator delete(std::get<gc_target_index>(*itr));
     }
     if (std::distance(value_container_->get_body().begin(), gc_end_itr) > 0) {
       value_container_->get_body().erase(value_container_->get_body().begin(), gc_end_itr);
@@ -189,9 +187,9 @@ public:
 
   static constexpr std::size_t gc_epoch_index = 0;
   static constexpr std::size_t gc_target_index = 1;
-  static inline std::array<node_container, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kGarbageNodes;
-  static inline std::array<value_container, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kGarbageValues;
-  alignas(CACHE_LINE_SIZE) static inline std::atomic<Epoch> kGCEpoch;
+  static inline std::array<node_container, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kGarbageNodes; // NOLINT
+  static inline std::array<value_container, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kGarbageValues; // NOLINT
+  alignas(CACHE_LINE_SIZE) static inline std::atomic<Epoch> kGCEpoch; // NOLINT
 
 private:
   node_container *node_container_{nullptr};
