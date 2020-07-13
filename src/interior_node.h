@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <string.h>
-
 #include <cstdint>
 #include <cstring>
 #include <iostream>
@@ -15,17 +13,7 @@
 #include "interior_helper.h"
 #include "thread_info.h"
 
-using std::cout, std::endl;
-
 namespace yakushima {
-
-/**
- * forward declaration.
- */
-template<class interior_node, class border_node>
-static void insert_lv(border_node *border, std::string_view key_view, void *value_ptr,
-                      std::size_t arg_value_length, std::size_t value_align,
-                      std::vector<node_version64 *> &lock_list);
 
 class alignas(CACHE_LINE_SIZE) interior_node final : public base_node {
 public:
@@ -36,10 +24,6 @@ public:
   static constexpr std::size_t child_length = base_node::key_slice_length + 1;
   using n_keys_body_type = std::uint8_t;
   using n_keys_type = std::atomic<n_keys_body_type>;
-
-  interior_node() = default;
-
-  ~interior_node() = default;
 
   /**
    * @pre There is a child which is the same to @a child.
@@ -108,7 +92,7 @@ public:
             pn->version_unlock();
           }
           version_atomic_inc_vdelete();
-          reinterpret_cast<thread_info *>(token)->move_node_to_gc_container(this);
+          reinterpret_cast<thread_info *>(token)->move_node_to_gc_container(this); // NOLINT
           set_version_deleted(true);
         } else { // n_key > 1
           if (i == 0) { // leftmost points
@@ -155,10 +139,10 @@ public:
   void display() final {
     display_base();
 
-    cout << "interior_node::display" << endl;
-    cout << "nkeys_ : " << std::to_string(get_n_keys()) << endl;
+    std::cout << "interior_node::display" << std::endl;
+    std::cout << "nkeys_ : " << std::to_string(get_n_keys()) << std::endl;
     for (std::size_t i = 0; i <= get_n_keys(); ++i) {
-      cout << "child : " << i << " : " << get_child_at(i) << endl;
+      std::cout << "child : " << i << " : " << get_child_at(i) << std::endl;
     }
   }
 
@@ -244,28 +228,27 @@ public:
           }
           n_keys_increment();
           return;
-        } else { // insert to middle points
-          shift_right_base_member(i, 1);
-          set_key(i, std::get<slice_pos>(visitor), std::get<slice_length_pos>(visitor));
-          shift_right_children(i + 1);
-          set_child_at(i + 1, child);
-          n_keys_increment();
-          return;
         }
+        // insert to middle points
+        shift_right_base_member(i, 1);
+        set_key(i, std::get<slice_pos>(visitor), std::get<slice_length_pos>(visitor));
+        shift_right_children(i + 1);
+        set_child_at(i + 1, child);
+        n_keys_increment();
+        return;
       }
     }
     // insert to rightmost points
     set_key(n_key, std::get<0>(visitor), std::get<1>(visitor));
     set_child_at(n_key + 1, child);
     n_keys_increment();
-    return;
   }
 
   void move_children_to_interior_range(interior_node *right_interior, std::size_t start) {
     for (auto i = start; i < child_length; ++i) {
       right_interior->set_child_at(i - start, get_child_at(i));
       /**
-       * right interiror is new parent of get_child_at(i).
+       * right interiror is new parent of get_child_at(i). // NOLINT
        */
       get_child_at(i)->set_parent(dynamic_cast<base_node *>(right_interior));
       set_child_at(i, nullptr);
