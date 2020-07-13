@@ -36,11 +36,6 @@ public:
   using value_length_type = std::size_t;
   using value_align_type = std::size_t;
 
-
-  base_node() = default;
-
-  ~base_node() = default;
-
   void atomic_set_version_root(bool tf) {
     version_.atomic_set_root(tf);
   }
@@ -62,7 +57,7 @@ public:
     version_.display();
     std::cout << "parent_ : " << get_parent() << std::endl;
     for (std::size_t i = 0; i < key_slice_length; ++i) {
-      std::cout << "key_slice_[" << i << "] : " << std::to_string(get_key_slice_at(i))   << std::endl;
+      std::cout << "key_slice_[" << i << "] : " << std::to_string(get_key_slice_at(i)) << std::endl;
       std::cout << "key_length_[" << i << "] : " << std::to_string(get_key_length_at(i)) << std::endl;
     }
   }
@@ -172,10 +167,9 @@ public:
       base_node *check = get_parent();
       if (p == check) {
         return p;
-      } else {
-        p->version_unlock();
-        p = check;
       }
+      p->version_unlock();
+      p = check;
     }
   }
 
@@ -298,7 +292,7 @@ private:
  * @details
  * Todo : It will be container to be able to switch database.
  */
-  static inline std::atomic<base_node *> root_;
+  static inline std::atomic<base_node *> root_; // NOLINT
 };
 
 } // namespace yakushima
