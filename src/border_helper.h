@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <tuple>
 #include <utility>
+#include <vector>
 
 #include "base_node.h"
 #include "interior_helper.h"
@@ -20,43 +21,12 @@ namespace yakushima {
  */
 template<class interior_node, class border_node>
 static void
-interior_split(interior_node *interior, base_node *child_node);
+interior_split(interior_node *interior, base_node *child_node); // NOLINT
 
 using key_slice_type = base_node::key_slice_type;
 using key_length_type = base_node::key_length_type;
 using value_align_type = base_node::value_align_type;
 using value_length_type = base_node::value_length_type;
-
-/**
- * @details This may be called at split function.
- * It creates new interior node as parents of this border_node and @a higher_border node.
- * After that, it inserts based on @a key_view, @a value_ptr, ... (args).
- * @param[in] left
- * @param[in] right This is a higher border_node as result of split for this node.
- * @param[out] lock_list This is unused because the border nodes is not-full as result of split.
- * @param[out] new_parent This is a new parents.
- * The insert_lv function needs lock_list as an argument, so it is passed in spite of not using.
- */
-template<class interior_node, class border_node>
-static void
-create_interior_parent_of_border(border_node *left, border_node *right, std::vector<node_version64 *> &lock_list,
-                                 interior_node **new_parent);
-
-/**
- * @pre It already locked @a border.
- * @details This function is also called when creating a new layer when 8 bytes-key collides at a border node.
- * At that time, the original value is moved to the new layer.
- * This function does not use a template declaration because its pointer is retrieved with void *.
- * @param[in] border
- * @param[in] key_view
- * @param[in] value_ptr
- * @param[in] arg_value_length
- * @param[in] value_align
- */
-template<class interior_node, class border_node>
-static void
-insert_lv(border_node *border, std::string_view key_view, void *value_ptr, value_length_type arg_value_length,
-          value_align_type value_align);
 
 /**
  * @pre It already locked this node.
@@ -69,12 +39,24 @@ insert_lv(border_node *border, std::string_view key_view, void *value_ptr, value
  */
 template<class interior_node, class border_node>
 static void
-border_split(border_node *border, std::string_view key_view, void *value_ptr, value_length_type value_length,
+border_split(border_node *border, std::string_view key_view, void *value_ptr, value_length_type value_length, // NOLINT
              value_align_type value_align);
 
 /**
  * Start impl.
  */
+
+/**
+ * @details This may be called at split function.
+ * It creates new interior node as parents of this border_node and @a higher_border node.
+ * After that, it inserts based on @a key_view, @a value_ptr, ... (args).
+ * @param[in] left
+ * @param[in] right This is a higher border_node as result of split for this node.
+ * @param[out] lock_list This is unused because the border nodes is not-full as result of split.
+ * @param[out] new_parent This is a new parents.
+ * The insert_lv function needs lock_list as an argument, so it is passed in spite of not using.
+ */
+
 template<class interior_node, class border_node>
 static void
 create_interior_parent_of_border(border_node *left, border_node *right, interior_node **new_parent) {
@@ -83,7 +65,7 @@ create_interior_parent_of_border(border_node *left, border_node *right, interior
   /**
    * create a new interior node p with children n, n'
    */
-  interior_node *ni = new interior_node();
+  auto ni = new interior_node(); // NOLINT
   ni->init_interior();
   ni->set_version_root(true);
   ni->set_version_inserting(true);
@@ -106,6 +88,18 @@ create_interior_parent_of_border(border_node *left, border_node *right, interior
   right->set_parent(dynamic_cast<base_node *>(ni));
   *new_parent = ni;
 }
+
+/**
+ * @pre It already locked @a border.
+ * @details This function is also called when creating a new layer when 8 bytes-key collides at a border node.
+ * At that time, the original value is moved to the new layer.
+ * This function does not use a template declaration because its pointer is retrieved with void *.
+ * @param[in] border
+ * @param[in] key_view
+ * @param[in] value_ptr
+ * @param[in] arg_value_length
+ * @param[in] value_align
+ */
 
 template<class interior_node, class border_node>
 static void
@@ -131,7 +125,7 @@ template<class interior_node, class border_node>
 static void
 border_split(border_node *border, std::string_view key_view, void *value_ptr, value_length_type value_length,
              value_align_type value_align) {
-  border_node *new_border = new border_node();
+  border_node *new_border = new border_node(); // NOLINT
   new_border->init_border();
   new_border->set_next(border->get_next());
   new_border->set_prev(border);
@@ -161,19 +155,15 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, va
   std::uint8_t cnk = border->get_permutation_cnk();
   vec.reserve(cnk);
   for (std::uint8_t i = 0; i < cnk; ++i) {
-    vec.emplace_back(border->get_key_slice_at(i), border->get_key_length_at(i), i);
+    vec.emplace_back(border->get_key_slice_at(i), border->get_key_length_at(i), i); // NOLINT
   }
   std::sort(vec.begin(), vec.end());
   /**
    * split
    * If the fan-out is odd, keep more than half to improve the performance.
    */
-  std::size_t remaining_size;
-  if (base_node::key_slice_length % 2) {
-    remaining_size = base_node::key_slice_length / 2 + 1;
-  } else {
-    remaining_size = base_node::key_slice_length / 2;
-  }
+  std::size_t remaining_size = base_node::key_slice_length / 2 + 1;
+
   std::size_t index_ctr(0);
   std::vector<std::size_t> shift_pos;
   for (auto itr = vec.begin() + remaining_size; itr != vec.end(); ++itr) {
@@ -218,15 +208,15 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, va
    * key_slice must be initialized to 0.
    */
   key_slice_type key_slice{0};
-  key_length_type key_length;
+  key_length_type key_length{};
   if (key_view.size() > sizeof(key_slice_type)) {
     memcpy(&key_slice, key_view.data(), sizeof(key_slice_type));
     key_length = sizeof(key_slice_type) + 1;
   } else {
-    if (key_view.size() > 0) {
+    if (!key_view.empty()) {
       memcpy(&key_slice, key_view.data(), key_view.size());
     }
-    key_length = key_view.size();
+    key_length = static_cast<key_length_type>(key_view.size());
   }
   std::tuple<key_slice_type, key_length_type> visitor{key_slice, key_length};
   std::tuple<key_slice_type, key_length_type> r_low{new_border->get_key_slice_at(0),
@@ -252,8 +242,7 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, va
   std::vector<base_node *> next_layers;
   std::vector<node_version64 *> next_layers_lock;
 
-  base_node *p = border->get_parent();
-  p = border->lock_parent();
+  base_node *p = border->lock_parent();
   if (p == nullptr) {
 #ifndef NDEBUG
     if (base_node::get_root() != border) {
@@ -267,10 +256,10 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, va
      * It cares in below function.
      */
     create_interior_parent_of_border<interior_node, border_node>(border, new_border,
-                                                                 reinterpret_cast<interior_node **>(&p));
+                                                                 reinterpret_cast<interior_node **>(&p)); // NOLINT
     border->version_unlock();
     new_border->version_unlock();
-    base_node::set_root(dynamic_cast<base_node *>(p));
+    base_node::set_root(p);
     p->version_unlock();
     return;
   }
@@ -293,7 +282,7 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, va
      */
     auto pb = dynamic_cast<border_node *>(p);
     pb->set_version_inserting(true);
-    interior_node *pi;
+    interior_node *pi{};
     create_interior_parent_of_border<interior_node, border_node>(border, new_border, &pi);
     border->version_unlock();
     new_border->version_unlock();
@@ -323,7 +312,7 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, va
      * interior full case, it splits and inserts.
      */
     new_border->version_unlock();
-    interior_split<interior_node, border_node>(pi, reinterpret_cast<base_node *>(new_border));
+    interior_split<interior_node, border_node>(pi, reinterpret_cast<base_node *>(new_border)); // NOLINT
     return;
   }
   /**
@@ -333,7 +322,6 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, va
   new_border->version_unlock();
   pi->template insert<border_node>(new_border);
   pi->version_unlock();
-  return;
 }
 
 } // namespace yakushima
