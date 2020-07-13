@@ -10,15 +10,15 @@
  */
 template<typename T>
 T loadRelaxed(T &ptr) {
-  return __atomic_load_n(&ptr, __ATOMIC_RELAXED);
+  return __atomic_load_n(&ptr, __ATOMIC_RELAXED); // NOLINT
 }
 
 /**
  * @brief atomic acquire load.
  */
 template<typename T>
-T loadAcquireN(T &ref) {
-  return __atomic_load_n(&ref, __ATOMIC_ACQUIRE);
+T loadAcquireN(T &ref) { // NOLINT
+  return __atomic_load_n(&ref, __ATOMIC_ACQUIRE); // NOLINT
 }
 
 #if 0
@@ -33,7 +33,7 @@ void loadAcquire(type *ptr, type *ret) {
  */
 template<typename T, typename T2>
 void storeRelaxed(T &ptr, T2 val) {
-  __atomic_store_n(&ptr, (T) val, __ATOMIC_RELAXED);
+  __atomic_store_n(&ptr, static_cast<T>(val), __ATOMIC_RELAXED); // NOLINT
 }
 
 /**
@@ -41,7 +41,7 @@ void storeRelaxed(T &ptr, T2 val) {
  */
 template<typename T, typename T2>
 void storeReleaseN(T &ptr, T2 val) {
-  __atomic_store_n(&ptr, (T) val, __ATOMIC_RELEASE);
+  __atomic_store_n(&ptr, static_cast<T>(val), __ATOMIC_RELEASE); // NOLINT
 }
 
 #if 0
