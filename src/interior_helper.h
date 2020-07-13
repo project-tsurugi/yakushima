@@ -14,17 +14,9 @@ using key_length_type = base_node::key_length_type;
 using value_align_type = base_node::value_align_type;
 using value_length_type = base_node::value_length_type;
 
-/**
- * start : forward declaration due to resolve dependency.
- */
 template<class interior_node, class border_node>
-static void
-border_split(border_node *border, std::string_view key_view, void *value_ptr, value_length_type value_length,
-             value_align_type value_align);
-
-/**
- * end : forward declaration due to resolve dependency.
- */
+std::tuple<key_slice_type, key_length_type>
+find_lowest_key(base_node *origin);
 
 /**
  * @details This may be called at split function.
@@ -36,37 +28,10 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, va
  */
 template<class interior_node, class border_node>
 static void
-create_interior_parent_of_interior(interior_node *left, interior_node *right, std::vector<node_version64 *> &lock_list,
-                                   base_node **new_parent);
-
-/**
- * @pre It already acquired lock of this node.
- * @details split interior node.
- * @param[in] interior
- * @param[in] child_node After split, it inserts this @a child_node.
- * @param[out] lock_list
- */
-template<class interior_node, class border_node>
-static void
-interior_split(interior_node *interior, base_node *child_node, std::vector<node_version64 *> &lock_list);
-
-/**
- * @attention I have to traverse through the verification process. Because you might use an incorrect value.
- * @tparam interior_node
- * @tparam border_node
- * @param origin
- * @return
- */
-template<class interior_node, class border_node>
-std::tuple<key_slice_type, key_length_type>
-find_lowest_key(base_node *origin);
-
-template<class interior_node, class border_node>
-static void
 create_interior_parent_of_interior(interior_node *left, interior_node *right, base_node **new_parent) {
   left->set_version_root(false);
   right->set_version_root(false);
-  interior_node *ni = new interior_node();
+  interior_node *ni = new interior_node(); // NOLINT
   ni->init_interior();
   ni->set_version_root(true);
   ni->set_version_inserting(true);
@@ -88,12 +53,17 @@ create_interior_parent_of_interior(interior_node *left, interior_node *right, ba
   left->set_parent(ni);
   right->set_parent(ni);
   *new_parent = ni;
-  return;
 }
 
+/**
+ * @pre It already acquired lock of this node.
+ * @details split interior node.
+ * @param[in] interior
+ * @param[in] child_node After split, it inserts this @a child_node.
+ */
 template<class interior_node, class border_node>
 static void interior_split(interior_node *interior, base_node *child_node) {
-  interior_node *new_interior = new interior_node();
+  interior_node *new_interior = new interior_node(); // NOLINT
   new_interior->init_interior();
   /**
    * attention : After making changes to this node, it sets a splitting flag.
@@ -111,7 +81,7 @@ static void interior_split(interior_node *interior, base_node *child_node) {
   std::size_t split_children_points = pivot_key + 1;
   interior->move_key_to_base_range(new_interior, split_children_points);
   interior->set_n_keys(pivot_key);
-  if (pivot_key & 1) {
+  if (pivot_key & 1) { // NOLINT
     new_interior->set_n_keys(pivot_key);
   } else {
     new_interior->set_n_keys(pivot_key - 1);
@@ -172,9 +142,9 @@ static void interior_split(interior_node *interior, base_node *child_node) {
   }
 #endif
   if (p->get_version_border()) {
-    border_node *pb = dynamic_cast<border_node *>(p);
+    auto pb = dynamic_cast<border_node *>(p);
     pb->set_version_inserting(true);
-    base_node *new_p;
+    base_node *new_p{};
     create_interior_parent_of_interior<interior_node, border_node>(interior, new_interior, &new_p);
     interior->version_unlock();
     new_interior->version_unlock();
@@ -186,7 +156,7 @@ static void interior_split(interior_node *interior, base_node *child_node) {
     p->version_unlock();
     return;
   }
-  interior_node *pi = dynamic_cast<interior_node *>(p);
+  auto pi = dynamic_cast<interior_node *>(p);
   interior->version_unlock();
   new_interior->set_parent(pi);
   if (pi->get_n_keys() == base_node::key_slice_length) {
@@ -203,9 +173,15 @@ static void interior_split(interior_node *interior, base_node *child_node) {
   new_interior->version_unlock();
   pi->template insert<border_node>(new_interior);
   pi->version_unlock();
-  return;
 }
 
+/**
+ * @attention I have to traverse through the verification process. Because you might use an incorrect value.
+ * @tparam interior_node
+ * @tparam border_node
+ * @param origin
+ * @return
+ */
 template<class interior_node, class border_node>
 std::tuple<key_slice_type, key_length_type>
 find_lowest_key(base_node *origin) {
@@ -223,7 +199,7 @@ find_lowest_key(base_node *origin) {
         break;
       }
       if (bn->get_version_border()) {
-        border_node *target = reinterpret_cast<border_node *>(bn);
+        auto target = reinterpret_cast<border_node *>(bn); // NOLINT
         std::size_t low_pos = target->get_permutation_lowest_key_pos();
         key_slice_type kslice = bn->get_key_slice_at(low_pos);
         key_length_type klength = bn->get_key_length_at(low_pos);
@@ -235,17 +211,15 @@ find_lowest_key(base_node *origin) {
           break;
         }
         continue;
-      } else {
-        base_node *ret = reinterpret_cast<interior_node *>(bn)->get_child_at(0);
-        if (v == bn->get_version()) {
-          bn = ret;
-          continue;
-        }
-        if (bn->get_version_deleted() ||
-            (v.get_vsplit() != bn->get_version_vsplit())) {
-          break;
-        }
+      }
+      base_node *ret = reinterpret_cast<interior_node *>(bn)->get_child_at(0); // NOLINT
+      if (v == bn->get_version()) {
+        bn = ret;
         continue;
+      }
+      if (bn->get_version_deleted() ||
+          (v.get_vsplit() != bn->get_version_vsplit())) {
+        break;
       }
     }
   }
