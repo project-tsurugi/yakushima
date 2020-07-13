@@ -4,9 +4,8 @@
 
 #pragma once
 
-#include <string.h>
-
 #include <cstdint>
+#include <cstring>
 #include <functional>
 #include <iostream>
 
@@ -23,10 +22,6 @@ using std::endl;
 
 class alignas(CACHE_LINE_SIZE) border_node final : public base_node {
 public:
-  border_node() = default;
-
-  ~border_node() = default;
-
   /**
    * @pre This function is called by delete_of function.
    * @details delete the key-value corresponding to @a pos as position.
@@ -34,7 +29,7 @@ public:
    * @param[in] target_is_value
    */
   void delete_at(Token token, std::size_t pos, bool target_is_value) {
-    thread_info *ti = reinterpret_cast<thread_info *>(token);
+    thread_info *ti = reinterpret_cast<thread_info *>(token); // NOLINT
     if (target_is_value) {
       ti->move_value_to_gc_container(lv_.at(pos).get_v_or_vp_());
     }
@@ -48,7 +43,7 @@ public:
     } else { // not-tail
       shift_left_base_member(pos + 1, 1);
       shift_left_border_member(pos + 1, 1);
-      init_border(permutation_.get_cnk() - 1);
+      init_border(static_cast<size_t>(permutation_.get_cnk() - 1));
     }
     permutation_.dec_key_num();
     permutation_rearrange();
@@ -79,7 +74,7 @@ public:
    */
   status destroy() final {
     for (auto i = 0; i < permutation_.get_cnk(); ++i) {
-      lv_.at(i).destroy();
+      lv_.at(static_cast<std::uint32_t>(i)).destroy();
     }
     delete this;
     return status::OK_DESTROY_BORDER;
@@ -117,7 +112,7 @@ retry_prev_lock:
             if (prev->get_version_deleted() ||
                 prev != get_prev()) {
               prev->version_unlock();
-              goto retry_prev_lock;
+              goto retry_prev_lock; // NOLINT
             } else {
               prev->set_next(get_next());
               if (get_next() != nullptr) {
@@ -157,7 +152,7 @@ retry_prev_lock:
             pn->version_unlock();
           }
           set_version_deleted(true);
-          reinterpret_cast<thread_info *>(token)->move_node_to_gc_container(this);
+          reinterpret_cast<thread_info *>(token)->move_node_to_gc_container(this); // NOLINT
         }
         version_atomic_inc_vdelete();
         return;
@@ -425,14 +420,13 @@ retry_prev_lock:
       /**
        * @attention next_layer_border is the root of next layer.
        */
-      static_cast<border_node *>(next_layer_border)->init_border(key_view, value_ptr, true, arg_value_length,
-                                                                 value_align);
+      next_layer_border->init_border(key_view, value_ptr, true, arg_value_length, value_align);
       next_layer_border->set_parent(this);
       set_lv_next_layer(index, next_layer_border);
     } else {
       memcpy(&key_slice, key_view.data(), key_view.size());
       set_key_slice_at(index, key_slice);
-      set_key_length_at(index, key_view.size());
+      set_key_length_at(index, static_cast<key_length_type>(key_view.size()));
       set_lv_value(index, value_ptr, arg_value_length, value_align);
     }
     permutation_.inc_key_num();

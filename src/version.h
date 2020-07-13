@@ -77,35 +77,35 @@ public:
     return !(*this == rhs);
   }
 
-  [[nodiscard]] int get_border() const {
+  [[nodiscard]] bool get_border() const {
     return border;
   }
 
-  [[nodiscard]] int get_deleted() const {
+  [[nodiscard]] bool get_deleted() const {
     return deleted;
   }
 
-  [[nodiscard]] int get_deleting_node() const {
+  [[nodiscard]] bool get_deleting_node() const {
     return deleting_node;
   }
 
-  [[nodiscard]] int get_inserting() const {
+  [[nodiscard]] bool get_inserting() const {
     return inserting;
   }
 
-  [[nodiscard]] int get_locked() const {
+  [[nodiscard]] bool get_locked() const {
     return locked;
   }
 
-  [[nodiscard]] int get_root() const {
+  [[nodiscard]] bool get_root() const {
     return root;
   }
 
-  [[nodiscard]] int get_splitting() const {
+  [[nodiscard]] bool get_splitting() const {
     return splitting;
   }
 
-  [[nodiscard]] int get_unused() const {
+  [[nodiscard]] bool get_unused() const {
     return unused;
   }
 
