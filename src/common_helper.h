@@ -38,12 +38,12 @@ descend:
    */
   if (v.get_border()) {
     special_status = status::OK;
-    return std::make_tuple(static_cast<border_node *>(n), ret_v);
+    return std::make_tuple(dynamic_cast<border_node *>(n), ret_v);
   }
   /**
    * @a n points to a interior_node object.
    */
-  base_node *n_child = static_cast<interior_node *>(n)->get_child_of(key_slice, key_slice_length);
+  base_node *n_child = dynamic_cast<interior_node *>(n)->get_child_of(key_slice, key_slice_length);
   if (n_child != nullptr) {
     ret_v = n_child->get_stable_version();
   }
@@ -69,7 +69,7 @@ descend:
      * Therefore, this can execute within if scope.
      */
     v = ret_v;
-    goto descend;
+    goto descend; // NOLINT
   }
   /**
    * In Original paper, v'' = stableversion(n).
@@ -80,9 +80,9 @@ descend:
    * If the value of vsplit is different, the read location may be inappropriate.
    * Split propagates upward. It have to start from root.
    */
-  if (v.get_vsplit() != v_check.get_vsplit() ||
-      v_check.get_deleted())
-    goto retry;
+  if (v.get_vsplit() != v_check.get_vsplit() || v_check.get_deleted()) {
+    goto retry; // NOLINT
+  }
   /**
    * If the vsplit values ​​match, it can continue.
    * Even if it is inserted, the slot value is invariant and the order is controlled by @a permutation.
@@ -90,7 +90,7 @@ descend:
    * so re-start from this node.
    */
   v = v_check;
-  goto descend;
+  goto descend; // NOLINT
 }
 
 } // namespace yakushima

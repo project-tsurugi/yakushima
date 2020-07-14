@@ -6,12 +6,13 @@
 
 #include "base_node.h"
 #include "border_node.h"
+#include "common_helper.h"
 #include "interior_node.h"
 #include "scheme.h"
 
 namespace yakushima {
 
-// forward decralation
+// forward declaration
 template<class ValueType>
 static status scan_border(border_node **target, std::string_view l_key, bool l_exclusive, std::string_view r_key,
                           bool r_exclusive, std::vector<std::tuple<ValueType *, std::size_t>> &tuple_list,
@@ -29,19 +30,18 @@ status scan_check_retry(border_node *const bn, node_version64_body &v_at_fetch_l
     if (check.get_vsplit() != v_at_fetch_lv.get_vsplit() ||
         check.get_deleted()) {
       return status::OK_RETRY_FROM_ROOT;
-    } else {
-      v_at_fetch_lv = check;
-      return status::OK_RETRY_FETCH_LV;
     }
+    v_at_fetch_lv = check;
+    return status::OK_RETRY_FETCH_LV;
   }
   return status::OK;
 }
 
 template<class ValueType>
 status scan_check_retry(border_node *const bn, node_version64_body &v_at_fetch_lv) {
-  std::vector<std::tuple<ValueType *, std::size_t>> dammy_list;
-  std::size_t dammy_ctr(0);
-  return scan_check_retry<ValueType>(bn, v_at_fetch_lv, dammy_list, dammy_ctr);
+  std::vector<std::tuple<ValueType *, std::size_t>> dummy_list;
+  std::size_t dummy_ctr(0);
+  return scan_check_retry<ValueType>(bn, v_at_fetch_lv, dummy_list, dummy_ctr);
 }
 
 template<class ValueType>
@@ -57,15 +57,15 @@ retry:
   constexpr std::size_t tuple_v_index = 1;
   status check_status;
   key_slice_type ks{0};
-  key_length_type kl;
+  key_length_type kl{};
   if (l_key.size() > sizeof(key_slice_type)) {
     memcpy(&ks, l_key.data(), sizeof(key_slice_type));
     kl = sizeof(key_slice_type);
   } else {
-    if (l_key.size() != 0) {
+    if (!l_key.empty()) {
       memcpy(&ks, l_key.data(), l_key.size());
     }
-    kl = l_key.size();
+    kl = static_cast<key_length_type>(l_key.size());
   }
   node_and_v = find_border(root, ks, kl, check_status);
   if (check_status == status::WARN_RETRY_FROM_ROOT_OF_ALL) {
@@ -78,20 +78,23 @@ retry:
     check_status = scan_border<ValueType>(&bn, l_key, l_exclusive, r_key, r_exclusive, tuple_list, check_v);
     if (check_status == status::OK_SCAN_END) {
       return status::OK;
-    } else if (check_status == status::OK_SCAN_CONTINUE) {
+    }
+    if (check_status == status::OK_SCAN_CONTINUE) {
       continue;
-    } else if (check_status == status::OK_RETRY_FETCH_LV) {
+    }
+    if (check_status == status::OK_RETRY_FETCH_LV) {
       node_version64_body re_check_v = bn->get_stable_version();
       if (check_v.get_vsplit() != re_check_v.get_vsplit() ||
           re_check_v.get_deleted()) {
         return status::OK_RETRY_FETCH_LV;
-      } else if (check_v.get_vinsert() != re_check_v.get_vinsert() ||
-                 check_v.get_vdelete() != re_check_v.get_vdelete()) {
+      }
+      if (check_v.get_vinsert() != re_check_v.get_vinsert() ||
+          check_v.get_vdelete() != re_check_v.get_vdelete()) {
         check_v = re_check_v;
         continue;
       }
     } else if (check_status == status::OK_RETRY_FROM_ROOT) {
-      goto retry;
+      goto retry; // NOLINT
     }
   }
 }
@@ -116,40 +119,42 @@ retry:
     status check_status = scan_check_retry(bn, v_at_fetch_lv, tuple_list, tuple_pushed_num);
     if (check_status == status::OK_RETRY_FROM_ROOT) {
       return status::OK_RETRY_FROM_ROOT;
-    } else if (check_status == status::OK_RETRY_FETCH_LV) {
-      goto retry;
+    }
+    if (check_status == status::OK_RETRY_FETCH_LV) {
+      goto retry; // NOLINT
     }
     if (kl > sizeof(key_slice_type)) {
       std::string_view arg_l_key;
       bool next_l_exclusive(false);
-      std::string_view next_target(reinterpret_cast<char *>(&ks), sizeof(key_slice_type));
+      std::string_view next_target(reinterpret_cast<char *>(&ks), sizeof(key_slice_type)); // NOLINT
       if (l_key < next_target) {
-        arg_l_key = std::string_view(0, 0);
+        arg_l_key = std::string_view(nullptr, 0);
       } else if (l_key == next_target) {
-        arg_l_key = std::string_view(0, 0);
+        arg_l_key = std::string_view(nullptr, 0);
         next_l_exclusive = l_exclusive;
       } else {
         continue;
       }
       std::string_view arg_r_key;
       bool next_r_exclusive(false);
-      if (r_key == std::string_view(0, 0) && !r_exclusive) {
+      if (r_key == std::string_view(nullptr, 0) && !r_exclusive) {
         arg_r_key = r_key;
       } else {
         if (r_key < next_target) {
           return status::OK_SCAN_END;
-        } else if (r_key == next_target) {
+        }
+        if (r_key == next_target) {
           if (r_exclusive) return status::OK_SCAN_END;
-          arg_r_key = std::string_view(0, 0);
+          arg_r_key = std::string_view(nullptr, 0);
         } else {
           if (r_key.substr(0, sizeof(key_slice_type)) == next_target) {
             arg_r_key = r_key;
             arg_r_key.remove_prefix(sizeof(key_slice_type));
           } else {
-            arg_r_key = std::string_view(0, 0);
+            arg_r_key = std::string_view(nullptr, 0);
           }
         }
-        if (r_key != std::string_view(0, 0) && arg_r_key == std::string_view(0, 0)) {
+        if (r_key != std::string_view(nullptr, 0) && arg_r_key == std::string_view(nullptr, 0)) {
           /**
            * r_key was not 0,0, but new one is that. However, originally it was not all range for right direction.
            * So it is care by exclusive(true).
@@ -159,20 +164,21 @@ retry:
       }
       check_status = scan(next_layer, arg_l_key, next_l_exclusive, arg_r_key, next_r_exclusive, tuple_list);
       if (check_status != status::OK) {
-        goto retry;
+        goto retry; // NOLINT
       }
     } else {
-      std::string_view resident{reinterpret_cast<char *>(&ks), kl};
-      std::string_view inf{0, 0};
+      std::string_view resident{reinterpret_cast<char *>(&ks), kl}; // NOLINT
+      std::string_view inf{nullptr, 0};
       if (resident < l_key || (resident == l_key && l_exclusive)) {
         continue;
-      } else if ((l_key == inf && r_key == inf && !l_exclusive && !r_exclusive) || // all range
-                 (l_key == inf && !l_exclusive && resident < r_key) || // left is inf, in range
-                 (l_key < resident && r_key == inf && !r_exclusive) || // right is inf, in range
-                 (l_key < resident && resident < r_key) || // no inf, in range
-                 (resident == l_key && !l_exclusive) ||
-                 (resident == r_key && !r_exclusive)) {
-        tuple_list.emplace_back(std::make_tuple(reinterpret_cast<ValueType *>(vp), vsize));
+      }
+      if ((l_key == inf && r_key == inf && !l_exclusive && !r_exclusive) || // all range
+          (l_key == inf && !l_exclusive && resident < r_key) || // left is inf, in range
+          (l_key < resident && r_key == inf && !r_exclusive) || // right is inf, in range
+          (l_key < resident && resident < r_key) || // no inf, in range
+          (resident == l_key && !l_exclusive) ||
+          (resident == r_key && !r_exclusive)) {
+        tuple_list.emplace_back(std::make_tuple(reinterpret_cast<ValueType *>(vp), vsize)); // NOLINT
         ++tuple_pushed_num;
       } else {
         return status::OK_SCAN_END;
@@ -182,11 +188,10 @@ retry:
 
   if (next == nullptr) {
     return status::OK_SCAN_END;
-  } else {
-    *target = next;
-    v_at_fetch_lv = next->get_stable_version();
-    return status::OK_SCAN_CONTINUE;
   }
+  *target = next;
+  v_at_fetch_lv = next->get_stable_version();
+  return status::OK_SCAN_CONTINUE;
 }
 
 } // namespace yakushima

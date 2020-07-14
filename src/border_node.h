@@ -59,7 +59,7 @@ public:
     std::size_t cnk = get_permutation_cnk();
     for (std::size_t i = 0; i < cnk; ++i) {
       if (child == lv_.at(i).get_next_layer()) {
-        delete_of < false > (token, get_key_slice_at(i), get_key_length_at(i), lock_list);
+        delete_of < false > (token, get_key_slice_at(i), get_key_length_at(i), lock_list); // NOLINT
         return;
       }
     }
@@ -246,9 +246,8 @@ retry_prev_lock:
       node_version64_body check = get_version();
       if (v == check) {
         return ret;
-      } else {
-        continue;
       }
+      continue;
     }
   }
 
@@ -288,9 +287,8 @@ retry_prev_lock:
       if (v == v_check) {
         stable_v = v;
         return ret_lv;
-      } else {
-        v = v_check;
       }
+      v = v_check;
     }
   }
 
@@ -415,7 +413,7 @@ retry_prev_lock:
        * key_length_type must be a large size type.
        */
       set_key_length_at(index, sizeof(key_slice_type) + 1);
-      border_node *next_layer_border = new border_node();
+      border_node *next_layer_border = new border_node(); // NOLINT
       key_view.remove_prefix(sizeof(key_slice_type));
       /**
        * @attention next_layer_border is the root of next layer.

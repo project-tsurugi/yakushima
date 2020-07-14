@@ -92,7 +92,7 @@ retry_find_border:
      * prepare key_slice
      */
     key_slice_type key_slice(0);
-    key_length_type key_slice_length = traverse_key_view.size();
+    key_length_type key_slice_length = static_cast<key_length_type>(traverse_key_view.size());
     if (traverse_key_view.size() > sizeof(key_slice_type)) {
       memcpy(&key_slice, traverse_key_view.data(), sizeof(key_slice_type));
     } else {
@@ -227,7 +227,7 @@ retry_find_border:
      * prepare key_slice
      */
     key_slice_type key_slice(0);
-    key_length_type key_slice_length = traverse_key_view.size();
+    key_length_type key_slice_length = static_cast<key_length_type>(traverse_key_view.size());
     if (traverse_key_view.size() > sizeof(key_slice_type)) {
       memcpy(&key_slice, traverse_key_view.data(), sizeof(key_slice_type));
     } else {
@@ -320,7 +320,7 @@ retry_fetch_lv:
     /**
      * Here, lv_ptr has some next_layer.
      */
-    root = dynamic_cast<base_node *>(lv_ptr->get_next_layer());
+    root = lv_ptr->get_next_layer();
     /**
      * check whether border is still correct.
      */
@@ -366,7 +366,7 @@ retry_find_border:
      * prepare key_slice
      */
     key_slice_type key_slice = 0;
-    key_length_type key_slice_length = traverse_key_view.size();
+    key_length_type key_slice_length = static_cast<key_length_type>(traverse_key_view.size());
     if (traverse_key_view.size() > sizeof(key_slice_type)) {
       memcpy(&key_slice, traverse_key_view.data(), sizeof(key_slice_type));
     } else {
@@ -494,7 +494,7 @@ retry_find_border:
      * prepare key_slice
      */
     key_slice_type key_slice(0);
-    key_length_type key_slice_length = traverse_key_view.size();
+    key_length_type key_slice_length = static_cast<key_length_type>(traverse_key_view.size());
     if (traverse_key_view.size() > sizeof(key_slice_type)) {
       memcpy(&key_slice, traverse_key_view.data(), sizeof(key_slice_type));
     } else {
@@ -550,7 +550,8 @@ retry_fetch_lv:
       }
       if (check_status == status::OK_SCAN_CONTINUE) {
         continue;
-      } else if (check_status == status::OK_RETRY_FETCH_LV) {
+      }
+      if (check_status == status::OK_RETRY_FETCH_LV) {
         goto retry_fetch_lv; // NOLINT
       } else if (check_status == status::OK_RETRY_FROM_ROOT) {
         goto retry_from_root; // NOLINT
