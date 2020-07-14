@@ -247,7 +247,6 @@ retry_prev_lock:
       if (v == check) {
         return ret;
       }
-      continue;
     }
   }
 
