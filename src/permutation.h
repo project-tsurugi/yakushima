@@ -31,13 +31,9 @@ public:
   static constexpr std::size_t cnk_bit_size = 4; // bits
   static constexpr std::size_t pkey_bit_size = 4; // bits, permutation key size.
 
-  permutation() {
-    init();
-  }
+  permutation() : body_{} {}
 
-  permutation(std::uint64_t body) {
-    set_body(body);
-  }
+  explicit permutation(std::uint64_t body) : body_{body} {}
 
   /**
    * @brief decrement key number.
@@ -63,7 +59,7 @@ public:
 
   uint8_t get_cnk() &{
     std::uint64_t per_body(body_.load(std::memory_order_acquire));
-    return per_body & cnk_mask;
+    return static_cast<uint8_t>(per_body & cnk_mask);
   }
 
   [[nodiscard]] std::size_t get_lowest_key_pos() {
@@ -111,7 +107,7 @@ public:
                  std::array<base_node::key_length_type, base_node::key_slice_length> &key_length) {
     std::uint64_t per_body(body_.load(std::memory_order_acquire));
     // get current number of keys
-    std::size_t cnk = per_body & cnk_mask;
+    auto cnk = static_cast<uint8_t>(per_body & cnk_mask);
 
     // tuple<key_slice, key_length, index>
     constexpr std::size_t key_pos = 2;
@@ -127,7 +123,7 @@ public:
 
     // rearrange
     std::uint64_t new_body(0);
-    for (auto itr = ar.begin() + cnk - 1; itr != ar.begin() - 1; --itr) {
+    for (auto itr = ar.begin() + cnk - 1; itr != ar.begin() - 1; --itr) { // NOLINT : order to use "auto *itr"
       new_body |= std::get<key_pos>(*itr);
       new_body <<= pkey_bit_size;
     }

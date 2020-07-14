@@ -42,17 +42,17 @@ public:
   ~node_version64_body() = default;
 
   bool operator==(const node_version64_body &rhs) const {
-    return locked == rhs.get_locked()
-           && deleting_node == rhs.get_deleting_node()
-           && inserting == rhs.get_inserting()
-           && splitting == rhs.get_splitting()
-           && deleted == rhs.get_deleted()
-           && root == rhs.get_root()
-           && border == rhs.get_border()
-           && unused == rhs.get_unused()
-           && vdelete == rhs.get_vdelete()
-           && vinsert == rhs.get_vinsert()
-           && vsplit == rhs.get_vsplit();
+    return get_locked() == rhs.get_locked()
+           && get_deleting_node() == rhs.get_deleting_node()
+           && get_inserting() == rhs.get_inserting()
+           && get_splitting() == rhs.get_splitting()
+           && get_deleted() == rhs.get_deleted()
+           && get_root() == rhs.get_root()
+           && get_border() == rhs.get_border()
+           && get_unused() == rhs.get_unused()
+           && get_vdelete() == rhs.get_vdelete()
+           && get_vinsert() == rhs.get_vinsert()
+           && get_vsplit() == rhs.get_vsplit();
   }
 
   /**
@@ -270,9 +270,7 @@ public:
    * @details Basically, it should use this default constructor to use init func.
    * Of course, it can use this class without default constructor if it use init function().
    */
-  node_version64() {
-    init();
-  }
+  node_version64() : body_{} {}
 
   /**
    * @details This is atomic increment.
@@ -286,7 +284,7 @@ public:
       desired.inc_vinsert();
       if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire)) {
         break;
-}
+      }
     }
   }
 
@@ -298,7 +296,7 @@ public:
       desired.inc_vdelete();
       if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire)) {
         break;
-}
+      }
     }
   }
 
@@ -310,7 +308,7 @@ public:
       desired.set_border(tf);
       if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire)) {
         break;
-}
+      }
     }
   }
 
@@ -322,7 +320,7 @@ public:
       desired.set_deleted(tf);
       if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire)) {
         break;
-}
+      }
     }
   }
 
@@ -334,7 +332,7 @@ public:
       desired.set_deleting_node(tf);
       if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire)) {
         break;
-}
+      }
     }
   }
 
@@ -346,7 +344,7 @@ public:
       desired.set_inserting(tf);
       if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire)) {
         break;
-}
+      }
     }
   }
 

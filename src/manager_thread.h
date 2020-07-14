@@ -50,8 +50,8 @@ public:
   }
 
 private:
-  static inline std::thread kEpochThread;
-  alignas(CACHE_LINE_SIZE) static inline std::atomic<bool> kEpochThreadEnd;
+  static inline std::thread kEpochThread; // NOLINT : can't become constexpr
+  alignas(CACHE_LINE_SIZE) static inline std::atomic<bool> kEpochThreadEnd; // NOLINT : can't become constexpr
 };
 
 } // namespace yakushima

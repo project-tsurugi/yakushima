@@ -35,9 +35,9 @@ public:
    * @pre global epoch is not yet functional because it assigns 0 to begin_epoch as the initial value.
    */
   static void init() {
-    for (auto itr = kThreadInfoTable.begin(); itr != kThreadInfoTable.end(); ++itr) {
+    for (auto itr = kThreadInfoTable.begin(); itr != kThreadInfoTable.end(); ++itr) { // NOLINT
       itr->set_begin_epoch(0);
-      itr->set_gc_container(std::distance(kThreadInfoTable.begin(), itr));
+      itr->set_gc_container(static_cast<size_t>(std::distance(kThreadInfoTable.begin(), itr)));
       itr->set_running(false);
     }
   }

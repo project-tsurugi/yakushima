@@ -63,10 +63,10 @@ public:
    */
   void display() {
     std::cout << "need_delete_value_ : " << get_need_delete_value() << std::endl;
-    std::cout << "next_layer_ : " << get_next_layer()               << std::endl;
-    std::cout << "v_or_vp_ : " << get_v_or_vp_()                    << std::endl;
-    std::cout << "value_length_ : " << get_value_length()           << std::endl;
-    std::cout << "value_align_ : " << get_value_align()             << std::endl;
+    std::cout << "next_layer_ : " << get_next_layer() << std::endl;
+    std::cout << "v_or_vp_ : " << get_v_or_vp_() << std::endl;
+    std::cout << "value_length_ : " << get_value_length() << std::endl;
+    std::cout << "value_align_ : " << get_value_align() << std::endl;
   }
 
   [[nodiscard]] bool get_need_delete_value() {
@@ -80,11 +80,11 @@ public:
   [[nodiscard]] const std::type_info *get_lv_type() {
     if (get_next_layer() != nullptr) {
       return &typeid(get_next_layer());
-    } else if (get_v_or_vp_() != nullptr) {
-      return &typeid(get_v_or_vp_());
-    } else {
-      return &typeid(nullptr);
     }
+    if (get_v_or_vp_() != nullptr) {
+      return &typeid(get_v_or_vp_());
+    }
+    return &typeid(nullptr);
   }
 
   [[nodiscard]] void *get_v_or_vp_() {
