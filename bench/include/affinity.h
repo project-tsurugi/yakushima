@@ -38,21 +38,19 @@
     std::cout << __FILE__ << " : " << __LINE__ << " : error" << std::endl;
     std::abort();
   }
-  return;
 }
 
 [[maybe_unused]] static void set_thread_affinity(const cpu_set_t id) {
-  pid_t pid = syscall(SYS_gettid);
+  pid_t pid = syscall(SYS_gettid); // NOLINT
 
   if (sched_setaffinity(pid, sizeof(cpu_set_t), &id) != 0) {
     std::cout << __FILE__ << " : " << __LINE__ << " : error" << std::endl;
     std::abort();
   }
-  return;
 }
 
 [[maybe_unused]] static cpu_set_t get_thread_affinity() {
-  pid_t pid = syscall(SYS_gettid);
+  pid_t pid = syscall(SYS_gettid); // NOLINT
   cpu_set_t result;
 
   if (sched_getaffinity(pid, sizeof(cpu_set_t), &result) != 0) {
