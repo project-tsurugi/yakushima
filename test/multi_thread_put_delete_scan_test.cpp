@@ -18,14 +18,14 @@ using std::endl;
 
 namespace yakushima::testing {
 
-class multi_thread_put_delete_scan_test : public ::testing::Test {
+class mtpdst : public ::testing::Test {
 protected:
-  multi_thread_put_delete_scan_test() {}
+  mtpdst() {}
 
-  ~multi_thread_put_delete_scan_test() {}
+  ~mtpdst() {}
 };
 
-TEST_F(multi_thread_put_delete_scan_test, test1) {
+TEST_F(mtpdst, test1) { // NOLINT
   /**
    * concurrent put/delete/scan same null char key slices and different key length to single border
    * by multi threads.
@@ -129,7 +129,7 @@ TEST_F(multi_thread_put_delete_scan_test, test1) {
   }
 }
 
-TEST_F(multi_thread_put_delete_scan_test, test2) {
+TEST_F(mtpdst, test2) { // NOLINT
   /**
    * test1 variant which is the test using shuffle order data.
    */
@@ -228,7 +228,7 @@ TEST_F(multi_thread_put_delete_scan_test, test2) {
   }
 }
 
-TEST_F(multi_thread_put_delete_scan_test, test3) {
+TEST_F(mtpdst, test3) { // NOLINT
   /**
    * multiple put/delete/scan same null char key whose length is different each other against multiple border,
    * which is across some layer.
@@ -327,7 +327,7 @@ TEST_F(multi_thread_put_delete_scan_test, test3) {
   }
 }
 
-TEST_F(multi_thread_put_delete_scan_test, test4) {
+TEST_F(mtpdst, test4) { // NOLINT
   /**
    * test3 variant which is the test using shuffle order data.
    */
@@ -426,7 +426,7 @@ TEST_F(multi_thread_put_delete_scan_test, test4) {
   }
 }
 
-TEST_F(multi_thread_put_delete_scan_test, test5) {
+TEST_F(mtpdst, test5) { // NOLINT
   /**
    * The number of puts that can be split only once and the deletes are repeated in multiple threads.
    */
@@ -528,7 +528,7 @@ TEST_F(multi_thread_put_delete_scan_test, test5) {
   }
 }
 
-TEST_F(multi_thread_put_delete_scan_test, test6) {
+TEST_F(mtpdst, test6) { // NOLINT
   /**
    * The number of puts that can be split only once and the deletes are repeated in multiple threads.
    * Use shuffled data.
@@ -633,7 +633,7 @@ TEST_F(multi_thread_put_delete_scan_test, test6) {
   }
 }
 
-TEST_F(multi_thread_put_delete_scan_test, test7) {
+TEST_F(mtpdst, test7) { // NOLINT
   /**
    * concurrent put/delete/scan in the state between none to split of interior, which is using shuffled data.
    */
@@ -750,7 +750,7 @@ TEST_F(multi_thread_put_delete_scan_test, test7) {
   }
 }
 
-TEST_F(multi_thread_put_delete_scan_test, test8) {
+TEST_F(mtpdst, test8) { // NOLINT
   /**
    * concurrent put/delete/scan in the state between none to many split of interior.
    */
@@ -864,7 +864,7 @@ TEST_F(multi_thread_put_delete_scan_test, test8) {
   }
 }
 
-TEST_F(multi_thread_put_delete_scan_test, test9) {
+TEST_F(mtpdst, test9) { // NOLINT
   /**
    * concurrent put/delete/scan in the state between none to many split of interior with shuffle.
    */
@@ -983,7 +983,7 @@ TEST_F(multi_thread_put_delete_scan_test, test9) {
   }
 }
 
-TEST_F(multi_thread_put_delete_scan_test, test10) {
+TEST_F(mtpdst, test10) { // NOLINT
   /**
    * multi-layer put-delete-scan test.
    */

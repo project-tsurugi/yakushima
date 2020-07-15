@@ -23,7 +23,7 @@ public:
   }
 };
 
-TEST_F(kvs_test, init) {
+TEST_F(kvs_test, init) { // NOLINT
   ASSERT_EQ(base_node::get_root(), nullptr);
   Token token{};
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);

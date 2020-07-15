@@ -9,19 +9,17 @@
 #include "thread_info_table.h"
 
 using namespace yakushima;
-using std::cout;
-using std::endl;
 
 namespace yakushima::testing {
 
-class thread_info_test : public ::testing::Test {
+class tit : public ::testing::Test {
 protected:
-  thread_info_test() = default;
+  tit() = default;
 
-  ~thread_info_test() = default;
+  ~tit() = default;
 };
 
-TEST_F(thread_info_test, thread_info_init_leave) {
+TEST_F(tit, test1) { // NOLINT
   thread_info_table::init();
   constexpr std::size_t length = 5;
   Token token[length];

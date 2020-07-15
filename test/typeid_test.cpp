@@ -10,19 +10,17 @@
 #include "border_node.h"
 
 using namespace yakushima;
-using std::cout;
-using std::endl;
 
 namespace yakushima::testing {
 
-class typeid_test : public ::testing::Test {
+class tt : public ::testing::Test {
 protected:
-  typeid_test() = default;
+  tt() = default;
 
-  ~typeid_test() = default;
+  ~tt() = default;
 };
 
-TEST_F(typeid_test, typeid_check_super_derived) {
+TEST_F(tt, test1) { // NOLINT
   std::unique_ptr<border_node> border_uptr(new border_node());
   std::unique_ptr<interior_node> interior_uptr(new interior_node());
 

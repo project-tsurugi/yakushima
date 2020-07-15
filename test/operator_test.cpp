@@ -4,20 +4,16 @@
 
 #include "gtest/gtest.h"
 
-using std::cout;
-using std::endl;
-using namespace std;
-
 namespace yakushima::testing {
 
-class operator_test : public ::testing::Test {
+class ot : public ::testing::Test {
 protected:
-  operator_test() = default;
+  ot() = default;
 
-  ~operator_test() = default;
+  ~ot() = default;
 };
 
-TEST_F(operator_test, exclamation) {
+TEST_F(ot, exclamation) { // NOLINT
   std::size_t i = 1;
   ASSERT_EQ(!i, 0);
   i = 0;

@@ -11,20 +11,17 @@
 #include "kvs.h"
 
 using namespace yakushima;
-using std::cout;
-using std::endl;
 
 namespace yakushima::testing {
 
-class multi_thread_put_test : public ::testing::Test {
+class mtpt : public ::testing::Test {
 protected:
-  multi_thread_put_test() {}
+  mtpt() {}
 
-  ~multi_thread_put_test() {}
+  ~mtpt() {}
 };
 
-TEST_F(multi_thread_put_test,
-       put_same_null_char_key_slices_and_different_key_length_to_single_border_by_multi_thread) {
+TEST_F(mtpt, test1) { // NOLINT
   constexpr std::size_t ary_size = 9;
   std::vector<std::tuple<std::string, std::string>> kv1;
   std::vector<std::tuple<std::string, std::string>> kv2;
@@ -80,8 +77,7 @@ TEST_F(multi_thread_put_test,
   }
 }
 
-TEST_F(multi_thread_put_test,
-       put_same_null_char_key_slices_and_different_key_length_to_single_border_by_multi_thread_with_shuffle) {
+TEST_F(mtpt, test2) { // NOLINT
 
   constexpr std::size_t ary_size = 9;
   std::vector<std::tuple<std::string, std::string>> kv1;
@@ -141,8 +137,7 @@ TEST_F(multi_thread_put_test,
   }
 }
 
-TEST_F(multi_thread_put_test,
-       put_same_null_char_key_slices_and_different_key_length_to_multiple_border_by_multi_thread) {
+TEST_F(mtpt, test3) { // NOLINT
 
   constexpr std::size_t ary_size = 15;
   std::vector<std::tuple<std::string, std::string>> kv1;
@@ -199,8 +194,7 @@ TEST_F(multi_thread_put_test,
   }
 }
 
-TEST_F(multi_thread_put_test,
-       put_same_null_char_key_slices_and_different_key_length_to_multiple_border_by_multi_thread_with_shuffle) {
+TEST_F(mtpt, test4) { // NOLINT
 
   constexpr std::size_t ary_size = 15;
   std::vector<std::tuple<std::string, std::string>> kv1;
@@ -259,7 +253,7 @@ TEST_F(multi_thread_put_test,
   }
 }
 
-TEST_F(multi_thread_put_test, put_until_creating_interior_node) {
+TEST_F(mtpt, test5) { // NOLINT
 
   constexpr std::size_t ary_size = base_node::key_slice_length + 1;
   std::vector<std::tuple<std::string, std::string>> kv1;
@@ -316,7 +310,7 @@ TEST_F(multi_thread_put_test, put_until_creating_interior_node) {
   }
 }
 
-TEST_F(multi_thread_put_test, put_until_creating_interior_node_with_shuffle) {
+TEST_F(mtpt, test6) { // NOLINT
 
   constexpr std::size_t ary_size = base_node::key_slice_length + 1;
   std::vector<std::tuple<std::string, std::string>> kv1;
@@ -375,7 +369,7 @@ TEST_F(multi_thread_put_test, put_until_creating_interior_node_with_shuffle) {
   }
 }
 
-TEST_F(multi_thread_put_test, put_between_split_border_and_split_interior_with_no_shuffle) {
+TEST_F(mtpt, test7) { // NOLINT
 
   constexpr std::size_t ary_size = 100;
   std::vector<std::tuple<std::string, std::string>> kv1;
@@ -436,7 +430,7 @@ TEST_F(multi_thread_put_test, put_between_split_border_and_split_interior_with_n
   }
 }
 
-TEST_F(multi_thread_put_test, put_between_split_border_and_split_interior_with_shuffle) {
+TEST_F(mtpt, test8) { // NOLINT
 
   constexpr std::size_t ary_size = 100;
   std::vector<std::tuple<std::string, std::string>> kv1;
@@ -500,7 +494,7 @@ TEST_F(multi_thread_put_test, put_between_split_border_and_split_interior_with_s
   }
 }
 
-TEST_F(multi_thread_put_test, put_until_first_split_of_interior_node_with_no_shuffle) {
+TEST_F(mtpt, test9) { // NOLINT
 
   std::size_t ary_size = 241;
   std::vector<std::tuple<std::string, std::string>> kv1;
@@ -558,7 +552,7 @@ TEST_F(multi_thread_put_test, put_until_first_split_of_interior_node_with_no_shu
   }
 }
 
-TEST_F(multi_thread_put_test, put_until_first_split_of_interior_node_with_shuffle) {
+TEST_F(mtpt, test10) { // NOLINT
 
   std::size_t ary_size = 241;
   std::vector<std::tuple<std::string, std::string>> kv1;

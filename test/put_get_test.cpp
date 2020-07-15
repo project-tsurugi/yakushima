@@ -11,23 +11,21 @@
 #include "kvs.h"
 
 using namespace yakushima;
-using std::cout;
-using std::endl;
 
 namespace yakushima::testing {
 
-class kvs_test : public ::testing::Test {
+class kt : public ::testing::Test {
 protected:
-  kvs_test() {
+  kt() {
     masstree_kvs::init();
   }
 
-  ~kvs_test() {
+  ~kt() {
     masstree_kvs::fin();
   }
 };
 
-TEST_F(kvs_test, single_put_get_to_one_border) {
+TEST_F(kt, test1) { // NOLINT
   /**
    * put one key-value
    */
@@ -49,7 +47,7 @@ TEST_F(kvs_test, single_put_get_to_one_border) {
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
-TEST_F(kvs_test, single_put_get_to_one_border_large_value_size) {
+TEST_F(kt, test2) { // NOLINT
   /**
    * put one key-value
    */
@@ -72,8 +70,7 @@ TEST_F(kvs_test, single_put_get_to_one_border_large_value_size) {
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
-TEST_F(kvs_test,
-       multiple_put_get_same_null_char_key_slice_and_different_key_length_to_single_border) {
+TEST_F(kt, test3) { // NOLINT
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
   constexpr std::size_t ary_size = 8;
@@ -99,8 +96,7 @@ TEST_F(kvs_test,
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
-TEST_F(kvs_test,
-       multiple_put_get_same_null_char_key_slice_and_different_key_length_to_single_border_with_shuffle) {
+TEST_F(kt, test4) { // NOLINT
   masstree_kvs::fin();
   for (std::size_t h = 0; h < 10; ++h) {
     masstree_kvs::init();
@@ -155,8 +151,7 @@ TEST_F(kvs_test,
   masstree_kvs::init();
 }
 
-TEST_F(kvs_test,
-       multiple_put_get_same_null_char_key_slice_and_different_key_length_to_multiple_border) {
+TEST_F(kt, test5) { // NOLINT
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
   constexpr std::size_t ary_size = 15;
@@ -195,8 +190,7 @@ TEST_F(kvs_test,
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
-TEST_F(kvs_test,
-       multiple_put_get_same_null_char_key_slice_and_different_key_length_to_multiple_border_with_shuffle) {
+TEST_F(kt, test6) { // NOLINT
   masstree_kvs::fin();
   for (std::size_t h = 0; h < 30; ++h) {
     masstree_kvs::init();
@@ -241,7 +235,7 @@ TEST_F(kvs_test,
   masstree_kvs::init();
 }
 
-TEST_F(kvs_test, put_until_creating_interior_node) {
+TEST_F(kt, test7) { // NOLINT
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
   constexpr std::size_t ary_size = base_node::key_slice_length + 1;
@@ -264,8 +258,7 @@ TEST_F(kvs_test, put_until_creating_interior_node) {
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
-TEST_F(kvs_test,
-       put_until_creating_interior_node_with_shuffle) {
+TEST_F(kt, test8) { // NOLINT
   masstree_kvs::fin();
   for (std::size_t h = 0; h < 30; ++h) {
     masstree_kvs::init();
@@ -292,8 +285,7 @@ TEST_F(kvs_test,
   masstree_kvs::init();
 }
 
-TEST_F(kvs_test,
-       put_until_first_split_of_interior_node) {
+TEST_F(kt, test9) { // NOLINT
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
   std::size_t ary_size;
@@ -393,8 +385,7 @@ TEST_F(kvs_test,
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
-TEST_F(kvs_test,
-       put_until_first_split_of_interior_node_with_shuffle) {
+TEST_F(kt, test10) { // NOLINT
   masstree_kvs::fin();
   for (std::size_t h = 0; h < 30; ++h) {
     masstree_kvs::init();

@@ -9,23 +9,21 @@
 #include "kvs.h"
 
 using namespace yakushima;
-using std::cout;
-using std::endl;
 
 namespace yakushima::testing {
 
-class scan_test : public ::testing::Test {
+class st : public ::testing::Test {
 protected:
-  scan_test() {
+  st() {
     masstree_kvs::init();
   }
 
-  ~scan_test() {
+  ~st() {
     masstree_kvs::fin();
   }
 };
 
-TEST_F(scan_test, single_put_get_to_one_border) {
+TEST_F(st, test1) { // NOLINT
   /**
    * put one key-value
    */
@@ -111,7 +109,7 @@ TEST_F(scan_test, single_put_get_to_one_border) {
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
-TEST_F(scan_test, multiple_put_get_same_null_char_key_slice_and_different_key_length_to_single_border) {
+TEST_F(st, test2) { // NOLINT
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
   constexpr std::size_t ary_size = 8;
@@ -142,7 +140,7 @@ TEST_F(scan_test, multiple_put_get_same_null_char_key_slice_and_different_key_le
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
-TEST_F(scan_test, multiple_put_get_same_null_char_key_slice_and_different_key_length_to_multiple_border) {
+TEST_F(st, test3) { // NOLINT
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
   constexpr std::size_t ary_size = 15;
@@ -172,7 +170,7 @@ TEST_F(scan_test, multiple_put_get_same_null_char_key_slice_and_different_key_le
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
-TEST_F(scan_test, put_until_creating_interior_node) {
+TEST_F(st, test4) { // NOLINT
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
   constexpr std::size_t ary_size = base_node::key_slice_length + 1;
@@ -196,7 +194,7 @@ TEST_F(scan_test, put_until_creating_interior_node) {
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
 
-TEST_F(scan_test, put_until_first_split_of_interior_node) {
+TEST_F(st, test5) { // NOLINT
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
   std::size_t ary_size;

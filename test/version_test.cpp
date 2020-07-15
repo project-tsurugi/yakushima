@@ -15,7 +15,7 @@ namespace yakushima::testing {
 class vt : public ::testing::Test {
 };
 
-TEST_F(vt, operatorNodeVersion64BodyTest) { // NOLINT
+TEST_F(vt, test1) { // NOLINT
   node_version64_body b1{};
   node_version64_body b2{};
   b1.init();
@@ -25,7 +25,7 @@ TEST_F(vt, operatorNodeVersion64BodyTest) { // NOLINT
   ASSERT_NE(b1, b2);
 }
 
-TEST_F(vt, basicNodeVersionTest) { // NOLINT
+TEST_F(vt, test2) { // NOLINT
   // single update test.
   {
     node_version64 ver;
@@ -54,7 +54,7 @@ TEST_F(vt, basicNodeVersionTest) { // NOLINT
 
 }
 
-TEST_F(vt, display) { // NOLINT
+TEST_F(vt, test3) { // NOLINT
   node_version64_body vb{};
   vb.init();
   ASSERT_EQ(true, true);

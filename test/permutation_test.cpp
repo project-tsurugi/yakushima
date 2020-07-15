@@ -9,19 +9,17 @@
 #include "permutation.h"
 
 using namespace yakushima;
-using std::cout;
-using std::endl;
 
 namespace yakushima::testing {
 
-class permutation_test : public ::testing::Test {
+class pt : public ::testing::Test {
 protected:
-  permutation_test() = default;
+  pt() = default;
 
-  ~permutation_test() = default;
+  ~pt() = default;
 };
 
-TEST_F(permutation_test, basic_permutation_test) {
+TEST_F(pt, test1) { // NOLINT
 // basic member test.
   permutation per{};
   ASSERT_EQ(true, true); // test ending of function which returns void.
@@ -31,7 +29,7 @@ TEST_F(permutation_test, basic_permutation_test) {
   ASSERT_EQ(per.get_cnk(), 1); // check invariant.
 }
 
-TEST_F(permutation_test, display) {
+TEST_F(pt, test2) { // NOLINT
   permutation per{};
   ASSERT_EQ(true, true);
   //per.display();

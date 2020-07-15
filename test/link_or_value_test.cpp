@@ -14,7 +14,7 @@ namespace yakushima::testing {
 
 class lvtest : public ::testing::Test {};
 
-TEST_F(lvtest, display) {
+TEST_F(lvtest, display) { // NOLINT
   link_or_value lv;
   ASSERT_EQ(true, true);
   //lv.display();
