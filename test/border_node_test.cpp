@@ -12,18 +12,13 @@ using std::endl;
 
 namespace yakushima::testing {
 
-class border_node_test : public ::testing::Test {
-protected:
-  border_node_test() = default;
+class bnt : public ::testing::Test {};
 
-  ~border_node_test() = default;
-};
-
-TEST_F(border_node_test, alignment) {
+TEST_F(bnt, alignment) {
   ASSERT_EQ(alignof(border_node), CACHE_LINE_SIZE);
 }
 
-TEST_F(border_node_test, display) {
+TEST_F(bnt, display) {
   border_node bn;
   ASSERT_EQ(true, true);
   //bn.display();
@@ -32,7 +27,7 @@ TEST_F(border_node_test, display) {
   //bn.display();
 }
 
-TEST_F(border_node_test, shift_left_border_member) {
+TEST_F(bnt, shift_left_border_member) {
   border_node bn;
   link_or_value lv;
   for (std::size_t i = 0; i < 15; ++i) {

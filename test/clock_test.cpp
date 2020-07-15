@@ -12,17 +12,11 @@ using std::endl;
 
 namespace yakushima::testing {
 
-class clock_test : public ::testing::Test {
-protected:
-  clock_test() = default;
+class ct : public ::testing::Test {};
 
-  ~clock_test() = default;
-};
-
-TEST_F(clock_test, check_clock_span) {
-  std::uint64_t start, stop;
-  start = 10;
-  stop = 20;
+TEST_F(ct, checkClockSpan) {
+  std::uint64_t start{10};
+  std::uint64_t stop{20};
   ASSERT_EQ(check_clock_span(start, stop, 5), true);
   ASSERT_EQ(check_clock_span(start, stop, 15), false);
   // occur std::abort

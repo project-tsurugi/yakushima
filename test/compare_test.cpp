@@ -15,14 +15,9 @@ using namespace std;
 
 namespace yakushima::testing {
 
-class compare_test : public ::testing::Test {
-protected:
-  compare_test() = default;
+class ct : public ::testing::Test {};
 
-  ~compare_test() = default;
-};
-
-TEST_F(compare_test, compare_tuple) {
+TEST_F(ct, compareTuple) {
   base_node::key_slice_type key_slice[2];
   base_node::key_length_type key_length[2];
   key_slice[0] = 0;
@@ -35,7 +30,7 @@ TEST_F(compare_test, compare_tuple) {
   ASSERT_EQ(tuple[0] < tuple[1], true);
 }
 
-TEST_F(compare_test, compare_string_view) {
+TEST_F(ct, compareStringView) {
   base_node::key_slice_type key_slice[2];
   base_node::key_length_type key_length[2];
   key_slice[0] = 0;

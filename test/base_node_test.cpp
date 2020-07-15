@@ -12,14 +12,10 @@ using std::endl;
 
 namespace yakushima::testing {
 
-class base_node_test : public ::testing::Test {
-protected:
-  base_node_test() = default;
-
-  ~base_node_test() = default;
+class bnt : public ::testing::Test {
 };
 
-TEST_F(base_node_test, constructor_base_node) {
+TEST_F(bnt, constructor) {
   node_version64 ver;
   ver.init();
   /**
@@ -34,19 +30,19 @@ TEST_F(base_node_test, constructor_base_node) {
   }
 }
 
-TEST_F(base_node_test, type_size) {
+TEST_F(bnt, typeSize) {
   /**
    * kvs.h uses the argument (sizeof(base_node::key_slice_type)) as 8 at std::string_view::remove_suffix function.
    */
   ASSERT_EQ(sizeof(base_node::key_slice_type), 8);
 }
 
-TEST_F(base_node_test, function_base_node) {
+TEST_F(bnt, function) {
   border_node bn;
   struct S {
     static void init(border_node &bn) {
       for (std::size_t i = 0; i < base_node::key_slice_length; ++i) {
-        bn.set_key(i, i, i);
+        bn.set_key(i, i, static_cast<key_length_type>(i));
       }
     }
   };

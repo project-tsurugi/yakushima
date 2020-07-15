@@ -13,7 +13,7 @@
 # limitations under the License.
 
 file(GLOB YAKUSHIMA_SOURCES
-        "yakushima.cc"
+        "yakushima.cpp"
         )
 
 add_executable(yakushima_bench
@@ -33,7 +33,7 @@ target_include_directories(yakushima_bench
         )
 
 file(GLOB MALLOC_SOURCES
-        "malloc.cc"
+        "malloc.cpp"
         )
 
 add_executable(malloc_bench
