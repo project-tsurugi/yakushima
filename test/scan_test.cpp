@@ -198,17 +198,13 @@ TEST_F(st, test5) { // NOLINT
   Token token;
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
   std::size_t ary_size;
-  if (base_node::key_slice_length % 2) {
-    /**
-     * first border split occurs at inserting (base_node::key_slice_length + 1) times.
-     * after first border split, split occurs at inserting (base_node::key_slice_length / 2 + 1) times.
-     * first interior split occurs at splitting interior_node::child_length times.
-     */
-    ary_size =
-            base_node::key_slice_length + 1 + (base_node::key_slice_length / 2 + 1) * (interior_node::child_length - 1);
-  } else {
-    ary_size = base_node::key_slice_length + 1 + (base_node::key_slice_length / 2) * (interior_node::child_length - 1);
-  }
+  /**
+   * first border split occurs at inserting (base_node::key_slice_length + 1) times.
+   * after first border split, split occurs at inserting (base_node::key_slice_length / 2 + 1) times.
+   * first interior split occurs at splitting interior_node::child_length times.
+   */
+  ary_size =
+          base_node::key_slice_length + 1 + (base_node::key_slice_length / 2 + 1) * (interior_node::child_length - 1);
 
   std::string k[ary_size], v[ary_size];
   for (std::size_t i = 0; i < ary_size; ++i) {

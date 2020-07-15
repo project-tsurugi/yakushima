@@ -15,16 +15,12 @@ using namespace yakushima;
 namespace yakushima::testing {
 
 class mtpt : public ::testing::Test {
-protected:
-  mtpt() {}
-
-  ~mtpt() {}
 };
 
 TEST_F(mtpt, test1) { // NOLINT
   constexpr std::size_t ary_size = 9;
-  std::vector<std::tuple<std::string, std::string>> kv1;
-  std::vector<std::tuple<std::string, std::string>> kv2;
+  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < 5; ++i) {
     kv1.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
   }
@@ -35,10 +31,10 @@ TEST_F(mtpt, test1) { // NOLINT
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 20; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
-    Token token;
+    Token token{};
     ASSERT_EQ(masstree_kvs::enter(token), status::OK);
 
     std::reverse(kv1.begin(), kv1.end());
@@ -61,7 +57,7 @@ TEST_F(mtpt, test1) { // NOLINT
     S::work(std::ref(kv1));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list;
+    std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(i, '\0');
@@ -80,8 +76,8 @@ TEST_F(mtpt, test1) { // NOLINT
 TEST_F(mtpt, test2) { // NOLINT
 
   constexpr std::size_t ary_size = 9;
-  std::vector<std::tuple<std::string, std::string>> kv1;
-  std::vector<std::tuple<std::string, std::string>> kv2;
+  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < 5; ++i) {
     kv1.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
   }
@@ -94,10 +90,10 @@ TEST_F(mtpt, test2) { // NOLINT
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 5; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
-    Token token;
+    Token token{};
     ASSERT_EQ(masstree_kvs::enter(token), status::OK);
 
     std::shuffle(kv1.begin(), kv1.end(), engine);
@@ -120,7 +116,7 @@ TEST_F(mtpt, test2) { // NOLINT
     S::work(std::ref(kv1));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list;
+    std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(i, '\0');
@@ -140,8 +136,8 @@ TEST_F(mtpt, test2) { // NOLINT
 TEST_F(mtpt, test3) { // NOLINT
 
   constexpr std::size_t ary_size = 15;
-  std::vector<std::tuple<std::string, std::string>> kv1;
-  std::vector<std::tuple<std::string, std::string>> kv2;
+  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < 7; ++i) {
     kv1.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
   }
@@ -152,10 +148,10 @@ TEST_F(mtpt, test3) { // NOLINT
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 20; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
-    Token token;
+    Token token{};
     ASSERT_EQ(masstree_kvs::enter(token), status::OK);
 
     std::reverse(kv1.begin(), kv1.end());
@@ -178,7 +174,7 @@ TEST_F(mtpt, test3) { // NOLINT
     S::work(std::ref(kv1));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list;
+    std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(i, '\0');
@@ -197,8 +193,8 @@ TEST_F(mtpt, test3) { // NOLINT
 TEST_F(mtpt, test4) { // NOLINT
 
   constexpr std::size_t ary_size = 15;
-  std::vector<std::tuple<std::string, std::string>> kv1;
-  std::vector<std::tuple<std::string, std::string>> kv2;
+  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < 7; ++i) {
     kv1.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
   }
@@ -211,10 +207,10 @@ TEST_F(mtpt, test4) { // NOLINT
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 5; ++h) {
 #else
-  for (std::size_t h = 0; h < 30; ++h) {
+    for (std::size_t h = 0; h < 30; ++h) {
 #endif
     masstree_kvs::init();
-    Token token;
+    Token token{};
     ASSERT_EQ(masstree_kvs::enter(token), status::OK);
 
     std::shuffle(kv1.begin(), kv1.end(), engine);
@@ -237,7 +233,7 @@ TEST_F(mtpt, test4) { // NOLINT
     S::work(std::ref(kv1));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list;
+    std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(i, '\0');
@@ -256,8 +252,8 @@ TEST_F(mtpt, test4) { // NOLINT
 TEST_F(mtpt, test5) { // NOLINT
 
   constexpr std::size_t ary_size = base_node::key_slice_length + 1;
-  std::vector<std::tuple<std::string, std::string>> kv1;
-  std::vector<std::tuple<std::string, std::string>> kv2;
+  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
     kv1.emplace_back(std::make_tuple(std::string(1, 'a' + i), std::to_string(i)));
   }
@@ -268,10 +264,10 @@ TEST_F(mtpt, test5) { // NOLINT
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 3; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
-    Token token;
+    Token token{};
     ASSERT_EQ(masstree_kvs::enter(token), status::OK);
 
     std::reverse(kv1.begin(), kv1.end());
@@ -294,7 +290,7 @@ TEST_F(mtpt, test5) { // NOLINT
     S::work(std::ref(kv1));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list;
+    std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(1, 'a' + i);
@@ -313,8 +309,8 @@ TEST_F(mtpt, test5) { // NOLINT
 TEST_F(mtpt, test6) { // NOLINT
 
   constexpr std::size_t ary_size = base_node::key_slice_length + 1;
-  std::vector<std::tuple<std::string, std::string>> kv1;
-  std::vector<std::tuple<std::string, std::string>> kv2;
+  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
     kv1.emplace_back(std::make_tuple(std::string(1, 'a' + i), std::to_string(i)));
   }
@@ -327,10 +323,10 @@ TEST_F(mtpt, test6) { // NOLINT
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
-    Token token;
+    Token token{};
     ASSERT_EQ(masstree_kvs::enter(token), status::OK);
 
     std::shuffle(kv1.begin(), kv1.end(), engine);
@@ -353,7 +349,7 @@ TEST_F(mtpt, test6) { // NOLINT
     S::work(std::ref(kv1));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list;
+    std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(1, 'a' + i);
@@ -372,8 +368,8 @@ TEST_F(mtpt, test6) { // NOLINT
 TEST_F(mtpt, test7) { // NOLINT
 
   constexpr std::size_t ary_size = 100;
-  std::vector<std::tuple<std::string, std::string>> kv1;
-  std::vector<std::tuple<std::string, std::string>> kv2;
+  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
     kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
   }
@@ -384,10 +380,10 @@ TEST_F(mtpt, test7) { // NOLINT
 #ifndef NDEBUG
   for (size_t h = 0; h < 1; ++h) {
 #else
-  for (size_t h = 0; h < 100; ++h) {
+    for (size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
-    Token token;
+    Token token{};
     ASSERT_EQ(masstree_kvs::enter(token), status::OK);
 
     std::reverse(kv1.begin(), kv1.end());
@@ -410,7 +406,7 @@ TEST_F(mtpt, test7) { // NOLINT
     S::work(std::ref(kv1));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list;
+    std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(1, i);
@@ -433,8 +429,8 @@ TEST_F(mtpt, test7) { // NOLINT
 TEST_F(mtpt, test8) { // NOLINT
 
   constexpr std::size_t ary_size = 100;
-  std::vector<std::tuple<std::string, std::string>> kv1;
-  std::vector<std::tuple<std::string, std::string>> kv2;
+  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
     kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
   }
@@ -448,10 +444,10 @@ TEST_F(mtpt, test8) { // NOLINT
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
-    Token token;
+    Token token{};
     ASSERT_EQ(masstree_kvs::enter(token), status::OK);
 
     std::shuffle(kv1.begin(), kv1.end(), engine);
@@ -474,7 +470,7 @@ TEST_F(mtpt, test8) { // NOLINT
     S::work(std::ref(kv1));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list;
+    std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(1, i);
@@ -497,8 +493,8 @@ TEST_F(mtpt, test8) { // NOLINT
 TEST_F(mtpt, test9) { // NOLINT
 
   std::size_t ary_size = 241;
-  std::vector<std::tuple<std::string, std::string>> kv1;
-  std::vector<std::tuple<std::string, std::string>> kv2;
+  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
     kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
   }
@@ -509,10 +505,10 @@ TEST_F(mtpt, test9) { // NOLINT
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
-    Token token;
+    Token token{};
     ASSERT_EQ(masstree_kvs::enter(token), status::OK);
 
     std::reverse(kv1.begin(), kv1.end());
@@ -535,7 +531,7 @@ TEST_F(mtpt, test9) { // NOLINT
     S::work(std::ref(kv1));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list;
+    std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(1, i);
@@ -555,8 +551,8 @@ TEST_F(mtpt, test9) { // NOLINT
 TEST_F(mtpt, test10) { // NOLINT
 
   std::size_t ary_size = 241;
-  std::vector<std::tuple<std::string, std::string>> kv1;
-  std::vector<std::tuple<std::string, std::string>> kv2;
+  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
     kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
   }
@@ -570,10 +566,10 @@ TEST_F(mtpt, test10) { // NOLINT
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
-    Token token;
+    Token token{};
     ASSERT_EQ(masstree_kvs::enter(token), status::OK);
 
     std::shuffle(kv1.begin(), kv1.end(), engine);
@@ -596,7 +592,7 @@ TEST_F(mtpt, test10) { // NOLINT
     S::work(std::ref(kv1));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list;
+    std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(1, i);
