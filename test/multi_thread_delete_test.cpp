@@ -3,6 +3,7 @@
  */
 
 #include <algorithm>
+#include <array>
 #include <random>
 #include <thread>
 
@@ -11,27 +12,21 @@
 #include "kvs.h"
 
 using namespace yakushima;
-using std::cout;
-using std::endl;
 
 namespace yakushima::testing {
 
-class multi_thread_delete_test : public ::testing::Test {
-protected:
-  multi_thread_delete_test() {}
-
-  ~multi_thread_delete_test() {}
+class mtdt : public ::testing::Test {
 };
 
-TEST_F(multi_thread_delete_test, test1) {
+TEST_F(mtdt, test1) {
   /**
    * Initial state : multi threads put same null char key slices and different key length to multiple border.
    * Concurrent remove against initial state.
    */
 
   constexpr std::size_t ary_size = 9;
-  std::vector<std::tuple<std::string, std::string>> kv1;
-  std::vector<std::tuple<std::string, std::string>> kv2;
+  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < 5; ++i) {
     kv1.emplace_back(std::string(i, '\0'), std::to_string(i));
   }
@@ -42,10 +37,10 @@ TEST_F(multi_thread_delete_test, test1) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 5; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
-    Token token[2];
+    std::array<Token, 2> token;
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
     ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
 
@@ -91,7 +86,7 @@ TEST_F(multi_thread_delete_test, test1) {
   }
 }
 
-TEST_F(multi_thread_delete_test, test2) {
+TEST_F(mtdt, test2) {
   /**
    * Initial state : multi threads put same null char key slices and different key length to multiple border, which
    * is using shuffled data.
@@ -99,8 +94,8 @@ TEST_F(multi_thread_delete_test, test2) {
    */
 
   constexpr std::size_t ary_size = 9;
-  std::vector<std::tuple<std::string, std::string>> kv1;
-  std::vector<std::tuple<std::string, std::string>> kv2;
+  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < 5; ++i) {
     kv1.emplace_back(std::string(i, '\0'), std::to_string(i));
   }
@@ -112,10 +107,10 @@ TEST_F(multi_thread_delete_test, test2) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 5; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
-    Token token[2];
+    std::array<Token, 2> token;
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
     ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
 
@@ -160,15 +155,15 @@ TEST_F(multi_thread_delete_test, test2) {
   }
 }
 
-TEST_F(multi_thread_delete_test, test3) {
+TEST_F(mtdt, test3) {
   /**
    * Initial state : multi threads put same null char key slices and different key length to single border.
    * Concurrent remove against initial state.
    */
 
   constexpr std::size_t ary_size = 15;
-  std::vector<std::tuple<std::string, std::string>> kv1;
-  std::vector<std::tuple<std::string, std::string>> kv2;
+  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < 7; ++i) {
     kv1.emplace_back(std::string(i, '\0'), std::to_string(i));
   }
@@ -179,10 +174,10 @@ TEST_F(multi_thread_delete_test, test3) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 5; ++h) {
 #else
-  for (std::size_t h = 0; h < 200; ++h) {
+    for (std::size_t h = 0; h < 200; ++h) {
 #endif
     masstree_kvs::init();
-    Token token[2];
+    std::array<Token, 2> token;
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
     ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
 
@@ -227,7 +222,7 @@ TEST_F(multi_thread_delete_test, test3) {
   }
 }
 
-TEST_F(multi_thread_delete_test, test4) {
+TEST_F(mtdt, test4) {
   /**
    * Initial state : multi threads put same null char key slices and different key length to single border, which
    * is using shuffled data.
@@ -235,8 +230,8 @@ TEST_F(multi_thread_delete_test, test4) {
    */
 
   constexpr std::size_t ary_size = 15;
-  std::vector<std::tuple<std::string, std::string>> kv1;
-  std::vector<std::tuple<std::string, std::string>> kv2;
+  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
     kv1.emplace_back(std::string(i, '\0'), std::to_string(i));
   }
@@ -249,10 +244,10 @@ TEST_F(multi_thread_delete_test, test4) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 5; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
-    Token token[2];
+    std::array<Token, 2> token;
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
     ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
 
@@ -297,15 +292,15 @@ TEST_F(multi_thread_delete_test, test4) {
   }
 }
 
-TEST_F(multi_thread_delete_test, test5) {
+TEST_F(mtdt, test5) {
   /**
    * Initial state : multi threads put until first split of border.
    * Concurrent remove against initial state.
    */
 
   constexpr std::size_t ary_size = base_node::key_slice_length + 1;
-  std::vector<std::tuple<std::string, std::string>> kv1;
-  std::vector<std::tuple<std::string, std::string>> kv2;
+  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
     kv1.emplace_back(std::string(1, i), std::to_string(i));
   }
@@ -316,10 +311,10 @@ TEST_F(multi_thread_delete_test, test5) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 5; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
-    Token token[2];
+    std::array<Token, 2> token;
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
     ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
 
@@ -364,15 +359,15 @@ TEST_F(multi_thread_delete_test, test5) {
   }
 }
 
-TEST_F(multi_thread_delete_test, test6) {
+TEST_F(mtdt, test6) {
   /**
    * Initial state : multi threads put until first split of border, which is using shuffled data.
    * Concurrent remove against initial state.
    */
 
   constexpr std::size_t ary_size = base_node::key_slice_length + 1;
-  std::vector<std::tuple<std::string, std::string>> kv1;
-  std::vector<std::tuple<std::string, std::string>> kv2;
+  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
     kv1.emplace_back(std::string(1, i), std::to_string(i));
   }
@@ -385,10 +380,10 @@ TEST_F(multi_thread_delete_test, test6) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 5; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
-    Token token[2];
+    std::array<Token, 2> token;
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
     ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
 
@@ -433,15 +428,15 @@ TEST_F(multi_thread_delete_test, test6) {
   }
 }
 
-TEST_F(multi_thread_delete_test, test7) {
+TEST_F(mtdt, test7) {
   /**
    * Initial state : multi threads put between first split of border and first split of interior.
    * Concurrent remove against initial state.
    */
 
   constexpr std::size_t ary_size = 100;
-  std::vector<std::tuple<std::string, std::string>> kv1;
-  std::vector<std::tuple<std::string, std::string>> kv2;
+  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
     kv1.emplace_back(std::string(1, i), std::to_string(i));
   }
@@ -452,10 +447,10 @@ TEST_F(multi_thread_delete_test, test7) {
 #ifndef NDEBUG
   for (size_t h = 0; h < 5; ++h) {
 #else
-  for (size_t h = 0; h < 20; ++h) {
+    for (size_t h = 0; h < 20; ++h) {
 #endif
     masstree_kvs::init();
-    Token token[2];
+    std::array<Token, 2> token;
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
     ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
 
@@ -500,7 +495,7 @@ TEST_F(multi_thread_delete_test, test7) {
   }
 }
 
-TEST_F(multi_thread_delete_test, test8) {
+TEST_F(mtdt, test8) {
   /**
    * Initial state : multi threads put between first split of border and first split of interior, which is using
    * shuffled data.
@@ -508,8 +503,8 @@ TEST_F(multi_thread_delete_test, test8) {
    */
 
   constexpr std::size_t ary_size = 100;
-  std::vector<std::tuple<std::string, std::string>> kv1;
-  std::vector<std::tuple<std::string, std::string>> kv2;
+  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
     kv1.emplace_back(std::string(1, i), std::to_string(i));
   }
@@ -523,10 +518,10 @@ TEST_F(multi_thread_delete_test, test8) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 5; ++h) {
 #else
-  for (std::size_t h = 0; h < 30; ++h) {
+    for (std::size_t h = 0; h < 30; ++h) {
 #endif
     masstree_kvs::init();
-    Token token[2];
+    std::array<Token, 2> token;
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
     ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
 
@@ -571,15 +566,15 @@ TEST_F(multi_thread_delete_test, test8) {
   }
 }
 
-TEST_F(multi_thread_delete_test, test9) {
+TEST_F(mtdt, test9) {
   /**
    * Initial state : multi threads put until first split of interior.
    * Concurrent remove against initial state.
    */
 
   std::size_t ary_size = 241;
-  std::vector<std::tuple<std::string, std::string>> kv1;
-  std::vector<std::tuple<std::string, std::string>> kv2;
+  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
     kv1.emplace_back(std::string(1, i), std::to_string(i));
   }
@@ -590,10 +585,10 @@ TEST_F(multi_thread_delete_test, test9) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 5; ++h) {
 #else
-  for (std::size_t h = 0; h < 30; ++h) {
+    for (std::size_t h = 0; h < 30; ++h) {
 #endif
     masstree_kvs::init();
-    Token token[2];
+    std::array<Token, 2> token;
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
     ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
 
@@ -638,15 +633,15 @@ TEST_F(multi_thread_delete_test, test9) {
   }
 }
 
-TEST_F(multi_thread_delete_test, test10) {
+TEST_F(mtdt, test10) {
   /**
    * Initial state : multi threads put until first split of interior, which is using shuffled data.
    * Concurrent remove against initial state.
    */
 
   std::size_t ary_size = 241;
-  std::vector<std::tuple<std::string, std::string>> kv1;
-  std::vector<std::tuple<std::string, std::string>> kv2;
+  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
     kv1.emplace_back(std::string(1, i), std::to_string(i));
   }
@@ -659,10 +654,10 @@ TEST_F(multi_thread_delete_test, test10) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 5; ++h) {
 #else
-  for (std::size_t h = 0; h < 30; ++h) {
+    for (std::size_t h = 0; h < 30; ++h) {
 #endif
     masstree_kvs::init();
-    Token token[2];
+    std::array<Token, 2> token;
     ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
     ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
 

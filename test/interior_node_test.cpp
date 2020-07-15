@@ -7,8 +7,6 @@
 #include "interior_node.h"
 
 using namespace yakushima;
-using std::cout;
-using std::endl;
 
 namespace yakushima::testing {
 

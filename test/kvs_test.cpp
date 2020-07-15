@@ -9,13 +9,11 @@
 #include "kvs.h"
 
 using namespace yakushima;
-using std::cout;
-using std::endl;
 
 namespace yakushima::testing {
 
-class kvs_test : public ::testing::Test {
-protected:
+class kvs_test : public ::testing::Test { // NOLINT
+public:
   kvs_test() {
     masstree_kvs::init();
   }

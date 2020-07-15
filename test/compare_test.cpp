@@ -9,9 +9,6 @@
 #include "gtest/gtest.h"
 
 using namespace yakushima;
-using std::cout;
-using std::endl;
-using namespace std;
 
 namespace yakushima::testing {
 
