@@ -6,11 +6,11 @@
 
 namespace yakushima::testing {
 
-class ot : public ::testing::Test {
+class ot : public ::testing::Test { // NOLINT
 protected:
   ot() = default;
 
-  ~ot() = default;
+  ~ot() override = default;
 };
 
 TEST_F(ot, exclamation) { // NOLINT

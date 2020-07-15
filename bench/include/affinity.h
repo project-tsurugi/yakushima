@@ -21,7 +21,7 @@
     if (local_nprocessors != -1) {
       break;
     }
-    desired = sysconf(_SC_NPROCESSORS_CONF);
+    desired = sysconf(_SC_NPROCESSORS_CONF); // NOLINT
     if (nprocessors.compare_exchange_strong(
             local_nprocessors, desired, memory_order_acq_rel, memory_order_acquire)) {
       break;
