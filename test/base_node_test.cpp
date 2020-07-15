@@ -13,7 +13,7 @@ namespace yakushima::testing {
 class bnt : public ::testing::Test {
 };
 
-TEST_F(bnt, constructor) {
+TEST_F(bnt, constructor) { // NOLINT
   node_version64 ver;
   ver.init();
   /**
@@ -28,14 +28,14 @@ TEST_F(bnt, constructor) {
   }
 }
 
-TEST_F(bnt, typeSize) {
+TEST_F(bnt, typeSize) { // NOLINT
   /**
    * kvs.h uses the argument (sizeof(base_node::key_slice_type)) as 8 at std::string_view::remove_suffix function.
    */
   ASSERT_EQ(sizeof(base_node::key_slice_type), 8);
 }
 
-TEST_F(bnt, function) {
+TEST_F(bnt, function) { // NOLINT
   border_node bn;
   struct S {
     static void init(border_node &bn) {

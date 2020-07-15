@@ -13,19 +13,13 @@
 #include "kvs.h"
 
 using namespace yakushima;
-using std::cout;
-using std::endl;
 
 namespace yakushima::testing {
 
-class multi_thread_put_delete_get_test : public ::testing::Test {
-protected:
-  multi_thread_put_delete_get_test() {}
-
-  ~multi_thread_put_delete_get_test() {}
+class mtpdgt : public ::testing::Test {
 };
 
-TEST_F(multi_thread_put_delete_get_test, test1) {
+TEST_F(mtpdgt, test1) { // NOLINT
   /**
    * concurrent put/delete/get same null char key slices and different key length to single border
    * by multi threads.
@@ -43,7 +37,7 @@ TEST_F(multi_thread_put_delete_get_test, test1) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-  for (std::size_t h = 0; h < 50; ++h) {
+    for (std::size_t h = 0; h < 50; ++h) {
 #endif
     masstree_kvs::init();
     Token token[2];
@@ -110,7 +104,7 @@ TEST_F(multi_thread_put_delete_get_test, test1) {
   }
 }
 
-TEST_F(multi_thread_put_delete_get_test, test2) {
+TEST_F(mtpdgt, test2) { // NOLINT
   /**
    * test1 variant which is the test using shuffle order data.
    */
@@ -131,7 +125,7 @@ TEST_F(multi_thread_put_delete_get_test, test2) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-  for (std::size_t h = 0; h < 50; ++h) {
+    for (std::size_t h = 0; h < 50; ++h) {
 #endif
     masstree_kvs::init();
     Token token[2];
@@ -198,7 +192,7 @@ TEST_F(multi_thread_put_delete_get_test, test2) {
   }
 }
 
-TEST_F(multi_thread_put_delete_get_test, test3) {
+TEST_F(mtpdgt, test3) { // NOLINT
   /**
    * multiple put/delete/get same null char key whose length is different each other against multiple border,
    * which is across some layer.
@@ -220,7 +214,7 @@ TEST_F(multi_thread_put_delete_get_test, test3) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token[2];
@@ -286,7 +280,7 @@ TEST_F(multi_thread_put_delete_get_test, test3) {
   }
 }
 
-TEST_F(multi_thread_put_delete_get_test, test4) {
+TEST_F(mtpdgt, test4) { // NOLINT
   /**
    * test3 variant which is the test using shuffle order data.
    */
@@ -307,7 +301,7 @@ TEST_F(multi_thread_put_delete_get_test, test4) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token[2];
@@ -374,7 +368,7 @@ TEST_F(multi_thread_put_delete_get_test, test4) {
   }
 }
 
-TEST_F(multi_thread_put_delete_get_test, test5) {
+TEST_F(mtpdgt, test5) { // NOLINT
   /**
    * The number of puts that can be split only once and the deletes are repeated in multiple threads.
    */
@@ -392,7 +386,7 @@ TEST_F(multi_thread_put_delete_get_test, test5) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token[2];
@@ -464,7 +458,7 @@ TEST_F(multi_thread_put_delete_get_test, test5) {
   }
 }
 
-TEST_F(multi_thread_put_delete_get_test, test6) {
+TEST_F(mtpdgt, test6) { // NOLINT
   /**
    * The number of puts that can be split only once and the deletes are repeated in multiple threads.
    * Use shuffled data.
@@ -486,7 +480,7 @@ TEST_F(multi_thread_put_delete_get_test, test6) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token[2];
@@ -558,7 +552,7 @@ TEST_F(multi_thread_put_delete_get_test, test6) {
   }
 }
 
-TEST_F(multi_thread_put_delete_get_test, test7) {
+TEST_F(mtpdgt, test7) { // NOLINT
   /**
    * concurrent put/delete/get in the state between none to split of interior, which is using shuffled data.
    */
@@ -587,7 +581,7 @@ TEST_F(multi_thread_put_delete_get_test, test7) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-  for (std::size_t h = 0; h < 200; ++h) {
+    for (std::size_t h = 0; h < 200; ++h) {
 #endif
     masstree_kvs::init();
     Token token[2];
@@ -664,7 +658,7 @@ TEST_F(multi_thread_put_delete_get_test, test7) {
   }
 }
 
-TEST_F(multi_thread_put_delete_get_test, test8) {
+TEST_F(mtpdgt, test8) { // NOLINT
   /**
    * concurrent put/delete/get in the state between none to many split of interior.
    */
@@ -690,7 +684,7 @@ TEST_F(multi_thread_put_delete_get_test, test8) {
 #ifndef NDEBUG
   for (std::size_t h = 0; h < 1; ++h) {
 #else
-  for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token[2];
@@ -767,7 +761,7 @@ TEST_F(multi_thread_put_delete_get_test, test8) {
   }
 }
 
-TEST_F(multi_thread_put_delete_get_test, test9) {
+TEST_F(mtpdgt, test9) { // NOLINT
   /**
    * concurrent put/delete/get in the state between none to many split of interior with shuffle.
    */
@@ -798,7 +792,7 @@ TEST_F(multi_thread_put_delete_get_test, test9) {
 #ifndef NDEBUG
   for (size_t h = 0; h < 1; ++h) {
 #else
-  for (size_t h = 0; h < 100; ++h) {
+    for (size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
     Token token[2];
@@ -875,7 +869,7 @@ TEST_F(multi_thread_put_delete_get_test, test9) {
   }
 }
 
-TEST_F(multi_thread_put_delete_get_test, test10) {
+TEST_F(mtpdgt, test10) { // NOLINT
   /**
    * multi-layer put-delete-get test.
    */
@@ -906,7 +900,7 @@ TEST_F(multi_thread_put_delete_get_test, test10) {
 #ifndef NDEBUG
   for (size_t h = 0; h < 1; ++h) {
 #else
-  for (size_t h = 0; h < 20; ++h) {
+    for (size_t h = 0; h < 20; ++h) {
 #endif
     masstree_kvs::init();
     ASSERT_EQ(base_node::get_root(), nullptr);

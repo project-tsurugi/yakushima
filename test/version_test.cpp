@@ -9,19 +9,13 @@
 #include "version.h"
 
 using namespace yakushima;
-using std::cout;
-using std::endl;
 
 namespace yakushima::testing {
 
-class version_test : public ::testing::Test {
-protected:
-  version_test() = default;
-
-  ~version_test() = default;
+class vt : public ::testing::Test {
 };
 
-TEST_F(version_test, operator_node_version64_body_test) {
+TEST_F(vt, operatorNodeVersion64BodyTest) { // NOLINT
   node_version64_body b1{};
   node_version64_body b2{};
   b1.init();
@@ -31,7 +25,7 @@ TEST_F(version_test, operator_node_version64_body_test) {
   ASSERT_NE(b1, b2);
 }
 
-TEST_F(version_test, basic_node_version_test) {
+TEST_F(vt, basicNodeVersionTest) { // NOLINT
   // single update test.
   {
     node_version64 ver;
@@ -60,7 +54,7 @@ TEST_F(version_test, basic_node_version_test) {
 
 }
 
-TEST_F(version_test, display) {
+TEST_F(vt, display) { // NOLINT
   node_version64_body vb{};
   vb.init();
   ASSERT_EQ(true, true);

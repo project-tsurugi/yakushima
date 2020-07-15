@@ -12,7 +12,7 @@ namespace yakushima::testing {
 
 class ct : public ::testing::Test {};
 
-TEST_F(ct, checkClockSpan) {
+TEST_F(ct, checkClockSpan) { // NOLINT
   std::uint64_t start{10};
   std::uint64_t stop{20};
   ASSERT_EQ(check_clock_span(start, stop, 5), true);

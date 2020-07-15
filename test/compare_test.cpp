@@ -2,6 +2,7 @@
  * @file compare_test.cpp
  */
 
+#include <array>
 #include <string>
 
 #include "base_node.h"
@@ -12,41 +13,43 @@ using namespace yakushima;
 
 namespace yakushima::testing {
 
-class ct : public ::testing::Test {};
+class ct : public ::testing::Test {
+};
 
-TEST_F(ct, compareTuple) {
-  base_node::key_slice_type key_slice[2];
-  base_node::key_length_type key_length[2];
+TEST_F(ct, compareTuple) { // NOLINT
+  std::array<base_node::key_slice_type, 2> key_slice{};
+  std::array<base_node::key_length_type, 2> key_length{};
   key_slice[0] = 0;
   key_length[0] = 0;
   key_slice[1] = 0;
   key_length[1] = 1;
-  std::tuple<base_node::key_slice_type, base_node::key_length_type> tuple[2];
+  std::array<std::tuple<base_node::key_slice_type, base_node::key_length_type>, 2> tuple; // NOLINT
   tuple[0] = std::make_tuple(key_slice[0], key_length[0]);
   tuple[1] = std::make_tuple(key_slice[1], key_length[1]);
   ASSERT_EQ(tuple[0] < tuple[1], true);
 }
 
-TEST_F(ct, compareStringView) {
-  base_node::key_slice_type key_slice[2];
-  base_node::key_length_type key_length[2];
+TEST_F(ct, compareStringView) { // NOLINT
+  std::array<base_node::key_slice_type, 2> key_slice{};
+  std::array<base_node::key_length_type, 2> key_length{};
   key_slice[0] = 0;
   key_length[0] = 0;
   key_slice[1] = 0;
   key_length[1] = 1;
-  ASSERT_EQ((std::string_view(reinterpret_cast<char *>(&key_slice[0]), key_length[0]) <
-             std::string_view{reinterpret_cast<char *>(&key_slice[1]), key_length[1]}), true);
-  ASSERT_NE((std::string_view(reinterpret_cast<char *>(&key_slice[0]), key_length[0]) ==
-             std::string_view{reinterpret_cast<char *>(&key_slice[1]), key_length[1]}), true);
-  ASSERT_NE((std::string_view(reinterpret_cast<char *>(&key_slice[0]), key_length[0]) >
-             std::string_view{reinterpret_cast<char *>(&key_slice[1]), key_length[1]}), true);
+  ASSERT_EQ((std::string_view(reinterpret_cast<char *>(&key_slice[0]), key_length[0]) < // NOLINT
+             std::string_view{reinterpret_cast<char *>(&key_slice[1]), key_length[1]}), true); // NOLINT
+  ASSERT_NE((std::string_view(reinterpret_cast<char *>(&key_slice[0]), key_length[0]) == // NOLINT
+             std::string_view{reinterpret_cast<char *>(&key_slice[1]), key_length[1]}), true); // NOLINT
+  ASSERT_NE((std::string_view(reinterpret_cast<char *>(&key_slice[0]), key_length[0]) > // NOLINT
+             std::string_view{reinterpret_cast<char *>(&key_slice[1]), key_length[1]}), true); // NOLINT
   ASSERT_EQ((std::string_view(0, 0) <
-             std::string_view{reinterpret_cast<char *>(&key_slice[1]), key_length[1]}), true);
+             std::string_view{reinterpret_cast<char *>(&key_slice[1]), key_length[1]}), true); // NOLINT
   ASSERT_NE((std::string_view(0, 0) ==
-             std::string_view{reinterpret_cast<char *>(&key_slice[1]), key_length[1]}), true);
+             std::string_view{reinterpret_cast<char *>(&key_slice[1]), key_length[1]}), true); // NOLINT
   ASSERT_NE((std::string_view(0, 0) >
-             std::string_view{reinterpret_cast<char *>(&key_slice[1]), key_length[1]}), true);
-  std::string a(1, '\0'), b(2, '\0');
+             std::string_view{reinterpret_cast<char *>(&key_slice[1]), key_length[1]}), true); // NOLINT
+  std::string a(1, '\0');
+  std::string b(2, '\0');
   ASSERT_EQ(a < b, true);
   a.assign(2, 'a');
   b.assign(1, 'b');

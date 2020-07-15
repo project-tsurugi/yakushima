@@ -12,11 +12,11 @@ namespace yakushima::testing {
 
 class bnt : public ::testing::Test {};
 
-TEST_F(bnt, alignment) {
+TEST_F(bnt, alignment) { // NOLINT
   ASSERT_EQ(alignof(border_node), CACHE_LINE_SIZE);
 }
 
-TEST_F(bnt, display) {
+TEST_F(bnt, display) { // NOLINT
   border_node bn;
   ASSERT_EQ(true, true);
   //bn.display();
@@ -25,7 +25,7 @@ TEST_F(bnt, display) {
   //bn.display();
 }
 
-TEST_F(bnt, shift_left_border_member) {
+TEST_F(bnt, shift_left_border_member) { // NOLINT
   border_node bn;
   link_or_value lv;
   for (std::size_t i = 0; i < 15; ++i) {
