@@ -12,18 +12,13 @@ using std::endl;
 
 namespace yakushima::testing {
 
-class interior_node_test : public ::testing::Test {
-protected:
-  interior_node_test() = default;
+class intest : public ::testing::Test {};
 
-  ~interior_node_test() = default;
-};
-
-TEST_F(interior_node_test, alignment) {
+TEST_F(intest, alignment) {
   ASSERT_EQ(alignof(interior_node), CACHE_LINE_SIZE);
 }
 
-TEST_F(interior_node_test, display) {
+TEST_F(intest, display) {
   interior_node in;
   ASSERT_EQ(true, true);
   //in.display();
