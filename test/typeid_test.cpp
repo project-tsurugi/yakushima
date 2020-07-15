@@ -14,31 +14,27 @@ using namespace yakushima;
 namespace yakushima::testing {
 
 class tt : public ::testing::Test {
-protected:
-  tt() = default;
-
-  ~tt() = default;
 };
 
 TEST_F(tt, test1) { // NOLINT
-  std::unique_ptr<border_node> border_uptr(new border_node());
-  std::unique_ptr<interior_node> interior_uptr(new interior_node());
+  std::unique_ptr<border_node> border_uptr(new border_node()); // NOLINT
+  std::unique_ptr<interior_node> interior_uptr(new interior_node()); // NOLINT
 
   ASSERT_EQ(typeid(border_uptr.get()), typeid(border_node *));
   ASSERT_EQ(typeid(interior_uptr.get()), typeid(interior_node *));
 
-  base_node *base_nptr; // n ... normal
-  base_nptr = reinterpret_cast<base_node *>(border_uptr.get());
+  base_node *base_nptr{}; // n ... normal
+  base_nptr = reinterpret_cast<base_node *>(border_uptr.get()); // NOLINT
   ASSERT_EQ(typeid(*base_nptr), typeid(border_node));
-  base_nptr = reinterpret_cast<base_node *>(interior_uptr.get());
+  base_nptr = reinterpret_cast<base_node *>(interior_uptr.get()); // NOLINT
   ASSERT_EQ(typeid(*base_nptr), typeid(interior_node));
 
   // test real object
-  border_node border;
-  interior_node interior;
-  base_nptr = reinterpret_cast<base_node *>(&border);
+  border_node border{};
+  interior_node interior{};
+  base_nptr = reinterpret_cast<base_node *>(&border); // NOLINT
   ASSERT_EQ(typeid(*base_nptr), typeid(border_node));
-  base_nptr = reinterpret_cast<base_node *>(&interior);
+  base_nptr = reinterpret_cast<base_node *>(&interior); // NOLINT
   ASSERT_EQ(typeid(*base_nptr), typeid(interior_node));
 }
 
