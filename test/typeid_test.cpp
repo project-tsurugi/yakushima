@@ -17,8 +17,8 @@ class tt : public ::testing::Test {
 };
 
 TEST_F(tt, test1) { // NOLINT
-  std::unique_ptr<border_node> border_uptr(new border_node()); // NOLINT
-  std::unique_ptr<interior_node> interior_uptr(new interior_node()); // NOLINT
+  std::unique_ptr<border_node> border_uptr = std::make_unique<border_node>(); // NOLINT
+  std::unique_ptr<interior_node> interior_uptr = std::make_unique<interior_node>(); // NOLINT
 
   ASSERT_EQ(typeid(border_uptr.get()), typeid(border_node *));
   ASSERT_EQ(typeid(interior_uptr.get()), typeid(interior_node *));
