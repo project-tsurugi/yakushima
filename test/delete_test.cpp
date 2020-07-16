@@ -42,7 +42,7 @@ TEST_F(dt, test1) { // NOLINT
 }
 
 TEST_F(dt, test2) { // NOLINT
-  Token token;
+  Token token{};
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
   constexpr std::size_t ary_size = 9;
   std::array<std::string, ary_size> k; // NOLINT
@@ -74,7 +74,7 @@ TEST_F(dt, test3) { // NOLINT
     Token token{};
     ASSERT_EQ(masstree_kvs::enter(token), status::OK);
     constexpr std::size_t ary_size = 9;
-    std::vector<std::tuple<std::string, std::string>> kv;
+    std::vector<std::tuple<std::string, std::string>> kv; // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
       kv.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
     }
@@ -133,7 +133,7 @@ TEST_F(dt, test5) { // NOLINT
     Token token{};
     ASSERT_EQ(masstree_kvs::enter(token), status::OK);
     constexpr std::size_t ary_size = 10;
-    std::vector<std::tuple<std::string, std::string>> kv;
+    std::vector<std::tuple<std::string, std::string>> kv; // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
       kv.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
     }
@@ -166,16 +166,16 @@ TEST_F(dt, test6) { // NOLINT
     v.at(i).assign(1, static_cast<char>(i));
   }
   for (std::size_t i = 0; i < ary_size; ++i) {
-    ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view{k.at(i)}, v.at(i).data(), v.at(i).size()));
+    ASSERT_EQ(status::OK, masstree_kvs::put(k.at(i), v.at(i).data(), v.at(i).size()));
   }
 
-  std::size_t lb_n{ary_size / 2};
+  constexpr std::size_t lb_n{ary_size / 2};
   for (std::size_t i = 0; i < lb_n; ++i) {
-    ASSERT_EQ(status::OK, masstree_kvs::remove(token, k[i]));
+    ASSERT_EQ(status::OK, masstree_kvs::remove(token, k.at(i)));
   }
   ASSERT_EQ(base_node::get_root()->get_version_border(), true);
   for (std::size_t i = lb_n; i < ary_size; ++i) {
-    ASSERT_EQ(status::OK, masstree_kvs::remove(token, k[i]));
+    ASSERT_EQ(status::OK, masstree_kvs::remove(token, k.at(i)));
   }
   ASSERT_EQ(base_node::get_root(), nullptr);
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
@@ -185,10 +185,10 @@ TEST_F(dt, test7) { // NOLINT
   masstree_kvs::fin();
   for (std::size_t h = 0; h < 10; ++h) {
     masstree_kvs::init();
-    Token token;
+    Token token{};
     ASSERT_EQ(masstree_kvs::enter(token), status::OK);
     constexpr std::size_t ary_size = base_node::key_slice_length + 1;
-    std::vector<std::tuple<std::string, std::string>> kv;
+    std::vector<std::tuple<std::string, std::string>> kv; // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
       kv.emplace_back(std::make_tuple(std::string(1, i), std::string(1, i)));
     }
@@ -218,7 +218,7 @@ TEST_F(dt, test7) { // NOLINT
 }
 
 TEST_F(dt, test8) { // NOLINT
-  Token token;
+  Token token{};
   ASSERT_EQ(masstree_kvs::enter(token), status::OK);
   /**
    * first border split occurs at inserting (base_node::key_slice_length + 1) times.
@@ -235,17 +235,17 @@ TEST_F(dt, test8) { // NOLINT
     v.at(i).assign(1, static_cast<char>(i));
   }
   for (std::size_t i = 0; i < ary_size; ++i) {
-    ASSERT_EQ(status::OK, masstree_kvs::put(std::string_view{k[i]}, v[i].data(), v[i].size()));
+    ASSERT_EQ(status::OK, masstree_kvs::put(k.at(i), v.at(i).data(), v.at(i).size()));
     if (i == base_node::key_slice_length - 1) {
       /**
        * root is full-border.
        */
-      ASSERT_EQ(typeid(*base_node::get_root()), typeid(border_node));
+      ASSERT_EQ(typeid(*base_node::get_root()), typeid(border_node)); // NOLINT
     } else if (i == base_node::key_slice_length) {
       /**
        * split and insert.
        */
-      ASSERT_EQ(typeid(*base_node::get_root()), typeid(interior_node));
+      ASSERT_EQ(typeid(*base_node::get_root()), typeid(interior_node)); // NOLINT
       ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root())->get_child_at(
               0))->get_permutation_cnk(), 8);
       ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root())->get_child_at(
@@ -286,12 +286,12 @@ TEST_F(dt, test8) { // NOLINT
     }
   }
 
-  interior_node *in = dynamic_cast<interior_node *>(base_node::get_root());
+  auto *in = dynamic_cast<interior_node *>(base_node::get_root());
   /**
    * root is interior.
    */
   ASSERT_EQ(in->get_version_border(), false);
-  interior_node *child_of_root = dynamic_cast<interior_node *>(in->get_child_at(0));
+  auto *child_of_root = dynamic_cast<interior_node *>(in->get_child_at(0));
   /**
    * child of root[0] is interior.
    */
@@ -301,7 +301,7 @@ TEST_F(dt, test8) { // NOLINT
    * child of root[1] is interior.
    */
   ASSERT_EQ(child_of_root->get_version_border(), false);
-  border_node *child_child_of_root = dynamic_cast<border_node *>(child_of_root->get_child_at(0));
+  auto *child_child_of_root = dynamic_cast<border_node *>(child_of_root->get_child_at(0));
   /**
    * child of child of root[0] is border.
    */
@@ -310,25 +310,24 @@ TEST_F(dt, test8) { // NOLINT
   /**
    * deletion phase
    */
-  std::size_t n_in_bn;
-  n_in_bn = base_node::key_slice_length / 2 + 1;
+  constexpr std::size_t n_in_bn = base_node::key_slice_length / 2 + 1;
 
   ASSERT_EQ(n_in_bn - 1,
             dynamic_cast<interior_node *>(dynamic_cast<interior_node *>(base_node::get_root())->get_child_at(
                     0))->get_n_keys());
   for (std::size_t i = 0; i < n_in_bn; ++i) {
-    ASSERT_EQ(status::OK, masstree_kvs::remove(token, k[i]));
+    ASSERT_EQ(status::OK, masstree_kvs::remove(token, k.at(i)));
   }
   ASSERT_EQ(n_in_bn - 2,
             dynamic_cast<interior_node *>(dynamic_cast<interior_node *>(base_node::get_root())->get_child_at(
                     0))->get_n_keys());
-  std::size_t to_sb = (n_in_bn - 2) * n_in_bn;
+  constexpr std::size_t to_sb = (n_in_bn - 2) * n_in_bn;
   for (std::size_t i = n_in_bn; i < n_in_bn + to_sb; ++i) {
-    ASSERT_EQ(status::OK, masstree_kvs::remove(token, k[i]));
+    ASSERT_EQ(status::OK, masstree_kvs::remove(token, k.at(i)));
   }
   ASSERT_EQ(1, dynamic_cast<interior_node *>(dynamic_cast<interior_node *>(base_node::get_root()))->get_n_keys());
   for (std::size_t i = n_in_bn + to_sb; i < ary_size; ++i) {
-    ASSERT_EQ(status::OK, masstree_kvs::remove(token, k[i]));
+    ASSERT_EQ(status::OK, masstree_kvs::remove(token, k.at(i)));
   }
 
   ASSERT_EQ(base_node::get_root(), nullptr);
@@ -339,11 +338,11 @@ TEST_F(dt, test9) { // NOLINT
   masstree_kvs::fin();
   for (std::size_t h = 0; h < 10; ++h) {
     masstree_kvs::init();
-    Token token;
+    Token token{};
     ASSERT_EQ(masstree_kvs::enter(token), status::OK);
     constexpr std::size_t ary_size = base_node::key_slice_length * interior_node::child_length + 1;
 
-    std::vector<std::tuple<std::string, std::string>> kv;
+    std::vector<std::tuple<std::string, std::string>> kv; // NOLINT
     kv.reserve(ary_size);
     for (std::size_t i = 0; i < ary_size; ++i) {
       kv.emplace_back(std::make_tuple(std::string(1, i), std::string(1, i)));

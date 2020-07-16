@@ -40,9 +40,9 @@ TEST_F(mtdt, test1) { // NOLINT
     for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
-    std::array<Token, 2> token;
-    ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
+    std::array<Token, 2> token{};
+    ASSERT_EQ(masstree_kvs::enter(token.at(0)), status::OK);
+    ASSERT_EQ(masstree_kvs::enter(token.at(1)), status::OK);
 
     std::reverse(kv1.begin(), kv1.end());
     std::reverse(kv2.begin(), kv2.end());
@@ -50,8 +50,9 @@ TEST_F(mtdt, test1) { // NOLINT
     struct S {
       static void put_work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
-          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
+          status ret = masstree_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             EXPECT_EQ(ret, status::OK); // output log
             std::abort();
@@ -61,7 +62,8 @@ TEST_F(mtdt, test1) { // NOLINT
 
       static void remove_work(std::vector<std::tuple<std::string, std::string>> &kv, Token &token) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
           status ret = masstree_kvs::remove(token, std::string_view(k));
           if (ret != status::OK) {
             EXPECT_EQ(ret, status::OK); // output log
@@ -110,9 +112,9 @@ TEST_F(mtdt, test2) { // NOLINT
     for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
-    std::array<Token, 2> token;
-    ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
+    std::array<Token, 2> token{};
+    ASSERT_EQ(masstree_kvs::enter(token.at(0)), status::OK);
+    ASSERT_EQ(masstree_kvs::enter(token.at(1)), status::OK);
 
     std::shuffle(kv1.begin(), kv1.end(), engine);
     std::shuffle(kv2.begin(), kv2.end(), engine);
@@ -120,8 +122,9 @@ TEST_F(mtdt, test2) { // NOLINT
     struct S {
       static void put_work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
-          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
+          status ret = masstree_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -131,7 +134,8 @@ TEST_F(mtdt, test2) { // NOLINT
 
       static void remove_work(Token &token, std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
           status ret = masstree_kvs::remove(token, std::string_view(k));
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
@@ -145,12 +149,12 @@ TEST_F(mtdt, test2) { // NOLINT
     S::put_work(std::ref(kv1));
     t.join();
 
-    t = std::thread(S::remove_work, std::ref(token[0]), std::ref(kv2));
-    S::remove_work(std::ref(token[1]), std::ref(kv1));
+    t = std::thread(S::remove_work, std::ref(token.at(0)), std::ref(kv2));
+    S::remove_work(std::ref(token.at(1)), std::ref(kv1));
     t.join();
 
-    ASSERT_EQ(masstree_kvs::leave(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
+    ASSERT_EQ(masstree_kvs::leave(token.at(0)), status::OK);
+    ASSERT_EQ(masstree_kvs::leave(token.at(1)), status::OK);
     masstree_kvs::fin();
   }
 }
@@ -177,9 +181,9 @@ TEST_F(mtdt, test3) { // NOLINT
     for (std::size_t h = 0; h < 200; ++h) {
 #endif
     masstree_kvs::init();
-    std::array<Token, 2> token;
-    ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
+    std::array<Token, 2> token{};
+    ASSERT_EQ(masstree_kvs::enter(token.at(0)), status::OK);
+    ASSERT_EQ(masstree_kvs::enter(token.at(1)), status::OK);
 
     std::reverse(kv1.begin(), kv1.end());
     std::reverse(kv2.begin(), kv2.end());
@@ -187,8 +191,9 @@ TEST_F(mtdt, test3) { // NOLINT
     struct S {
       static void put_work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
-          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
+          status ret = masstree_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -198,7 +203,8 @@ TEST_F(mtdt, test3) { // NOLINT
 
       static void remove_work(Token &token, std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
           status ret = masstree_kvs::remove(token, std::string_view(k));
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
@@ -212,12 +218,12 @@ TEST_F(mtdt, test3) { // NOLINT
     S::put_work(std::ref(kv1));
     t.join();
 
-    t = std::thread(S::remove_work, std::ref(token[0]), std::ref(kv1));
-    S::remove_work(std::ref(token[1]), std::ref(kv2));
+    t = std::thread(S::remove_work, std::ref(token.at(0)), std::ref(kv1));
+    S::remove_work(std::ref(token.at(1)), std::ref(kv2));
     t.join();
 
-    ASSERT_EQ(masstree_kvs::leave(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
+    ASSERT_EQ(masstree_kvs::leave(token.at(0)), status::OK);
+    ASSERT_EQ(masstree_kvs::leave(token.at(1)), status::OK);
     masstree_kvs::fin();
   }
 }
@@ -247,9 +253,9 @@ TEST_F(mtdt, test4) { // NOLINT
     for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
-    std::array<Token, 2> token;
-    ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
+    std::array<Token, 2> token{};
+    ASSERT_EQ(masstree_kvs::enter(token.at(0)), status::OK);
+    ASSERT_EQ(masstree_kvs::enter(token.at(1)), status::OK);
 
     std::shuffle(kv1.begin(), kv1.end(), engine);
     std::shuffle(kv2.begin(), kv2.end(), engine);
@@ -257,8 +263,9 @@ TEST_F(mtdt, test4) { // NOLINT
     struct S {
       static void put_work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
-          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
+          status ret = masstree_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -268,7 +275,8 @@ TEST_F(mtdt, test4) { // NOLINT
 
       static void remove_work(Token &token, std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
           status ret = masstree_kvs::remove(token, std::string_view(k));
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
@@ -282,12 +290,12 @@ TEST_F(mtdt, test4) { // NOLINT
     S::put_work(std::ref(kv2));
     t.join();
 
-    t = std::thread(S::remove_work, std::ref(token[0]), std::ref(kv1));
-    S::remove_work(std::ref(token[1]), std::ref(kv2));
+    t = std::thread(S::remove_work, std::ref(token.at(0)), std::ref(kv1));
+    S::remove_work(std::ref(token.at(1)), std::ref(kv2));
     t.join();
 
-    ASSERT_EQ(masstree_kvs::leave(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
+    ASSERT_EQ(masstree_kvs::leave(token.at(0)), status::OK);
+    ASSERT_EQ(masstree_kvs::leave(token.at(1)), status::OK);
     masstree_kvs::fin();
   }
 }
@@ -314,9 +322,9 @@ TEST_F(mtdt, test5) { // NOLINT
     for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
-    std::array<Token, 2> token;
-    ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
+    std::array<Token, 2> token{};
+    ASSERT_EQ(masstree_kvs::enter(token.at(0)), status::OK);
+    ASSERT_EQ(masstree_kvs::enter(token.at(1)), status::OK);
 
     std::reverse(kv1.begin(), kv1.end());
     std::reverse(kv2.begin(), kv2.end());
@@ -324,8 +332,9 @@ TEST_F(mtdt, test5) { // NOLINT
     struct S {
       static void put_work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
-          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
+          status ret = masstree_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -335,7 +344,8 @@ TEST_F(mtdt, test5) { // NOLINT
 
       static void remove_work(Token &token, std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
           status ret = masstree_kvs::remove(token, std::string_view(k));
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
@@ -349,12 +359,12 @@ TEST_F(mtdt, test5) { // NOLINT
     S::put_work(std::ref(kv2));
     t.join();
 
-    t = std::thread(S::remove_work, std::ref(token[0]), std::ref(kv1));
-    S::remove_work(std::ref(token[1]), std::ref(kv2));
+    t = std::thread(S::remove_work, std::ref(token.at(0)), std::ref(kv1));
+    S::remove_work(std::ref(token.at(1)), std::ref(kv2));
     t.join();
 
-    ASSERT_EQ(masstree_kvs::leave(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
+    ASSERT_EQ(masstree_kvs::leave(token.at(0)), status::OK);
+    ASSERT_EQ(masstree_kvs::leave(token.at(1)), status::OK);
     masstree_kvs::fin();
   }
 }
@@ -383,9 +393,9 @@ TEST_F(mtdt, test6) { // NOLINT
     for (std::size_t h = 0; h < 100; ++h) {
 #endif
     masstree_kvs::init();
-    std::array<Token, 2> token;
-    ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
+    std::array<Token, 2> token{};
+    ASSERT_EQ(masstree_kvs::enter(token.at(0)), status::OK);
+    ASSERT_EQ(masstree_kvs::enter(token.at(1)), status::OK);
 
     std::shuffle(kv1.begin(), kv1.end(), engine);
     std::shuffle(kv2.begin(), kv2.end(), engine);
@@ -393,8 +403,9 @@ TEST_F(mtdt, test6) { // NOLINT
     struct S {
       static void put_work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
-          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
+          status ret = masstree_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -404,7 +415,8 @@ TEST_F(mtdt, test6) { // NOLINT
 
       static void remove_work(Token &token, std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
           status ret = masstree_kvs::remove(token, std::string_view(k));
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
@@ -418,12 +430,12 @@ TEST_F(mtdt, test6) { // NOLINT
     S::put_work(std::ref(kv2));
     t.join();
 
-    t = std::thread(S::remove_work, std::ref(token[0]), std::ref(kv1));
-    S::remove_work(std::ref(token[1]), std::ref(kv2));
+    t = std::thread(S::remove_work, std::ref(token.at(0)), std::ref(kv1));
+    S::remove_work(std::ref(token.at(1)), std::ref(kv2));
     t.join();
 
-    ASSERT_EQ(masstree_kvs::leave(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
+    ASSERT_EQ(masstree_kvs::leave(token.at(0)), status::OK);
+    ASSERT_EQ(masstree_kvs::leave(token.at(1)), status::OK);
     masstree_kvs::fin();
   }
 }
@@ -450,9 +462,9 @@ TEST_F(mtdt, test7) { // NOLINT
     for (size_t h = 0; h < 20; ++h) {
 #endif
     masstree_kvs::init();
-    std::array<Token, 2> token;
-    ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
+    std::array<Token, 2> token{};
+    ASSERT_EQ(masstree_kvs::enter(token.at(0)), status::OK);
+    ASSERT_EQ(masstree_kvs::enter(token.at(1)), status::OK);
 
     std::reverse(kv1.begin(), kv1.end());
     std::reverse(kv2.begin(), kv2.end());
@@ -460,8 +472,9 @@ TEST_F(mtdt, test7) { // NOLINT
     struct S {
       static void put_work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
-          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
+          status ret = masstree_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -471,7 +484,8 @@ TEST_F(mtdt, test7) { // NOLINT
 
       static void remove_work(Token &token, std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
           status ret = masstree_kvs::remove(token, std::string_view(k));
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
@@ -485,12 +499,12 @@ TEST_F(mtdt, test7) { // NOLINT
     S::put_work(std::ref(kv2));
     t.join();
 
-    t = std::thread(S::remove_work, std::ref(token[0]), std::ref(kv1));
-    S::remove_work(std::ref(token[1]), std::ref(kv2));
+    t = std::thread(S::remove_work, std::ref(token.at(0)), std::ref(kv1));
+    S::remove_work(std::ref(token.at(1)), std::ref(kv2));
     t.join();
 
-    ASSERT_EQ(masstree_kvs::leave(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
+    ASSERT_EQ(masstree_kvs::leave(token.at(0)), status::OK);
+    ASSERT_EQ(masstree_kvs::leave(token.at(1)), status::OK);
     masstree_kvs::fin();
   }
 }
@@ -521,9 +535,9 @@ TEST_F(mtdt, test8) { // NOLINT
     for (std::size_t h = 0; h < 30; ++h) {
 #endif
     masstree_kvs::init();
-    std::array<Token, 2> token;
-    ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
+    std::array<Token, 2> token{};
+    ASSERT_EQ(masstree_kvs::enter(token.at(0)), status::OK);
+    ASSERT_EQ(masstree_kvs::enter(token.at(1)), status::OK);
 
     std::shuffle(kv1.begin(), kv1.end(), engine);
     std::shuffle(kv2.begin(), kv2.end(), engine);
@@ -531,8 +545,9 @@ TEST_F(mtdt, test8) { // NOLINT
     struct S {
       static void put_work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
-          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
+          status ret = masstree_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -542,8 +557,9 @@ TEST_F(mtdt, test8) { // NOLINT
 
       static void remove_work(Token &token, std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
-          status ret = masstree_kvs::remove(token, std::string_view(k));
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
+          status ret = masstree_kvs::remove(token, k);
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -556,12 +572,12 @@ TEST_F(mtdt, test8) { // NOLINT
     S::put_work(std::ref(kv2));
     t.join();
 
-    t = std::thread(S::remove_work, std::ref(token[0]), std::ref(kv1));
-    S::remove_work(std::ref(token[1]), std::ref(kv2));
+    t = std::thread(S::remove_work, std::ref(token.at(0)), std::ref(kv1));
+    S::remove_work(std::ref(token.at(1)), std::ref(kv2));
     t.join();
 
-    ASSERT_EQ(masstree_kvs::leave(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
+    ASSERT_EQ(masstree_kvs::leave(token.at(0)), status::OK);
+    ASSERT_EQ(masstree_kvs::leave(token.at(1)), status::OK);
     masstree_kvs::fin();
   }
 }
@@ -588,9 +604,9 @@ TEST_F(mtdt, test9) { // NOLINT
     for (std::size_t h = 0; h < 30; ++h) {
 #endif
     masstree_kvs::init();
-    std::array<Token, 2> token;
-    ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
+    std::array<Token, 2> token{};
+    ASSERT_EQ(masstree_kvs::enter(token.at(0)), status::OK);
+    ASSERT_EQ(masstree_kvs::enter(token.at(1)), status::OK);
 
     std::reverse(kv1.begin(), kv1.end());
     std::reverse(kv2.begin(), kv2.end());
@@ -598,8 +614,9 @@ TEST_F(mtdt, test9) { // NOLINT
     struct S {
       static void put_work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
-          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
+          status ret = masstree_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -609,8 +626,9 @@ TEST_F(mtdt, test9) { // NOLINT
 
       static void remove_work(Token &token, std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
-          status ret = masstree_kvs::remove(token, std::string_view(k));
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
+          status ret = masstree_kvs::remove(token, k);
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -623,12 +641,12 @@ TEST_F(mtdt, test9) { // NOLINT
     S::put_work(std::ref(kv2));
     t.join();
 
-    t = std::thread(S::remove_work, std::ref(token[0]), std::ref(kv1));
-    S::remove_work(std::ref(token[1]), std::ref(kv2));
+    t = std::thread(S::remove_work, std::ref(token.at(0)), std::ref(kv1));
+    S::remove_work(std::ref(token.at(1)), std::ref(kv2));
     t.join();
 
-    ASSERT_EQ(masstree_kvs::leave(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
+    ASSERT_EQ(masstree_kvs::leave(token.at(0)), status::OK);
+    ASSERT_EQ(masstree_kvs::leave(token.at(1)), status::OK);
     masstree_kvs::fin();
   }
 }
@@ -657,9 +675,9 @@ TEST_F(mtdt, test10) { // NOLINT
     for (std::size_t h = 0; h < 30; ++h) {
 #endif
     masstree_kvs::init();
-    std::array<Token, 2> token;
-    ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
+    std::array<Token, 2> token{};
+    ASSERT_EQ(masstree_kvs::enter(token.at(0)), status::OK);
+    ASSERT_EQ(masstree_kvs::enter(token.at(1)), status::OK);
 
     std::shuffle(kv1.begin(), kv1.end(), engine);
     std::shuffle(kv2.begin(), kv2.end(), engine);
@@ -667,8 +685,9 @@ TEST_F(mtdt, test10) { // NOLINT
     struct S {
       static void put_work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
-          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
+          status ret = masstree_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -678,8 +697,9 @@ TEST_F(mtdt, test10) { // NOLINT
 
       static void remove_work(Token &token, std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
-          status ret = masstree_kvs::remove(token, std::string_view(k));
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
+          status ret = masstree_kvs::remove(token, k);
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -692,12 +712,12 @@ TEST_F(mtdt, test10) { // NOLINT
     S::put_work(std::ref(kv2));
     t.join();
 
-    t = std::thread(S::remove_work, std::ref(token[0]), std::ref(kv1));
-    S::remove_work(std::ref(token[1]), std::ref(kv2));
+    t = std::thread(S::remove_work, std::ref(token.at(0)), std::ref(kv1));
+    S::remove_work(std::ref(token.at(1)), std::ref(kv2));
     t.join();
 
-    ASSERT_EQ(masstree_kvs::leave(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
+    ASSERT_EQ(masstree_kvs::leave(token.at(0)), status::OK);
+    ASSERT_EQ(masstree_kvs::leave(token.at(1)), status::OK);
     masstree_kvs::fin();
   }
 }
