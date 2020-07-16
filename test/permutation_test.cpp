@@ -13,10 +13,6 @@ using namespace yakushima;
 namespace yakushima::testing {
 
 class pt : public ::testing::Test {
-protected:
-  pt() = default;
-
-  ~pt() = default;
 };
 
 TEST_F(pt, test1) { // NOLINT

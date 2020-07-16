@@ -17,10 +17,6 @@ using namespace yakushima;
 namespace yakushima::testing {
 
 class mtpdt : public ::testing::Test {
-protected:
-  mtpdt() {}
-
-  ~mtpdt() {}
 };
 
 TEST_F(mtpdt, test1) { // NOLINT

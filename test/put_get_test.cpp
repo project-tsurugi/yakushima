@@ -16,11 +16,11 @@ namespace yakushima::testing {
 
 class kt : public ::testing::Test {
 protected:
-  kt() {
+  void SetUp() override {
     masstree_kvs::init();
   }
 
-  ~kt() {
+  void TearDown() override {
     masstree_kvs::fin();
   }
 };

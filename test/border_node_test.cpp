@@ -10,7 +10,8 @@ using namespace yakushima;
 
 namespace yakushima::testing {
 
-class bnt : public ::testing::Test {};
+class bnt : public ::testing::Test {
+};
 
 TEST_F(bnt, alignment) { // NOLINT
   ASSERT_EQ(alignof(border_node), CACHE_LINE_SIZE);

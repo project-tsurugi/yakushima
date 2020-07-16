@@ -12,7 +12,8 @@ using namespace yakushima;
 
 namespace yakushima::testing {
 
-class lvtest : public ::testing::Test {};
+class lvtest : public ::testing::Test {
+};
 
 TEST_F(lvtest, display) { // NOLINT
   link_or_value lv;

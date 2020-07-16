@@ -19,10 +19,6 @@ using std::endl;
 namespace yakushima::testing {
 
 class mtpdst : public ::testing::Test {
-protected:
-  mtpdst() {}
-
-  ~mtpdst() {}
 };
 
 TEST_F(mtpdst, test1) { // NOLINT

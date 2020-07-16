@@ -12,13 +12,13 @@ using namespace yakushima;
 
 namespace yakushima::testing {
 
-class kvs_test : public ::testing::Test { // NOLINT
-public:
-  kvs_test() {
+class kvs_test : public ::testing::Test {
+protected:
+  void SetUp() override {
     masstree_kvs::init();
   }
 
-  ~kvs_test() {
+  void TearDown() override {
     masstree_kvs::fin();
   }
 };

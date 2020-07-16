@@ -10,7 +10,8 @@ using namespace yakushima;
 
 namespace yakushima::testing {
 
-class ct : public ::testing::Test {};
+class ct : public ::testing::Test {
+};
 
 TEST_F(ct, checkClockSpan) { // NOLINT
   std::uint64_t start{10};
