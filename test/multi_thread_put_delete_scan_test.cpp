@@ -642,17 +642,21 @@ TEST_F(mtpdst, test7) { // NOLINT
   std::vector<std::tuple<std::string, std::string>> kv1; // NOLINT
   std::vector<std::tuple<std::string, std::string>> kv2; // NOLINT
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
-    if (i <= UINT8_MAX) {
+    if (i <= INT8_MAX) {
       kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
     } else {
-      kv1.emplace_back(std::make_tuple(std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i), std::to_string(i)));
+      kv1.emplace_back(
+              std::make_tuple(std::string(i / INT8_MAX, static_cast<char>(INT8_MAX)) + std::string(1, i - INT8_MAX),
+                              std::to_string(i)));
     }
   }
   for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
-    if (i <= UINT8_MAX) {
+    if (i <= INT8_MAX) {
       kv2.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
     } else {
-      kv2.emplace_back(std::make_tuple(std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i), std::to_string(i)));
+      kv2.emplace_back(
+              std::make_tuple(std::string(i / INT8_MAX, static_cast<char>(INT8_MAX)) + std::string(1, i - INT8_MAX),
+                              std::to_string(i)));
     }
   }
 
@@ -729,10 +733,10 @@ TEST_F(mtpdst, test7) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k;
-      if (i <= UINT8_MAX) {
+      if (i <= INT8_MAX) {
         k = std::string(1, i);
       } else {
-        k = std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i);
+        k = std::string(i / INT8_MAX, static_cast<char>(INT8_MAX)) + std::string(1, i - INT8_MAX);
       }
       masstree_kvs::scan<char>("", false, k, false, tuple_list);
       if (tuple_list.size() != i + 1) {
@@ -759,17 +763,21 @@ TEST_F(mtpdst, test8) { // NOLINT
   std::vector<std::tuple<std::string, std::string>> kv1; // NOLINT
   std::vector<std::tuple<std::string, std::string>> kv2; // NOLINT
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
-    if (i <= UINT8_MAX) {
+    if (i <= INT8_MAX) {
       kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
     } else {
-      kv1.emplace_back(std::make_tuple(std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i), std::to_string(i)));
+      kv1.emplace_back(
+              std::make_tuple(std::string(i / INT8_MAX, static_cast<char>(INT8_MAX)) + std::string(1, i - INT8_MAX),
+                              std::to_string(i)));
     }
   }
   for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
-    if (i <= UINT8_MAX) {
+    if (i <= INT8_MAX) {
       kv2.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
     } else {
-      kv2.emplace_back(std::make_tuple(std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i), std::to_string(i)));
+      kv2.emplace_back(
+              std::make_tuple(std::string(i / INT8_MAX, static_cast<char>(INT8_MAX)) + std::string(1, i - INT8_MAX),
+                              std::to_string(i)));
     }
   }
 
@@ -843,10 +851,10 @@ TEST_F(mtpdst, test8) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k{};
-      if (i <= UINT8_MAX) {
+      if (i <= INT8_MAX) {
         k = std::string(1, i);
       } else {
-        k = std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i);
+        k = std::string(i / INT8_MAX, static_cast<char>(INT8_MAX)) + std::string(1, i - INT8_MAX);
       }
       masstree_kvs::scan<char>("", false, k, false, tuple_list);
       if (tuple_list.size() != i + 1) {
@@ -873,19 +881,21 @@ TEST_F(mtpdst, test9) { // NOLINT
   std::vector<std::tuple<std::string, std::string>> kv1; // NOLINT
   std::vector<std::tuple<std::string, std::string>> kv2; // NOLINT
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
-    if (i <= UINT8_MAX) {
+    if (i <= INT8_MAX) {
       kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
     } else {
       kv1.emplace_back(
-              std::make_tuple(std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i), std::to_string(i)));
+              std::make_tuple(std::string(i / INT8_MAX, static_cast<char>(INT8_MAX)) + std::string(1, i - INT8_MAX),
+                              std::to_string(i)));
     }
   }
   for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
-    if (i <= UINT8_MAX) {
+    if (i <= INT8_MAX) {
       kv2.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
     } else {
       kv2.emplace_back(
-              std::make_tuple(std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i), std::to_string(i)));
+              std::make_tuple(std::string(i / INT8_MAX, static_cast<char>(INT8_MAX)) + std::string(1, i - INT8_MAX),
+                              std::to_string(i)));
     }
   }
 
@@ -962,10 +972,10 @@ TEST_F(mtpdst, test9) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k{};
-      if (i <= UINT8_MAX) {
+      if (i <= INT8_MAX) {
         k = std::string(1, i);
       } else {
-        k = std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i);
+        k = std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX);
       }
       masstree_kvs::scan<char>("", false, k, false, tuple_list);
       if (tuple_list.size() != i + 1) {
@@ -992,19 +1002,19 @@ TEST_F(mtpdst, test10) { // NOLINT
   std::vector<std::tuple<std::string, std::string>> kv1; // NOLINT
   std::vector<std::tuple<std::string, std::string>> kv2; // NOLINT
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
-    if (i <= UINT8_MAX) {
+    if (i <= INT8_MAX) {
       kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
     } else {
       kv1.emplace_back(
-              std::make_tuple(std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i), std::to_string(i)));
+              std::make_tuple(std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX), std::to_string(i)));
     }
   }
   for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
-    if (i <= UINT8_MAX) {
+    if (i <= INT8_MAX) {
       kv2.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
     } else {
       kv2.emplace_back(
-              std::make_tuple(std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i), std::to_string(i)));
+              std::make_tuple(std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX), std::to_string(i)));
     }
   }
 
@@ -1082,10 +1092,10 @@ TEST_F(mtpdst, test10) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size / 100; ++i) {
       std::string k;
-      if (i <= UINT8_MAX) {
+      if (i <= INT8_MAX) {
         k = std::string(1, i);
       } else {
-        k = std::string(i / UINT8_MAX, UINT8_MAX) + std::string(1, i);
+        k = std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX);
       }
       masstree_kvs::scan<char>("", false, k, false, tuple_list);
       if (tuple_list.size() != i + 1) {

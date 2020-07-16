@@ -240,12 +240,14 @@ TEST_F(dt, test8) { // NOLINT
       /**
        * root is full-border.
        */
-      ASSERT_EQ(typeid(*base_node::get_root()), typeid(border_node)); // NOLINT
+      auto *n = base_node::get_root();
+      ASSERT_EQ(typeid(*n), typeid(border_node)); // NOLINT
     } else if (i == base_node::key_slice_length) {
       /**
        * split and insert.
        */
-      ASSERT_EQ(typeid(*base_node::get_root()), typeid(interior_node)); // NOLINT
+      auto *n = base_node::get_root();
+      ASSERT_EQ(typeid(*n), typeid(interior_node)); // NOLINT
       ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root())->get_child_at(
               0))->get_permutation_cnk(), 8);
       ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root())->get_child_at(

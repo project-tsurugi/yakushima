@@ -193,7 +193,8 @@ TEST_F(kt, test5) { // NOLINT
    * check next layer is border.
    */
   auto *br = dynamic_cast<border_node *>(base_node::get_root());
-  ASSERT_EQ(typeid(*(br->get_lv_at(9)->get_next_layer())), typeid(border_node)); // NOLINT
+  auto *n = br->get_lv_at(9)->get_next_layer();
+  ASSERT_EQ(typeid(*n), typeid(border_node)); // NOLINT
   ASSERT_EQ(masstree_kvs::destroy(), status::OK_DESTROY_ALL);
   ASSERT_EQ(masstree_kvs::leave(token), status::OK);
 }
@@ -257,7 +258,8 @@ TEST_F(kt, test7) { // NOLINT
     ASSERT_EQ(status::OK, masstree_kvs::put(k.at(i), v.at(i).data(), v.at(i).size()));
   }
   auto *in = dynamic_cast<interior_node *>(base_node::get_root());
-  ASSERT_EQ(typeid(*base_node::get_root()), typeid(interior_node)); // NOLINT
+  auto *n = base_node::get_root();
+  ASSERT_EQ(typeid(*n), typeid(interior_node)); // NOLINT
   auto *bn = dynamic_cast<border_node *>(in->get_child_at(0));
   ASSERT_EQ(bn->get_permutation_cnk(), 8);
   bn = dynamic_cast<border_node *>(in->get_child_at(1));
@@ -286,7 +288,8 @@ TEST_F(kt, test8) { // NOLINT
       ASSERT_EQ(status::OK,
                 masstree_kvs::put(std::get<0>(kv[i]), std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()));
     }
-    ASSERT_EQ(typeid(*base_node::get_root()), typeid(interior_node)); // NOLINT
+    auto *n = base_node::get_root();
+    ASSERT_EQ(typeid(*n), typeid(interior_node)); // NOLINT
     ASSERT_EQ(masstree_kvs::destroy(), status::OK_DESTROY_ALL);
     ASSERT_EQ(masstree_kvs::leave(token), status::OK);
     masstree_kvs::fin();
@@ -317,12 +320,14 @@ TEST_F(kt, test9) { // NOLINT
       /**
        * root is full-border.
        */
-      ASSERT_EQ(typeid(*base_node::get_root()), typeid(border_node)); // NOLINT
+      auto *n = base_node::get_root();
+      ASSERT_EQ(typeid(*n), typeid(border_node)); // NOLINT
     } else if (i == base_node::key_slice_length) {
       /**
        * split and insert.
        */
-      ASSERT_EQ(typeid(*base_node::get_root()), typeid(interior_node)); // NOLINT
+       auto *n = base_node::get_root();
+      ASSERT_EQ(typeid(*n), typeid(interior_node)); // NOLINT
       ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root())->get_child_at(
               0))->get_permutation_cnk(), 8);
       ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root())->get_child_at(
