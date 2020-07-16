@@ -43,7 +43,8 @@ TEST_F(mtpt, test1) { // NOLINT
     struct S {
       static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
           status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
@@ -61,7 +62,7 @@ TEST_F(mtpt, test1) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(i, '\0');
-      masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(k), false,
+      masstree_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
                                tuple_list);
       for (std::size_t j = 0; j < i + 1; ++j) {
         std::string v(std::to_string(j));
@@ -102,7 +103,8 @@ TEST_F(mtpt, test2) { // NOLINT
     struct S {
       static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
           status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(status::OK, ret);
@@ -120,7 +122,7 @@ TEST_F(mtpt, test2) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(i, '\0');
-      masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(k), false,
+      masstree_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
                                tuple_list);
       for (std::size_t j = 0; j < i + 1; ++j) {
         std::string v(std::to_string(j));
@@ -160,7 +162,8 @@ TEST_F(mtpt, test3) { // NOLINT
     struct S {
       static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
           status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
@@ -178,7 +181,7 @@ TEST_F(mtpt, test3) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(i, '\0');
-      masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(k), false,
+      masstree_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
                                tuple_list);
       for (std::size_t j = 0; j < i + 1; ++j) {
         std::string v(std::to_string(j));
@@ -219,7 +222,8 @@ TEST_F(mtpt, test4) { // NOLINT
     struct S {
       static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
           status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
@@ -237,7 +241,7 @@ TEST_F(mtpt, test4) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(i, '\0');
-      masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(k), false,
+      masstree_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
                                tuple_list);
       for (std::size_t j = 0; j < i + 1; ++j) {
         std::string v(std::to_string(j));
@@ -276,7 +280,8 @@ TEST_F(mtpt, test5) { // NOLINT
     struct S {
       static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
           status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
@@ -294,7 +299,7 @@ TEST_F(mtpt, test5) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(1, 'a' + i);
-      masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(k), false,
+      masstree_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
                                tuple_list);
       for (std::size_t j = 0; j < i + 1; ++j) {
         std::string v(std::to_string(j));
@@ -335,7 +340,8 @@ TEST_F(mtpt, test6) { // NOLINT
     struct S {
       static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
           status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
@@ -353,7 +359,7 @@ TEST_F(mtpt, test6) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(1, 'a' + i);
-      masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(k), false,
+      masstree_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
                                tuple_list);
       for (std::size_t j = 0; j < i + 1; ++j) {
         std::string v(std::to_string(j));
@@ -392,7 +398,8 @@ TEST_F(mtpt, test7) { // NOLINT
     struct S {
       static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
           status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
@@ -410,7 +417,7 @@ TEST_F(mtpt, test7) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(1, i);
-      masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(k), false,
+      masstree_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
                                tuple_list);
       if (tuple_list.size() != i + 1) {
         EXPECT_EQ(tuple_list.size(), i + 1);
@@ -456,7 +463,8 @@ TEST_F(mtpt, test8) { // NOLINT
     struct S {
       static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
           status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
@@ -474,7 +482,7 @@ TEST_F(mtpt, test8) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(1, i);
-      masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(k), false,
+      masstree_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
                                tuple_list);
       if (tuple_list.size() != i + 1) {
         EXPECT_EQ(tuple_list.size(), i + 1);
@@ -517,7 +525,8 @@ TEST_F(mtpt, test9) { // NOLINT
     struct S {
       static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
           status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
@@ -535,7 +544,7 @@ TEST_F(mtpt, test9) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(1, i);
-      masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(k), false,
+      masstree_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
                                tuple_list);
       ASSERT_EQ(tuple_list.size(), i + 1);
       for (std::size_t j = 0; j < i + 1; ++j) {
@@ -578,7 +587,8 @@ TEST_F(mtpt, test10) { // NOLINT
     struct S {
       static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
         for (auto &i : kv) {
-          std::string k(std::get<0>(i)), v(std::get<1>(i));
+          std::string k(std::get<0>(i));
+          std::string v(std::get<1>(i));
           status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
@@ -596,7 +606,7 @@ TEST_F(mtpt, test10) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(1, i);
-      masstree_kvs::scan<char>(std::string_view(0, 0), false, std::string_view(k), false, tuple_list);
+      masstree_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false, tuple_list);
       if (tuple_list.size() != i + 1) {
         ASSERT_EQ(tuple_list.size(), i + 1);
       }
