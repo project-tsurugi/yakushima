@@ -69,9 +69,9 @@ public:
           auto &ncontainer = kGarbageNodes.at(i);
           for (auto &&elem : ncontainer.get_body()) {
             if (std::get<gc_target_index>(elem)->get_version_border()) {
-              delete dynamic_cast<border_node *>(std::get<gc_target_index>(elem)); // NOLINT
+              delete std::get<gc_target_index>(elem); // NOLINT
             } else {
-              delete dynamic_cast<interior_node *>(std::get<gc_target_index>(elem)); // NOLINT
+              delete std::get<gc_target_index>(elem); // NOLINT
             }
           }
           ncontainer.get_body().clear();

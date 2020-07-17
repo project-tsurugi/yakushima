@@ -15,7 +15,7 @@
 
 namespace yakushima {
 
-class alignas(CACHE_LINE_SIZE) interior_node final : public base_node {
+class alignas(CACHE_LINE_SIZE) interior_node final : public base_node { // NOLINT
 public:
   /**
    * @details The structure is "ptr, key, ptr, key, ..., ptr".
@@ -24,6 +24,8 @@ public:
   static constexpr std::size_t child_length = base_node::key_slice_length + 1;
   using n_keys_body_type = std::uint8_t;
   using n_keys_type = std::atomic<n_keys_body_type>;
+
+  ~interior_node() override {}; // NOLINT
 
   /**
    * @pre There is a child which is the same to @a child.
@@ -125,7 +127,7 @@ public:
  * @brief release all heap objects and clean up.
  * @pre This function is called by single thread.
  */
-  status destroy() final {
+  status destroy() override {
     for (auto i = 0; i < n_keys_ + 1; ++i) {
       get_child_at(i)->destroy();
     }
@@ -136,7 +138,7 @@ public:
 /**
  * @details display function for analysis and debug.
  */
-  void display() final {
+  void display() override {
     display_base();
 
     std::cout << "interior_node::display" << std::endl;

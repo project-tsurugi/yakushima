@@ -20,8 +20,11 @@ namespace yakushima {
 using std::cout;
 using std::endl;
 
-class alignas(CACHE_LINE_SIZE) border_node final : public base_node {
+class alignas(CACHE_LINE_SIZE) border_node final : public base_node { // NOLINT
 public:
+
+  ~border_node() override {} // NOLINT
+
   /**
    * @pre This function is called by delete_of function.
    * @details delete the key-value corresponding to @a pos as position.
@@ -72,7 +75,7 @@ public:
   /**
    * @brief release all heap objects and clean up.
    */
-  status destroy() final {
+  status destroy() override {
     for (auto i = 0; i < permutation_.get_cnk(); ++i) {
       lv_.at(static_cast<std::uint32_t>(i)).destroy();
     }
@@ -168,7 +171,7 @@ retry_prev_lock:
   /**
    * @details display function for analysis and debug.
    */
-  void display() final {
+  void display() override {
     display_base();
     cout << "border_node::display" << endl;
     permutation_.display();
@@ -179,12 +182,12 @@ retry_prev_lock:
   }
 
   /**
-   * @post It is necessary for the caller to verify whether the extraction is appropriate.
-   * @param[out] next_layers
-   * @attention layers are stored in ascending order.
-   * @return
-   */
-  void get_all_next_layer(std::vector<base_node *> &next_layers) {
+  * @post It is necessary for the caller to verify whether the extraction is appropriate.
+  * @param[out] next_layers
+  * @attention layers are stored in ascending order.
+  * @return
+  */
+  [[maybe_unused]]void get_all_next_layer(std::vector<base_node *> &next_layers) {
     next_layers.clear();
     std::size_t cnk = permutation_.get_cnk();
     for (std::size_t i = 0; i < cnk; ++i) {
@@ -196,17 +199,17 @@ retry_prev_lock:
     }
   }
 
-  [[nodiscard]] std::array<link_or_value, key_slice_length> &get_lv() {
+  [[maybe_unused]] [[nodiscard]] std::array<link_or_value, key_slice_length> &get_lv() {
     return lv_;
   }
 
   /**
-   * @details Find link_or_value element whose next_layer is the same as @a next_layer of the argument.
-   * @pre Executor has lock of this node. There is always a lv that points to a pointer given as an argument.
-   * @param[in] next_layer
-   * @return link_or_value*
-   */
-  [[nodiscard]] link_or_value *get_lv(base_node *next_layer) {
+  * @details Find link_or_value element whose next_layer is the same as @a next_layer of the argument.
+  * @pre Executor has lock of this node. There is always a lv that points to a pointer given as an argument.
+  * @param[in] next_layer
+  * @return link_or_value*
+  */
+  [[maybe_unused]] [[nodiscard]] link_or_value *get_lv(base_node *next_layer) {
     for (std::size_t i = 0; i < base_node::key_slice_length; ++i) {
       if (lv_.at(i).get_next_layer() == next_layer) {
         return &lv_.at(i);
@@ -220,12 +223,12 @@ retry_prev_lock:
   }
 
   /**
-   * @details Find link_or_value element whose next_layer is the same as @a next_layer of the argument.
-   * @pre it is called at functions about deleting node.
-   * @param[in] next_layer
-   * @return link_or_value*
-   */
-  [[nodiscard]] link_or_value *get_lv_without_lock(base_node *next_layer) {
+  * @details Find link_or_value element whose next_layer is the same as @a next_layer of the argument.
+  * @pre it is called at functions about deleting node.
+  * @param[in] next_layer
+  * @return link_or_value*
+  */
+  [[maybe_unused]] [[nodiscard]] link_or_value *get_lv_without_lock(base_node *next_layer) {
     for (;;) {
       node_version64_body v = get_version();
       if ((v.get_locked() && ((v.get_inserting() && !v.get_splitting() && !v.get_deleting_node()))) ||
@@ -298,7 +301,8 @@ retry_prev_lock:
    * @return link_or_value*
    * @return nullptr
    */
-  [[nodiscard]] link_or_value *get_lv_of_without_lock(key_slice_type key_slice, key_length_type key_length) {
+  [[maybe_unused]] [[nodiscard]] link_or_value *
+  get_lv_of_without_lock(key_slice_type key_slice, key_length_type key_length) {
     std::size_t cnk = permutation_.get_cnk();
     for (std::size_t i = 0; i < cnk; ++i) {
       if (key_slice == get_key_slice_at(i) && key_length == get_key_length_at(i)) {
@@ -320,7 +324,7 @@ retry_prev_lock:
     return permutation_.get_cnk();
   }
 
-  [[nodiscard]] std::size_t get_permutation_lowest_key_pos() {
+  [[maybe_unused]] [[nodiscard]] std::size_t get_permutation_lowest_key_pos() {
     return permutation_.get_lowest_key_pos();
   }
 
@@ -434,7 +438,7 @@ retry_prev_lock:
     permutation_.rearrange(get_key_slice(), get_key_length());
   }
 
-  void set_permutation_cnk(std::uint8_t n) {
+  [[maybe_unused]] void set_permutation_cnk(std::uint8_t n) {
     permutation_.set_cnk(n);
   }
 

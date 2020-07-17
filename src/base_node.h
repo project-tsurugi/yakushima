@@ -20,7 +20,7 @@ namespace yakushima {
  */
 class masstree_kvs;
 
-class base_node {
+class base_node { // NOLINT
 public:
   static constexpr std::size_t key_slice_length = 15;
   using key_slice_type = std::uint64_t;
@@ -35,6 +35,8 @@ public:
    */
   using value_length_type = std::size_t;
   using value_align_type = std::size_t;
+
+  virtual ~base_node() = default; // NOLINT
 
   void atomic_set_version_root(bool tf) {
     version_.atomic_set_root(tf);
@@ -78,7 +80,7 @@ public:
     return loadAcquireN(key_slice_.at(index));
   }
 
-  [[nodiscard]] bool get_lock() &{
+  [[maybe_unused]] [[nodiscard]] bool get_lock() &{
     return version_.get_locked();
   }
 
@@ -141,7 +143,7 @@ public:
     set_key(pos, 0, 0);
   }
 
-  void init_base_member_range(std::size_t start, std::size_t end) {
+  [[maybe_unused]] void init_base_member_range(std::size_t start, std::size_t end) {
     for (std::size_t i = start; i <= end; ++i) {
       set_key(i, 0, 0);
     }
@@ -173,7 +175,7 @@ public:
     }
   }
 
-  void move_key_to_base_range(base_node *right, std::size_t start) {
+  [[maybe_unused]] void move_key_to_base_range(base_node *right, std::size_t start) {
     for (auto i = start; i < key_slice_length; ++i) {
       right->set_key(i - start, get_key_slice_at(i), get_key_length_at(i));
       set_key(i, 0, 0);
@@ -201,7 +203,7 @@ public:
     root_.store(nr, std::memory_order_release);
   }
 
-  void set_version(node_version64_body nv) { // this function is used.
+  [[maybe_unused]] void set_version(node_version64_body nv) { // this function is used.
     version_.set_body(nv);
   }
 
@@ -225,7 +227,7 @@ public:
     version_.atomic_set_root(tf);
   }
 
-  void set_version_splitting(bool tf) {
+  [[maybe_unused]] void set_version_splitting(bool tf) {
     version_.atomic_set_splitting(tf);
   }
 
@@ -256,7 +258,7 @@ public:
     version_.atomic_inc_vdelete();
   }
 
-  void version_atomic_inc_vinsert() {
+  [[maybe_unused]] void version_atomic_inc_vinsert() {
     version_.atomic_inc_vinsert();
   }
 
