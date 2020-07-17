@@ -101,7 +101,7 @@ void parallel_build_tree() {
       std::string value(FLAGS_value_size, '0');
       for (std::size_t i = left_edge; i < right_edge; ++i) {
         void* p =(&i);
-        std::string key{static_cast<char *>(p), sizeof(std::uint64_t)};
+        std::string key{static_cast<char *>(p), FLAGS_value_size};
         masstree_kvs::put(std::string_view(key), value.data(), value.size());
       }
       masstree_kvs::leave(token);
@@ -182,7 +182,7 @@ void put_worker(const size_t thid, char &ready, const bool &start, const bool &q
   std::uint64_t local_res{0};
   for (std::uint64_t i = left_edge; i < right_edge; ++i) {
     void* p = (&i);
-    std::string key{static_cast<char *>(p), sizeof(std::uint64_t)};
+    std::string key{static_cast<char *>(p), FLAGS_value_size};
     masstree_kvs::put(std::string_view(key), value.data(), value.size());
     ++local_res;
     if (i == right_edge - 1) {
