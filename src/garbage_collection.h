@@ -125,35 +125,37 @@ public:
   template<class interior_node, class border_node>
   void gc_node() {
     Epoch gc_epoch = get_gc_epoch();
-    auto gc_end_itr = node_container_->get_body().begin();
-    for (auto itr = node_container_->get_body().begin(); itr != node_container_->get_body().end(); ++itr) {
-      if (std::get<gc_epoch_index>(*itr) >= gc_epoch) {
-        gc_end_itr = itr;
+    std::uint64_t g_ctr{0};
+    for (auto &&itr : node_container_->get_body()) {
+      if (std::get<gc_epoch_index>(itr) >= gc_epoch) {
         break;
       }
-      if (std::get<gc_target_index>(*itr)->get_version_border()) {
-        delete dynamic_cast<border_node *>(std::get<gc_target_index>(*itr)); // NOLINT
+      if (std::get<gc_target_index>(itr)->get_version_border()) {
+        delete dynamic_cast<border_node *>(std::get<gc_target_index>(itr)); // NOLINT
       } else {
-        delete dynamic_cast<interior_node *>(std::get<gc_target_index>(*itr)); // NOLINT
+        delete dynamic_cast<interior_node *>(std::get<gc_target_index>(itr)); // NOLINT
       }
+      ++g_ctr;
     }
-    if (std::distance(node_container_->get_body().begin(), gc_end_itr) > 0) {
-      node_container_->get_body().erase(node_container_->get_body().begin(), gc_end_itr);
+    if (g_ctr > 0) {
+      node_container_->get_body().erase(node_container_->get_body().begin(),
+                                        node_container_->get_body().begin() + g_ctr);
     }
   }
 
   void gc_value() {
     Epoch gc_epoch = get_gc_epoch();
-    auto gc_end_itr = value_container_->get_body().begin();
-    for (auto itr = value_container_->get_body().begin(); itr != value_container_->get_body().end(); ++itr) {
-      if (std::get<gc_epoch_index>(*itr) >= gc_epoch) {
-        gc_end_itr = itr;
+    std::uint64_t g_ctr{0};
+    for (auto &&itr : value_container_->get_body()) {
+      if (std::get<gc_epoch_index>(itr) >= gc_epoch) {
         break;
       }
-      ::operator delete(std::get<gc_target_index>(*itr));
+      ::operator delete(std::get<gc_target_index>(itr));
+      ++g_ctr;
     }
-    if (std::distance(value_container_->get_body().begin(), gc_end_itr) > 0) {
-      value_container_->get_body().erase(value_container_->get_body().begin(), gc_end_itr);
+    if (g_ctr > 0) {
+      value_container_->get_body().erase(value_container_->get_body().begin(),
+                                         value_container_->get_body().begin() + g_ctr);
     }
   }
 

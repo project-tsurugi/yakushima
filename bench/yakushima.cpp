@@ -82,7 +82,7 @@ static void check_flags() {
 
 static bool isReady(const std::vector<char> &readys) {
   for (const char &b : readys) {
-    if (loadAcquireN(b)==0) return false;
+    if (loadAcquireN(b) == 0) return false;
   }
   return true;
 }
@@ -100,7 +100,7 @@ void parallel_build_tree() {
       masstree_kvs::enter(token);
       std::string value(FLAGS_value_size, '0');
       for (std::size_t i = left_edge; i < right_edge; ++i) {
-        void* p =(&i);
+        void *p = (&i);
         std::string key{static_cast<char *>(p), FLAGS_value_size};
         masstree_kvs::put(std::string_view(key), value.data(), value.size());
       }
@@ -150,7 +150,7 @@ void get_worker(const size_t thid, char &ready, const bool &start, const bool &q
   std::uint64_t local_res{0};
   while (!loadAcquireN(quit)) {
     uint64_t keynm = zipf() % FLAGS_get_initial_record;
-    void* p = (&keynm);
+    void *p = (&keynm);
     std::string key{static_cast<char *>(p), sizeof(std::uint64_t)};
     std::tuple<char *, std::size_t> ret = masstree_kvs::get<char>(std::string_view(key));
     if (std::get<0>(ret) == nullptr) {
@@ -181,9 +181,14 @@ void put_worker(const size_t thid, char &ready, const bool &start, const bool &q
 
   std::uint64_t local_res{0};
   for (std::uint64_t i = left_edge; i < right_edge; ++i) {
-    void* p = (&i);
+    void *p = (&i);
     std::string key{static_cast<char *>(p), FLAGS_value_size};
-    masstree_kvs::put(std::string_view(key), value.data(), value.size());
+    try {
+      masstree_kvs::put(std::string_view(key), value.data(), value.size());
+    } catch (std::bad_alloc &) {
+      std::cout << __FILE__ << " : " << __LINE__ << "bad_alloc. Please set less duration." << std::endl;
+      std::abort();
+    }
     ++local_res;
     if (i == right_edge - 1) {
       Failure.store(true, std::memory_order_release);
@@ -196,8 +201,8 @@ void put_worker(const size_t thid, char &ready, const bool &start, const bool &q
   }
 
   // parallel delete existing tree to reduce deleting time by single thread.
-  for (std::uint64_t i = left_edge; i < left_edge + local_res; ++i) {
-    void* p = (&i);
+  for (std::uint64_t i = left_edge; i <= left_edge + local_res; ++i) {
+    void *p = (&i);
     std::string key{static_cast<char *>(p), sizeof(std::uint64_t)};
     masstree_kvs::remove(token, std::string_view(key));
   }
