@@ -44,8 +44,6 @@ DEFINE_string(instruction, "get", "put or get. The default is insert."); // NOLI
 DEFINE_uint64(thread, 1, "# worker threads."); // NOLINT
 DEFINE_uint32(value_size, 4, "value size"); // NOLINT
 
-std::atomic<bool> Failure{false};
-
 static void check_flags() {
   std::cout << "parameter settings\n"
             << "duration :\t\t" << FLAGS_duration << "\n"
@@ -99,9 +97,9 @@ void parallel_build_tree() {
       Token token{};
       masstree_kvs::enter(token);
       std::string value(FLAGS_value_size, '0');
-      for (std::size_t i = left_edge; i < right_edge; ++i) {
+      for (std::uint64_t i = left_edge; i < right_edge; ++i) {
         void *p = (&i);
-        std::string key{static_cast<char *>(p), FLAGS_value_size};
+        std::string key{static_cast<char *>(p), sizeof(std::uint64_t)}; // sizeof(std::size_t) points to loop variable.
         masstree_kvs::put(std::string_view(key), value.data(), value.size());
       }
       masstree_kvs::leave(token);
@@ -149,14 +147,13 @@ void get_worker(const size_t thid, char &ready, const bool &start, const bool &q
   masstree_kvs::enter(token);
   std::uint64_t local_res{0};
   while (!loadAcquireN(quit)) {
-    uint64_t keynm = zipf() % FLAGS_get_initial_record;
+    std::uint64_t keynm = zipf() % FLAGS_get_initial_record;
     void *p = (&keynm);
     std::string key{static_cast<char *>(p), sizeof(std::uint64_t)};
     std::tuple<char *, std::size_t> ret = masstree_kvs::get<char>(std::string_view(key));
     if (std::get<0>(ret) == nullptr) {
-      Failure.store(true, std::memory_order_release);
-    } else {
-      if (Failure.load(std::memory_order_acquire)) break;
+      std::cout << __FILE__ << " : " << __LINE__ << " : fatal error." << std::endl;
+      std::abort();
     }
     ++local_res;
   }
@@ -182,7 +179,7 @@ void put_worker(const size_t thid, char &ready, const bool &start, const bool &q
   std::uint64_t local_res{0};
   for (std::uint64_t i = left_edge; i < right_edge; ++i) {
     void *p = (&i);
-    std::string key{static_cast<char *>(p), FLAGS_value_size};
+    std::string key{static_cast<char *>(p), sizeof(std::uint64_t)};
     try {
       masstree_kvs::put(std::string_view(key), value.data(), value.size());
     } catch (std::bad_alloc &) {
@@ -191,12 +188,10 @@ void put_worker(const size_t thid, char &ready, const bool &start, const bool &q
     }
     ++local_res;
     if (i == right_edge - 1) {
-      Failure.store(true, std::memory_order_release);
-    } else {
-      if (Failure.load(std::memory_order_acquire) ||
-          loadAcquireN(quit)) {
-        break;
-      }
+      std::cout << __FILE__ << " : " << __LINE__
+                << " : This experiments fails. Please set less duration."
+                << std::endl;
+      std::abort();
     }
   }
 
@@ -211,7 +206,7 @@ void put_worker(const size_t thid, char &ready, const bool &start, const bool &q
   res = local_res;
 }
 
-static void invoke_leader() {
+static void invoke_leader() try {
   alignas(CACHE_LINE_SIZE) bool start = false;
   alignas(CACHE_LINE_SIZE) bool quit = false;
   alignas(CACHE_LINE_SIZE) std::vector<std::size_t> res(FLAGS_thread);
@@ -249,24 +244,12 @@ static void invoke_leader() {
   std::cout << "[start] measurement." << std::endl;
   for (size_t i = 0; i < FLAGS_duration; ++i) {
     sleepMs(1000);
-    if (Failure.load(std::memory_order_acquire)) break;
   }
   std::cout << "[end] measurement." << std::endl;
   storeReleaseN(quit, true);
   std::cout << "[start] join worker threads." << std::endl;
   for (auto &th : thv) th.join();
   std::cout << "[end] join worker threads." << std::endl;
-
-  if (Failure.load(std::memory_order_acquire)) {
-    if (FLAGS_instruction == "put") {
-
-      std::cout << __FILE__ << " : " << __LINE__ << " : experimental setting is bad, which leads to overflow.\n"
-                << "please set less durations." << std::endl;
-    } else if (FLAGS_instruction == "get") {
-      std::cout << __FILE__ << " : " << __LINE__ << "fatal error." << std::endl;
-    }
-    exit(1);
-  }
 
   /**
    * get test : read records.
@@ -286,6 +269,9 @@ static void invoke_leader() {
   std::cout << "[start] fin masstree." << std::endl;
   masstree_kvs::fin();
   std::cout << "[end] fin masstree." << std::endl;
+} catch (...) {
+  std::cout << __FILE__ << " : " << __LINE__ << " : catch exception" << std::endl;
+  std::abort();
 }
 
 int main(int argc, char *argv[]) {
