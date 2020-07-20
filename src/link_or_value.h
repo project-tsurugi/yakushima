@@ -77,7 +77,7 @@ public:
     return loadAcquireN(next_layer_);
   }
 
-  [[nodiscard]] const std::type_info *get_lv_type() {
+  [[maybe_unused]] [[nodiscard]] const std::type_info *get_lv_type() {
     if (get_next_layer() != nullptr) {
       return &typeid(get_next_layer());
     }
