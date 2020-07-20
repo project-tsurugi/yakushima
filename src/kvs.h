@@ -18,7 +18,7 @@
 
 namespace yakushima {
 
-class masstree_kvs {
+class masstree_kvs { // NOLINT
 public:
   using key_slice_type = base_node::key_slice_type;
   using key_length_type = base_node::key_length_type;
@@ -53,14 +53,12 @@ public:
    * @return status::OK_ROOT_IS_NULL tree was nothing.
    */
   static status destroy() {
-    base_node *root = base_node::get_root();
-    status return_status(status::OK_ROOT_IS_NULL);
-    if (root != nullptr) {
-      base_node::get_root()->destroy();
-      base_node::set_root(nullptr);
-      return_status = status::OK_DESTROY_ALL;
-    }
-    return return_status;
+    base_node *root{base_node::get_root()};
+    if (root == nullptr) return status::OK_ROOT_IS_NULL;
+    base_node::get_root()->destroy();
+    delete base_node::get_root(); // NOLINT
+    base_node::set_root(nullptr);
+    return status::OK_DESTROY_ALL;
   }
 
   /**
@@ -208,6 +206,7 @@ root_nullptr:
         if (expected != nullptr) {
           // root is not nullptr;
           new_border->destroy();
+          delete new_border; // NOLINT
           break;
         }
         // root is nullptr.
@@ -521,8 +520,8 @@ retry_fetch_lv:
     node_version64_body v_at_fetch_lv{};
     std::size_t lv_pos{0};
     link_or_value *lv_ptr = target_border->get_lv_of(key_slice, key_slice_length, v_at_fetch_lv, lv_pos);
-    std::size_t kl{0};
-    base_node *next_layer{nullptr};
+    [[maybe_unused]] std::size_t kl{0};
+    [[maybe_unused]] base_node *next_layer{nullptr};
     if (lv_ptr != nullptr) {
       kl = target_border->get_key_length_at(lv_pos);
       next_layer = lv_ptr->get_next_layer();

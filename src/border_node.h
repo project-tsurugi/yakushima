@@ -79,7 +79,6 @@ public:
     for (auto i = 0; i < permutation_.get_cnk(); ++i) {
       lv_.at(static_cast<std::uint32_t>(i)).destroy();
     }
-    delete this;
     return status::OK_DESTROY_BORDER;
   }
 

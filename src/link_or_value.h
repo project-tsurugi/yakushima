@@ -44,6 +44,7 @@ public:
   void destroy_next_layer() {
     if (next_layer_ != nullptr) {
       next_layer_->destroy();
+      delete next_layer_; // NOLINT
     }
     set_next_layer(nullptr);
   }

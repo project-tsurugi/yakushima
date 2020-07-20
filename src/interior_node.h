@@ -130,8 +130,8 @@ public:
   status destroy() override {
     for (auto i = 0; i < n_keys_ + 1; ++i) {
       get_child_at(i)->destroy();
+      delete get_child_at(i); // NOLINT
     }
-    delete this;
     return status::OK_DESTROY_INTERIOR;
   }
 

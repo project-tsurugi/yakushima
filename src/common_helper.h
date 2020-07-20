@@ -84,7 +84,7 @@ descend:
     goto retry; // NOLINT
   }
   /**
-   * If the vsplit values ​​match, it can continue.
+   * If the vsplit values match, it can continue.
    * Even if it is inserted, the slot value is invariant and the order is controlled by @a permutation.
    * However, the value corresponding to the key that could not be detected may have been inserted,
    * so re-start from this node.
