@@ -187,6 +187,9 @@ void put_worker(const size_t thid, char &ready, const bool &start, const bool &q
       std::abort();
     }
     ++local_res;
+    if (loadAcquireN(quit)) {
+      break;
+    }
     if (i == right_edge - 1) {
       std::cout << __FILE__ << " : " << __LINE__
                 << " : This experiments fails. Please set less duration."
