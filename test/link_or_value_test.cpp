@@ -15,6 +15,10 @@ namespace yakushima::testing {
 class lvtest : public ::testing::Test {
 };
 
+TEST_F(lvtest, typeAssert) {
+ ASSERT_EQ(std::is_trivially_copyable<link_or_value>::value, true);
+}
+
 TEST_F(lvtest, display) { // NOLINT
   link_or_value lv;
   ASSERT_EQ(true, true);
