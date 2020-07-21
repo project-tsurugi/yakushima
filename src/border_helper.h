@@ -194,7 +194,7 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, va
    * maintenance about empty parts due to new border.
    */
   border->init_base_member_range(remaining_size, base_node::key_slice_length - 1);
-  border->init_border_member_range(remaining_size, base_node::key_slice_length - 1);
+  border->init_border_member_range(remaining_size);
   /**
    * fix permutations
    */

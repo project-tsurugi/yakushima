@@ -333,7 +333,7 @@ retry_prev_lock:
 
   void init_border() {
     init_base();
-    init_border_member_range(0, key_slice_length - 1);
+    init_border_member_range(0);
     set_version_border(true);
     permutation_.init();
     set_next(nullptr);
@@ -374,8 +374,8 @@ retry_prev_lock:
     insert_lv_at(0, key_view, value_ptr, arg_value_length, value_align);
   }
 
-  void init_border_member_range(std::size_t start, std::size_t end) {
-    for (auto i = start; i <= end; ++i) {
+  void init_border_member_range(std::size_t start) {
+    for (auto i = start; i < lv_.size(); ++i) {
       lv_.at(i).init_lv();
     }
   }
