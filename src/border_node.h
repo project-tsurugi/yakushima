@@ -346,7 +346,7 @@ retry_prev_lock:
    */
   void init_border(std::size_t pos) {
     init_base(pos);
-    init_lv_at(pos);
+    lv_.at(pos).init_lv();
   }
 
   /**
@@ -376,12 +376,8 @@ retry_prev_lock:
 
   void init_border_member_range(std::size_t start, std::size_t end) {
     for (auto i = start; i <= end; ++i) {
-      init_lv_at(i);
+      lv_.at(i).init_lv();
     }
-  }
-
-  void init_lv_at(std::size_t index) {
-    lv_.at(index).init_lv();
   }
 
   /**
