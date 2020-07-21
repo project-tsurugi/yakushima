@@ -123,7 +123,7 @@ public:
 
     // rearrange
     std::uint64_t new_body(0);
-    for (auto itr = ar.begin() + cnk - 1; itr != ar.begin() - 1; --itr) { // NOLINT : order to use "auto *itr"
+    for (auto itr = ar.rbegin() + (base_node::key_slice_length - cnk); itr != ar.rend(); ++itr) { // NOLINT : order to use "auto *itr"
       new_body |= std::get<key_pos>(*itr);
       new_body <<= pkey_bit_size;
     }
