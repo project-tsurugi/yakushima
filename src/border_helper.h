@@ -193,7 +193,7 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, va
   /**
    * maintenance about empty parts due to new border.
    */
-  border->init_base_member_range(remaining_size, base_node::key_slice_length - 1);
+  border->init_base_member_range(remaining_size);
   border->init_border_member_range(remaining_size);
   /**
    * fix permutations
@@ -208,7 +208,7 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, va
    * key_slice must be initialized to 0.
    */
   key_slice_type key_slice{0};
-  key_length_type key_length{};
+  key_length_type key_length; // NOLINT
   if (key_view.size() > sizeof(key_slice_type)) {
     memcpy(&key_slice, key_view.data(), sizeof(key_slice_type));
     key_length = sizeof(key_slice_type) + 1;

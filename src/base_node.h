@@ -143,8 +143,8 @@ public:
     set_key(pos, 0, 0);
   }
 
-  [[maybe_unused]] void init_base_member_range(std::size_t start, std::size_t end) {
-    for (std::size_t i = start; i <= end; ++i) {
+  [[maybe_unused]] void init_base_member_range(std::size_t start) {
+    for (std::size_t i = start; i < key_slice_length; ++i) {
       set_key(i, 0, 0);
     }
   }
