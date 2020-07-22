@@ -96,6 +96,7 @@ public:
   template<bool target_is_value>
   void delete_of(Token token, key_slice_type key_slice, key_length_type key_slice_length,
                  std::vector<node_version64 *> &lock_list) {
+    set_version_inserting_deleting(true);
     /**
      * find position.
      */
@@ -128,7 +129,6 @@ retry_prev_lock:
           /**
            * lock order is next to prev and lower to higher.
            */
-          set_version_deleting_node(true);
           base_node *pn = lock_parent();
           if (pn == nullptr) {
 #ifndef NDEBUG
@@ -156,7 +156,6 @@ retry_prev_lock:
           set_version_deleted(true);
           reinterpret_cast<thread_info *>(token)->move_node_to_gc_container(this); // NOLINT
         }
-        version_atomic_inc_vdelete();
         return;
       }
     }
@@ -219,37 +218,6 @@ retry_prev_lock:
      */
     std::cerr << __FILE__ << " : " << __LINE__ << " : " << "fatal error." << std::endl;
     std::abort();
-  }
-
-  /**
-  * @details Find link_or_value element whose next_layer is the same as @a next_layer of the argument.
-  * @pre it is called at functions about deleting node.
-  * @param[in] next_layer
-  * @return link_or_value*
-  */
-  [[maybe_unused]] [[nodiscard]] link_or_value *get_lv_without_lock(base_node *next_layer) {
-    for (;;) {
-      node_version64_body v = get_version();
-      if ((v.get_locked() && ((v.get_inserting() && !v.get_splitting() && !v.get_deleting_node()))) ||
-          // simple inserting
-          (v.get_locked() && (!v.get_inserting() && !v.get_splitting() && !v.get_deleting_node()))) { // simple deleting
-        _mm_pause();
-        continue;
-      }
-
-      link_or_value *ret = nullptr;
-      for (std::size_t i = 0; i < base_node::key_slice_length; ++i) {
-        if (lv_.at(i).get_next_layer() == next_layer) {
-          ret = &lv_.at(i);
-          break;
-        }
-      }
-
-      node_version64_body check = get_version();
-      if (v == check) {
-        return ret;
-      }
-    }
   }
 
   [[nodiscard]] link_or_value *get_lv_at(std::size_t index) {

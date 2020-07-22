@@ -25,9 +25,8 @@ namespace yakushima {
  */
 class node_version64_body {
 public:
-  using vdelete_type = std::uint16_t;
-  using vinsert_type = std::uint16_t;
-  using vsplit_type = std::uint16_t;
+  using vinsert_delete_type = std::uint32_t;
+  using vsplit_type = std::uint32_t;
 
   node_version64_body() = default;
 
@@ -43,15 +42,12 @@ public:
 
   bool operator==(const node_version64_body &rhs) const {
     return get_locked() == rhs.get_locked()
-           && get_deleting_node() == rhs.get_deleting_node()
-           && get_inserting() == rhs.get_inserting()
+           && get_inserting_deleting() == rhs.get_inserting_deleting()
            && get_splitting() == rhs.get_splitting()
            && get_deleted() == rhs.get_deleted()
            && get_root() == rhs.get_root()
            && get_border() == rhs.get_border()
-           && get_unused() == rhs.get_unused()
-           && get_vdelete() == rhs.get_vdelete()
-           && get_vinsert() == rhs.get_vinsert()
+           && get_vinsert_delete() == rhs.get_vinsert_delete()
            && get_vsplit() == rhs.get_vsplit();
   }
 
@@ -61,15 +57,12 @@ public:
   void display() const {
     std::cout << "node_version64_body::display" << std::endl;
     std::cout << "locked : " << get_locked() << std::endl;
-    std::cout << "deleting : " << get_deleting_node() << std::endl;
-    std::cout << "inserting : " << get_inserting() << std::endl;
+    std::cout << "inserting_deleting : " << get_inserting_deleting() << std::endl;
     std::cout << "splitting : " << get_splitting() << std::endl;
     std::cout << "deleted : " << get_deleted() << std::endl;
     std::cout << "root : " << get_root() << std::endl;
     std::cout << "border : " << get_border() << std::endl;
-    std::cout << "unused : " << get_unused() << std::endl;
-    std::cout << "vdelete : " << get_vdelete() << std::endl;
-    std::cout << "vinsert : " << get_vinsert() << std::endl;
+    std::cout << "vinsert_delete : " << get_vinsert_delete() << std::endl;
     std::cout << "vsplit: " << get_vsplit() << std::endl;
   }
 
@@ -85,12 +78,8 @@ public:
     return deleted;
   }
 
-  [[nodiscard]] bool get_deleting_node() const {
-    return deleting_node;
-  }
-
-  [[nodiscard]] bool get_inserting() const {
-    return inserting;
+  [[nodiscard]] bool get_inserting_deleting() const {
+    return inserting_deleting;
   }
 
   [[nodiscard]] bool get_locked() const {
@@ -105,28 +94,16 @@ public:
     return splitting;
   }
 
-  [[nodiscard]] bool get_unused() const {
-    return unused;
-  }
-
-  [[nodiscard]] vdelete_type get_vdelete() const {
-    return vdelete;
-  }
-
-  [[nodiscard]] vinsert_type get_vinsert() const {
-    return vinsert;
+  [[nodiscard]] vinsert_delete_type get_vinsert_delete() const {
+    return vinsert_delete;
   }
 
   [[nodiscard]] vsplit_type get_vsplit() const {
     return vsplit;
   }
 
-  void inc_vdelete() {
-    ++vdelete;
-  }
-
-  void inc_vinsert() {
-    ++vinsert;
+  void inc_vinsert_delete() {
+    ++vinsert_delete;
   }
 
   void inc_vsplit() {
@@ -135,23 +112,13 @@ public:
 
   void init() {
     locked = false;
-    deleting_node = false;
-    inserting = false;
+    inserting_deleting = false;
     splitting = false;
     deleted = false;
     root = false;
     border = false;
-    unused = false;
-    vdelete = 0;
-    vinsert = 0;
+    vinsert_delete = 0;
     vsplit = 0;
-  }
-
-  void make_stable_version_forcibly() {
-    set_deleting_node(false);
-    set_inserting(false);
-    set_locked(false);
-    set_splitting(false);
   }
 
   void set_border(bool new_border) &{
@@ -162,12 +129,8 @@ public:
     deleted = new_deleted;
   }
 
-  void set_deleting_node(bool tf) &{
-    deleting_node = tf;
-  }
-
-  void set_inserting(bool new_inserting) &{
-    inserting = new_inserting;
+  void set_inserting_deleting(bool new_inserting_deleting) &{
+    inserting_deleting = new_inserting_deleting;
   }
 
   void set_locked(bool new_locked) &{
@@ -182,40 +145,30 @@ public:
     splitting = new_splitting;
   }
 
-  void set_unused(bool new_unused) &{
-    unused = new_unused;
-  }
-
-  void set_vdelete(vdelete_type new_vdelete) {
-    vdelete = new_vdelete;
-  }
-
-  void set_vinsert(vinsert_type new_vinsert) &{
-    vinsert = new_vinsert;
-  }
-
-  void set_vsplit(vsplit_type new_vsplit) &{
-    vsplit = new_vsplit;
-  }
-
 private:
   /**
    * These details is based on original paper Fig. 3.
+   * Declaration order is because class size does not exceed 8 bytes.
    */
+  /**
+   * @attention tanabe : In the original paper, the interior node does not have a delete count field.
+   * On the other hand, the border node has this (nremoved) but no details in original paper.
+   * Since there is a @a deleted field in the version, you can check whether the node you are checking has been deleted.
+   * However, you do not know that the position has been moved.
+   * Maybe you took the node from the wrong position.
+   * The original paper cannot detect it.
+   * Therefore, add notion of delete field.
+   * @details It is a counter incremented after inserting_deleting/deleting.
+   */
+  vinsert_delete_type vinsert_delete: 29;
   /**
    * @details It is claimed by update or insert.
    */
   bool locked: 1;
   /**
-   * @details It shows that this nodes will be deleted.
-   * The function find_lowest_key takes the value from the node when this flag is up. Read. When we raise this flag,
-   * we guarantee that no problems will occur with it.
+   * @details It is a dirty bit set during inserting_deleting.
    */
-  bool deleting_node: 1;
-  /**
-   * @details It is a dirty bit set during inserting.
-   */
-  bool inserting: 1;
+  bool inserting_deleting: 1;
   /**
    * @details It is a dirty bit set during splitting.
    * If this flag is set, vsplit is incremented when the lock is unlocked.
@@ -223,6 +176,10 @@ private:
    * we guarantee that no problems will occur with it.
    */
   bool splitting: 1;
+  /**
+   * @details It is a counter incremented after splitting.
+   */
+  vsplit_type vsplit: 29;
   /**
    * @details It is a delete bit set after delete.
    */
@@ -235,30 +192,6 @@ private:
    * @details It tells whether the node is interior or border.
    */
   bool border: 1;
-  /**
-   * @details It allows more efficient operations on the version number.
-   * tanabe : Is variables's details is nothing in original paper?
-   */
-  bool unused: 1;
-  /**
-   * @attention tanabe : In the original paper, the interior node does not have a delete count field.
-   * On the other hand, the border node has this (nremoved) but no details in original paper.
-   * Since there is a @a deleted field in the version, you can check whether the node you are checking has been deleted.
-   * However, you do not know that the position has been moved.
-   * Maybe you took the node from the wrong position.
-   * The original paper cannot detect it.
-   * Therefore, add this vdelete field.
-   * @details It is a counter incremented after delete.
-   */
-  vdelete_type vdelete;
-  /**
-   * @details It is a counter incremented after inserting.
-   */
-  vinsert_type vinsert;
-  /**
-   * @details It is a counter incremented after splitting.
-   */
-  vsplit_type vsplit;
 };
 
 /**
@@ -281,19 +214,7 @@ public:
     node_version64_body desired{};
     for (;;) {
       desired = expected;
-      desired.inc_vinsert();
-      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire)) {
-        break;
-      }
-    }
-  }
-
-  void atomic_inc_vdelete() {
-    node_version64_body expected(get_body());
-    node_version64_body desired{};
-    for (;;) {
-      desired = expected;
-      desired.inc_vdelete();
+      desired.inc_vinsert_delete();
       if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire)) {
         break;
       }
@@ -324,36 +245,12 @@ public:
     }
   }
 
-  void atomic_set_deleting_node(bool tf) &{
+  void atomic_set_inserting_deleting(bool tf) &{
     node_version64_body expected(get_body());
     node_version64_body desired{};
     for (;;) {
       desired = expected;
-      desired.set_deleting_node(tf);
-      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire)) {
-        break;
-      }
-    }
-  }
-
-  void atomic_set_inserting(bool tf) &{
-    node_version64_body expected(get_body());
-    node_version64_body desired{};
-    for (;;) {
-      desired = expected;
-      desired.set_inserting(tf);
-      if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire)) {
-        break;
-      }
-    }
-  }
-
-  void atomic_set_locked(bool tf) {
-    node_version64_body expected(get_body());
-    node_version64_body desired{};
-    for (;;) {
-      desired = expected;
-      desired.set_locked(tf);
+      desired.set_inserting_deleting(tf);
       if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire)) {
         break;
       }
@@ -424,24 +321,12 @@ public:
     return get_body().get_deleted();
   }
 
-  [[nodiscard]] bool get_deleting() {
-    return get_body().get_deleting_node();
-  }
-
-  [[nodiscard]] bool get_inserting() {
-    return get_body().get_inserting();
-  }
-
   [[nodiscard]] bool get_locked() {
     return get_body().get_locked();
   }
 
   [[nodiscard]] bool get_root() {
     return get_body().get_root();
-  }
-
-  [[nodiscard]] bool get_splitting() {
-    return get_body().get_splitting();
   }
 
   [[nodiscard]] node_version64_body get_stable_version() {
@@ -453,23 +338,15 @@ public:
        * Even if the locked version is immutable, the members read at that time may be broken.
        * Therefore, you have to check the lock.
        */
-      if (!sv.get_deleting_node() && !sv.get_inserting() && !sv.get_locked() && !sv.get_splitting()) {
+      if (!sv.get_inserting_deleting() && !sv.get_locked() && !sv.get_splitting()) {
         return sv;
       }
       _mm_pause();
     }
   }
 
-  [[nodiscard]] bool get_unused() {
-    return get_body().get_unused();
-  }
-
-  [[nodiscard]] node_version64_body::vdelete_type get_vdelete() {
-    return get_body().get_vdelete();
-  }
-
-  [[nodiscard]] node_version64_body::vinsert_type get_vinsert() {
-    return get_body().get_vinsert();
+  [[nodiscard]] node_version64_body::vinsert_delete_type get_vinsert_delete() {
+    return get_body().get_vinsert_delete();
   }
 
   [[nodiscard]] node_version64_body::vsplit_type get_vsplit() {
@@ -481,13 +358,6 @@ public:
    */
   void init() {
     set_body(node_version64_body());
-  }
-
-  void make_stable_version_forcibly() {
-    atomic_set_deleting_node(false);
-    atomic_set_inserting(false);
-    atomic_set_locked(false);
-    atomic_set_splitting(false);
   }
 
   void set_body(node_version64_body newv) &{
@@ -503,15 +373,14 @@ public:
     node_version64_body desired{};
     for (;;) {
       desired = expected;
-      if (desired.get_inserting()) {
-        desired.inc_vinsert();
-        desired.set_inserting(false);
+      if (desired.get_inserting_deleting()) {
+        desired.inc_vinsert_delete();
+        desired.set_inserting_deleting(false);
       }
       if (desired.get_splitting()) {
         desired.inc_vsplit();
         desired.set_splitting(false);
       }
-      desired.set_deleting_node(false);
       desired.set_locked(false);
       if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel, std::memory_order_acquire)) break;
     }

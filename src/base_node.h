@@ -18,7 +18,7 @@ namespace yakushima {
 /**
  * forward declaration to use friend
  */
-class masstree_kvs;
+class yakushima_kvs;
 
 class base_node { // NOLINT
 public:
@@ -116,12 +116,8 @@ public:
     return version_.get_root();
   }
 
-  [[nodiscard]] node_version64_body::vdelete_type get_version_vdelete() {
-    return version_.get_vdelete();
-  }
-
-  [[nodiscard]] node_version64_body::vinsert_type get_version_vinsert() {
-    return version_.get_vinsert();
+  [[nodiscard]] node_version64_body::vinsert_delete_type get_version_vinsert_delete() {
+    return version_.get_vinsert_delete();
   }
 
   [[nodiscard]] node_version64_body::vsplit_type get_version_vsplit() {
@@ -215,12 +211,8 @@ public:
     version_.atomic_set_deleted(tf);
   }
 
-  void set_version_deleting_node(bool tf) {
-    version_.atomic_set_deleting_node(tf);
-  }
-
-  void set_version_inserting(bool tf) {
-    version_.atomic_set_inserting(tf);
+  void set_version_inserting_deleting(bool tf) {
+    version_.atomic_set_inserting_deleting(tf);
   }
 
   void set_version_root(bool tf) {
@@ -254,16 +246,12 @@ public:
     version_.unlock();
   }
 
-  void version_atomic_inc_vdelete() {
-    version_.atomic_inc_vdelete();
-  }
-
   [[maybe_unused]] void version_atomic_inc_vinsert() {
     version_.atomic_inc_vinsert();
   }
 
 private:
-  friend masstree_kvs;
+  friend yakushima_kvs;
   /**
    * @attention This variable is read/written concurrently.
    */

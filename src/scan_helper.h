@@ -57,7 +57,7 @@ retry:
   constexpr std::size_t tuple_v_index = 1;
   status check_status;
   key_slice_type ks{0};
-  key_length_type kl{};
+  key_length_type kl; // NOLINT
   if (l_key.size() > sizeof(key_slice_type)) {
     memcpy(&ks, l_key.data(), sizeof(key_slice_type));
     kl = sizeof(key_slice_type);
@@ -88,8 +88,7 @@ retry:
           re_check_v.get_deleted()) {
         return status::OK_RETRY_FETCH_LV;
       }
-      if (check_v.get_vinsert() != re_check_v.get_vinsert() ||
-          check_v.get_vdelete() != re_check_v.get_vdelete()) {
+      if (check_v.get_vinsert_delete() != re_check_v.get_vinsert_delete()) {
         check_v = re_check_v;
         continue;
       }

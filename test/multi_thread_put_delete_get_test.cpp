@@ -40,10 +40,10 @@ TEST_F(mtpdgt, test1) { // NOLINT
 #else
     for (std::size_t h = 0; h < 50; ++h) {
 #endif
-    masstree_kvs::init();
+    yakushima_kvs::init();
     std::array<Token, 2> token{};
-    ASSERT_EQ(masstree_kvs::enter(token.at(0)), status::OK);
-    ASSERT_EQ(masstree_kvs::enter(token.at(1)), status::OK);
+    ASSERT_EQ(yakushima_kvs::enter(token.at(0)), status::OK);
+    ASSERT_EQ(yakushima_kvs::enter(token.at(1)), status::OK);
 
     std::reverse(kv1.begin(), kv1.end());
     std::reverse(kv2.begin(), kv2.end());
@@ -54,7 +54,7 @@ TEST_F(mtpdgt, test1) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            status ret = masstree_kvs::put(k, v.data(), v.size());
+            status ret = yakushima_kvs::put(k, v.data(), v.size());
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -63,13 +63,13 @@ TEST_F(mtpdgt, test1) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            std::tuple<char *, std::size_t> ret = masstree_kvs::get<char>(k);
+            std::tuple<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
             ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
           }
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            status ret = masstree_kvs::remove(token, k);
+            status ret = yakushima_kvs::remove(token, k);
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -79,7 +79,7 @@ TEST_F(mtpdgt, test1) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = masstree_kvs::put(k, v.data(), v.size());
+          status ret = yakushima_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -96,15 +96,15 @@ TEST_F(mtpdgt, test1) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(i, '\0');
-      masstree_kvs::scan<char>("", false, k, false, tuple_list);
+      yakushima_kvs::scan<char>("", false, k, false, tuple_list);
       for (std::size_t j = 0; j < i + 1; ++j) {
         std::string v(std::to_string(j));
         ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
       }
     }
-    ASSERT_EQ(masstree_kvs::leave(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
-    masstree_kvs::fin();
+    ASSERT_EQ(yakushima_kvs::leave(token[0]), status::OK);
+    ASSERT_EQ(yakushima_kvs::leave(token[1]), status::OK);
+    yakushima_kvs::fin();
   }
 }
 
@@ -131,10 +131,10 @@ TEST_F(mtpdgt, test2) { // NOLINT
 #else
     for (std::size_t h = 0; h < 50; ++h) {
 #endif
-    masstree_kvs::init();
+    yakushima_kvs::init();
     std::array<Token, 2> token{};
-    ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
+    ASSERT_EQ(yakushima_kvs::enter(token[0]), status::OK);
+    ASSERT_EQ(yakushima_kvs::enter(token[1]), status::OK);
 
     std::shuffle(kv1.begin(), kv1.end(), engine);
     std::shuffle(kv2.begin(), kv2.end(), engine);
@@ -145,7 +145,7 @@ TEST_F(mtpdgt, test2) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            status ret = masstree_kvs::put(k, v.data(), v.size());
+            status ret = yakushima_kvs::put(k, v.data(), v.size());
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -154,13 +154,13 @@ TEST_F(mtpdgt, test2) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            std::tuple<char *, std::size_t> ret = masstree_kvs::get<char>(k);
+            std::tuple<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
             ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
           }
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            status ret = masstree_kvs::remove(token, k);
+            status ret = yakushima_kvs::remove(token, k);
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -170,7 +170,7 @@ TEST_F(mtpdgt, test2) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = masstree_kvs::put(k, v.data(), v.size());
+          status ret = yakushima_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -187,15 +187,15 @@ TEST_F(mtpdgt, test2) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(i, '\0');
-      masstree_kvs::scan<char>("", false, k, false, tuple_list);
+      yakushima_kvs::scan<char>("", false, k, false, tuple_list);
       for (std::size_t j = 0; j < i + 1; ++j) {
         std::string v(std::to_string(j));
         ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
       }
     }
-    ASSERT_EQ(masstree_kvs::leave(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
-    masstree_kvs::fin();
+    ASSERT_EQ(yakushima_kvs::leave(token[0]), status::OK);
+    ASSERT_EQ(yakushima_kvs::leave(token[1]), status::OK);
+    yakushima_kvs::fin();
   }
 }
 
@@ -223,10 +223,10 @@ TEST_F(mtpdgt, test3) { // NOLINT
 #else
     for (std::size_t h = 0; h < 100; ++h) {
 #endif
-    masstree_kvs::init();
+    yakushima_kvs::init();
     std::array<Token, 2> token{};
-    ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
+    ASSERT_EQ(yakushima_kvs::enter(token[0]), status::OK);
+    ASSERT_EQ(yakushima_kvs::enter(token[1]), status::OK);
 
     std::shuffle(kv1.begin(), kv1.end(), engine);
     std::shuffle(kv2.begin(), kv2.end(), engine);
@@ -236,7 +236,7 @@ TEST_F(mtpdgt, test3) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            status ret = masstree_kvs::put(k, v.data(), v.size());
+            status ret = yakushima_kvs::put(k, v.data(), v.size());
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -245,13 +245,13 @@ TEST_F(mtpdgt, test3) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            std::tuple<char *, std::size_t> ret = masstree_kvs::get<char>(k);
+            std::tuple<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
             ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
           }
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            status ret = masstree_kvs::remove(token, k);
+            status ret = yakushima_kvs::remove(token, k);
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -261,7 +261,7 @@ TEST_F(mtpdgt, test3) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = masstree_kvs::put(k, v.data(), v.size());
+          status ret = yakushima_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -278,15 +278,15 @@ TEST_F(mtpdgt, test3) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(i, '\0');
-      masstree_kvs::scan<char>("", false, k, false, tuple_list);
+      yakushima_kvs::scan<char>("", false, k, false, tuple_list);
       for (std::size_t j = 0; j < i + 1; ++j) {
         std::string v(std::to_string(j));
         ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
       }
     }
-    ASSERT_EQ(masstree_kvs::leave(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
-    masstree_kvs::fin();
+    ASSERT_EQ(yakushima_kvs::leave(token[0]), status::OK);
+    ASSERT_EQ(yakushima_kvs::leave(token[1]), status::OK);
+    yakushima_kvs::fin();
   }
 }
 
@@ -313,10 +313,10 @@ TEST_F(mtpdgt, test4) { // NOLINT
 #else
     for (std::size_t h = 0; h < 100; ++h) {
 #endif
-    masstree_kvs::init();
+    yakushima_kvs::init();
     std::array<Token, 2> token{};
-    ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
+    ASSERT_EQ(yakushima_kvs::enter(token[0]), status::OK);
+    ASSERT_EQ(yakushima_kvs::enter(token[1]), status::OK);
 
     std::shuffle(kv1.begin(), kv1.end(), engine);
     std::shuffle(kv2.begin(), kv2.end(), engine);
@@ -327,7 +327,7 @@ TEST_F(mtpdgt, test4) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            status ret = masstree_kvs::put(k, v.data(), v.size());
+            status ret = yakushima_kvs::put(k, v.data(), v.size());
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -336,13 +336,13 @@ TEST_F(mtpdgt, test4) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            std::tuple<char *, std::size_t> ret = masstree_kvs::get<char>(k);
+            std::tuple<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
             ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
           }
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            status ret = masstree_kvs::remove(token, k);
+            status ret = yakushima_kvs::remove(token, k);
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -352,7 +352,7 @@ TEST_F(mtpdgt, test4) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = masstree_kvs::put(k, v.data(), v.size());
+          status ret = yakushima_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -369,15 +369,15 @@ TEST_F(mtpdgt, test4) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(i, '\0');
-      masstree_kvs::scan<char>("", false, k, false, tuple_list);
+      yakushima_kvs::scan<char>("", false, k, false, tuple_list);
       for (std::size_t j = 0; j < i + 1; ++j) {
         std::string v(std::to_string(j));
         ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
       }
     }
-    ASSERT_EQ(masstree_kvs::leave(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
-    masstree_kvs::fin();
+    ASSERT_EQ(yakushima_kvs::leave(token[0]), status::OK);
+    ASSERT_EQ(yakushima_kvs::leave(token[1]), status::OK);
+    yakushima_kvs::fin();
   }
 }
 
@@ -401,10 +401,10 @@ TEST_F(mtpdgt, test5) { // NOLINT
 #else
     for (std::size_t h = 0; h < 100; ++h) {
 #endif
-    masstree_kvs::init();
+    yakushima_kvs::init();
     std::array<Token, 2> token{};
-    ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
+    ASSERT_EQ(yakushima_kvs::enter(token[0]), status::OK);
+    ASSERT_EQ(yakushima_kvs::enter(token[1]), status::OK);
 
     std::reverse(kv1.begin(), kv1.end());
     std::reverse(kv2.begin(), kv2.end());
@@ -415,7 +415,7 @@ TEST_F(mtpdgt, test5) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            status ret = masstree_kvs::put(k, v.data(), v.size());
+            status ret = yakushima_kvs::put(k, v.data(), v.size());
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -424,13 +424,13 @@ TEST_F(mtpdgt, test5) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            std::tuple<char *, std::size_t> ret = masstree_kvs::get<char>(k);
+            std::tuple<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
             ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
           }
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            status ret = masstree_kvs::remove(token, k);
+            status ret = yakushima_kvs::remove(token, k);
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -440,7 +440,7 @@ TEST_F(mtpdgt, test5) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = masstree_kvs::put(k, v.data(), v.size());
+          status ret = yakushima_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -457,9 +457,9 @@ TEST_F(mtpdgt, test5) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 1; i < ary_size; ++i) {
       std::string k(1, i);
-      masstree_kvs::scan<char>("", false, std::string_view(k), false, tuple_list);
+      yakushima_kvs::scan<char>("", false, std::string_view(k), false, tuple_list);
       if (tuple_list.size() != i + 1) {
-        masstree_kvs::scan<char>("", false, std::string_view(k), false, tuple_list);
+        yakushima_kvs::scan<char>("", false, std::string_view(k), false, tuple_list);
         ASSERT_EQ(tuple_list.size(), i + 1);
       }
       for (std::size_t j = 0; j < i + 1; ++j) {
@@ -467,9 +467,9 @@ TEST_F(mtpdgt, test5) { // NOLINT
         ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
       }
     }
-    ASSERT_EQ(masstree_kvs::leave(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
-    masstree_kvs::fin();
+    ASSERT_EQ(yakushima_kvs::leave(token[0]), status::OK);
+    ASSERT_EQ(yakushima_kvs::leave(token[1]), status::OK);
+    yakushima_kvs::fin();
   }
 }
 
@@ -497,10 +497,10 @@ TEST_F(mtpdgt, test6) { // NOLINT
 #else
     for (std::size_t h = 0; h < 100; ++h) {
 #endif
-    masstree_kvs::init();
+    yakushima_kvs::init();
     std::array<Token, 2> token{};
-    ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
+    ASSERT_EQ(yakushima_kvs::enter(token[0]), status::OK);
+    ASSERT_EQ(yakushima_kvs::enter(token[1]), status::OK);
 
     std::shuffle(kv1.begin(), kv1.end(), engine);
     std::shuffle(kv2.begin(), kv2.end(), engine);
@@ -511,7 +511,7 @@ TEST_F(mtpdgt, test6) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            status ret = masstree_kvs::put(k, v.data(), v.size());
+            status ret = yakushima_kvs::put(k, v.data(), v.size());
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -520,13 +520,13 @@ TEST_F(mtpdgt, test6) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            std::tuple<char *, std::size_t> ret = masstree_kvs::get<char>(k);
+            std::tuple<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
             ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
           }
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            status ret = masstree_kvs::remove(token, k);
+            status ret = yakushima_kvs::remove(token, k);
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -536,7 +536,7 @@ TEST_F(mtpdgt, test6) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = masstree_kvs::put(k, v.data(), v.size());
+          status ret = yakushima_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -553,9 +553,9 @@ TEST_F(mtpdgt, test6) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 1; i < ary_size; ++i) {
       std::string k(1, i);
-      masstree_kvs::scan<char>("", false, k, false, tuple_list);
+      yakushima_kvs::scan<char>("", false, k, false, tuple_list);
       if (tuple_list.size() != i + 1) {
-        masstree_kvs::scan<char>("", false, k, false, tuple_list);
+        yakushima_kvs::scan<char>("", false, k, false, tuple_list);
         ASSERT_EQ(tuple_list.size(), i + 1);
       }
       for (std::size_t j = 0; j < i + 1; ++j) {
@@ -563,9 +563,9 @@ TEST_F(mtpdgt, test6) { // NOLINT
         ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
       }
     }
-    ASSERT_EQ(masstree_kvs::leave(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
-    masstree_kvs::fin();
+    ASSERT_EQ(yakushima_kvs::leave(token[0]), status::OK);
+    ASSERT_EQ(yakushima_kvs::leave(token[1]), status::OK);
+    yakushima_kvs::fin();
   }
 }
 
@@ -600,10 +600,10 @@ TEST_F(mtpdgt, test7) { // NOLINT
 #else
     for (std::size_t h = 0; h < 200; ++h) {
 #endif
-    masstree_kvs::init();
+    yakushima_kvs::init();
     std::array<Token, 2> token{};
-    ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
+    ASSERT_EQ(yakushima_kvs::enter(token[0]), status::OK);
+    ASSERT_EQ(yakushima_kvs::enter(token[1]), status::OK);
 
     std::shuffle(kv1.begin(), kv1.end(), engine);
     std::shuffle(kv2.begin(), kv2.end(), engine);
@@ -614,7 +614,7 @@ TEST_F(mtpdgt, test7) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            status ret = masstree_kvs::put(k, v.data(), v.size());
+            status ret = yakushima_kvs::put(k, v.data(), v.size());
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -623,13 +623,13 @@ TEST_F(mtpdgt, test7) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            std::tuple<char *, std::size_t> ret = masstree_kvs::get<char>(k);
+            std::tuple<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
             ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
           }
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            status ret = masstree_kvs::remove(token, k);
+            status ret = yakushima_kvs::remove(token, k);
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -639,7 +639,7 @@ TEST_F(mtpdgt, test7) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = masstree_kvs::put(k, v.data(), v.size());
+          status ret = yakushima_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -661,9 +661,9 @@ TEST_F(mtpdgt, test7) { // NOLINT
       } else {
         k = std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i);
       }
-      masstree_kvs::scan<char>("", false, k, false, tuple_list);
+      yakushima_kvs::scan<char>("", false, k, false, tuple_list);
       if (tuple_list.size() != i + 1) {
-        masstree_kvs::scan<char>("", false, k, false, tuple_list);
+        yakushima_kvs::scan<char>("", false, k, false, tuple_list);
         ASSERT_EQ(tuple_list.size(), i + 1);
       }
       for (std::size_t j = 0; j < i + 1; ++j) {
@@ -671,9 +671,9 @@ TEST_F(mtpdgt, test7) { // NOLINT
         ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
       }
     }
-    ASSERT_EQ(masstree_kvs::leave(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
-    masstree_kvs::fin();
+    ASSERT_EQ(yakushima_kvs::leave(token[0]), status::OK);
+    ASSERT_EQ(yakushima_kvs::leave(token[1]), status::OK);
+    yakushima_kvs::fin();
   }
 }
 
@@ -707,10 +707,10 @@ TEST_F(mtpdgt, test8) { // NOLINT
 #else
     for (std::size_t h = 0; h < 100; ++h) {
 #endif
-    masstree_kvs::init();
+    yakushima_kvs::init();
     std::array<Token, 2> token{};
-    ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
+    ASSERT_EQ(yakushima_kvs::enter(token[0]), status::OK);
+    ASSERT_EQ(yakushima_kvs::enter(token[1]), status::OK);
 
     std::reverse(kv1.begin(), kv1.end());
     std::reverse(kv2.begin(), kv2.end());
@@ -721,7 +721,7 @@ TEST_F(mtpdgt, test8) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            status ret = masstree_kvs::put(k, v.data(), v.size());
+            status ret = yakushima_kvs::put(k, v.data(), v.size());
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -730,13 +730,13 @@ TEST_F(mtpdgt, test8) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            std::tuple<char *, std::size_t> ret = masstree_kvs::get<char>(k);
+            std::tuple<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
             ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
           }
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            status ret = masstree_kvs::remove(token, k);
+            status ret = yakushima_kvs::remove(token, k);
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -746,7 +746,7 @@ TEST_F(mtpdgt, test8) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = masstree_kvs::put(k, v.data(), v.size());
+          status ret = yakushima_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -768,9 +768,9 @@ TEST_F(mtpdgt, test8) { // NOLINT
       } else {
         k = std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX);
       }
-      masstree_kvs::scan<char>("", false, k, false, tuple_list);
+      yakushima_kvs::scan<char>("", false, k, false, tuple_list);
       if (tuple_list.size() != i + 1) {
-        masstree_kvs::scan<char>("", false, k, false, tuple_list);
+        yakushima_kvs::scan<char>("", false, k, false, tuple_list);
         ASSERT_EQ(tuple_list.size(), i + 1);
       }
       for (std::size_t j = 0; j < i + 1; ++j) {
@@ -778,9 +778,9 @@ TEST_F(mtpdgt, test8) { // NOLINT
         ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
       }
     }
-    ASSERT_EQ(masstree_kvs::leave(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
-    masstree_kvs::fin();
+    ASSERT_EQ(yakushima_kvs::leave(token[0]), status::OK);
+    ASSERT_EQ(yakushima_kvs::leave(token[1]), status::OK);
+    yakushima_kvs::fin();
   }
 }
 
@@ -817,10 +817,10 @@ TEST_F(mtpdgt, test9) { // NOLINT
 #else
     for (size_t h = 0; h < 100; ++h) {
 #endif
-    masstree_kvs::init();
+    yakushima_kvs::init();
     std::array<Token, 2> token{};
-    ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
+    ASSERT_EQ(yakushima_kvs::enter(token[0]), status::OK);
+    ASSERT_EQ(yakushima_kvs::enter(token[1]), status::OK);
 
     std::shuffle(kv1.begin(), kv1.end(), engine);
     std::shuffle(kv2.begin(), kv2.end(), engine);
@@ -831,7 +831,7 @@ TEST_F(mtpdgt, test9) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            status ret = masstree_kvs::put(k, v.data(), v.size());
+            status ret = yakushima_kvs::put(k, v.data(), v.size());
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -840,13 +840,13 @@ TEST_F(mtpdgt, test9) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            std::tuple<char *, std::size_t> ret = masstree_kvs::get<char>(k);
+            std::tuple<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
             ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
           }
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            status ret = masstree_kvs::remove(token, k);
+            status ret = yakushima_kvs::remove(token, k);
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -856,7 +856,7 @@ TEST_F(mtpdgt, test9) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = masstree_kvs::put(std::string_view(k), v.data(), v.size());
+          status ret = yakushima_kvs::put(std::string_view(k), v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -878,9 +878,9 @@ TEST_F(mtpdgt, test9) { // NOLINT
       } else {
         k = std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX);
       }
-      masstree_kvs::scan<char>("", false, k, false, tuple_list);
+      yakushima_kvs::scan<char>("", false, k, false, tuple_list);
       if (tuple_list.size() != i + 1) {
-        masstree_kvs::scan<char>("", false, k, false, tuple_list);
+        yakushima_kvs::scan<char>("", false, k, false, tuple_list);
         ASSERT_EQ(tuple_list.size(), i + 1);
       }
       for (std::size_t j = 0; j < i + 1; ++j) {
@@ -888,9 +888,9 @@ TEST_F(mtpdgt, test9) { // NOLINT
         ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
       }
     }
-    ASSERT_EQ(masstree_kvs::leave(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
-    masstree_kvs::fin();
+    ASSERT_EQ(yakushima_kvs::leave(token[0]), status::OK);
+    ASSERT_EQ(yakushima_kvs::leave(token[1]), status::OK);
+    yakushima_kvs::fin();
   }
 }
 
@@ -927,11 +927,11 @@ TEST_F(mtpdgt, test10) { // NOLINT
 #else
     for (size_t h = 0; h < 20; ++h) {
 #endif
-    masstree_kvs::init();
+    yakushima_kvs::init();
     ASSERT_EQ(base_node::get_root(), nullptr);
     std::array<Token, 2> token{};
-    ASSERT_EQ(masstree_kvs::enter(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::enter(token[1]), status::OK);
+    ASSERT_EQ(yakushima_kvs::enter(token[0]), status::OK);
+    ASSERT_EQ(yakushima_kvs::enter(token[1]), status::OK);
 
     std::shuffle(kv1.begin(), kv1.end(), engine);
     std::shuffle(kv2.begin(), kv2.end(), engine);
@@ -942,7 +942,7 @@ TEST_F(mtpdgt, test10) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            status ret = masstree_kvs::put(k, v.data(), v.size());
+            status ret = yakushima_kvs::put(k, v.data(), v.size());
             if (status::OK != ret) {
               ASSERT_EQ(status::OK, ret);
               std::abort();
@@ -951,13 +951,13 @@ TEST_F(mtpdgt, test10) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            std::tuple<char *, std::size_t> ret = masstree_kvs::get<char>(k);
+            std::tuple<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
             ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
           }
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            status ret = masstree_kvs::remove(token, k);
+            status ret = yakushima_kvs::remove(token, k);
             if (status::OK != ret) {
               ASSERT_EQ(status::OK, ret);
               std::abort();
@@ -967,7 +967,7 @@ TEST_F(mtpdgt, test10) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = masstree_kvs::put(k, v.data(), v.size());
+          status ret = yakushima_kvs::put(k, v.data(), v.size());
           if (status::OK != ret) {
             ASSERT_EQ(status::OK, ret);
             std::abort();
@@ -989,9 +989,9 @@ TEST_F(mtpdgt, test10) { // NOLINT
       } else {
         k = std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX);
       }
-      masstree_kvs::scan<char>("", false, k, false, tuple_list);
+      yakushima_kvs::scan<char>("", false, k, false, tuple_list);
       if (tuple_list.size() != i + 1) {
-        masstree_kvs::scan<char>("", false, k, false, tuple_list);
+        yakushima_kvs::scan<char>("", false, k, false, tuple_list);
         ASSERT_EQ(tuple_list.size(), i + 1);
       }
       for (std::size_t j = 0; j < i + 1; ++j) {
@@ -999,9 +999,9 @@ TEST_F(mtpdgt, test10) { // NOLINT
         ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
       }
     }
-    ASSERT_EQ(masstree_kvs::leave(token[0]), status::OK);
-    ASSERT_EQ(masstree_kvs::leave(token[1]), status::OK);
-    masstree_kvs::fin();
+    ASSERT_EQ(yakushima_kvs::leave(token[0]), status::OK);
+    ASSERT_EQ(yakushima_kvs::leave(token[1]), status::OK);
+    yakushima_kvs::fin();
   }
 }
 

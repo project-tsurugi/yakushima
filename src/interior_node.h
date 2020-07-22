@@ -38,6 +38,7 @@ public:
    */
   template<class border_node>
   void delete_of(Token token, base_node *child) {
+    set_version_inserting_deleting(true);
     std::size_t n_key = get_n_keys();
 #ifndef NDEBUG
     if (n_key == 0) {
@@ -48,7 +49,6 @@ public:
     for (std::size_t i = 0; i <= n_key; ++i) {
       if (get_child_at(i) == child) {
         if (n_key == 1) {
-          set_version_deleting_node(true);
           base_node *pn = lock_parent();
           if (pn == nullptr) {
 #ifndef NDEBUG
@@ -74,7 +74,7 @@ public:
               std::abort();
             }
 #endif
-            pn->set_version_inserting(true);
+            pn->set_version_inserting_deleting(true);
             if (pn->get_version_border()) {
               link_or_value *lv = dynamic_cast<border_node *>(pn)->get_lv(this);
 #ifndef NDEBUG
@@ -90,10 +90,9 @@ public:
               dynamic_cast<interior_node *>(pn)->swap_child(this, get_child_at(!i));
             }
             get_child_at(!i)->set_parent(pn);
-            pn->version_atomic_inc_vdelete();
+            pn->set_version_inserting_deleting(true);
             pn->version_unlock();
           }
-          version_atomic_inc_vdelete();
           reinterpret_cast<thread_info *>(token)->move_node_to_gc_container(this); // NOLINT
           set_version_deleted(true);
         } else { // n_key > 1
@@ -110,7 +109,6 @@ public:
             set_child_at(n_key, nullptr);
           }
           set_key(n_key - 1, 0, 0);
-          version_atomic_inc_vdelete();
         }
         n_keys_decrement();
         return;
@@ -205,7 +203,7 @@ public:
  */
   template<class border_node>
   void insert(base_node *child, std::pair<base_node::key_slice_type, base_node::key_length_type> pivot_key) {
-    set_version_inserting(true);
+    set_version_inserting_deleting(true);
     std::tuple<key_slice_type, key_length_type> visitor = std::make_tuple(pivot_key.first, pivot_key.second);
     n_keys_body_type n_key = get_n_keys();
     for (auto i = 0; i < n_key; ++i) {

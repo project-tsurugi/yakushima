@@ -69,7 +69,7 @@ create_interior_parent_of_border(border_node *left, border_node *right, interior
   auto ni = new interior_node(); // NOLINT
   ni->init_interior();
   ni->set_version_root(true);
-  ni->set_version_inserting(true);
+  ni->set_version_inserting_deleting(true);
   ni->lock();
   /**
    * process base node members
@@ -105,7 +105,7 @@ template<class interior_node, class border_node>
 static void
 insert_lv(border_node *border, std::string_view key_view, void *value_ptr, value_length_type arg_value_length,
           value_align_type value_align) {
-  border->set_version_inserting(true);
+  border->set_version_inserting_deleting(true);
   std::size_t cnk = border->get_permutation_cnk();
   if (cnk == base_node::key_slice_length) {
     /**
@@ -281,7 +281,7 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, va
      * The pointer is exchanged for a new parent interior node.
      */
     auto pb = dynamic_cast<border_node *>(p);
-    pb->set_version_inserting(true);
+    pb->set_version_inserting_deleting(true);
     interior_node *pi{};
     create_interior_parent_of_border<interior_node, border_node>(border, new_border, &pi);
     border->version_unlock();
@@ -290,7 +290,7 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, va
     pi->version_unlock();
     link_or_value *lv = pb->get_lv(dynamic_cast<base_node *>(border));
     lv->set_next_layer(pi);
-    p->version_atomic_inc_vdelete();
+    p->set_version_inserting_deleting(true);
     p->version_unlock();
     return;
   }

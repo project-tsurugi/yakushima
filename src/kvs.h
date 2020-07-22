@@ -18,7 +18,7 @@
 
 namespace yakushima {
 
-class masstree_kvs { // NOLINT
+class yakushima_kvs { // NOLINT
 public:
   using key_slice_type = base_node::key_slice_type;
   using key_length_type = base_node::key_length_type;
@@ -141,8 +141,7 @@ retry_fetch_lv:
           || final_check.get_deleted()) {
         goto retry_from_root; // NOLINT
       }
-      if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete() ||
-          final_check.get_vinsert() != v_at_fetch_lv.get_vinsert()) {
+      if (final_check.get_vinsert_delete() != v_at_fetch_lv.get_vinsert_delete()) {
         goto retry_fetch_lv; // NOLINT
       }
       return std::make_tuple(reinterpret_cast<ValueType *>(vp), v_size); // NOLINT
@@ -154,8 +153,7 @@ retry_fetch_lv:
         || final_check.get_deleted()) {
       goto retry_from_root; // NOLINT
     }
-    if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete() ||
-        final_check.get_vinsert() != v_at_fetch_lv.get_vinsert()) {
+    if (final_check.get_vinsert_delete() != v_at_fetch_lv.get_vinsert_delete()) {
       goto retry_fetch_lv; // NOLINT
     }
     traverse_key_view.remove_prefix(sizeof(key_slice_type));
@@ -177,7 +175,7 @@ retry_fetch_lv:
    * @pre @a token of arguments is valid.
    * @tparam ValueType If a single object is inserted, the value size and value alignment information can be
    * omitted from this type information. In this case, sizeof and alignof are executed on the type information.
-   * In the cases where this is likely to cause problems and when inserting an array object,
+   * In the cases where this is likely to cause problems and when inserting_deleting an array object,
    * the value size and value alignment information should be specified explicitly.
    * This is because sizeof for a type represents a single object size.
    * @param[in] key_view The key_view of key-value.
@@ -281,7 +279,7 @@ retry_fetch_lv:
       /**
        * Here, border node is the correct.
        */
-      if (target_border->get_version_vinsert() != v_at_fetch_lv.get_vinsert()) {  // It may exist lv_ptr
+      if (target_border->get_version_vinsert_delete() != v_at_fetch_lv.get_vinsert_delete()) {  // It may exist lv_ptr
         /**
          * next_layers may be wrong. However, when it rechecks the next_layers, it can't get the lock down,
          * so it have to try again.
@@ -311,8 +309,7 @@ retry_fetch_lv:
           || target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
         goto retry_from_root; // NOLINT
       }
-      if (target_border->get_version_vinsert() != v_at_fetch_lv.get_vinsert()
-          || target_border->get_version_vdelete() != v_at_fetch_lv.get_vdelete()) {
+      if (target_border->get_version_vinsert_delete() != v_at_fetch_lv.get_vinsert_delete()) {
         goto retry_fetch_lv; // NOLINT
       }
     }
@@ -331,8 +328,7 @@ retry_fetch_lv:
     /**
      * check whether fetching lv is still correct.
      */
-    if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete() ||
-        final_check.get_vinsert() != v_at_fetch_lv.get_vinsert()) { // fetched lv may be deleted
+    if (final_check.get_vinsert_delete() != v_at_fetch_lv.get_vinsert_delete()) {// fetched lv may be deleted
       goto retry_fetch_lv; // NOLINT
     }
     /**
@@ -410,8 +406,7 @@ retry_fetch_lv:
           final_check.get_vsplit() != v_at_fb.get_vsplit()) { // the border may be incorrect.
         goto retry_from_root; // NOLINT
       } // here border is correct.
-      if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete() || // the lv may be deleted.
-          final_check.get_vinsert() != v_at_fetch_lv.get_vinsert()) { // the lv may be next_layer.
+      if (final_check.get_vinsert_delete() != v_at_fetch_lv.get_vinsert_delete()) { // the lv may be inserted/deleted.
         goto retry_fetch_lv; // NOLINT
       }
 
@@ -431,8 +426,7 @@ retry_fetch_lv:
         node_version64::unlock(lock_list);
         goto retry_from_root; // NOLINT
       } // here border is correct.
-      if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete() || // the lv may be deleted.
-          final_check.get_vinsert() != v_at_fetch_lv.get_vinsert()) { // the lv may be next_layer.
+      if (final_check.get_vinsert_delete() != v_at_fetch_lv.get_vinsert_delete()) { // the lv may be inserted/deleted.
         node_version64::unlock(lock_list);
         goto retry_fetch_lv; // NOLINT
       }
@@ -448,8 +442,7 @@ retry_fetch_lv:
         final_check.get_vsplit() != v_at_fb.get_vsplit()) { // this border is incorrect.
       goto retry_from_root; // NOLINT
     }
-    if (final_check.get_vdelete() != v_at_fetch_lv.get_vdelete() || // fetched lv may be deleted.
-        final_check.get_vinsert() != v_at_fetch_lv.get_vinsert()) {
+    if (final_check.get_vinsert_delete() != v_at_fetch_lv.get_vinsert_delete()) { // fetched lv may be deleted.
       goto retry_fetch_lv; // NOLINT
     }
     traverse_key_view.remove_prefix(sizeof(key_slice_type));

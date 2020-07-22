@@ -27,7 +27,7 @@ create_interior_parent_of_interior(interior_node *left, interior_node *right,
   interior_node *ni = new interior_node(); // NOLINT
   ni->init_interior();
   ni->set_version_root(true);
-  ni->set_version_inserting(true);
+  ni->set_version_inserting_deleting(true);
   ni->lock();
   /**
    * process base members
@@ -91,15 +91,11 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
    */
 
   if (pivot_key < pivot_view) {
-    interior->set_version_splitting(false);
     child_node->set_parent(interior);
     interior->template insert<border_node>(child_node, pivot_key);
-    interior->set_version_splitting(true);
   } else {
-    new_interior->set_version_splitting(false);
     child_node->set_parent(new_interior);
     new_interior->template insert<border_node>(child_node, pivot_key);
-    new_interior->set_version_splitting(true);
   }
 
   base_node *p = interior->lock_parent();
@@ -135,14 +131,13 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
   }
 #endif
   if (p->get_version_border()) {
+    p->set_version_inserting_deleting(true);
     auto pb = dynamic_cast<border_node *>(p);
-    pb->set_version_inserting(true);
     base_node *new_p{};
     create_interior_parent_of_interior<interior_node, border_node>(interior, new_interior, pivot_view, &new_p);
     interior->version_unlock();
     new_interior->version_unlock();
     link_or_value *lv = pb->get_lv(dynamic_cast<base_node *>(interior));
-    p->version_atomic_inc_vdelete();
     lv->set_next_layer(new_p);
     new_p->set_parent(pb);
     new_p->version_unlock();

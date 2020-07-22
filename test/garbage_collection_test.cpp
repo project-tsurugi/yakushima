@@ -17,11 +17,11 @@ namespace yakushima::testing {
 class garbage_collection : public ::testing::Test {
 protected:
   void SetUp() override {
-    masstree_kvs::init();
+    yakushima_kvs::init();
   }
 
   void TearDown() override {
-    masstree_kvs::fin();
+    yakushima_kvs::fin();
   }
 };
 
@@ -32,11 +32,11 @@ TEST_F(garbage_collection, gc) { // NOLINT
   struct S {
     static void work(std::array<std::tuple<std::string, std::string>, array_size> &kv, Token &token) {
       for (std::size_t j = 0; j < 10; ++j) {
-        masstree_kvs::enter(token);
+        yakushima_kvs::enter(token);
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = masstree_kvs::put(k, v.data(), v.size());
+          status ret = yakushima_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -45,13 +45,13 @@ TEST_F(garbage_collection, gc) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = masstree_kvs::remove(token, k);
+          status ret = yakushima_kvs::remove(token, k);
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
           }
         }
-        masstree_kvs::leave(token);
+        yakushima_kvs::leave(token);
       }
     }
   };

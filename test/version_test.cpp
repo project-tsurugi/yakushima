@@ -35,7 +35,7 @@ TEST_F(vt, test2) { // NOLINT
       }
     };
     vinsert_inc_100();
-    ASSERT_EQ(ver.get_body().get_vinsert(), 100);
+    ASSERT_EQ(ver.get_body().get_vinsert_delete(), 100);
   }
 
   // concurrent update test.
@@ -49,7 +49,7 @@ TEST_F(vt, test2) { // NOLINT
     std::future<void> f = std::async(std::launch::async, vinsert_inc_100);
     vinsert_inc_100();
     f.wait();
-    ASSERT_EQ(ver.get_body().get_vinsert(), 200);
+    ASSERT_EQ(ver.get_body().get_vinsert_delete(), 200);
   }
 
 }
