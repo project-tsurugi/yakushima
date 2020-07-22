@@ -204,14 +204,9 @@ public:
  * @param child new inserted child.
  */
   template<class border_node>
-  void insert(base_node *child) {
+  void insert(base_node *child, std::pair<base_node::key_slice_type, base_node::key_length_type> pivot_key) {
     set_version_inserting(true);
-    std::tuple<key_slice_type, key_length_type> visitor;
-    if (child->get_version_border()) {
-      visitor = std::make_tuple(child->get_key_slice_at(0), child->get_key_length_at(0));
-    } else {
-      visitor = find_lowest_key<interior_node, border_node>(child);
-    }
+    std::tuple<key_slice_type, key_length_type> visitor = std::make_tuple(pivot_key.first, pivot_key.second);
     n_keys_body_type n_key = get_n_keys();
     for (auto i = 0; i < n_key; ++i) {
       std::tuple<key_slice_type, key_length_type>
@@ -221,17 +216,9 @@ public:
       if (visitor < resident) {
         if (i == 0) { // insert to child[0] or child[1].
           shift_right_base_member(i, 1);
-          std::tuple<key_slice_type, key_length_type> lowest = find_lowest_key<interior_node, border_node>(
-                  get_child_at(0));
-          if (visitor < lowest) {
-            set_key(i, std::get<slice_pos>(lowest), std::get<slice_length_pos>(lowest));
-            shift_right_children(i);
-            set_child_at(i, child);
-          } else {
-            set_key(i, std::get<slice_pos>(visitor), std::get<slice_length_pos>(visitor));
-            shift_right_children(i + 1);
-            set_child_at(i + 1, child);
-          }
+          set_key(i, pivot_key.first, pivot_key.second);
+          shift_right_children(i + 1);
+          set_child_at(i + 1, child);
           n_keys_increment();
           return;
         }

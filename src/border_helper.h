@@ -21,7 +21,8 @@ namespace yakushima {
  */
 template<class interior_node, class border_node>
 static void
-interior_split(interior_node *interior, base_node *child_node); // NOLINT
+interior_split(interior_node *interior, base_node *child_node, base_node::key_slice_type pivot_slice, // NOLINT
+               base_node::key_length_type pivot_length);
 
 using key_slice_type = base_node::key_slice_type;
 using key_length_type = base_node::key_length_type;
@@ -311,7 +312,9 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, va
      * interior full case, it splits and inserts.
      */
     new_border->version_unlock();
-    interior_split<interior_node, border_node>(pi, reinterpret_cast<base_node *>(new_border)); // NOLINT
+    interior_split<interior_node, border_node>(pi, reinterpret_cast<base_node *>(new_border), // NOLINT
+                                               std::make_pair(new_border->get_key_slice_at(0),
+                                                              new_border->get_key_length_at(0)));
     return;
   }
   /**
@@ -319,7 +322,8 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, va
    */
   new_border->set_parent(pi);
   new_border->version_unlock();
-  pi->template insert<border_node>(new_border);
+  pi->template insert<border_node>(new_border,
+                                   std::make_pair(new_border->get_key_slice_at(0), new_border->get_key_length_at(0)));
   pi->version_unlock();
 }
 

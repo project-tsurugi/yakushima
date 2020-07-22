@@ -9,15 +9,6 @@
 
 namespace yakushima {
 
-using key_slice_type = base_node::key_slice_type;
-using key_length_type = base_node::key_length_type;
-using value_align_type = base_node::value_align_type;
-using value_length_type = base_node::value_length_type;
-
-template<class interior_node, class border_node>
-std::tuple<key_slice_type, key_length_type>
-find_lowest_key(base_node *origin);
-
 /**
  * @details This may be called at split function.
  * It creates new interior node as parents of this interior_node and @a right.
@@ -28,7 +19,9 @@ find_lowest_key(base_node *origin);
  */
 template<class interior_node, class border_node>
 static void
-create_interior_parent_of_interior(interior_node *left, interior_node *right, base_node **new_parent) {
+create_interior_parent_of_interior(interior_node *left, interior_node *right,
+                                   std::pair<base_node::key_slice_type, base_node::key_length_type> pivot_key,
+                                   base_node **new_parent) {
   left->set_version_root(false);
   right->set_version_root(false);
   interior_node *ni = new interior_node(); // NOLINT
@@ -39,8 +32,7 @@ create_interior_parent_of_interior(interior_node *left, interior_node *right, ba
   /**
    * process base members
    */
-  std::tuple<key_slice_type, key_length_type> pivot = find_lowest_key<interior_node, border_node>(right);
-  ni->set_key(0, std::get<0>(pivot), std::get<1>(pivot));
+  ni->set_key(0, pivot_key.first, pivot_key.second);
   /**
    * process interior node members
    */
@@ -62,7 +54,8 @@ create_interior_parent_of_interior(interior_node *left, interior_node *right, ba
  * @param[in] child_node After split, it inserts this @a child_node.
  */
 template<class interior_node, class border_node>
-static void interior_split(interior_node *interior, base_node *child_node) {
+static void interior_split(interior_node *interior, base_node *child_node, std::pair<base_node::key_slice_type,
+        base_node::key_length_type> pivot_key) {
   interior_node *new_interior = new interior_node(); // NOLINT
   new_interior->init_interior();
   /**
@@ -87,8 +80,8 @@ static void interior_split(interior_node *interior, base_node *child_node) {
     new_interior->set_n_keys(pivot_key_pos - 1);
   }
   interior->move_children_to_interior_range(new_interior, split_children_points);
-  std::tuple<key_slice_type, key_length_type> pivot_view{interior->get_key_slice_at(pivot_key_pos),
-                                                         interior->get_key_length_at(pivot_key_pos)};
+  std::pair<key_slice_type, key_length_type> pivot_view{interior->get_key_slice_at(pivot_key_pos),
+                                                        interior->get_key_length_at(pivot_key_pos)};
   interior->set_key(pivot_key_pos, 0, 0);
 
   interior->set_version_splitting(true);
@@ -96,17 +89,16 @@ static void interior_split(interior_node *interior, base_node *child_node) {
   /**
    * It inserts child_node.
    */
-  std::tuple<key_slice_type, key_length_type> visitor = find_lowest_key<interior_node, border_node>(child_node);
 
-  if (visitor < pivot_view) {
+  if (pivot_key < pivot_view) {
     interior->set_version_splitting(false);
     child_node->set_parent(interior);
-    interior->template insert<border_node>(child_node);
+    interior->template insert<border_node>(child_node, pivot_key);
     interior->set_version_splitting(true);
   } else {
     new_interior->set_version_splitting(false);
     child_node->set_parent(new_interior);
-    new_interior->template insert<border_node>(child_node);
+    new_interior->template insert<border_node>(child_node, pivot_key);
     new_interior->set_version_splitting(true);
   }
 
@@ -122,7 +114,7 @@ static void interior_split(interior_node *interior, base_node *child_node) {
      * The disappearance of the parent node may have made this node the root node in parallel.
      * It cares in below function.
      */
-    create_interior_parent_of_interior<interior_node, border_node>(interior, new_interior, &p);
+    create_interior_parent_of_interior<interior_node, border_node>(interior, new_interior, pivot_view, &p);
     interior->version_unlock();
     new_interior->version_unlock();
     /**
@@ -146,7 +138,7 @@ static void interior_split(interior_node *interior, base_node *child_node) {
     auto pb = dynamic_cast<border_node *>(p);
     pb->set_version_inserting(true);
     base_node *new_p{};
-    create_interior_parent_of_interior<interior_node, border_node>(interior, new_interior, &new_p);
+    create_interior_parent_of_interior<interior_node, border_node>(interior, new_interior, pivot_view, &new_p);
     interior->version_unlock();
     new_interior->version_unlock();
     link_or_value *lv = pb->get_lv(dynamic_cast<base_node *>(interior));
@@ -165,65 +157,15 @@ static void interior_split(interior_node *interior, base_node *child_node) {
      * parent interior full case.
      */
     new_interior->version_unlock();
-    interior_split<interior_node, border_node>(pi, new_interior);
+    interior_split<interior_node, border_node>(pi, new_interior, pivot_view);
     return;
   }
   /**
    * parent interior not-full case
    */
   new_interior->version_unlock();
-  pi->template insert<border_node>(new_interior);
+  pi->template insert<border_node>(new_interior, pivot_view);
   pi->version_unlock();
-}
-
-/**
- * @attention I have to traverse through the verification process. Because you might use an incorrect value.
- * @tparam interior_node
- * @tparam border_node
- * @param origin
- * @return
- */
-template<class interior_node, class border_node>
-std::tuple<key_slice_type, key_length_type>
-find_lowest_key(base_node *origin) {
-  for (;;) {
-    base_node *bn = origin;
-    for (;;) {
-      node_version64_body v = bn->get_version();
-      if ((v.get_locked() && ((v.get_inserting() && !v.get_splitting() && !v.get_deleting_node()))) ||
-          // simple inserting
-          (v.get_locked() && (!v.get_inserting() && !v.get_splitting() && !v.get_deleting_node()))) { // simple deleting
-        _mm_pause();
-        continue;
-      }
-      if (v.get_deleted()) {
-        break;
-      }
-      if (bn->get_version_border()) {
-        auto target = reinterpret_cast<border_node *>(bn); // NOLINT
-        std::size_t low_pos = target->get_permutation_lowest_key_pos();
-        key_slice_type kslice = bn->get_key_slice_at(low_pos);
-        key_length_type klength = bn->get_key_length_at(low_pos);
-        if (v == bn->get_version()) {
-          return std::make_tuple(kslice, klength);
-        }
-        if (bn->get_version_deleted() ||
-            (v.get_vsplit() != bn->get_version_vsplit())) {
-          break;
-        }
-        continue;
-      }
-      base_node *ret = reinterpret_cast<interior_node *>(bn)->get_child_at(0); // NOLINT
-      if (v == bn->get_version()) {
-        bn = ret;
-        continue;
-      }
-      if (bn->get_version_deleted() ||
-          (v.get_vsplit() != bn->get_version_vsplit())) {
-        break;
-      }
-    }
-  }
 }
 
 } // namespace yakushima
