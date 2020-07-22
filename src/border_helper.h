@@ -73,8 +73,7 @@ create_interior_parent_of_border(border_node *left, border_node *right, interior
   /**
    * process base node members
    */
-  std::size_t pos = right->get_permutation_lowest_key_pos();
-  ni->set_key(0, right->get_key_slice_at(pos), right->get_key_length_at(pos));
+  ni->set_key(0, right->get_key_slice_at(0), right->get_key_length_at(0));
   /**
    * process interior node members
    */
