@@ -77,17 +77,19 @@ static void interior_split(interior_node *interior, base_node *child_node) {
   /**
    * split keys among n and n'
    */
-  key_slice_type pivot_key = base_node::key_slice_length / 2;
-  std::size_t split_children_points = pivot_key + 1;
+  key_slice_type pivot_key_pos = base_node::key_slice_length / 2;
+  std::size_t split_children_points = pivot_key_pos + 1;
   interior->move_key_to_base_range(new_interior, split_children_points);
-  interior->set_n_keys(pivot_key);
-  if (pivot_key & 1) { // NOLINT
-    new_interior->set_n_keys(pivot_key);
+  interior->set_n_keys(pivot_key_pos);
+  if (pivot_key_pos & 1) { // NOLINT
+    new_interior->set_n_keys(pivot_key_pos);
   } else {
-    new_interior->set_n_keys(pivot_key - 1);
+    new_interior->set_n_keys(pivot_key_pos - 1);
   }
   interior->move_children_to_interior_range(new_interior, split_children_points);
-  interior->set_key(pivot_key, 0, 0);
+  std::tuple<key_slice_type, key_length_type> pivot_view{interior->get_key_slice_at(pivot_key_pos),
+                                                         interior->get_key_length_at(pivot_key_pos)};
+  interior->set_key(pivot_key_pos, 0, 0);
 
   interior->set_version_splitting(true);
   new_interior->set_version_splitting(true);
@@ -95,7 +97,6 @@ static void interior_split(interior_node *interior, base_node *child_node) {
    * It inserts child_node.
    */
   std::tuple<key_slice_type, key_length_type> visitor = find_lowest_key<interior_node, border_node>(child_node);
-  std::tuple<key_slice_type, key_length_type> pivot_view = find_lowest_key<interior_node, border_node>(new_interior);
 
   if (visitor < pivot_view) {
     interior->set_version_splitting(false);
