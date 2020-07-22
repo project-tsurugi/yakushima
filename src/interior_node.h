@@ -207,7 +207,11 @@ public:
   void insert(base_node *child) {
     set_version_inserting(true);
     std::tuple<key_slice_type, key_length_type> visitor;
-    visitor = find_lowest_key<interior_node, border_node>(child);
+    if (child->get_version_border()) {
+      visitor = std::make_tuple(child->get_key_slice_at(0), child->get_key_length_at(0));
+    } else {
+      visitor = find_lowest_key<interior_node, border_node>(child);
+    }
     n_keys_body_type n_key = get_n_keys();
     for (auto i = 0; i < n_key; ++i) {
       std::tuple<key_slice_type, key_length_type>
