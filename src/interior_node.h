@@ -51,38 +51,13 @@ public:
         if (n_key == 1) {
           base_node *pn = lock_parent();
           if (pn == nullptr) {
-#ifndef NDEBUG
-            if (get_root() != this) {
-              std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
-              std::abort();
-            }
-#endif
             get_child_at(!i)->atomic_set_version_root(true);
             base_node::set_root(get_child_at(!i)); // i == 0 or 1
-#ifndef NDEBUG
-            if (base_node::get_root() != get_child_at(!i)) {
-              std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
-              std::abort();
-            }
-#endif
             get_child_at(!i)->set_parent(nullptr);
           } else {
-#ifndef NDEBUG
-            if (pn->get_version_deleted() ||
-                pn != get_parent()) {
-              std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
-              std::abort();
-            }
-#endif
             pn->set_version_inserting_deleting(true);
             if (pn->get_version_border()) {
               link_or_value *lv = dynamic_cast<border_node *>(pn)->get_lv(this);
-#ifndef NDEBUG
-              if (lv == nullptr) {
-                std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
-                std::abort();
-              }
-#endif
               base_node *sibling = get_child_at(!i);
               lv->set_next_layer(sibling);
               sibling->atomic_set_version_root(true);

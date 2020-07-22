@@ -56,13 +56,10 @@ create_interior_parent_of_interior(interior_node *left, interior_node *right,
 template<class interior_node, class border_node>
 static void interior_split(interior_node *interior, base_node *child_node, std::pair<base_node::key_slice_type,
         base_node::key_length_type> pivot_key) {
+  interior->set_version_splitting(true);
   interior_node *new_interior = new interior_node(); // NOLINT
   new_interior->init_interior();
-  /**
-   * attention : After making changes to this node, it sets a splitting flag.
-   * If a splitting flag is raised, the find_lowest_keys function may read the broken value.
-   */
-  interior->set_version_splitting(false);
+
   /**
    * new interior is initially locked.
    */
@@ -84,8 +81,6 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
                                                         interior->get_key_length_at(pivot_key_pos)};
   interior->set_key(pivot_key_pos, 0, 0);
 
-  interior->set_version_splitting(true);
-  new_interior->set_version_splitting(true);
   /**
    * It inserts child_node.
    */
@@ -147,18 +142,17 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
   auto pi = dynamic_cast<interior_node *>(p);
   interior->version_unlock();
   new_interior->set_parent(pi);
+  new_interior->version_unlock();
   if (pi->get_n_keys() == base_node::key_slice_length) {
     /**
      * parent interior full case.
      */
-    new_interior->version_unlock();
     interior_split<interior_node, border_node>(pi, new_interior, pivot_view);
     return;
   }
   /**
    * parent interior not-full case
    */
-  new_interior->version_unlock();
   pi->template insert<border_node>(new_interior, pivot_view);
   pi->version_unlock();
 }

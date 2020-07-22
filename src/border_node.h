@@ -66,10 +66,9 @@ public:
         return;
       }
     }
-#ifndef NDEBUG
+    // unreachable points.
     std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
     std::abort();
-#endif
   }
 
   /**
@@ -131,21 +130,8 @@ retry_prev_lock:
            */
           base_node *pn = lock_parent();
           if (pn == nullptr) {
-#ifndef NDEBUG
-            if (get_root() != this) {
-              std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
-              std::abort();
-            }
-#endif
             base_node::set_root(nullptr);
           } else {
-#ifndef NDEBUG
-            if (pn->get_version_deleted() ||
-                pn != get_parent()) {
-              std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
-              std::abort();
-            }
-#endif
             if (pn->get_version_border()) {
               dynamic_cast<border_node *>(pn)->delete_of(token, this, lock_list);
             } else {
@@ -259,24 +245,6 @@ retry_prev_lock:
       }
       v = v_check;
     }
-  }
-
-  /**
-   * @details This function extracts lv without lock (double checking stable version).
-   * @param[in] key_slice
-   * @param[in] key_length
-   * @return link_or_value*
-   * @return nullptr
-   */
-  [[maybe_unused]] [[nodiscard]] link_or_value *
-  get_lv_of_without_lock(key_slice_type key_slice, key_length_type key_length) {
-    std::size_t cnk = permutation_.get_cnk();
-    for (std::size_t i = 0; i < cnk; ++i) {
-      if (key_slice == get_key_slice_at(i) && key_length == get_key_length_at(i)) {
-        return get_lv_at(i);
-      }
-    }
-    return nullptr;
   }
 
   border_node *get_next() {

@@ -125,15 +125,12 @@ template<class interior_node, class border_node>
 static void
 border_split(border_node *border, std::string_view key_view, void *value_ptr, value_length_type value_length,
              value_align_type value_align) {
+  border->set_version_splitting(true);
   border_node *new_border = new border_node(); // NOLINT
   new_border->init_border();
   new_border->set_next(border->get_next());
   new_border->set_prev(border);
-  /**
-   * attention : After making changes to this node, it sets a splitting flag.
-   * If a splitting flag is raised, the find_lowest_keys function may read the broken value.
-   */
-  border->set_version_splitting(false);
+
   /**
    * new border is initially locked
    */
@@ -224,20 +221,15 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, va
   if (visitor < r_low) {
     /**
      * insert to lower border node.
-     * @attention lock_list will not be added new lock.
      */
     border->insert_lv_at(remaining_size, key_view, value_ptr, value_length, value_align);
   } else {
     /**
      * insert to higher border node.
-     * @attention lock_list will not be added new lock.
      */
     new_border->insert_lv_at(base_node::key_slice_length - remaining_size, key_view, value_ptr, value_length,
                              value_align);
   }
-
-  border->set_version_splitting(true);
-  new_border->set_version_splitting(true);
 
   std::vector<base_node *> next_layers;
   std::vector<node_version64 *> next_layers_lock;
@@ -290,7 +282,6 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, va
     pi->version_unlock();
     link_or_value *lv = pb->get_lv(dynamic_cast<base_node *>(border));
     lv->set_next_layer(pi);
-    p->set_version_inserting_deleting(true);
     p->version_unlock();
     return;
   }
@@ -307,11 +298,11 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, va
   border->set_version_root(false);
   new_border->set_version_root(false);
   border->version_unlock();
+  new_border->version_unlock();
   if (pi->get_n_keys() == base_node::key_slice_length) {
     /**
      * interior full case, it splits and inserts.
      */
-    new_border->version_unlock();
     interior_split<interior_node, border_node>(pi, reinterpret_cast<base_node *>(new_border), // NOLINT
                                                std::make_pair(new_border->get_key_slice_at(0),
                                                               new_border->get_key_length_at(0)));
@@ -321,7 +312,6 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, va
    * interior not-full case, it inserts.
    */
   new_border->set_parent(pi);
-  new_border->version_unlock();
   pi->template insert<border_node>(new_border,
                                    std::make_pair(new_border->get_key_slice_at(0), new_border->get_key_length_at(0)));
   pi->version_unlock();
