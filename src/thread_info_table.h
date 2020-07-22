@@ -64,7 +64,7 @@ public:
   }
 
 private:
-  static inline std::array<thread_info, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kThreadInfoTable;
+  static inline std::array<thread_info, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kThreadInfoTable; // NOLINT
 };
 
 } // namespace yakushima
