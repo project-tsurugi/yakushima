@@ -250,7 +250,7 @@ public:
     n_keys_increment();
   }
 
-  void move_children_to_interior_range(interior_node *right_interior, std::size_t start) {
+  [[maybe_unused]] void move_children_to_interior_range(interior_node *right_interior, std::size_t start) {
     for (auto i = start; i < child_length; ++i) {
       right_interior->set_child_at(i - start, get_child_at(i));
       /**
