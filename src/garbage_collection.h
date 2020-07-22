@@ -68,11 +68,7 @@ public:
         for (std::size_t i = left_edge; i < right_edge; ++i) {
           auto &ncontainer = kGarbageNodes.at(i);
           for (auto &&elem : ncontainer.get_body()) {
-            if (std::get<gc_target_index>(elem)->get_version_border()) {
-              delete std::get<gc_target_index>(elem); // NOLINT
-            } else {
-              delete std::get<gc_target_index>(elem); // NOLINT
-            }
+            delete std::get<gc_target_index>(elem); // NOLINT
           }
           ncontainer.get_body().clear();
 
@@ -130,11 +126,7 @@ public:
       if (std::get<gc_epoch_index>(itr) >= gc_epoch) {
         break;
       }
-      if (std::get<gc_target_index>(itr)->get_version_border()) {
-        delete dynamic_cast<border_node *>(std::get<gc_target_index>(itr)); // NOLINT
-      } else {
-        delete dynamic_cast<interior_node *>(std::get<gc_target_index>(itr)); // NOLINT
-      }
+      delete std::get<gc_target_index>(itr); // NOLINT
       ++g_ctr;
     }
     if (g_ctr > 0) {
