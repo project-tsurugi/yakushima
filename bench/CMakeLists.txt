@@ -28,7 +28,7 @@ target_link_libraries(yakushima_bench
 target_include_directories(yakushima_bench
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
-        PRIVATE ${PROJECT_SOURCE_DIR}/src
+        PRIVATE ${PROJECT_SOURCE_DIR}/include
         PRIVATE ${gflags_INCLUDE_DIR}
         )
 
@@ -48,7 +48,7 @@ target_link_libraries(malloc_bench
 target_include_directories(malloc_bench
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
-        PRIVATE ${PROJECT_SOURCE_DIR}/src
+        PRIVATE ${PROJECT_SOURCE_DIR}/include
         PRIVATE ${PROJECT_SOURCE_DIR}/third_party/jemalloc/include
         PRIVATE ${gflags_INCLUDE_DIR}
         )

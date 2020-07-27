@@ -32,7 +32,7 @@ if (BUILD_TESTS)
   enable_testing()
 endif ()
 
-add_subdirectory(src)
+add_subdirectory(include)
 add_subdirectory(bench)
 add_subdirectory(third_party)
 
