@@ -42,7 +42,7 @@ public:
    * @return status::OK success
    * @return status::WARN_INVALID_TOKEN @a token of argument is invalid.
    */
-  static status leave(Token &token) {
+  static status leave(Token token) {
     return thread_info_table::leave_session<interior_node, border_node>(token);
   }
 
