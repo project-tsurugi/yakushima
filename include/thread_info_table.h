@@ -51,7 +51,7 @@ public:
    * @return
    */
   template<class interior_node, class border_node>
-  static status leave_session(Token &token) {
+  static status leave_session(Token token) {
     for (auto &&elem : kThreadInfoTable) {
       if (token == static_cast<void *>(&(elem))) {
         elem.gc<interior_node, border_node>();
