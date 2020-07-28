@@ -32,8 +32,8 @@ TEST_F(kvs_test, destroy) { // NOLINT
   for (auto &&itr : k) {
     itr = std::string(1, ctr); // NOLINT
     ++ctr;
-    char **dummy{};
-    ASSERT_EQ(status::OK, yakushima_kvs::put(itr, v.data(), dummy, v.size()));
+    char *dummy{};
+    ASSERT_EQ(status::OK, yakushima_kvs::put(itr, v.data(), &dummy, v.size()));
   }
   ASSERT_EQ(yakushima_kvs::leave(token), status::OK);
   // destroy test by using destructor (fin());
@@ -45,8 +45,8 @@ TEST_F(kvs_test, init) { // NOLINT
   ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
   std::string k("a");
   std::string v("v-a");
-  char **dummy{};
-  ASSERT_EQ(status::OK, yakushima_kvs::put(k, v.data(), dummy, v.size()));
+  char *dummy{};
+  ASSERT_EQ(status::OK, yakushima_kvs::put(k, v.data(), &dummy, v.size()));
   ASSERT_NE(base_node::get_root(), nullptr);
   ASSERT_EQ(yakushima_kvs::leave(token), status::OK);
 }

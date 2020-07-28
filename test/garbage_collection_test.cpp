@@ -36,8 +36,8 @@ TEST_F(garbage_collection, gc) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          char **dummy{};
-          status ret = yakushima_kvs::put(k, v.data(), dummy, v.size());
+          char *dummy{};
+          status ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
