@@ -51,7 +51,7 @@ public:
 
   void destroy_value() {
     if (get_need_delete_value()) {
-      ::operator delete(v_or_vp_);
+      ::operator delete(v_or_vp_, static_cast<std::align_val_t>((get_value_align())));
     }
     set_need_delete_value(false);
     set_v_or_vp(nullptr);
@@ -130,7 +130,7 @@ public:
   void set_value(void *vptr, std::size_t arg_value_size,
                  std::size_t value_align) {
     if (get_need_delete_value()) {
-      ::operator delete(get_v_or_vp_());
+      ::operator delete(get_v_or_vp_(), static_cast<std::align_val_t>(get_value_align()));
       set_need_delete_value(false);
     }
     set_next_layer(nullptr);
