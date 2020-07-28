@@ -69,6 +69,7 @@ TEST_F(kt, test2) { // NOLINT
   ASSERT_EQ(root->get_key_length_at(0), k.size());
   std::tuple<char *, std::size_t> tuple = yakushima_kvs::get<char>(std::string_view(k));
   ASSERT_NE(std::get<0>(tuple), nullptr);
+  ASSERT_EQ(std::get<0>(tuple), dummy);
   ASSERT_EQ(std::get<1>(tuple), v.size());
   ASSERT_EQ(memcmp(std::get<0>(tuple), v.data(), v.size()), 0);
   ASSERT_EQ(yakushima_kvs::destroy(), status::OK_DESTROY_ALL);
