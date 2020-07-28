@@ -5,11 +5,13 @@
  * @brief atomic wrapper of builtin function.
  */
 
+namespace yakushima {
+
 /**
  * @brief atomic relaxed load.
  */
 template<typename T>
-T loadRelaxed(T &ptr) {
+static T loadRelaxed(T &ptr) {
   return __atomic_load_n(&ptr, __ATOMIC_RELAXED); // NOLINT
 }
 
@@ -17,7 +19,7 @@ T loadRelaxed(T &ptr) {
  * @brief atomic acquire load.
  */
 template<typename T>
-T loadAcquireN(T &ref) { // NOLINT
+static T loadAcquireN(T &ref) { // NOLINT
   return __atomic_load_n(&ref, __ATOMIC_ACQUIRE); // NOLINT
 }
 
@@ -32,7 +34,7 @@ void loadAcquire(type *ptr, type *ret) {
  * @brief atomic relaxed store.
  */
 template<typename T, typename T2>
-void storeRelaxed(T &ptr, T2 val) {
+static void storeRelaxed(T &ptr, T2 val) {
   __atomic_store_n(&ptr, static_cast<T>(val), __ATOMIC_RELAXED); // NOLINT
 }
 
@@ -40,7 +42,7 @@ void storeRelaxed(T &ptr, T2 val) {
  * @brief atomic release store.
  */
 template<typename T, typename T2>
-void storeReleaseN(T &ptr, T2 val) {
+static void storeReleaseN(T &ptr, T2 val) {
   __atomic_store_n(&ptr, static_cast<T>(val), __ATOMIC_RELEASE); // NOLINT
 }
 
@@ -63,3 +65,5 @@ bool weakCompareExchange(type *ptr, type *expected, type *desired) {
                                    __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE);
 }
 #endif
+
+}
