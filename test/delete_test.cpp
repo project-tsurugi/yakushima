@@ -34,7 +34,8 @@ TEST_F(dt, test1) { // NOLINT
   ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
   std::string k("a");
   std::string v("v-a");
-  ASSERT_EQ(status::OK, yakushima_kvs::put(std::string_view(k), v.data(), v.size()));
+  char **dummy{};
+  ASSERT_EQ(status::OK, yakushima_kvs::put(std::string_view(k), v.data(), dummy, v.size()));
   ASSERT_EQ(status::OK, yakushima_kvs::remove(token, std::string_view(k)));
   ASSERT_EQ(base_node::get_root(), nullptr);
   ASSERT_EQ(yakushima_kvs::destroy(), status::OK_ROOT_IS_NULL);
@@ -50,7 +51,8 @@ TEST_F(dt, test2) { // NOLINT
   for (std::size_t i = 0; i < ary_size; ++i) {
     k.at(i).assign(i, '\0');
     v.at(i) = std::to_string(i);
-    ASSERT_EQ(status::OK, yakushima_kvs::put(std::string_view(k.at(i)), v.at(i).data(), v.at(i).size()));
+    char **dummy{};
+    ASSERT_EQ(status::OK, yakushima_kvs::put(std::string_view(k.at(i)), v.at(i).data(), dummy, v.at(i).size()));
     /**
      * There are 9 key which has the same slice and the different length.
      * key length == 0, same_slice and length is 1, 2, ..., 8.
@@ -83,8 +85,9 @@ TEST_F(dt, test3) { // NOLINT
     std::mt19937 engine(seed_gen());
     std::shuffle(kv.begin(), kv.end(), engine);
     for (std::size_t i = 0; i < ary_size; ++i) {
+      char **dummy{};
       ASSERT_EQ(status::OK, yakushima_kvs::put(std::get<0>(kv.at(i)),
-                                               std::get<1>(kv.at(i)).data(), std::get<1>(kv.at(i)).size()));
+                                               std::get<1>(kv.at(i)).data(), dummy, std::get<1>(kv.at(i)).size()));
     }
 
     for (std::size_t i = 0; i < ary_size; ++i) {
@@ -110,7 +113,8 @@ TEST_F(dt, test4) { // NOLINT
   for (std::size_t i = 0; i < ary_size; ++i) {
     k.at(i).assign(i, '\0');
     v.at(i) = std::to_string(i);
-    ASSERT_EQ(status::OK, yakushima_kvs::put(std::string_view(k.at(i)), v.at(i).data(), v.at(i).size()));
+    char **dummy{};
+    ASSERT_EQ(status::OK, yakushima_kvs::put(std::string_view(k.at(i)), v.at(i).data(), dummy, v.at(i).size()));
   }
   for (std::size_t i = 0; i < ary_size; ++i) {
     ASSERT_EQ(status::OK, yakushima_kvs::remove(token, k.at(i)));
@@ -142,8 +146,9 @@ TEST_F(dt, test5) { // NOLINT
     std::mt19937 engine(seed_gen());
     std::shuffle(kv.begin(), kv.end(), engine);
     for (std::size_t i = 0; i < ary_size; ++i) {
+      char **dummy{};
       ASSERT_EQ(status::OK, yakushima_kvs::put(std::get<0>(kv.at(i)),
-                                               std::get<1>(kv.at(i)).data(), std::get<1>(kv.at(i)).size()));
+                                               std::get<1>(kv.at(i)).data(), dummy, std::get<1>(kv.at(i)).size()));
     }
     for (std::size_t i = 0; i < ary_size; ++i) {
       ASSERT_EQ(status::OK, yakushima_kvs::remove(token, std::get<0>(kv.at(i))));
@@ -166,7 +171,8 @@ TEST_F(dt, test6) { // NOLINT
     v.at(i).assign(1, static_cast<char>(i));
   }
   for (std::size_t i = 0; i < ary_size; ++i) {
-    ASSERT_EQ(status::OK, yakushima_kvs::put(k.at(i), v.at(i).data(), v.at(i).size()));
+    char **dummy{};
+    ASSERT_EQ(status::OK, yakushima_kvs::put(k.at(i), v.at(i).data(), dummy, v.at(i).size()));
   }
 
   constexpr std::size_t lb_n{ary_size / 2};
@@ -197,8 +203,9 @@ TEST_F(dt, test7) { // NOLINT
     std::shuffle(kv.begin(), kv.end(), engine);
 
     for (std::size_t i = 0; i < ary_size; ++i) {
+      char **dummy{};
       ASSERT_EQ(status::OK, yakushima_kvs::put(std::get<0>(kv.at(i)),
-                                               std::get<1>(kv.at(i)).data(), std::get<1>(kv.at(i)).size()));
+                                               std::get<1>(kv.at(i)).data(), dummy, std::get<1>(kv.at(i)).size()));
     }
 
     std::sort(kv.begin(), kv.end());
@@ -235,7 +242,8 @@ TEST_F(dt, test8) { // NOLINT
     v.at(i).assign(1, static_cast<char>(i));
   }
   for (std::size_t i = 0; i < ary_size; ++i) {
-    ASSERT_EQ(status::OK, yakushima_kvs::put(k.at(i), v.at(i).data(), v.at(i).size()));
+    char **dummy{};
+    ASSERT_EQ(status::OK, yakushima_kvs::put(k.at(i), v.at(i).data(), dummy, v.at(i).size()));
     if (i == base_node::key_slice_length - 1) {
       /**
        * root is full-border.
@@ -351,8 +359,9 @@ TEST_F(dt, test9) { // NOLINT
     }
 
     for (std::size_t i = 0; i < ary_size; ++i) {
+      char **dummy{};
       ASSERT_EQ(status::OK, yakushima_kvs::put(std::get<0>(kv.at(i)),
-                                               std::get<1>(kv.at(i)).data(), std::get<1>(kv.at(i)).size()));
+                                               std::get<1>(kv.at(i)).data(), dummy, std::get<1>(kv.at(i)).size()));
     }
 
     for (std::size_t i = 0; i < ary_size; ++i) {

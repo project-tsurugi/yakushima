@@ -179,14 +179,15 @@ retry_fetch_lv:
    * the value size and value alignment information should be specified explicitly.
    * This is because sizeof for a type represents a single object size.
    * @param[in] key_view The key_view of key-value.
-   * @param[in] value The pointer to value.
+   * @param[in] value The pointer to given value.
+   * @param[out] created_value_ptr The pointer to created value in yakushima.
    * @param[in] arg_value_length The length of value object.
    * @param[in] value_align The alignment information of value object.
    * @return status::OK success.
    * @return status::WARN_UNIQUE_RESTRICTION The key-value whose key is same to given key already exists.
    */
   template<class ValueType>
-  static status put(std::string_view key_view, ValueType *value,
+  static status put(std::string_view key_view, ValueType *value, ValueType **created_value_ptr,
                     std::size_t arg_value_length = sizeof(ValueType), std::size_t value_align = alignof(ValueType)) {
 root_nullptr:
     base_node *expected = base_node::get_root();
@@ -195,7 +196,7 @@ root_nullptr:
        * root is nullptr, so put single border nodes.
        */
       border_node *new_border = new border_node(); // NOLINT
-      new_border->init_border(key_view, value, true, arg_value_length, value_align);
+      new_border->init_border(key_view, value, created_value_ptr, true, arg_value_length, value_align);
       for (;;) {
         if (base_node::root_.compare_exchange_weak(expected, dynamic_cast<base_node *>(new_border),
                                                    std::memory_order_acq_rel, std::memory_order_acquire)) {
@@ -287,7 +288,9 @@ retry_fetch_lv:
         target_border->version_unlock();
         goto retry_fetch_lv; // NOLINT
       }
-      insert_lv<interior_node, border_node>(target_border, traverse_key_view, value, arg_value_length, value_align);
+      insert_lv<interior_node, border_node>(target_border, traverse_key_view, value,
+                                            reinterpret_cast<void **>(created_value_ptr), arg_value_length,  // NOLINT
+                                            value_align);
       return status::OK;
     }
 

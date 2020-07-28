@@ -294,6 +294,7 @@ retry_prev_lock:
    * @details This function inits border node by using arguments.
    * @param[in] key_view
    * @param[in] value_ptr
+   * @param[out] created_value_ptr
    * @param[in] root is the root node of the layer.
    * @param[in] arg_value_length
    * @param[in] value_align
@@ -301,13 +302,15 @@ retry_prev_lock:
   template<class ValueType>
   void init_border(std::string_view key_view,
                    ValueType *value_ptr,
+                   ValueType **created_value_ptr,
                    bool root,
                    value_length_type arg_value_length = sizeof(ValueType),
                    std::size_t value_align = alignof(ValueType)) {
     init_border();
     set_version_root(root);
     set_version_border(true);
-    insert_lv_at(0, key_view, value_ptr, arg_value_length, value_align);
+    insert_lv_at(0, key_view, value_ptr, reinterpret_cast<void **>(created_value_ptr), arg_value_length, // NOLINT
+                 value_align);
   }
 
   void init_border_member_range(std::size_t start) {
@@ -321,12 +324,14 @@ retry_prev_lock:
    * @param[in] index
    * @param[in] key_view
    * @param[in] value_ptr
+   * @param[out] created_value_ptr
    * @param[in] arg_value_length
    * @param[in] value_align
    */
   void insert_lv_at(std::size_t index,
                     std::string_view key_view,
                     void *value_ptr,
+                    void **created_value_ptr,
                     value_length_type arg_value_length,
                     value_align_type value_align) {
     /**
@@ -352,14 +357,14 @@ retry_prev_lock:
       /**
        * @attention next_layer_border is the root of next layer.
        */
-      next_layer_border->init_border(key_view, value_ptr, true, arg_value_length, value_align);
+      next_layer_border->init_border(key_view, value_ptr, created_value_ptr, true, arg_value_length, value_align);
       next_layer_border->set_parent(this);
       set_lv_next_layer(index, next_layer_border);
     } else {
       memcpy(&key_slice, key_view.data(), key_view.size());
       set_key_slice_at(index, key_slice);
       set_key_length_at(index, static_cast<key_length_type>(key_view.size()));
-      set_lv_value(index, value_ptr, arg_value_length, value_align);
+      set_lv_value(index, value_ptr, created_value_ptr, arg_value_length, value_align);
     }
     permutation_.inc_key_num();
     permutation_rearrange();
@@ -384,9 +389,10 @@ retry_prev_lock:
 
   void set_lv_value(std::size_t index,
                     void *value,
+                    void **created_value_ptr,
                     value_length_type arg_value_length,
                     value_align_type value_align) {
-    lv_.at(index).set_value(value, arg_value_length, value_align);
+    lv_.at(index).set_value(value, created_value_ptr, arg_value_length, value_align);
   }
 
   void set_lv_next_layer(std::size_t index, base_node *next_layer) {

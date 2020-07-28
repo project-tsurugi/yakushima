@@ -35,12 +35,14 @@ using value_length_type = base_node::value_length_type;
  * @param[in] border
  * @param[in] key_view
  * @param[in] value_ptr
+ * @param[out] created_value_ptr The pointer to created value in yakushima.
  * @param[in] value_length
  * @param[in] value_align
  */
 template<class interior_node, class border_node>
 static void
-border_split(border_node *border, std::string_view key_view, void *value_ptr, value_length_type value_length, // NOLINT
+border_split(border_node *border, std::string_view key_view, void *value_ptr, void **created_value_ptr, // NOLINT
+             value_length_type value_length,
              value_align_type value_align);
 
 /**
@@ -97,13 +99,15 @@ create_interior_parent_of_border(border_node *left, border_node *right, interior
  * @param[in] border
  * @param[in] key_view
  * @param[in] value_ptr
+ * @param[out] created_value_ptr
  * @param[in] arg_value_length
  * @param[in] value_align
  */
 
 template<class interior_node, class border_node>
 static void
-insert_lv(border_node *border, std::string_view key_view, void *value_ptr, value_length_type arg_value_length,
+insert_lv(border_node *border, std::string_view key_view, void *value_ptr, void **created_value_ptr,
+          value_length_type arg_value_length,
           value_align_type value_align) {
   border->set_version_inserting_deleting(true);
   std::size_t cnk = border->get_permutation_cnk();
@@ -111,19 +115,21 @@ insert_lv(border_node *border, std::string_view key_view, void *value_ptr, value
     /**
      * It needs splitting
      */
-    border_split<interior_node, border_node>(border, key_view, value_ptr, arg_value_length, value_align);
+    border_split<interior_node, border_node>(border, key_view, value_ptr, created_value_ptr, arg_value_length,
+                                             value_align);
   } else {
     /**
      * Insert into this nodes.
      */
-    border->insert_lv_at(cnk, key_view, value_ptr, arg_value_length, value_align);
+    border->insert_lv_at(cnk, key_view, value_ptr, created_value_ptr, arg_value_length, value_align);
     border->version_unlock();
   }
 }
 
 template<class interior_node, class border_node>
 static void
-border_split(border_node *border, std::string_view key_view, void *value_ptr, value_length_type value_length,
+border_split(border_node *border, std::string_view key_view, void *value_ptr, void **created_value_ptr,
+             value_length_type value_length,
              value_align_type value_align) {
   border->set_version_splitting(true);
   border_node *new_border = new border_node(); // NOLINT
@@ -222,13 +228,13 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, va
     /**
      * insert to lower border node.
      */
-    border->insert_lv_at(remaining_size, key_view, value_ptr, value_length, value_align);
+    border->insert_lv_at(remaining_size, key_view, value_ptr, created_value_ptr, value_length, value_align);
   } else {
     /**
      * insert to higher border node.
      */
-    new_border->insert_lv_at(base_node::key_slice_length - remaining_size, key_view, value_ptr, value_length,
-                             value_align);
+    new_border->insert_lv_at(base_node::key_slice_length - remaining_size, key_view, value_ptr, created_value_ptr,
+                             value_length, value_align);
   }
 
   std::vector<base_node *> next_layers;

@@ -123,11 +123,12 @@ public:
   /**
    * @pre @a arg_value_length is divisible by sizeof( @a ValueType ).
    * @pre This function called at initialization.
-   * @param vptr The pointer to source value object.
-   * @param arg_value_size The byte size of value.
-   * @param value_align The alignment of value.
+   * @param[in] vptr The pointer to source value object.
+   * @param[out] created_value_ptr The pointer to created value in yakushima.
+   * @param[in] arg_value_size The byte size of value.
+   * @param[in] value_align The alignment of value.
    */
-  void set_value(void *vptr, std::size_t arg_value_size,
+  void set_value(void *vptr, void **created_value_ptr, std::size_t arg_value_size,
                  std::size_t value_align) {
     if (get_need_delete_value()) {
       ::operator delete(get_v_or_vp_(), static_cast<std::align_val_t>(get_value_align()));
@@ -140,7 +141,7 @@ public:
       /**
        * It use copy assign, so ValueType must be copy-assignable.
        */
-      set_v_or_vp(::operator new(arg_value_size, static_cast<std::align_val_t>(value_align)));
+      set_v_or_vp(*created_value_ptr = ::operator new(arg_value_size, static_cast<std::align_val_t>(value_align)));
       memcpy(get_v_or_vp_(), vptr, arg_value_size);
       set_need_delete_value(true);
     } catch (std::bad_alloc &e) {

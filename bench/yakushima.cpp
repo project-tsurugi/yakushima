@@ -100,7 +100,8 @@ void parallel_build_tree() {
       for (std::uint64_t i = left_edge; i < right_edge; ++i) {
         void *p = (&i);
         std::string key{static_cast<char *>(p), sizeof(std::uint64_t)}; // sizeof(std::size_t) points to loop variable.
-        yakushima_kvs::put(std::string_view(key), value.data(), value.size());
+        char** dummy{};
+        yakushima_kvs::put(std::string_view(key), value.data(), dummy, value.size());
       }
       yakushima_kvs::leave(token);
     }
@@ -181,7 +182,8 @@ void put_worker(const size_t thid, char &ready, const bool &start, const bool &q
     void *p = (&i);
     std::string key{static_cast<char *>(p), sizeof(std::uint64_t)};
     try {
-      yakushima_kvs::put(std::string_view(key), value.data(), value.size());
+      char** dummy{};
+      yakushima_kvs::put(std::string_view(key), value.data(), dummy, value.size());
     } catch (std::bad_alloc &) {
       std::cout << __FILE__ << " : " << __LINE__ << "bad_alloc. Please set less duration." << std::endl;
       std::abort();
