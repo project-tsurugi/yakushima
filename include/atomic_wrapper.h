@@ -66,4 +66,4 @@ bool weakCompareExchange(type *ptr, type *expected, type *desired) {
 }
 #endif
 
-}
+} // namespace yakushima

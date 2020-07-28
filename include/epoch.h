@@ -27,4 +27,4 @@ private:
   static inline std::atomic<Epoch> kEpoch; // NOLINT
 };
 
-} //
+} // namespace yakushima
