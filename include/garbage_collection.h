@@ -74,7 +74,8 @@ public:
 
           auto &vcontainer = kGarbageValues.at(i);
           for (auto &&elem : vcontainer.get_body()) {
-            ::operator delete(std::get<gc_target_index>(elem));
+            ::operator delete(std::get<gc_target_index>(elem), std::get<gc_target_size_index>(elem),
+                              std::get<gc_target_align_index>(elem));
           }
           vcontainer.get_body().clear();
         }
@@ -181,6 +182,8 @@ public:
 
   static constexpr std::size_t gc_epoch_index = 0;
   static constexpr std::size_t gc_target_index = 1;
+  static constexpr std::size_t gc_target_size_index = 2;
+  static constexpr std::size_t gc_target_align_index = 3;
   static inline std::array<node_container, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kGarbageNodes; // NOLINT
   static inline std::array<value_container, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kGarbageValues; // NOLINT
   alignas(CACHE_LINE_SIZE) static inline std::atomic<Epoch> kGCEpoch; // NOLINT
