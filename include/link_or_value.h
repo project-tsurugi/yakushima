@@ -8,6 +8,7 @@
 #include "base_node.h"
 #include "cpu.h"
 
+#include <new>
 #include <typeinfo>
 
 namespace yakushima {
@@ -93,7 +94,7 @@ public:
   }
 
   [[nodiscard]] value_align_type get_value_align() {
-    return loadAcquireN(value_align_);
+    return value_align_;
   }
 
   [[nodiscard]] value_length_type get_value_length() {
@@ -131,7 +132,7 @@ public:
   void set_value(void *vptr, void **created_value_ptr, std::size_t arg_value_size,
                  std::align_val_t value_align) {
     if (get_need_delete_value()) {
-      ::operator delete(get_v_or_vp_(), get_value_length(), static_cast<std::align_val_t>(get_value_align()));
+      ::operator delete(get_v_or_vp_(), get_value_length(), get_value_align());
       set_need_delete_value(false);
     }
     set_next_layer(nullptr);
@@ -167,7 +168,7 @@ public:
   }
 
   void set_value_align(value_align_type new_value_align) {
-    storeReleaseN(value_align_, new_value_align);
+    value_align_ = new_value_align;
   }
 
   void set_value_length(value_length_type new_value_length) {
