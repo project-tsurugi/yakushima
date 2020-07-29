@@ -294,7 +294,7 @@ retry_prev_lock:
    * @details This function inits border node by using arguments.
    * @param[in] key_view
    * @param[in] value_ptr
-   * @param[out] created_value_ptr
+   * @param[out] created_value_ptr The pointer to created value in yakushima.
    * @param[in] root is the root node of the layer.
    * @param[in] arg_value_length
    * @param[in] value_align
@@ -304,8 +304,8 @@ retry_prev_lock:
                    ValueType *value_ptr,
                    ValueType **created_value_ptr,
                    bool root,
-                   value_length_type arg_value_length = sizeof(ValueType),
-                   std::size_t value_align = alignof(ValueType)) {
+                   value_length_type arg_value_length,
+                   std::size_t value_align) {
     init_border();
     set_version_root(root);
     set_version_border(true);

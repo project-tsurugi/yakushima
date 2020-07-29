@@ -187,8 +187,8 @@ retry_fetch_lv:
    * @return status::WARN_UNIQUE_RESTRICTION The key-value whose key is same to given key already exists.
    */
   template<class ValueType>
-  static status put(std::string_view key_view, ValueType *value, ValueType **created_value_ptr,
-                    std::size_t arg_value_length = sizeof(ValueType), std::size_t value_align = alignof(ValueType)) {
+  static status put(std::string_view key_view, ValueType *value, std::size_t arg_value_length = sizeof(ValueType),
+                    ValueType **created_value_ptr = nullptr, std::size_t value_align = alignof(ValueType)) {
 root_nullptr:
     base_node *expected = base_node::get_root();
     if (expected == nullptr) {

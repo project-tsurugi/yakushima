@@ -32,8 +32,7 @@ TEST_F(st, test1) { // NOLINT
   std::string v("v-a");
   Token token{};
   ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
-  char *dummy{};
-  ASSERT_EQ(status::OK, yakushima_kvs::put(std::string_view(k), v.data(), &dummy, v.size()));
+  ASSERT_EQ(status::OK, yakushima_kvs::put(std::string_view(k), v.data(), v.size()));
   std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
   ASSERT_EQ(status::OK, yakushima_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(nullptr, 0),
                                                   false, tuple_list));
@@ -128,8 +127,7 @@ TEST_F(st, test2) { // NOLINT
   for (std::size_t i = 0; i < ary_size; ++i) {
     k.at(i).assign(i, '\0');
     v.at(i) = std::to_string(i);
-    char *dummy{};
-    ASSERT_EQ(status::OK, yakushima_kvs::put(std::string_view(k.at(i)), v.at(i).data(), &dummy, v.at(i).size()));
+    ASSERT_EQ(status::OK, yakushima_kvs::put(std::string_view(k.at(i)), v.at(i).data(), v.at(i).size()));
   }
 
   std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
@@ -161,8 +159,7 @@ TEST_F(st, test3) { // NOLINT
   for (std::size_t i = 0; i < ary_size; ++i) {
     k.at(i).assign(i, '\0');
     v.at(i) = std::to_string(i);
-    char *dummy{};
-    ASSERT_EQ(status::OK, yakushima_kvs::put(std::string_view(k.at(i)), v.at(i).data(), &dummy, v.at(i).size()));
+    ASSERT_EQ(status::OK, yakushima_kvs::put(std::string_view(k.at(i)), v.at(i).data(), v.at(i).size()));
   }
   constexpr std::size_t value_index = 0;
   std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
@@ -196,8 +193,7 @@ TEST_F(st, test4) { // NOLINT
     v.at(i).assign(1, static_cast<char>('a' + i));
   }
   for (std::size_t i = 0; i < ary_size; ++i) {
-    char *dummy{};
-    ASSERT_EQ(status::OK, yakushima_kvs::put(std::string_view{k.at(i)}, v.at(i).data(), &dummy, v.at(i).size()));
+    ASSERT_EQ(status::OK, yakushima_kvs::put(std::string_view{k.at(i)}, v.at(i).data(), v.at(i).size()));
   }
   constexpr std::size_t value_index = 0;
   std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
@@ -229,8 +225,7 @@ TEST_F(st, test5) { // NOLINT
     v.at(i).assign(1, static_cast<char>(i));
   }
   for (std::size_t i = 0; i < ary_size; ++i) {
-    char *dummy{};
-    ASSERT_EQ(status::OK, yakushima_kvs::put(std::string_view{k.at(i)}, v.at(i).data(), &dummy, v.at(i).size()));
+    ASSERT_EQ(status::OK, yakushima_kvs::put(std::string_view{k.at(i)}, v.at(i).data(), v.at(i).size()));
   }
   constexpr std::size_t value_index = 0;
   std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT

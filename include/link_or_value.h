@@ -141,7 +141,10 @@ public:
       /**
        * It use copy assign, so ValueType must be copy-assignable.
        */
-      set_v_or_vp(*created_value_ptr = ::operator new(arg_value_size, static_cast<std::align_val_t>(value_align)));
+      set_v_or_vp(::operator new(arg_value_size, static_cast<std::align_val_t>(value_align)));
+      if (created_value_ptr != nullptr) {
+        *created_value_ptr = get_v_or_vp_();
+      }
       memcpy(get_v_or_vp_(), vptr, arg_value_size);
       set_need_delete_value(true);
     } catch (std::bad_alloc &e) {

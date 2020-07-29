@@ -52,8 +52,7 @@ TEST_F(mtpdt, test1) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            char *dummy{};
-            status ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
+            status ret = yakushima_kvs::put(k, v.data(), v.size());
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -72,8 +71,7 @@ TEST_F(mtpdt, test1) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          char *dummy{};
-          status ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
+          status ret = yakushima_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -139,8 +137,7 @@ TEST_F(mtpdt, test2) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            char *dummy{};
-            status ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
+            status ret = yakushima_kvs::put(k, v.data(), v.size());
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -159,8 +156,7 @@ TEST_F(mtpdt, test2) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          char *dummy{};
-          status ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
+          status ret = yakushima_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -226,8 +222,7 @@ TEST_F(mtpdt, test3) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            char *dummy{};
-            status ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
+            status ret = yakushima_kvs::put(k, v.data(), v.size());
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -246,8 +241,7 @@ TEST_F(mtpdt, test3) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          char *dummy{};
-          status ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
+          status ret = yakushima_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -313,8 +307,7 @@ TEST_F(mtpdt, test4) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            char *dummy{};
-            status ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
+            status ret = yakushima_kvs::put(k, v.data(), v.size());
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -333,8 +326,7 @@ TEST_F(mtpdt, test4) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          char *dummy{};
-          status ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
+          status ret = yakushima_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -397,8 +389,7 @@ TEST_F(mtpdt, test5) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            char *dummy{};
-            status ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
+            status ret = yakushima_kvs::put(k, v.data(), v.size());
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -417,8 +408,7 @@ TEST_F(mtpdt, test5) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          char *dummy{};
-          status ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
+          status ret = yakushima_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -486,8 +476,7 @@ TEST_F(mtpdt, test5_2) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            char *dummy{};
-            status ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
+            status ret = yakushima_kvs::put(k, v.data(), v.size());
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -506,8 +495,7 @@ TEST_F(mtpdt, test5_2) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          char *dummy{};
-          status ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
+          status ret = yakushima_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -581,8 +569,7 @@ TEST_F(mtpdt, test6) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            char *dummy{};
-            status ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
+            status ret = yakushima_kvs::put(k, v.data(), v.size());
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -601,8 +588,7 @@ TEST_F(mtpdt, test6) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          char *dummy{};
-          status ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
+          status ret = yakushima_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -672,8 +658,7 @@ TEST_F(mtpdt, test6_2) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            char *dummy{};
-            status ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
+            status ret = yakushima_kvs::put(k, v.data(), v.size());
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -692,8 +677,7 @@ TEST_F(mtpdt, test6_2) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          char *dummy{};
-          status ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
+          status ret = yakushima_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -763,8 +747,7 @@ TEST_F(mtpdt, test7) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            char *dummy{};
-            status ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
+            status ret = yakushima_kvs::put(k, v.data(), v.size());
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -783,8 +766,7 @@ TEST_F(mtpdt, test7) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          char *dummy{};
-          status ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
+          status ret = yakushima_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -855,8 +837,7 @@ TEST_F(mtpdt, test7_2) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            char *dummy{};
-            status ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
+            status ret = yakushima_kvs::put(k, v.data(), v.size());
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -875,8 +856,7 @@ TEST_F(mtpdt, test7_2) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          char *dummy{};
-          status ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
+          status ret = yakushima_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -954,8 +934,7 @@ TEST_F(mtpdt, test8) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            char *dummy{};
-            status ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
+            status ret = yakushima_kvs::put(k, v.data(), v.size());
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -974,8 +953,7 @@ TEST_F(mtpdt, test8) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          char *dummy{};
-          status ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
+          status ret = yakushima_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -1060,8 +1038,7 @@ TEST_F(mtpdt, test9) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            char *dummy{};
-            status ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
+            status ret = yakushima_kvs::put(k, v.data(), v.size());
             if (ret != status::OK) {
               ASSERT_EQ(ret, status::OK);
               std::abort();
@@ -1080,8 +1057,7 @@ TEST_F(mtpdt, test9) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          char *dummy{};
-          status ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
+          status ret = yakushima_kvs::put(k, v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -1167,10 +1143,9 @@ TEST_F(mtpdt, test10) { // NOLINT
           for (auto &i : kv) {
             std::string v(std::get<1>(i));
             std::string k(std::get<0>(i));
-            char *dummy{};
-            status ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
+            status ret = yakushima_kvs::put(k, v.data(), v.size());
             if (status::OK != ret) {
-              ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
+              ret = yakushima_kvs::put(k, v.data(), v.size());
               ASSERT_EQ(status::OK, ret);
               std::abort();
             }
@@ -1189,8 +1164,7 @@ TEST_F(mtpdt, test10) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          char *dummy{};
-          status ret = yakushima_kvs::put(k, v.data(), &dummy, v.size());
+          status ret = yakushima_kvs::put(k, v.data(), v.size());
           if (status::OK != ret) {
             ASSERT_EQ(status::OK, ret);
             std::abort();
