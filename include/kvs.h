@@ -188,7 +188,8 @@ retry_fetch_lv:
    */
   template<class ValueType>
   static status put(std::string_view key_view, ValueType *value, std::size_t arg_value_length = sizeof(ValueType),
-                    ValueType **created_value_ptr = nullptr, std::size_t value_align = alignof(ValueType)) {
+                    ValueType **created_value_ptr = nullptr,
+                    value_align_type value_align = static_cast<value_align_type>(alignof(ValueType))) {
 root_nullptr:
     base_node *expected = base_node::get_root();
     if (expected == nullptr) {

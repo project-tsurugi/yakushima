@@ -56,7 +56,7 @@ public:
     set_need_delete_value(false);
     set_v_or_vp(nullptr);
     set_value_length(0);
-    set_value_align(0);
+    set_value_align(static_cast<std::align_val_t>(0));
   }
 
   /**
@@ -67,7 +67,7 @@ public:
     std::cout << "next_layer_ : " << get_next_layer() << std::endl;
     std::cout << "v_or_vp_ : " << get_v_or_vp_() << std::endl;
     std::cout << "value_length_ : " << get_value_length() << std::endl;
-    std::cout << "value_align_ : " << get_value_align() << std::endl;
+    std::cout << "value_align_ : " << static_cast<std::size_t>(get_value_align()) << std::endl;
   }
 
   [[nodiscard]] bool get_need_delete_value() {
@@ -105,7 +105,7 @@ public:
     set_next_layer(nullptr);
     set_v_or_vp(nullptr);
     set_value_length(0);
-    set_value_align(0);
+    set_value_align(static_cast<std::align_val_t>(0));
   }
 
   /**
@@ -129,9 +129,9 @@ public:
    * @param[in] value_align The alignment of value.
    */
   void set_value(void *vptr, void **created_value_ptr, std::size_t arg_value_size,
-                 std::size_t value_align) {
+                 std::align_val_t value_align) {
     if (get_need_delete_value()) {
-      ::operator delete(get_v_or_vp_(), static_cast<std::align_val_t>(get_value_align()));
+      ::operator delete(get_v_or_vp_(), get_value_length(), static_cast<std::align_val_t>(get_value_align()));
       set_need_delete_value(false);
     }
     set_next_layer(nullptr);

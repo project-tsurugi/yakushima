@@ -34,7 +34,8 @@ public:
   void delete_at(Token token, std::size_t pos, bool target_is_value) {
     thread_info *ti = reinterpret_cast<thread_info *>(token); // NOLINT
     if (target_is_value) {
-      ti->move_value_to_gc_container(lv_.at(pos).get_v_or_vp_());
+      ti->move_value_to_gc_container(lv_.at(pos).get_v_or_vp_(), lv_.at(pos).get_value_length(),
+                                     lv_.at(pos).get_value_align());
     }
     lv_.at(pos).init_lv();
 
@@ -305,7 +306,7 @@ retry_prev_lock:
                    ValueType **created_value_ptr,
                    bool root,
                    value_length_type arg_value_length,
-                   std::size_t value_align) {
+                   value_align_type value_align) {
     init_border();
     set_version_root(root);
     set_version_border(true);

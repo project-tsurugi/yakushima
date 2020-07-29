@@ -34,7 +34,7 @@ public:
    * To avoid circular reference at there, declare here.
    */
   using value_length_type = std::size_t;
-  using value_align_type = std::size_t;
+  using value_align_type = std::align_val_t;
 
   virtual ~base_node() = default; // NOLINT
 

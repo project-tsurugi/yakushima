@@ -29,12 +29,12 @@ public:
 
   class alignas(CACHE_LINE_SIZE) value_container {
   public:
-    std::vector<std::pair<Epoch, void *>> &get_body() {
+    std::vector<std::tuple<Epoch, void *, std::size_t, std::align_val_t>> &get_body() {
       return body_;
     }
 
   private:
-    std::vector<std::pair<Epoch, void *>> body_;
+    std::vector<std::tuple<Epoch, void *, std::size_t, std::align_val_t>> body_;
   };
 
   void set(std::size_t index) {
@@ -52,8 +52,8 @@ public:
     node_container_->get_body().emplace_back(std::make_pair(gc_epoch, n));
   }
 
-  void add_value_to_gc_container(Epoch gc_epoch, void *vp) {
-    value_container_->get_body().emplace_back(std::make_pair(gc_epoch, vp));
+  void add_value_to_gc_container(Epoch gc_epoch, void *vp, std::size_t size, std::align_val_t alignment) {
+    value_container_->get_body().emplace_back(std::make_tuple(gc_epoch, vp, size, alignment));
   }
 
   /**

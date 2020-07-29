@@ -61,8 +61,8 @@ public:
     gc_container_.add_node_to_gc_container(begin_epoch_.load(std::memory_order_acquire), n);
   }
 
-  void move_value_to_gc_container(void *vp) {
-    gc_container_.add_value_to_gc_container(begin_epoch_.load(std::memory_order_acquire), vp);
+  void move_value_to_gc_container(void *vp, std::size_t size, std::align_val_t alignment) {
+    gc_container_.add_value_to_gc_container(begin_epoch_.load(std::memory_order_acquire), vp, size, alignment);
   }
 
   void set_begin_epoch(Epoch epoch) {
