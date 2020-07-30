@@ -457,4 +457,20 @@ TEST_F(kt, test11) { // NOLINT
   ASSERT_EQ(memcmp(created_ptr, v.data(), v.size()), 0);
 }
 
+TEST_F(kt, test12) { // NOLINT
+  Token token{};
+  std::string k("a");                           // NOLINT
+  std::string k2("aa");                         // NOLINT
+  std::string k3("aac");                        // NOLINT
+  std::string k4("b");                          // NOLINT
+  std::string v("v");                          // NOLINT
+  ASSERT_EQ(status::OK, yakushima_kvs::enter(token));
+  ASSERT_EQ(status::OK, yakushima_kvs::put(k, v.data(), v.size()));
+  ASSERT_EQ(status::OK, yakushima_kvs::put(k2, v.data(), v.size()));
+  ASSERT_EQ(status::OK, yakushima_kvs::put(k3, v.data(), v.size()));
+  ASSERT_EQ(status::OK, yakushima_kvs::put(k4, v.data(), v.size()));
+  std::vector<std::tuple<char*, std::size_t>> tuple_list;
+  yakushima_kvs::scan<char>(k, true, k4, true, tuple_list);
+  std::cout << tuple_list.size() << std::endl;
+}
 }  // namespace yakushima::testing

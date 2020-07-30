@@ -15,6 +15,27 @@ namespace yakushima::testing {
 class ct : public ::testing::Test {
 };
 
+TEST_F(ct, compareBool) { // NOLINT
+  ASSERT_EQ(false < true, true);
+}
+
+TEST_F(ct, compareData) { // NOLINT
+  std::string s("a");                           // NOLINT
+  std::string s2("aa");                         // NOLINT
+  std::string s3("aac");                        // NOLINT
+  std::string s4("b");                          // NOLINT
+  std::uint64_t k{};
+  std::uint64_t k2{};
+  std::uint64_t k3{};
+  std::uint64_t k4{};
+  memcpy(&k, s.data(), s.size());
+  memcpy(&k2, s2.data(), s2.size());
+  memcpy(&k3, s3.data(), s3.size());
+  memcpy(&k4, s4.data(), s4.size());
+  ASSERT_NE(s3 < s4, k3 < k4);
+  ASSERT_EQ(s3 < s4, memcmp(&k3, &k4, sizeof(std::uint64_t)) < 0);
+}
+
 TEST_F(ct, compareTuple) { // NOLINT
   std::array<base_node::key_slice_type, 2> key_slice{};
   std::array<base_node::key_length_type, 2> key_length{};
