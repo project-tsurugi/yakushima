@@ -20,20 +20,16 @@ TEST_F(ct, compareBool) { // NOLINT
 }
 
 TEST_F(ct, compareData) { // NOLINT
-  std::string s("a");                           // NOLINT
-  std::string s2("aa");                         // NOLINT
-  std::string s3("aac");                        // NOLINT
-  std::string s4("b");                          // NOLINT
-  std::uint64_t k{};
+  std::string s1("aac");                        // NOLINT
+  std::string s2("b");                          // NOLINT
+  std::uint64_t k1{};
   std::uint64_t k2{};
-  std::uint64_t k3{};
-  std::uint64_t k4{};
-  memcpy(&k, s.data(), s.size());
+  memcpy(&k1, s1.data(), s1.size());
   memcpy(&k2, s2.data(), s2.size());
-  memcpy(&k3, s3.data(), s3.size());
-  memcpy(&k4, s4.data(), s4.size());
-  ASSERT_NE(s3 < s4, k3 < k4);
-  ASSERT_EQ(s3 < s4, memcmp(&k3, &k4, sizeof(std::uint64_t)) < 0);
+  ASSERT_NE(s1 < s2, k1 < k2);
+  ASSERT_EQ(s1 < s2, memcmp(&k1, &k2, sizeof(std::uint64_t)) < 0);
+  ASSERT_EQ(s1 < s2, std::string_view(reinterpret_cast<char *>(&k1), sizeof(std::uint64_t)) < // NOLINT
+                     std::string_view(reinterpret_cast<char *>(&k2), sizeof(std::uint64_t))); // NOLINT
 }
 
 TEST_F(ct, compareTuple) { // NOLINT
