@@ -137,8 +137,11 @@ public:
         ret_child = get_child_at(0);
       } else {
         for (auto i = 0; i < n_key; ++i) {
-          int ret_memcmp = memcmp(&key_slice, &get_key_slice_at(i),
-                                  key_length < get_key_length_at(i) ? key_length : get_key_length_at(i));
+          std::size_t comp_length = key_length < get_key_length_at(i) ? key_length : get_key_length_at(i);
+          if (comp_length > sizeof(key_slice_type)) {
+            comp_length = sizeof(key_slice_type);
+          }
+          int ret_memcmp = memcmp(&key_slice, &get_key_slice_at(i), comp_length);
           if (ret_memcmp < 0 || (ret_memcmp == 0 && key_length < get_key_length_at(i))) {
             /**
              * The key_slice must be left direction of the index.
