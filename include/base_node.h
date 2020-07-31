@@ -36,6 +36,53 @@ public:
   using value_length_type = std::size_t;
   using value_align_type = std::align_val_t;
 
+  class key_tuple {
+  public:
+    key_tuple() = default;
+    key_tuple(key_slice_type slice, key_length_type length) : key_slice_(slice), key_length_(length) {}
+
+    bool operator<(const key_tuple &r) const {
+      if (key_length_ == 0) {
+        return true;
+      }
+      if (r.key_length_ == 0) {
+        return false;
+      }
+      int ret = memcmp(&key_slice_, &r.key_slice_, key_length_ < r.key_length_ ? key_length_ : r.key_length_);
+      if (ret < 0) {
+        return true;
+      }
+      if (ret == 0) {
+        return key_length_ < r.key_length_;
+      }
+      return false;
+    }
+
+    bool operator==(const key_tuple &r) const {
+      return key_slice_ == r.key_slice_ && key_length_ == r.key_length_;
+    }
+
+    key_length_type get_key_length() {
+      return key_length_;
+    }
+
+    key_slice_type get_key_slice() {
+      return key_slice_;
+    }
+
+    void set_key_length(key_length_type length) {
+      key_length_ = length;
+    }
+
+    void set_key_slice(key_slice_type slice) {
+      key_slice_ = slice;
+    }
+
+  private:
+    key_slice_type key_slice_{0};
+    key_length_type key_length_{0};
+  };
+
   virtual ~base_node() = default; // NOLINT
 
   void atomic_set_version_root(bool tf) {
@@ -68,16 +115,16 @@ public:
     return key_length_;
   }
 
-  [[nodiscard]] key_length_type get_key_length_at(std::size_t index) {
-    return loadAcquireN(key_length_.at(index));
+  [[nodiscard]] key_length_type &get_key_length_at(std::size_t index) {
+    return key_length_.at(index);
   }
 
   [[nodiscard]] std::array<key_slice_type, key_slice_length> &get_key_slice() {
     return key_slice_;
   }
 
-  [[nodiscard]] key_slice_type get_key_slice_at(std::size_t index) {
-    return loadAcquireN(key_slice_.at(index));
+  [[nodiscard]] key_slice_type &get_key_slice_at(std::size_t index) {
+    return key_slice_.at(index);
   }
 
   [[maybe_unused]] [[nodiscard]] bool get_lock() &{

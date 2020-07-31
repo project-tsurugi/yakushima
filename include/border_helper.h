@@ -151,14 +151,13 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, vo
   /**
    * split keys among n and n'
    */
-  constexpr std::size_t key_slice_index = 0;
-  constexpr std::size_t key_length_index = 1;
-  constexpr std::size_t key_pos = 2;
-  std::vector<std::tuple<key_slice_type, key_length_type, std::uint8_t>> vec;
+  constexpr std::size_t key_tuple_index = 0;
+  constexpr std::size_t key_pos = 1;
+  std::vector<std::tuple<base_node::key_tuple, std::uint8_t>> vec;
   std::uint8_t cnk = border->get_permutation_cnk();
   vec.reserve(cnk);
   for (std::uint8_t i = 0; i < cnk; ++i) {
-    vec.emplace_back(border->get_key_slice_at(i), border->get_key_length_at(i), i); // NOLINT
+    vec.emplace_back(base_node::key_tuple(border->get_key_slice_at(i), border->get_key_length_at(i)), i); // NOLINT
   }
   std::sort(vec.begin(), vec.end());
   /**
@@ -173,8 +172,8 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, vo
     /**
      * move base_node members to new nodes
      */
-    new_border->set_key_slice_at(index_ctr, std::get<key_slice_index>(*itr));
-    new_border->set_key_length_at(index_ctr, std::get<key_length_index>(*itr));
+    new_border->set_key_slice_at(index_ctr, std::get<key_tuple_index>(*itr).get_key_slice());
+    new_border->set_key_length_at(index_ctr, std::get<key_tuple_index>(*itr).get_key_length());
     new_border->set_lv(index_ctr, border->get_lv_at(std::get<key_pos>(*itr)));
     base_node *nl = border->get_lv_at(std::get<key_pos>(*itr))->get_next_layer();
     if (nl != nullptr) {
@@ -211,7 +210,7 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, vo
    * key_slice must be initialized to 0.
    */
   key_slice_type key_slice{0};
-  key_length_type key_length; // NOLINT
+  key_length_type key_length{0}; // NOLINT
   if (key_view.size() > sizeof(key_slice_type)) {
     memcpy(&key_slice, key_view.data(), sizeof(key_slice_type));
     key_length = sizeof(key_slice_type) + 1;
@@ -221,10 +220,9 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, vo
     }
     key_length = static_cast<key_length_type>(key_view.size());
   }
-  std::tuple<key_slice_type, key_length_type> visitor{key_slice, key_length};
-  std::tuple<key_slice_type, key_length_type> r_low{new_border->get_key_slice_at(0),
-                                                    new_border->get_key_length_at(0)};
-  if (visitor < r_low) {
+  int ret_memcmp{memcmp(&key_slice, &new_border->get_key_slice_at(0),
+                        key_length < new_border->get_key_length_at(0) ? key_length : new_border->get_key_length_at(0))};
+  if (key_length == 0 || ret_memcmp < 0 || (ret_memcmp == 0 && key_length < new_border->get_key_length_at(0))) {
     /**
      * insert to lower border node.
      */

@@ -102,7 +102,10 @@ public:
      */
     std::size_t cnk = get_permutation_cnk();
     for (std::size_t i = 0; i < cnk; ++i) {
-      if (key_slice == get_key_slice_at(i) && key_slice_length == get_key_length_at(i)) {
+      if ((key_slice_length == 0 && get_key_length_at(i) == 0) ||
+          (key_slice_length == get_key_length_at(i) && memcmp(&key_slice, &get_key_slice_at(i),
+                                                              key_slice_length <= sizeof(key_slice_type)
+                                                              ? key_slice_length : sizeof(key_slice_type)) == 0)) {
         delete_at(token, i, target_is_value);
         if (cnk == 1) { // attention : this cnk is before delete_at;
           /**
@@ -230,13 +233,21 @@ retry_prev_lock:
       std::size_t cnk = permutation_.get_cnk();
       link_or_value *ret_lv{nullptr};
       for (std::size_t i = 0; i < cnk; ++i) {
-        if (key_slice == get_key_slice_at(i)) {
-          if ((key_length == get_key_length_at(i)) ||
-              (key_length > sizeof(key_slice_type) && get_key_length_at(i) > sizeof(key_slice_type))) {
-            ret_lv = get_lv_at(i);
-            lv_pos = i;
-            break;
+        bool suc{false};
+        if (key_length == 0 && get_key_length_at(i) == 0) {
+          suc = true;
+        } else if ((key_length > sizeof(key_slice_type) && get_key_length_at(i) > sizeof(key_slice_type)) &&
+                   (memcmp(&key_slice, &get_key_slice_at(i), sizeof(key_slice_type)) == 0)) {
+          suc = true;
+        } else {
+          if (key_length == get_key_length_at(i) && memcmp(&key_slice, &get_key_slice_at(i), key_length) == 0) {
+            suc = true;
           }
+        }
+        if (suc) {
+          ret_lv = get_lv_at(i);
+          lv_pos = i;
+          break;
         }
       }
       node_version64_body v_check = get_stable_version();

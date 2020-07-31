@@ -65,7 +65,6 @@ public:
               dynamic_cast<interior_node *>(pn)->swap_child(this, get_child_at(!i));
             }
             get_child_at(!i)->set_parent(pn);
-            pn->set_version_inserting_deleting(true);
             pn->version_unlock();
           }
           reinterpret_cast<thread_info *>(token)->move_node_to_gc_container(this); // NOLINT
@@ -131,28 +130,29 @@ public:
 
   base_node *get_child_of(key_slice_type key_slice, key_length_type key_length) {
     node_version64_body v = get_stable_version();
-    std::tuple<key_slice_type, key_length_type> visitor{key_slice, key_length};
     for (;;) {
       n_keys_body_type n_key = get_n_keys();
       base_node *ret_child{nullptr};
-      for (auto i = 0; i < n_key; ++i) {
-        /**
-         * It loads key_slice atomically by get_key_slice_at func.
-         */
-        std::tuple<key_slice_type, key_length_type> resident{get_key_slice_at(i), get_key_length_at(i)};
-        if (visitor < resident) {
+      if (key_length == 0) {
+        ret_child = get_child_at(0);
+      } else {
+        for (auto i = 0; i < n_key; ++i) {
+          int ret_memcmp = memcmp(&key_slice, &get_key_slice_at(i),
+                                  key_length < get_key_length_at(i) ? key_length : get_key_length_at(i));
+          if (ret_memcmp < 0 || (ret_memcmp == 0 && key_length < get_key_length_at(i))) {
+            /**
+             * The key_slice must be left direction of the index.
+             */
+            ret_child = get_child_at(i);
+            break;
+          }
           /**
-           * The key_slice must be left direction of the index.
+           * The key_slice must be right direction of the index.
            */
-          ret_child = get_child_at(i);
-          break;
-        }
-        /**
-         * The key_slice must be right direction of the index.
-         */
-        if (i == n_key - 1) {
-          ret_child = get_child_at(i + 1);
-          break;
+          if (i == n_key - 1) {
+            ret_child = get_child_at(i + 1);
+            break;
+          }
         }
       }
       node_version64_body check = get_stable_version();
@@ -179,17 +179,17 @@ public:
   template<class border_node>
   void insert(base_node *child, std::pair<base_node::key_slice_type, base_node::key_length_type> pivot_key) {
     set_version_inserting_deleting(true);
-    std::tuple<key_slice_type, key_length_type> visitor = std::make_tuple(pivot_key.first, pivot_key.second);
+    //std::tuple<key_slice_type, key_length_type> visitor = std::make_tuple(pivot_key.first, pivot_key.second);
+    key_slice_type key_slice{pivot_key.first};
+    key_length_type key_length{pivot_key.second};
     n_keys_body_type n_key = get_n_keys();
     for (auto i = 0; i < n_key; ++i) {
-      std::tuple<key_slice_type, key_length_type>
-              resident{get_key_slice_at(i), get_key_length_at(i)};
-      constexpr std::size_t slice_pos = 0;
-      constexpr std::size_t slice_length_pos = 1;
-      if (visitor < resident) {
+      int ret_memcmp = memcmp(&key_slice, &get_key_slice_at(i),
+                              key_length < get_key_length_at(i) ? key_length : get_key_length_at(i));
+      if (ret_memcmp < 0 || (ret_memcmp == 0 && key_length < get_key_length_at(i))) {
         if (i == 0) { // insert to child[0] or child[1].
           shift_right_base_member(i, 1);
-          set_key(i, pivot_key.first, pivot_key.second);
+          set_key(i, key_slice, key_length);
           shift_right_children(i + 1);
           set_child_at(i + 1, child);
           n_keys_increment();
@@ -197,7 +197,7 @@ public:
         }
         // insert to middle points
         shift_right_base_member(i, 1);
-        set_key(i, std::get<slice_pos>(visitor), std::get<slice_length_pos>(visitor));
+        set_key(i, key_slice, key_length);
         shift_right_children(i + 1);
         set_child_at(i + 1, child);
         n_keys_increment();
@@ -205,7 +205,7 @@ public:
       }
     }
     // insert to rightmost points
-    set_key(n_key, std::get<0>(visitor), std::get<1>(visitor));
+    set_key(n_key, key_slice, key_length);
     set_child_at(n_key + 1, child);
     n_keys_increment();
   }

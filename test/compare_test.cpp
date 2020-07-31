@@ -30,6 +30,20 @@ TEST_F(ct, compareData) { // NOLINT
   ASSERT_EQ(s1 < s2, memcmp(&k1, &k2, sizeof(std::uint64_t)) < 0);
   ASSERT_EQ(s1 < s2, std::string_view(reinterpret_cast<char *>(&k1), sizeof(std::uint64_t)) < // NOLINT
                      std::string_view(reinterpret_cast<char *>(&k2), sizeof(std::uint64_t))); // NOLINT
+
+  base_node::key_tuple kt1{};
+  kt1.set_key_slice(k1);
+  kt1.set_key_length(s1.size());
+  base_node::key_tuple kt2{};
+  kt2.set_key_slice(k2);
+  kt2.set_key_length(s2.size());
+  ASSERT_EQ(kt1 < kt2, true);
+  std::vector<base_node::key_tuple> vec; // NOLINT
+  vec.emplace_back(kt2);
+  vec.emplace_back(kt1);
+  std::sort(vec.begin(), vec.end());
+  ASSERT_EQ(vec.front(), kt1);
+  ASSERT_EQ(vec.back(), kt2);
 }
 
 TEST_F(ct, compareTuple) { // NOLINT

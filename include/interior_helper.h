@@ -55,7 +55,7 @@ create_interior_parent_of_interior(interior_node *left, interior_node *right,
  */
 template<class interior_node, class border_node>
 static void interior_split(interior_node *interior, base_node *child_node, std::pair<base_node::key_slice_type,
-        base_node::key_length_type> pivot_key) {
+        base_node::key_length_type> inserting_key) {
   interior->set_version_splitting(true);
   interior_node *new_interior = new interior_node(); // NOLINT
   new_interior->init_interior();
@@ -77,20 +77,29 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
     new_interior->set_n_keys(pivot_key_pos - 1);
   }
   interior->move_children_to_interior_range(new_interior, split_children_points);
-  std::pair<key_slice_type, key_length_type> pivot_view{interior->get_key_slice_at(pivot_key_pos),
-                                                        interior->get_key_length_at(pivot_key_pos)};
+  key_slice_type pivot_key = interior->get_key_slice_at(pivot_key_pos);
+  key_length_type pivot_length = interior->get_key_length_at(pivot_key_pos);
   interior->set_key(pivot_key_pos, 0, 0);
 
   /**
    * It inserts child_node.
    */
 
-  if (pivot_key < pivot_view) {
+  key_slice_type key_slice{inserting_key.first};
+  key_length_type key_length{inserting_key.second};
+#ifndef NDEBUG
+  if (key_length == 0 || pivot_length == 0) {
+    std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
+    std::abort();
+  }
+#endif
+  int ret_memcmp = memcmp(&key_slice, &pivot_key, key_length < pivot_length ? key_length : pivot_length);
+  if (ret_memcmp < 0 || (ret_memcmp == 0 && key_length < pivot_length)) {
     child_node->set_parent(interior);
-    interior->template insert<border_node>(child_node, pivot_key);
+    interior->template insert<border_node>(child_node, inserting_key);
   } else {
     child_node->set_parent(new_interior);
-    new_interior->template insert<border_node>(child_node, pivot_key);
+    new_interior->template insert<border_node>(child_node, inserting_key);
   }
 
   base_node *p = interior->lock_parent();
@@ -105,7 +114,8 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
      * The disappearance of the parent node may have made this node the root node in parallel.
      * It cares in below function.
      */
-    create_interior_parent_of_interior<interior_node, border_node>(interior, new_interior, pivot_view, &p);
+    create_interior_parent_of_interior<interior_node, border_node>(interior, new_interior,
+                                                                   std::make_pair(pivot_key, pivot_length), &p);
     interior->version_unlock();
     new_interior->version_unlock();
     /**
@@ -129,7 +139,8 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
     p->set_version_inserting_deleting(true);
     auto pb = dynamic_cast<border_node *>(p);
     base_node *new_p{};
-    create_interior_parent_of_interior<interior_node, border_node>(interior, new_interior, pivot_view, &new_p);
+    create_interior_parent_of_interior<interior_node, border_node>(interior, new_interior,
+                                                                   std::make_pair(pivot_key, pivot_length), &new_p);
     interior->version_unlock();
     new_interior->version_unlock();
     link_or_value *lv = pb->get_lv(dynamic_cast<base_node *>(interior));
@@ -147,13 +158,13 @@ static void interior_split(interior_node *interior, base_node *child_node, std::
     /**
      * parent interior full case.
      */
-    interior_split<interior_node, border_node>(pi, new_interior, pivot_view);
+    interior_split<interior_node, border_node>(pi, new_interior, std::make_pair(pivot_key, pivot_length));
     return;
   }
   /**
    * parent interior not-full case
    */
-  pi->template insert<border_node>(new_interior, pivot_view);
+  pi->template insert<border_node>(new_interior, std::make_pair(pivot_key, pivot_length));
   pi->version_unlock();
 }
 

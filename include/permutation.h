@@ -110,10 +110,10 @@ public:
     auto cnk = static_cast<uint8_t>(per_body & cnk_mask);
 
     // tuple<key_slice, key_length, index>
-    constexpr std::size_t key_pos = 2;
-    std::array<std::tuple<base_node::key_slice_type, base_node::key_length_type, std::uint8_t>, base_node::key_slice_length> ar;
+    constexpr std::size_t key_pos = 1;
+    std::array<std::tuple<base_node::key_tuple, std::uint8_t>, base_node::key_slice_length> ar;
     for (std::uint8_t i = 0; i < cnk; ++i) {
-      ar.at(i) = {key_slice.at(i), key_length.at(i), i};
+      ar.at(i) = {{key_slice.at(i), key_length.at(i)}, i};
     }
     /**
      * sort based on key_slice and key_length for dictionary order.

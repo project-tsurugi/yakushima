@@ -722,6 +722,7 @@ TEST_F(mtpdgt, test8) { // NOLINT
             std::string v(std::get<1>(i));
             status ret = yakushima_kvs::put(k, v.data(), v.size());
             if (ret != status::OK) {
+              ret = yakushima_kvs::put(k, v.data(), v.size());
               ASSERT_EQ(ret, status::OK);
               std::abort();
             }
@@ -730,6 +731,10 @@ TEST_F(mtpdgt, test8) { // NOLINT
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
             std::tuple<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
+            if (std::get<0>(ret) == nullptr) {
+              ret = yakushima_kvs::get<char>(k);
+              ASSERT_EQ(true, false);
+            }
             ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
           }
           for (auto &i : kv) {
@@ -737,6 +742,7 @@ TEST_F(mtpdgt, test8) { // NOLINT
             std::string v(std::get<1>(i));
             status ret = yakushima_kvs::remove(token, k);
             if (ret != status::OK) {
+              ret = yakushima_kvs::remove(token, k);
               ASSERT_EQ(ret, status::OK);
               std::abort();
             }
