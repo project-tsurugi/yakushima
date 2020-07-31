@@ -471,6 +471,6 @@ TEST_F(kt, test12) { // NOLINT
   ASSERT_EQ(status::OK, yakushima_kvs::put(k4, v.data(), v.size()));
   std::vector<std::tuple<char*, std::size_t>> tuple_list;
   yakushima_kvs::scan<char>(k, true, k4, true, tuple_list);
-  std::cout << tuple_list.size() << std::endl;
+  ASSERT_EQ(tuple_list.size(), 2);
 }
 }  // namespace yakushima::testing
