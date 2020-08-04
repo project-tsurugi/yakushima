@@ -23,6 +23,8 @@ add_executable(yakushima_bench
 target_link_libraries(yakushima_bench
         PRIVATE Threads::Threads
         PRIVATE gflags::gflags
+        PRIVATE performance-tools::api
+        PRIVATE performance-tools::lib
         )
 
 target_include_directories(yakushima_bench

@@ -32,6 +32,11 @@
 #include "tsc.h"
 #include "zipf.h"
 
+// sandbox-performance-tools
+#include <performance-tools/perf_counter.h>
+#include <performance-tools/lap_counter.h>
+#include <performance-tools/lap_counter_init.h>
+
 #include "gflags/gflags.h"
 #include "glog/logging.h"
 
@@ -146,6 +151,7 @@ void get_worker(const size_t thid, char &ready, const bool &start, const bool &q
   Token token{};
   yakushima_kvs::enter(token);
   std::uint64_t local_res{0};
+  performance_tools::get_watch().set_point(0, thid);
   while (!loadAcquireN(quit)) {
     std::uint64_t keynm = zipf() % FLAGS_get_initial_record;
     void *p = (&keynm);
@@ -157,6 +163,7 @@ void get_worker(const size_t thid, char &ready, const bool &start, const bool &q
     }
     ++local_res;
   }
+  performance_tools::get_watch().set_point(1);
   yakushima_kvs::leave(token);
   res = local_res;
 }
@@ -177,6 +184,7 @@ void put_worker(const size_t thid, char &ready, const bool &start, const bool &q
   while (!loadAcquireN(start)) _mm_pause();
 
   std::uint64_t local_res{0};
+  performance_tools::get_watch().set_point(0, thid);
   for (std::uint64_t i = left_edge; i < right_edge; ++i) {
     void *p = (&i);
     std::string key{static_cast<char *>(p), sizeof(std::uint64_t)};
@@ -197,6 +205,7 @@ void put_worker(const size_t thid, char &ready, const bool &start, const bool &q
       std::abort();
     }
   }
+  performance_tools::get_watch().set_point(1, thid);
 
   // parallel delete existing tree to reduce deleting time by single thread.
   for (std::uint64_t i = left_edge; i <= left_edge + local_res; ++i) {
@@ -272,10 +281,18 @@ static void invoke_leader() try {
   std::cout << "[start] fin masstree." << std::endl;
   yakushima_kvs::fin();
   std::cout << "[end] fin masstree." << std::endl;
+
+  performance_tools::counter_class sum;
+  for(auto &&r: *performance_tools::get_watch().laps(0,1)) {
+      sum += r;
+  }
+  sum /= ((fin_res + (1000000 / 2)) / 1000000);
+  std::cout << "performance_counter: " << sum << " fin_res: " << fin_res << std::endl;
 } catch (...) {
   std::cout << __FILE__ << " : " << __LINE__ << " : catch exception" << std::endl;
   std::abort();
 }
+
 
 int main(int argc, char *argv[]) {
   std::cout << "start yakushima bench." << std::endl;
