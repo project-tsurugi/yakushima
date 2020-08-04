@@ -20,6 +20,7 @@ find_package(Doxygen REQUIRED)
 find_package(Threads REQUIRED)
 find_package(gflags REQUIRED)
 find_package(glog REQUIRED)
+find_package(performance-tools REQUIRED)
 # for logging
 find_package(Boost COMPONENTS filesystem)
 
