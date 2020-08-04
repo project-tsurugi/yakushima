@@ -25,13 +25,13 @@ TEST_F(mtpdgt, test1) { // NOLINT
    * by multi threads.
    */
   constexpr std::size_t ary_size = 9;
-  std::vector<std::tuple<std::string, std::string>> kv1; // NOLINT
-  std::vector<std::tuple<std::string, std::string>> kv2; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv1; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv2; // NOLINT
   for (std::size_t i = 0; i < 5; ++i) {
-    kv1.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+    kv1.emplace_back(std::make_pair(std::string(i, '\0'), std::to_string(i)));
   }
   for (std::size_t i = 5; i < ary_size; ++i) {
-    kv2.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+    kv2.emplace_back(std::make_pair(std::string(i, '\0'), std::to_string(i)));
   }
 
 #ifndef NDEBUG
@@ -48,7 +48,7 @@ TEST_F(mtpdgt, test1) { // NOLINT
     std::reverse(kv2.begin(), kv2.end());
 
     struct S {
-      static void work(std::vector<std::tuple<std::string, std::string>> &kv, Token &token) {
+      static void work(std::vector<std::pair<std::string, std::string>> &kv, Token &token) {
         for (std::size_t j = 0; j < 10; ++j) {
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
@@ -62,7 +62,7 @@ TEST_F(mtpdgt, test1) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            std::tuple<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
+            std::pair<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
             ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
           }
           for (auto &i : kv) {
@@ -91,7 +91,7 @@ TEST_F(mtpdgt, test1) { // NOLINT
     S::work(std::ref(kv1), std::ref(token[1]));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list; // NOLINT
+    std::vector<std::pair<char *, std::size_t>> tuple_list; // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(i, '\0');
@@ -113,13 +113,13 @@ TEST_F(mtpdgt, test2) { // NOLINT
    */
 
   constexpr std::size_t ary_size = 9;
-  std::vector<std::tuple<std::string, std::string>> kv1; // NOLINT
-  std::vector<std::tuple<std::string, std::string>> kv2; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv1; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv2; // NOLINT
   for (std::size_t i = 0; i < 5; ++i) {
-    kv1.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+    kv1.emplace_back(std::make_pair(std::string(i, '\0'), std::to_string(i)));
   }
   for (std::size_t i = 5; i < ary_size; ++i) {
-    kv2.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+    kv2.emplace_back(std::make_pair(std::string(i, '\0'), std::to_string(i)));
   }
 
   std::random_device seed_gen{};
@@ -139,7 +139,7 @@ TEST_F(mtpdgt, test2) { // NOLINT
     std::shuffle(kv2.begin(), kv2.end(), engine);
 
     struct S {
-      static void work(std::vector<std::tuple<std::string, std::string>> &kv, Token &token) {
+      static void work(std::vector<std::pair<std::string, std::string>> &kv, Token &token) {
         for (std::size_t j = 0; j < 10; ++j) {
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
@@ -153,7 +153,7 @@ TEST_F(mtpdgt, test2) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            std::tuple<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
+            std::pair<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
             ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
           }
           for (auto &i : kv) {
@@ -182,7 +182,7 @@ TEST_F(mtpdgt, test2) { // NOLINT
     S::work(std::ref(kv1), std::ref(token[1]));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list; // NOLINT
+    std::vector<std::pair<char *, std::size_t>> tuple_list; // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(i, '\0');
@@ -205,13 +205,13 @@ TEST_F(mtpdgt, test3) { // NOLINT
    */
 
   constexpr std::size_t ary_size = 15;
-  std::vector<std::tuple<std::string, std::string>> kv1; // NOLINT
-  std::vector<std::tuple<std::string, std::string>> kv2; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv1; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv2; // NOLINT
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
-    kv1.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+    kv1.emplace_back(std::make_pair(std::string(i, '\0'), std::to_string(i)));
   }
   for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
-    kv2.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+    kv2.emplace_back(std::make_pair(std::string(i, '\0'), std::to_string(i)));
   }
 
   std::random_device seed_gen{};
@@ -230,7 +230,7 @@ TEST_F(mtpdgt, test3) { // NOLINT
     std::shuffle(kv1.begin(), kv1.end(), engine);
     std::shuffle(kv2.begin(), kv2.end(), engine);
     struct S {
-      static void work(std::vector<std::tuple<std::string, std::string>> &kv, Token &token) {
+      static void work(std::vector<std::pair<std::string, std::string>> &kv, Token &token) {
         for (std::size_t j = 0; j < 10; ++j) {
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
@@ -244,7 +244,7 @@ TEST_F(mtpdgt, test3) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            std::tuple<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
+            std::pair<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
             ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
           }
           for (auto &i : kv) {
@@ -273,7 +273,7 @@ TEST_F(mtpdgt, test3) { // NOLINT
     S::work(std::ref(kv1), std::ref(token[1]));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list; // NOLINT
+    std::vector<std::pair<char *, std::size_t>> tuple_list; // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(i, '\0');
@@ -295,13 +295,13 @@ TEST_F(mtpdgt, test4) { // NOLINT
    */
 
   constexpr std::size_t ary_size = 15;
-  std::vector<std::tuple<std::string, std::string>> kv1; // NOLINT
-  std::vector<std::tuple<std::string, std::string>> kv2; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv1; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv2; // NOLINT
   for (std::size_t i = 0; i < 5; ++i) {
-    kv1.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+    kv1.emplace_back(std::make_pair(std::string(i, '\0'), std::to_string(i)));
   }
   for (std::size_t i = 5; i < ary_size; ++i) {
-    kv2.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+    kv2.emplace_back(std::make_pair(std::string(i, '\0'), std::to_string(i)));
   }
 
   std::random_device seed_gen{};
@@ -321,7 +321,7 @@ TEST_F(mtpdgt, test4) { // NOLINT
     std::shuffle(kv2.begin(), kv2.end(), engine);
 
     struct S {
-      static void work(std::vector<std::tuple<std::string, std::string>> &kv, Token &token) {
+      static void work(std::vector<std::pair<std::string, std::string>> &kv, Token &token) {
         for (std::size_t j = 0; j < 10; ++j) {
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
@@ -335,7 +335,7 @@ TEST_F(mtpdgt, test4) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            std::tuple<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
+            std::pair<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
             ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
           }
           for (auto &i : kv) {
@@ -364,7 +364,7 @@ TEST_F(mtpdgt, test4) { // NOLINT
     S::work(std::ref(kv1), std::ref(token[1]));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list; // NOLINT
+    std::vector<std::pair<char *, std::size_t>> tuple_list; // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(i, '\0');
@@ -386,13 +386,13 @@ TEST_F(mtpdgt, test5) { // NOLINT
    */
 
   constexpr std::size_t ary_size = base_node::key_slice_length + 1;
-  std::vector<std::tuple<std::string, std::string>> kv1; // NOLINT
-  std::vector<std::tuple<std::string, std::string>> kv2; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv1; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv2; // NOLINT
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
-    kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
+    kv1.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
   }
   for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
-    kv2.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
+    kv2.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
   }
 
 #ifndef NDEBUG
@@ -409,7 +409,7 @@ TEST_F(mtpdgt, test5) { // NOLINT
     std::reverse(kv2.begin(), kv2.end());
 
     struct S {
-      static void work(std::vector<std::tuple<std::string, std::string>> &kv, Token &token) {
+      static void work(std::vector<std::pair<std::string, std::string>> &kv, Token &token) {
         for (std::size_t j = 0; j < 10; ++j) {
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
@@ -423,7 +423,7 @@ TEST_F(mtpdgt, test5) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            std::tuple<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
+            std::pair<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
             ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
           }
           for (auto &i : kv) {
@@ -452,7 +452,7 @@ TEST_F(mtpdgt, test5) { // NOLINT
     S::work(std::ref(kv1), std::ref(token[1]));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list;
+    std::vector<std::pair<char *, std::size_t>> tuple_list;
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 1; i < ary_size; ++i) {
       std::string k(1, i);
@@ -479,13 +479,13 @@ TEST_F(mtpdgt, test6) { // NOLINT
    */
 
   constexpr std::size_t ary_size = base_node::key_slice_length + 1;
-  std::vector<std::tuple<std::string, std::string>> kv1;
-  std::vector<std::tuple<std::string, std::string>> kv2;
+  std::vector<std::pair<std::string, std::string>> kv1;
+  std::vector<std::pair<std::string, std::string>> kv2;
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
-    kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
+    kv1.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
   }
   for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
-    kv2.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
+    kv2.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
   }
 
   std::random_device seed_gen{};
@@ -505,7 +505,7 @@ TEST_F(mtpdgt, test6) { // NOLINT
     std::shuffle(kv2.begin(), kv2.end(), engine);
 
     struct S {
-      static void work(std::vector<std::tuple<std::string, std::string>> &kv, Token &token) {
+      static void work(std::vector<std::pair<std::string, std::string>> &kv, Token &token) {
         for (std::size_t j = 0; j < 10; ++j) {
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
@@ -519,7 +519,7 @@ TEST_F(mtpdgt, test6) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            std::tuple<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
+            std::pair<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
             ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
           }
           for (auto &i : kv) {
@@ -548,7 +548,7 @@ TEST_F(mtpdgt, test6) { // NOLINT
     S::work(std::ref(kv1), std::ref(token[1]));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list;
+    std::vector<std::pair<char *, std::size_t>> tuple_list;
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 1; i < ary_size; ++i) {
       std::string k(1, i);
@@ -574,20 +574,20 @@ TEST_F(mtpdgt, test7) { // NOLINT
    */
 
   constexpr std::size_t ary_size = interior_node::child_length * base_node::key_slice_length / 2;
-  std::vector<std::tuple<std::string, std::string>> kv1;
-  std::vector<std::tuple<std::string, std::string>> kv2;
+  std::vector<std::pair<std::string, std::string>> kv1;
+  std::vector<std::pair<std::string, std::string>> kv2;
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
     if (i <= INT8_MAX) {
-      kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
+      kv1.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
     } else {
-      kv1.emplace_back(std::make_tuple(std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i), std::to_string(i)));
+      kv1.emplace_back(std::make_pair(std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i), std::to_string(i)));
     }
   }
   for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
     if (i <= INT8_MAX) {
-      kv2.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
+      kv2.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
     } else {
-      kv2.emplace_back(std::make_tuple(std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i), std::to_string(i)));
+      kv2.emplace_back(std::make_pair(std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i), std::to_string(i)));
     }
   }
 
@@ -608,7 +608,7 @@ TEST_F(mtpdgt, test7) { // NOLINT
     std::shuffle(kv2.begin(), kv2.end(), engine);
 
     struct S {
-      static void work(std::vector<std::tuple<std::string, std::string>> &kv, Token &token) {
+      static void work(std::vector<std::pair<std::string, std::string>> &kv, Token &token) {
         for (std::size_t j = 0; j < 10; ++j) {
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
@@ -622,7 +622,7 @@ TEST_F(mtpdgt, test7) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            std::tuple<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
+            std::pair<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
             ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
           }
           for (auto &i : kv) {
@@ -651,7 +651,7 @@ TEST_F(mtpdgt, test7) { // NOLINT
     S::work(std::ref(kv1), std::ref(token[1]));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list;
+    std::vector<std::pair<char *, std::size_t>> tuple_list;
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k;
@@ -682,22 +682,22 @@ TEST_F(mtpdgt, test8) { // NOLINT
    */
 
   constexpr std::size_t ary_size = interior_node::child_length * base_node::key_slice_length * 1.4;
-  std::vector<std::tuple<std::string, std::string>> kv1;
-  std::vector<std::tuple<std::string, std::string>> kv2;
+  std::vector<std::pair<std::string, std::string>> kv1;
+  std::vector<std::pair<std::string, std::string>> kv2;
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
     if (i <= INT8_MAX) {
-      kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
+      kv1.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
     } else {
       kv1.emplace_back(
-              std::make_tuple(std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX), std::to_string(i)));
+              std::make_pair(std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX), std::to_string(i)));
     }
   }
   for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
     if (i <= INT8_MAX) {
-      kv2.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
+      kv2.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
     } else {
       kv2.emplace_back(
-              std::make_tuple(std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX), std::to_string(i)));
+              std::make_pair(std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX), std::to_string(i)));
     }
   }
 
@@ -715,7 +715,7 @@ TEST_F(mtpdgt, test8) { // NOLINT
     std::reverse(kv2.begin(), kv2.end());
 
     struct S {
-      static void work(std::vector<std::tuple<std::string, std::string>> &kv, Token &token) {
+      static void work(std::vector<std::pair<std::string, std::string>> &kv, Token &token) {
         for (std::size_t j = 0; j < 10; ++j) {
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
@@ -730,7 +730,7 @@ TEST_F(mtpdgt, test8) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            std::tuple<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
+            std::pair<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
             if (std::get<0>(ret) == nullptr) {
               ret = yakushima_kvs::get<char>(k);
               ASSERT_EQ(true, false);
@@ -764,7 +764,7 @@ TEST_F(mtpdgt, test8) { // NOLINT
     S::work(std::ref(kv1), std::ref(token[1]));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list;
+    std::vector<std::pair<char *, std::size_t>> tuple_list;
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k;
@@ -795,22 +795,22 @@ TEST_F(mtpdgt, test9) { // NOLINT
    */
 
   constexpr std::size_t ary_size = interior_node::child_length * base_node::key_slice_length * 1.4;
-  std::vector<std::tuple<std::string, std::string>> kv1;
-  std::vector<std::tuple<std::string, std::string>> kv2;
+  std::vector<std::pair<std::string, std::string>> kv1;
+  std::vector<std::pair<std::string, std::string>> kv2;
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
     if (i <= INT8_MAX) {
-      kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
+      kv1.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
     } else {
       kv1.emplace_back(
-              std::make_tuple(std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX), std::to_string(i)));
+              std::make_pair(std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX), std::to_string(i)));
     }
   }
   for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
     if (i <= INT8_MAX) {
-      kv2.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
+      kv2.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
     } else {
       kv2.emplace_back(
-              std::make_tuple(std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX), std::to_string(i)));
+              std::make_pair(std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX), std::to_string(i)));
     }
   }
 
@@ -831,7 +831,7 @@ TEST_F(mtpdgt, test9) { // NOLINT
     std::shuffle(kv2.begin(), kv2.end(), engine);
 
     struct S {
-      static void work(std::vector<std::tuple<std::string, std::string>> &kv, Token &token) {
+      static void work(std::vector<std::pair<std::string, std::string>> &kv, Token &token) {
         for (std::size_t j = 0; j < 10; ++j) {
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
@@ -845,7 +845,7 @@ TEST_F(mtpdgt, test9) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            std::tuple<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
+            std::pair<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
             ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
           }
           for (auto &i : kv) {
@@ -874,7 +874,7 @@ TEST_F(mtpdgt, test9) { // NOLINT
     S::work(std::ref(kv1), std::ref(token[1]));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list;
+    std::vector<std::pair<char *, std::size_t>> tuple_list;
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k;
@@ -905,22 +905,22 @@ TEST_F(mtpdgt, test10) { // NOLINT
    */
 
   constexpr std::size_t ary_size = interior_node::child_length * base_node::key_slice_length * 10;
-  std::vector<std::tuple<std::string, std::string>> kv1;
-  std::vector<std::tuple<std::string, std::string>> kv2;
+  std::vector<std::pair<std::string, std::string>> kv1;
+  std::vector<std::pair<std::string, std::string>> kv2;
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
     if (i <= INT8_MAX) {
-      kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
+      kv1.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
     } else {
       kv1.emplace_back(
-              std::make_tuple(std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX), std::to_string(i)));
+              std::make_pair(std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX), std::to_string(i)));
     }
   }
   for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
     if (i <= INT8_MAX) {
-      kv2.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
+      kv2.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
     } else {
       kv2.emplace_back(
-              std::make_tuple(std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX), std::to_string(i)));
+              std::make_pair(std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX), std::to_string(i)));
     }
   }
 
@@ -942,7 +942,7 @@ TEST_F(mtpdgt, test10) { // NOLINT
     std::shuffle(kv2.begin(), kv2.end(), engine);
 
     struct S {
-      static void work(std::vector<std::tuple<std::string, std::string>> &kv, Token &token) {
+      static void work(std::vector<std::pair<std::string, std::string>> &kv, Token &token) {
         for (std::size_t j = 0; j < 10; ++j) {
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
@@ -956,7 +956,7 @@ TEST_F(mtpdgt, test10) { // NOLINT
           for (auto &i : kv) {
             std::string k(std::get<0>(i));
             std::string v(std::get<1>(i));
-            std::tuple<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
+            std::pair<char *, std::size_t> ret = yakushima_kvs::get<char>(k);
             ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
           }
           for (auto &i : kv) {
@@ -985,7 +985,7 @@ TEST_F(mtpdgt, test10) { // NOLINT
     S::work(std::ref(kv1), std::ref(token[1]));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list;
+    std::vector<std::pair<char *, std::size_t>> tuple_list;
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size / 100; ++i) {
       std::string k;

@@ -74,15 +74,15 @@ public:
   /**
    * @tparam ValueType The returned pointer is cast to the given type information before it is returned.
    * @param[in] key_view The key_view of key-value.
-   * @return std::tuple<ValueType *, std::size_t> The set of pointer to value and the value size.
+   * @return std::pair<ValueType *, std::size_t> The set of pointer to value and the value size.
    */
   template<class ValueType>
-  static std::tuple<ValueType *, std::size_t>
+  static std::pair<ValueType *, std::size_t>
   get(std::string_view key_view) {
 retry_from_root:
     base_node *root = base_node::get_root();
     if (root == nullptr) {
-      return std::make_tuple(nullptr, 0);
+      return std::make_pair(nullptr, 0);
     }
     std::string_view traverse_key_view{key_view};
 retry_find_border:
@@ -130,7 +130,7 @@ retry_fetch_lv:
     }
 
     if (lv_ptr == nullptr) {
-      return std::make_tuple(nullptr, 0);
+      return std::make_pair(nullptr, 0);
     }
 
     if (target_border->get_key_length_at(lv_pos) <= sizeof(key_slice_type)) {
@@ -144,7 +144,7 @@ retry_fetch_lv:
       if (final_check.get_vinsert_delete() != v_at_fetch_lv.get_vinsert_delete()) {
         goto retry_fetch_lv; // NOLINT
       }
-      return std::make_tuple(reinterpret_cast<ValueType *>(vp), v_size); // NOLINT
+      return std::make_pair(reinterpret_cast<ValueType *>(vp), v_size); // NOLINT
     }
 
     root = lv_ptr->get_next_layer();
@@ -461,12 +461,15 @@ retry_fetch_lv:
    * @param[in] r_key
    * @param[in] r_exclusive
    * @param[out] tuple_list
+   * @param[out] node_version_vec The set of node_version for transaction processing (protection of phantom problems).
+   * If you don't use yakushima for transaction processing, you don't have to use this argument.
    * @return status::OK success.
    */
   template<class ValueType>
   static status
   scan(std::string_view l_key, bool l_exclusive, std::string_view r_key, bool r_exclusive,
-       std::vector<std::tuple<ValueType *, std::size_t>> &tuple_list) {
+       std::vector<std::pair<ValueType *, std::size_t>> &tuple_list,
+       std::vector<std::pair<node_version64_body, node_version64 *>> *node_version_vec = nullptr) {
     if ((l_key.data() == nullptr && !l_key.empty()) ||
         (r_key.data() == nullptr && !r_key.empty())) {
       return status::ERR_BAD_USAGE;
@@ -479,6 +482,9 @@ retry_fetch_lv:
     }
 
     tuple_list.clear();
+    if (node_version_vec != nullptr) {
+      node_version_vec->clear();
+    }
 retry_from_root:
     base_node *root = base_node::get_root();
     if (root == nullptr) {
@@ -537,8 +543,7 @@ retry_fetch_lv:
     // here, it decides to scan from this nodes.
     for (;;) {
       check_status = scan_border<ValueType>(&target_border, traverse_key_view, l_exclusive, r_key, r_exclusive,
-                                            tuple_list,
-                                            v_at_fetch_lv);
+                                            tuple_list, v_at_fetch_lv, node_version_vec);
       if (check_status == status::OK_SCAN_END) {
         return status::OK;
       }

@@ -30,7 +30,6 @@ TEST_F(kt, test1) { // NOLINT
   /**
    * put one key-value
    */
-  ASSERT_EQ(base_node::get_root(), nullptr);
   std::string k("a");
   std::string v("v-a");
   Token token{};
@@ -41,17 +40,16 @@ TEST_F(kt, test1) { // NOLINT
   key_slice_type lvalue_key_slice = root->get_key_slice_at(0);
   ASSERT_EQ(memcmp(&lvalue_key_slice, k.data(), k.size()), 0);
   ASSERT_EQ(root->get_key_length_at(0), k.size());
-  std::tuple<char *, std::size_t> tuple = yakushima_kvs::get<char>(std::string_view(k));
+  std::pair<char *, std::size_t> tuple = yakushima_kvs::get<char>(k);
   ASSERT_NE(std::get<0>(tuple), nullptr);
   ASSERT_EQ(std::get<1>(tuple), v.size());
   ASSERT_EQ(memcmp(std::get<0>(tuple), v.data(), v.size()), 0);
-  ASSERT_EQ(yakushima_kvs::destroy(), status::OK_DESTROY_ALL);
   ASSERT_EQ(yakushima_kvs::leave(token), status::OK);
 }
 
 TEST_F(kt, test2) { // NOLINT
   /**
-   * put one key-value
+   * put one key-long_value
    */
   ASSERT_EQ(base_node::get_root(), nullptr);
   std::string k("a");
@@ -65,7 +63,7 @@ TEST_F(kt, test2) { // NOLINT
   key_slice_type lvalue_key_slice = root->get_key_slice_at(0);
   ASSERT_EQ(memcmp(&lvalue_key_slice, k.data(), k.size()), 0);
   ASSERT_EQ(root->get_key_length_at(0), k.size());
-  std::tuple<char *, std::size_t> tuple = yakushima_kvs::get<char>(std::string_view(k));
+  std::pair<char *, std::size_t> tuple = yakushima_kvs::get<char>(std::string_view(k));
   ASSERT_NE(std::get<0>(tuple), nullptr);
   ASSERT_EQ(std::get<1>(tuple), v.size());
   ASSERT_EQ(memcmp(std::get<0>(tuple), v.data(), v.size()), 0);
@@ -93,7 +91,7 @@ TEST_F(kt, test3) { // NOLINT
   constexpr std::size_t value_index = 0;
   constexpr std::size_t size_index = 1;
   for (std::size_t i = 0; i < ary_size; ++i) {
-    std::tuple<char *, std::size_t> tuple = yakushima_kvs::get<char>(std::string_view(k.at(i)));
+    std::pair<char *, std::size_t> tuple = yakushima_kvs::get<char>(std::string_view(k.at(i)));
     ASSERT_EQ(memcmp(std::get<value_index>(tuple), v.at(i).data(), v.at(i).size()), 0);
     ASSERT_EQ(std::get<size_index>(tuple), v.at(i).size());
   }
@@ -108,9 +106,9 @@ TEST_F(kt, test4) { // NOLINT
     Token token{};
     ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
     constexpr std::size_t ary_size = 8;
-    std::vector<std::tuple<std::string, std::string>> kv; // NOLINT
+    std::vector<std::pair<std::string, std::string>> kv; // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
-      kv.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+      kv.emplace_back(std::make_pair(std::string(i, '\0'), std::to_string(i)));
     }
 
     std::random_device seed_gen{};
@@ -123,12 +121,12 @@ TEST_F(kt, test4) { // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
       constexpr std::size_t value_index = 0;
       constexpr std::size_t size_index = 1;
-      std::tuple<char *, std::size_t> tuple = yakushima_kvs::get<char>(std::get<0>(kv[i]));
+      std::pair<char *, std::size_t> tuple = yakushima_kvs::get<char>(std::get<0>(kv[i]));
       ASSERT_EQ(std::get<size_index>(tuple), std::get<1>(kv[i]).size());
       ASSERT_EQ(memcmp(std::get<value_index>(tuple), std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()), 0);
     }
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list; // NOLINT
+    std::vector<std::pair<char *, std::size_t>> tuple_list; // NOLINT
     for (std::size_t i = 1; i < ary_size; ++i) {
       std::string k(i, '\0');
       ASSERT_EQ(status::OK,
@@ -185,7 +183,7 @@ TEST_F(kt, test5) { // NOLINT
   for (std::size_t i = 0; i < ary_size; ++i) {
     constexpr std::size_t value_index = 0;
     constexpr std::size_t size_index = 1;
-    std::tuple<char *, std::size_t> tuple = yakushima_kvs::get<char>(std::string_view(k.at(i)));
+    std::pair<char *, std::size_t> tuple = yakushima_kvs::get<char>(std::string_view(k.at(i)));
     ASSERT_EQ(std::get<size_index>(tuple), v.at(i).size());
     ASSERT_EQ(memcmp(std::get<value_index>(tuple), v.at(i).data(), v.at(i).size()), 0);
   }
@@ -206,9 +204,9 @@ TEST_F(kt, test6) { // NOLINT
     Token token{};
     ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
     constexpr std::size_t ary_size = 15;
-    std::vector<std::tuple<std::string, std::string>> kv; // NOLINT
+    std::vector<std::pair<std::string, std::string>> kv; // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
-      kv.emplace_back(std::make_tuple(std::string(i, 'a'), std::to_string(i)));
+      kv.emplace_back(std::make_pair(std::string(i, 'a'), std::to_string(i)));
     }
 
     std::random_device seed_gen{};
@@ -222,12 +220,12 @@ TEST_F(kt, test6) { // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
       constexpr std::size_t value_index = 0;
       constexpr std::size_t size_index = 1;
-      std::tuple<char *, std::size_t> tuple = yakushima_kvs::get<char>(std::get<0>(kv[i]));
+      std::pair<char *, std::size_t> tuple = yakushima_kvs::get<char>(std::get<0>(kv[i]));
       ASSERT_EQ(std::get<size_index>(tuple), std::get<1>(kv[i]).size());
       ASSERT_EQ(memcmp(std::get<value_index>(tuple), std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()), 0);
     }
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list; // NOLINT
+    std::vector<std::pair<char *, std::size_t>> tuple_list; // NOLINT
     for (std::size_t i = 1; i < ary_size; ++i) {
       std::string k(i, 'a');
       ASSERT_EQ(status::OK, yakushima_kvs::scan<char>("", false, k, false, tuple_list));
@@ -276,9 +274,9 @@ TEST_F(kt, test8) { // NOLINT
     Token token{};
     ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
     constexpr std::size_t ary_size = base_node::key_slice_length + 1;
-    std::vector<std::tuple<std::string, std::string>> kv; // NOLINT
+    std::vector<std::pair<std::string, std::string>> kv; // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
-      kv.emplace_back(std::make_tuple(std::string(1, 'a' + i), std::string(1, 'a' + i)));
+      kv.emplace_back(std::make_pair(std::string(1, 'a' + i), std::string(1, 'a' + i)));
     }
     std::random_device seed_gen{};
     std::mt19937 engine(seed_gen());
@@ -399,10 +397,10 @@ TEST_F(kt, test10) { // NOLINT
     ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
     std::size_t ary_size = base_node::key_slice_length * interior_node::child_length + 1;
 
-    std::vector<std::tuple<std::string, std::string>> kv; // NOLINT
+    std::vector<std::pair<std::string, std::string>> kv; // NOLINT
     kv.reserve(ary_size);
     for (std::size_t i = 0; i < ary_size; ++i) {
-      kv.emplace_back(std::make_tuple(std::string(1, i), std::string(1, i)));
+      kv.emplace_back(std::make_pair(std::string(1, i), std::string(1, i)));
     }
     std::random_device seed_gen;
     std::mt19937 engine(seed_gen());
@@ -429,7 +427,7 @@ TEST_F(kt, test10) { // NOLINT
 
     std::sort(kv.begin(), kv.end());
     for (std::size_t i = 0; i <= putctr; ++i) {
-      std::vector<std::tuple<char *, std::size_t>> tuple_list; // NOLINT
+      std::vector<std::pair<char *, std::size_t>> tuple_list; // NOLINT
       yakushima_kvs::scan<char>("", false, std::get<0>(kv[i]), false, tuple_list);
       if (tuple_list.size() != i + 1) {
         ASSERT_EQ(tuple_list.size(), i + 1);
@@ -452,7 +450,7 @@ TEST_F(kt, test11) { // NOLINT
   ASSERT_EQ(status::OK, yakushima_kvs::enter(token));
   std::string k("a");
   std::string v("b");
-  char* created_ptr{};
+  char *created_ptr{};
   ASSERT_EQ(status::OK, yakushima_kvs::put(k, v.data(), v.size(), &created_ptr));
   ASSERT_EQ(memcmp(created_ptr, v.data(), v.size()), 0);
 }
@@ -469,7 +467,7 @@ TEST_F(kt, test12) { // NOLINT
   ASSERT_EQ(status::OK, yakushima_kvs::put(k2, v.data(), v.size()));
   ASSERT_EQ(status::OK, yakushima_kvs::put(k3, v.data(), v.size()));
   ASSERT_EQ(status::OK, yakushima_kvs::put(k4, v.data(), v.size()));
-  std::vector<std::tuple<char*, std::size_t>> tuple_list;
+  std::vector<std::pair<char *, std::size_t>> tuple_list;
   yakushima_kvs::scan<char>(k, true, k4, true, tuple_list);
   ASSERT_EQ(tuple_list.size(), 2);
 }

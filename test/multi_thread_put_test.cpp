@@ -19,13 +19,13 @@ class mtpt : public ::testing::Test {
 
 TEST_F(mtpt, test1) { // NOLINT
   constexpr std::size_t ary_size = 9;
-  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
-  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < 5; ++i) {
-    kv1.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+    kv1.emplace_back(std::make_pair(std::string(i, '\0'), std::to_string(i)));
   }
   for (std::size_t i = 5; i < ary_size; ++i) {
-    kv2.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+    kv2.emplace_back(std::make_pair(std::string(i, '\0'), std::to_string(i)));
   }
 
 #ifndef NDEBUG
@@ -41,7 +41,7 @@ TEST_F(mtpt, test1) { // NOLINT
     std::reverse(kv2.begin(), kv2.end());
 
     struct S {
-      static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
+      static void work(std::vector<std::pair<std::string, std::string>> &kv) {
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
@@ -58,7 +58,7 @@ TEST_F(mtpt, test1) { // NOLINT
     S::work(std::ref(kv1));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
+    std::vector<std::pair<char *, std::size_t>> tuple_list{}; // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(i, '\0');
@@ -77,13 +77,13 @@ TEST_F(mtpt, test1) { // NOLINT
 TEST_F(mtpt, test2) { // NOLINT
 
   constexpr std::size_t ary_size = 9;
-  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
-  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < 5; ++i) {
-    kv1.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+    kv1.emplace_back(std::make_pair(std::string(i, '\0'), std::to_string(i)));
   }
   for (std::size_t i = 5; i < ary_size; ++i) {
-    kv2.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+    kv2.emplace_back(std::make_pair(std::string(i, '\0'), std::to_string(i)));
   }
   std::random_device seed_gen;
   std::mt19937 engine(seed_gen());
@@ -101,7 +101,7 @@ TEST_F(mtpt, test2) { // NOLINT
     std::shuffle(kv2.begin(), kv2.end(), engine);
 
     struct S {
-      static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
+      static void work(std::vector<std::pair<std::string, std::string>> &kv) {
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
@@ -118,7 +118,7 @@ TEST_F(mtpt, test2) { // NOLINT
     S::work(std::ref(kv1));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
+    std::vector<std::pair<char *, std::size_t>> tuple_list{}; // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(i, '\0');
@@ -138,13 +138,13 @@ TEST_F(mtpt, test2) { // NOLINT
 TEST_F(mtpt, test3) { // NOLINT
 
   constexpr std::size_t ary_size = 15;
-  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
-  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < 7; ++i) {
-    kv1.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+    kv1.emplace_back(std::make_pair(std::string(i, '\0'), std::to_string(i)));
   }
   for (std::size_t i = 7; i < ary_size; ++i) {
-    kv2.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+    kv2.emplace_back(std::make_pair(std::string(i, '\0'), std::to_string(i)));
   }
 
 #ifndef NDEBUG
@@ -160,7 +160,7 @@ TEST_F(mtpt, test3) { // NOLINT
     std::reverse(kv2.begin(), kv2.end());
 
     struct S {
-      static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
+      static void work(std::vector<std::pair<std::string, std::string>> &kv) {
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
@@ -177,7 +177,7 @@ TEST_F(mtpt, test3) { // NOLINT
     S::work(std::ref(kv1));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
+    std::vector<std::pair<char *, std::size_t>> tuple_list{}; // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(i, '\0');
@@ -196,13 +196,13 @@ TEST_F(mtpt, test3) { // NOLINT
 TEST_F(mtpt, test4) { // NOLINT
 
   constexpr std::size_t ary_size = 15;
-  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
-  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < 7; ++i) {
-    kv1.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+    kv1.emplace_back(std::make_pair(std::string(i, '\0'), std::to_string(i)));
   }
   for (std::size_t i = 7; i < ary_size; ++i) {
-    kv2.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+    kv2.emplace_back(std::make_pair(std::string(i, '\0'), std::to_string(i)));
   }
   std::random_device seed_gen;
   std::mt19937 engine(seed_gen());
@@ -220,7 +220,7 @@ TEST_F(mtpt, test4) { // NOLINT
     std::shuffle(kv2.begin(), kv2.end(), engine);
 
     struct S {
-      static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
+      static void work(std::vector<std::pair<std::string, std::string>> &kv) {
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
@@ -237,7 +237,7 @@ TEST_F(mtpt, test4) { // NOLINT
     S::work(std::ref(kv1));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
+    std::vector<std::pair<char *, std::size_t>> tuple_list{}; // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(i, '\0');
@@ -256,13 +256,13 @@ TEST_F(mtpt, test4) { // NOLINT
 TEST_F(mtpt, test5) { // NOLINT
 
   constexpr std::size_t ary_size = base_node::key_slice_length + 1;
-  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
-  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
-    kv1.emplace_back(std::make_tuple(std::string(1, 'a' + i), std::to_string(i)));
+    kv1.emplace_back(std::make_pair(std::string(1, 'a' + i), std::to_string(i)));
   }
   for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
-    kv2.emplace_back(std::make_tuple(std::string(1, 'a' + i), std::to_string(i)));
+    kv2.emplace_back(std::make_pair(std::string(1, 'a' + i), std::to_string(i)));
   }
 
 #ifndef NDEBUG
@@ -278,7 +278,7 @@ TEST_F(mtpt, test5) { // NOLINT
     std::reverse(kv2.begin(), kv2.end());
 
     struct S {
-      static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
+      static void work(std::vector<std::pair<std::string, std::string>> &kv) {
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
@@ -295,7 +295,7 @@ TEST_F(mtpt, test5) { // NOLINT
     S::work(std::ref(kv1));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
+    std::vector<std::pair<char *, std::size_t>> tuple_list{}; // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(1, 'a' + i);
@@ -314,13 +314,13 @@ TEST_F(mtpt, test5) { // NOLINT
 TEST_F(mtpt, test6) { // NOLINT
 
   constexpr std::size_t ary_size = base_node::key_slice_length + 1;
-  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
-  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
-    kv1.emplace_back(std::make_tuple(std::string(1, 'a' + i), std::to_string(i)));
+    kv1.emplace_back(std::make_pair(std::string(1, 'a' + i), std::to_string(i)));
   }
   for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
-    kv2.emplace_back(std::make_tuple(std::string(1, 'a' + i), std::to_string(i)));
+    kv2.emplace_back(std::make_pair(std::string(1, 'a' + i), std::to_string(i)));
   }
   std::random_device seed_gen;
   std::mt19937 engine(seed_gen());
@@ -338,7 +338,7 @@ TEST_F(mtpt, test6) { // NOLINT
     std::shuffle(kv2.begin(), kv2.end(), engine);
 
     struct S {
-      static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
+      static void work(std::vector<std::pair<std::string, std::string>> &kv) {
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
@@ -355,7 +355,7 @@ TEST_F(mtpt, test6) { // NOLINT
     S::work(std::ref(kv1));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
+    std::vector<std::pair<char *, std::size_t>> tuple_list{}; // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(1, 'a' + i);
@@ -374,13 +374,13 @@ TEST_F(mtpt, test6) { // NOLINT
 TEST_F(mtpt, test7) { // NOLINT
 
   constexpr std::size_t ary_size = 100;
-  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
-  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
-    kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
+    kv1.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
   }
   for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
-    kv2.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
+    kv2.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
   }
 
 #ifndef NDEBUG
@@ -396,7 +396,7 @@ TEST_F(mtpt, test7) { // NOLINT
     std::reverse(kv2.begin(), kv2.end());
 
     struct S {
-      static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
+      static void work(std::vector<std::pair<std::string, std::string>> &kv) {
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
@@ -413,7 +413,7 @@ TEST_F(mtpt, test7) { // NOLINT
     S::work(std::ref(kv1));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
+    std::vector<std::pair<char *, std::size_t>> tuple_list{}; // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(1, i);
@@ -436,13 +436,13 @@ TEST_F(mtpt, test7) { // NOLINT
 TEST_F(mtpt, test8) { // NOLINT
 
   constexpr std::size_t ary_size = 100;
-  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
-  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
-    kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
+    kv1.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
   }
   for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
-    kv2.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
+    kv2.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
   }
 
   std::random_device seed_gen;
@@ -461,7 +461,7 @@ TEST_F(mtpt, test8) { // NOLINT
     std::shuffle(kv2.begin(), kv2.end(), engine);
 
     struct S {
-      static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
+      static void work(std::vector<std::pair<std::string, std::string>> &kv) {
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
@@ -478,7 +478,7 @@ TEST_F(mtpt, test8) { // NOLINT
     S::work(std::ref(kv1));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
+    std::vector<std::pair<char *, std::size_t>> tuple_list{}; // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(1, i);
@@ -501,13 +501,13 @@ TEST_F(mtpt, test8) { // NOLINT
 TEST_F(mtpt, test9) { // NOLINT
 
   std::size_t ary_size = 241;
-  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
-  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
-    kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
+    kv1.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
   }
   for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
-    kv2.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
+    kv2.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
   }
 
 #ifndef NDEBUG
@@ -523,7 +523,7 @@ TEST_F(mtpt, test9) { // NOLINT
     std::reverse(kv2.begin(), kv2.end());
 
     struct S {
-      static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
+      static void work(std::vector<std::pair<std::string, std::string>> &kv) {
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
@@ -540,7 +540,7 @@ TEST_F(mtpt, test9) { // NOLINT
     S::work(std::ref(kv1));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
+    std::vector<std::pair<char *, std::size_t>> tuple_list{}; // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(1, i);
@@ -560,13 +560,13 @@ TEST_F(mtpt, test9) { // NOLINT
 TEST_F(mtpt, test10) { // NOLINT
 
   std::size_t ary_size = 241;
-  std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
-  std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv1{}; // NOLINT
+  std::vector<std::pair<std::string, std::string>> kv2{}; // NOLINT
   for (std::size_t i = 0; i < ary_size / 2; ++i) {
-    kv1.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
+    kv1.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
   }
   for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
-    kv2.emplace_back(std::make_tuple(std::string(1, i), std::to_string(i)));
+    kv2.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
   }
 
   std::random_device seed_gen;
@@ -585,7 +585,7 @@ TEST_F(mtpt, test10) { // NOLINT
     std::shuffle(kv2.begin(), kv2.end(), engine);
 
     struct S {
-      static void work(std::vector<std::tuple<std::string, std::string>> &kv) {
+      static void work(std::vector<std::pair<std::string, std::string>> &kv) {
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
@@ -602,7 +602,7 @@ TEST_F(mtpt, test10) { // NOLINT
     S::work(std::ref(kv1));
     t.join();
 
-    std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
+    std::vector<std::pair<char *, std::size_t>> tuple_list{}; // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(1, i);

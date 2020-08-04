@@ -33,7 +33,7 @@ TEST_F(st, test1) { // NOLINT
   Token token{};
   ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
   ASSERT_EQ(status::OK, yakushima_kvs::put(std::string_view(k), v.data(), v.size()));
-  std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
+  std::vector<std::pair<char *, std::size_t>> tuple_list{}; // NOLINT
   ASSERT_EQ(status::OK, yakushima_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(nullptr, 0),
                                                   false, tuple_list));
   ASSERT_EQ(tuple_list.size(), 1);
@@ -130,7 +130,7 @@ TEST_F(st, test2) { // NOLINT
     ASSERT_EQ(status::OK, yakushima_kvs::put(std::string_view(k.at(i)), v.at(i).data(), v.at(i).size()));
   }
 
-  std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
+  std::vector<std::pair<char *, std::size_t>> tuple_list{}; // NOLINT
   constexpr std::size_t v_index = 0;
   for (std::size_t i = 0; i < ary_size; ++i) {
     yakushima_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(k.at(i)),
@@ -162,7 +162,7 @@ TEST_F(st, test3) { // NOLINT
     ASSERT_EQ(status::OK, yakushima_kvs::put(std::string_view(k.at(i)), v.at(i).data(), v.at(i).size()));
   }
   constexpr std::size_t value_index = 0;
-  std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
+  std::vector<std::pair<char *, std::size_t>> tuple_list{}; // NOLINT
   for (std::size_t i = 0; i < ary_size; ++i) {
     ASSERT_EQ(status::OK, yakushima_kvs::scan(std::string_view(k.at(i)), false, std::string_view(nullptr, 0), false,
                                               tuple_list));
@@ -196,7 +196,7 @@ TEST_F(st, test4) { // NOLINT
     ASSERT_EQ(status::OK, yakushima_kvs::put(std::string_view{k.at(i)}, v.at(i).data(), v.at(i).size()));
   }
   constexpr std::size_t value_index = 0;
-  std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
+  std::vector<std::pair<char *, std::size_t>> tuple_list{}; // NOLINT
   for (std::size_t i = 0; i < ary_size; ++i) {
     ASSERT_EQ(status::OK, yakushima_kvs::scan(std::string_view(k.at(i)), false, std::string_view(nullptr, 0), false,
                                               tuple_list));
@@ -228,7 +228,7 @@ TEST_F(st, test5) { // NOLINT
     ASSERT_EQ(status::OK, yakushima_kvs::put(std::string_view{k.at(i)}, v.at(i).data(), v.at(i).size()));
   }
   constexpr std::size_t value_index = 0;
-  std::vector<std::tuple<char *, std::size_t>> tuple_list{}; // NOLINT
+  std::vector<std::pair<char *, std::size_t>> tuple_list{}; // NOLINT
   for (std::size_t i = 0; i < ary_size; ++i) {
     ASSERT_EQ(status::OK, yakushima_kvs::scan(std::string_view(k.at(i)), false, std::string_view(nullptr, 0), false,
                                               tuple_list));

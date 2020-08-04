@@ -15,17 +15,22 @@ namespace yakushima {
 // forward declaration
 template<class ValueType>
 static status scan_border(border_node **target, std::string_view l_key, bool l_exclusive, std::string_view r_key,
-                          bool r_exclusive, std::vector<std::tuple<ValueType *, std::size_t>> &tuple_list,
-                          node_version64_body &v_at_fetch_lv);
+                          bool r_exclusive, std::vector<std::pair<ValueType *, std::size_t>> &tuple_list,
+                          node_version64_body &v_at_fetch_lv,
+                          std::vector<std::pair<node_version64_body, node_version64 *>> *node_version_vec);
 
 template<class ValueType>
 status scan_check_retry(border_node *const bn, node_version64_body &v_at_fetch_lv,
-                        std::vector<std::tuple<ValueType *, std::size_t>> &tuple_list,
-                        const std::size_t &tuple_pushed_num) {
+                        std::vector<std::pair<ValueType *, std::size_t>> &tuple_list,
+                        std::size_t tuple_pushed_num,
+                        std::vector<std::pair<node_version64_body, node_version64 *>> *node_version_vec) {
   node_version64_body check = bn->get_stable_version();
   if (check != v_at_fetch_lv) {
     if (tuple_pushed_num != 0) {
       tuple_list.erase(tuple_list.end() - tuple_pushed_num, tuple_list.end());
+      if (node_version_vec != nullptr) {
+        node_version_vec->erase(node_version_vec->end() - tuple_pushed_num, node_version_vec->end());
+      }
     }
     if (check.get_vsplit() != v_at_fetch_lv.get_vsplit() ||
         check.get_deleted()) {
@@ -39,14 +44,15 @@ status scan_check_retry(border_node *const bn, node_version64_body &v_at_fetch_l
 
 template<class ValueType>
 status scan_check_retry(border_node *const bn, node_version64_body &v_at_fetch_lv) {
-  std::vector<std::tuple<ValueType *, std::size_t>> dummy_list;
+  std::vector<std::pair<ValueType *, std::size_t>> tuple_list;
   std::size_t dummy_ctr(0);
-  return scan_check_retry<ValueType>(bn, v_at_fetch_lv, dummy_list, dummy_ctr);
+  return scan_check_retry<ValueType>(bn, v_at_fetch_lv, tuple_list, dummy_ctr, nullptr);
 }
 
 template<class ValueType>
 static status scan(base_node *root, std::string_view l_key, bool l_exclusive, std::string_view r_key, bool r_exclusive,
-                   std::vector<std::tuple<ValueType *, std::size_t>> &tuple_list) {
+                   std::vector<std::pair<ValueType *, std::size_t>> &tuple_list,
+                   std::vector<std::pair<node_version64_body, node_version64 *>> *node_version_vec) {
 retry:
   if (root->get_version_deleted() || !root->get_version_root()) {
     return status::OK_RETRY_FROM_ROOT;
@@ -75,7 +81,8 @@ retry:
   node_version64_body check_v = std::get<tuple_v_index>(node_and_v);
 
   for (;;) {
-    check_status = scan_border<ValueType>(&bn, l_key, l_exclusive, r_key, r_exclusive, tuple_list, check_v);
+    check_status = scan_border<ValueType>(&bn, l_key, l_exclusive, r_key, r_exclusive, tuple_list, check_v,
+                                          node_version_vec);
     if (check_status == status::OK_SCAN_END) {
       return status::OK;
     }
@@ -100,8 +107,9 @@ retry:
 
 template<class ValueType>
 static status scan_border(border_node **target, std::string_view l_key, bool l_exclusive, std::string_view r_key,
-                          bool r_exclusive, std::vector<std::tuple<ValueType *, std::size_t>> &tuple_list,
-                          node_version64_body &v_at_fetch_lv) {
+                          bool r_exclusive, std::vector<std::pair<ValueType *, std::size_t>> &tuple_list,
+                          node_version64_body &v_at_fetch_lv,
+                          std::vector<std::pair<node_version64_body, node_version64 *>> *node_version_vec) {
 retry:
   std::size_t tuple_pushed_num{0};
   border_node *bn = *target;
@@ -115,7 +123,8 @@ retry:
     void *vp = lv->get_v_or_vp_();
     std::size_t vsize = lv->get_value_length();
     base_node *next_layer = lv->get_next_layer();
-    status check_status = scan_check_retry(bn, v_at_fetch_lv, tuple_list, tuple_pushed_num);
+    node_version64* node_version_ptr = bn->get_version_ptr();
+    status check_status = scan_check_retry(bn, v_at_fetch_lv, tuple_list, tuple_pushed_num, node_version_vec);
     if (check_status == status::OK_RETRY_FROM_ROOT) {
       return status::OK_RETRY_FROM_ROOT;
     }
@@ -154,14 +163,15 @@ retry:
           }
         }
         if (r_key != std::string_view(nullptr, 0) && arg_r_key == std::string_view(nullptr, 0)) {
-          /**
-           * r_key was not 0,0, but new one is that. However, originally it was not all range for right direction.
-           * So it is care by exclusive(true).
-           */
+/**
+ * r_key was not 0,0, but new one is that. However, originally it was not all range for right direction.
+ * So it is care by exclusive(true).
+ */
           next_r_exclusive = true;
         }
       }
-      check_status = scan(next_layer, arg_l_key, next_l_exclusive, arg_r_key, next_r_exclusive, tuple_list);
+      check_status = scan(next_layer, arg_l_key, next_l_exclusive, arg_r_key, next_r_exclusive, tuple_list,
+                          node_version_vec);
       if (check_status != status::OK) {
         goto retry; // NOLINT
       }
@@ -177,7 +187,10 @@ retry:
           (l_key < resident && resident < r_key) || // no inf, in range
           (resident == l_key && !l_exclusive) ||
           (resident == r_key && !r_exclusive)) {
-        tuple_list.emplace_back(std::make_tuple(reinterpret_cast<ValueType *>(vp), vsize)); // NOLINT
+        tuple_list.emplace_back(std::make_pair(reinterpret_cast<ValueType *>(vp), vsize)); // NOLINT
+        if (node_version_vec != nullptr) {
+          node_version_vec->emplace_back(std::make_pair(v_at_fetch_lv, node_version_ptr));
+        }
         ++tuple_pushed_num;
       } else {
         return status::OK_SCAN_END;
