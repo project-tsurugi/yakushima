@@ -3,7 +3,6 @@
  */
 
 #include <array>
-#include <tuple>
 
 #include "gtest/gtest.h"
 
@@ -34,87 +33,100 @@ TEST_F(st, test1) { // NOLINT
   ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
   ASSERT_EQ(status::OK, yakushima_kvs::put(std::string_view(k), v.data(), v.size()));
   std::vector<std::pair<char *, std::size_t>> tuple_list{}; // NOLINT
+  std::vector<std::pair<node_version64_body, node_version64 *>> nv;
   ASSERT_EQ(status::OK, yakushima_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(nullptr, 0),
-                                                  false, tuple_list));
+                                                  false, tuple_list, &nv));
   ASSERT_EQ(tuple_list.size(), 1);
+  ASSERT_EQ(tuple_list.size(), nv.size());
   ASSERT_EQ(std::get<1>(tuple_list.at(0)), v.size());
   ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(0)), v.data(), v.size()), 0);
   ASSERT_EQ(status::OK, yakushima_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(nullptr, 0),
-                                                  true, tuple_list));
+                                                  true, tuple_list, &nv));
   ASSERT_EQ(tuple_list.size(), 0);
+  ASSERT_EQ(tuple_list.size(), nv.size());
   ASSERT_EQ(status::OK, yakushima_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(k),
-                                                  false, tuple_list));
+                                                  false, tuple_list, &nv));
   ASSERT_EQ(tuple_list.size(), 1);
+  ASSERT_EQ(tuple_list.size(), nv.size());
   ASSERT_EQ(std::get<1>(tuple_list.at(0)), v.size());
   ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(0)), v.data(), v.size()), 0);
   ASSERT_EQ(status::OK, yakushima_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(k),
-                                                  true, tuple_list));
+                                                  true, tuple_list, &nv));
   ASSERT_EQ(tuple_list.size(), 0);
+  ASSERT_EQ(tuple_list.size(), nv.size());
   ASSERT_EQ(status::OK, yakushima_kvs::scan<char>(std::string_view(nullptr, 0), true, std::string_view(nullptr, 0),
-                                                  false, tuple_list));
+                                                  false, tuple_list, &nv));
   ASSERT_EQ(tuple_list.size(), 1);
+  ASSERT_EQ(tuple_list.size(), nv.size());
   ASSERT_EQ(status::OK, yakushima_kvs::scan<char>(std::string_view(nullptr, 0), true, std::string_view(nullptr, 0),
-                                                  true, tuple_list));
+                                                  true, tuple_list, &nv));
   ASSERT_EQ(tuple_list.size(), 0);
   ASSERT_EQ(status::OK, yakushima_kvs::scan<char>(std::string_view(nullptr, 0), true, std::string_view(k),
-                                                  false, tuple_list));
+                                                  false, tuple_list, &nv));
   ASSERT_EQ(tuple_list.size(), 1);
+  ASSERT_EQ(tuple_list.size(), nv.size());
   ASSERT_EQ(std::get<1>(tuple_list.at(0)), v.size());
   ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(0)), v.data(), v.size()), 0);
   ASSERT_EQ(status::OK, yakushima_kvs::scan<char>(std::string_view(nullptr, 0), true, std::string_view(k),
-                                                  true, tuple_list));
+                                                  true, tuple_list, &nv));
   ASSERT_EQ(tuple_list.size(), 0);
+  ASSERT_EQ(tuple_list.size(), nv.size());
   ASSERT_EQ(status::OK, yakushima_kvs::scan<char>(std::string_view(k), false, std::string_view(nullptr, 0),
-                                                  false, tuple_list));
+                                                  false, tuple_list, &nv));
   ASSERT_EQ(tuple_list.size(), 1);
+  ASSERT_EQ(tuple_list.size(), nv.size());
   ASSERT_EQ(std::get<1>(tuple_list.at(0)), v.size());
   ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(0)), v.data(), v.size()), 0);
   ASSERT_EQ(status::OK, yakushima_kvs::scan<char>(std::string_view(k), false, std::string_view(nullptr, 0),
-                                                  true, tuple_list));
+                                                  true, tuple_list, &nv));
   ASSERT_EQ(tuple_list.size(), 1);
+  ASSERT_EQ(tuple_list.size(), nv.size());
   ASSERT_EQ(std::get<1>(tuple_list.at(0)), v.size());
   ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(0)), v.data(), v.size()), 0);
   ASSERT_EQ(status::OK, yakushima_kvs::scan<char>(std::string_view(k), false, std::string_view(k),
-                                                  false, tuple_list));
+                                                  false, tuple_list, &nv));
   ASSERT_EQ(tuple_list.size(), 1);
+  ASSERT_EQ(tuple_list.size(), nv.size());
   ASSERT_EQ(std::get<1>(tuple_list.at(0)), v.size());
   ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(0)), v.data(), v.size()), 0);
   ASSERT_EQ(status::ERR_BAD_USAGE, yakushima_kvs::scan<char>(std::string_view(k), false, std::string_view(k),
-                                                             true, tuple_list));
+                                                             true, tuple_list, &nv));
   ASSERT_EQ(status::OK, yakushima_kvs::scan<char>(std::string_view(k), true, std::string_view(nullptr, 0),
-                                                  false, tuple_list));
+                                                  false, tuple_list, &nv));
   ASSERT_EQ(tuple_list.size(), 0);
+  ASSERT_EQ(tuple_list.size(), nv.size());
   ASSERT_EQ(status::OK, yakushima_kvs::scan<char>(std::string_view(k), true, std::string_view(nullptr, 0),
-                                                  true, tuple_list));
+                                                  true, tuple_list, &nv));
   ASSERT_EQ(tuple_list.size(), 0);
+  ASSERT_EQ(tuple_list.size(), nv.size());
   ASSERT_EQ(status::ERR_BAD_USAGE, yakushima_kvs::scan<char>(std::string_view(k), true, std::string_view(k),
-                                                             false, tuple_list));
+                                                             false, tuple_list, &nv));
   ASSERT_EQ(status::ERR_BAD_USAGE, yakushima_kvs::scan<char>(std::string_view(k), true, std::string_view(k),
-                                                             true, tuple_list));
+                                                             true, tuple_list, &nv));
   ASSERT_EQ(status::ERR_BAD_USAGE,
             yakushima_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(nullptr, 1),
-                                      false, tuple_list));
+                                      false, tuple_list, &nv));
   ASSERT_EQ(status::ERR_BAD_USAGE,
             yakushima_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(nullptr, 1),
-                                      true, tuple_list));
+                                      true, tuple_list, &nv));
   ASSERT_EQ(status::ERR_BAD_USAGE,
             yakushima_kvs::scan<char>(std::string_view(nullptr, 0), true, std::string_view(nullptr, 1),
-                                      false, tuple_list));
+                                      false, tuple_list, &nv));
   ASSERT_EQ(status::ERR_BAD_USAGE,
             yakushima_kvs::scan<char>(std::string_view(nullptr, 0), true, std::string_view(nullptr, 1),
-                                      true, tuple_list));
+                                      true, tuple_list, &nv));
   ASSERT_EQ(status::ERR_BAD_USAGE,
             yakushima_kvs::scan<char>(std::string_view(nullptr, 1), false, std::string_view(nullptr, 0),
-                                      false, tuple_list));
+                                      false, tuple_list, &nv));
   ASSERT_EQ(status::ERR_BAD_USAGE,
             yakushima_kvs::scan<char>(std::string_view(nullptr, 1), false, std::string_view(nullptr, 0),
-                                      true, tuple_list));
+                                      true, tuple_list, &nv));
   ASSERT_EQ(status::ERR_BAD_USAGE,
             yakushima_kvs::scan<char>(std::string_view(nullptr, 1), true, std::string_view(nullptr, 1),
-                                      false, tuple_list));
+                                      false, tuple_list, &nv));
   ASSERT_EQ(status::ERR_BAD_USAGE,
             yakushima_kvs::scan<char>(std::string_view(nullptr, 1), true, std::string_view(nullptr, 1),
-                                      true, tuple_list));
+                                      true, tuple_list, &nv));
   ASSERT_EQ(yakushima_kvs::leave(token), status::OK);
 }
 
@@ -141,8 +153,10 @@ TEST_F(st, test2) { // NOLINT
   }
 
   for (std::size_t i = ary_size - 1; i > 1; --i) {
-    yakushima_kvs::scan<char>(std::string_view(k.at(i)), false, std::string_view(nullptr, 0), false, tuple_list);
+    std::vector<std::pair<node_version64_body, node_version64 *>> nv;
+    yakushima_kvs::scan<char>(std::string_view(k.at(i)), false, std::string_view(nullptr, 0), false, tuple_list, &nv);
     ASSERT_EQ(tuple_list.size(), ary_size - i);
+    ASSERT_EQ(tuple_list.size(), nv.size());
     for (std::size_t j = i; j < ary_size; ++j) {
       ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j - i)), v.at(j).data(), v.at(j).size()), 0);
     }
@@ -164,17 +178,22 @@ TEST_F(st, test3) { // NOLINT
   constexpr std::size_t value_index = 0;
   std::vector<std::pair<char *, std::size_t>> tuple_list{}; // NOLINT
   for (std::size_t i = 0; i < ary_size; ++i) {
+    std::vector<std::pair<node_version64_body, node_version64 *>> nv;
     ASSERT_EQ(status::OK, yakushima_kvs::scan(std::string_view(k.at(i)), false, std::string_view(nullptr, 0), false,
-                                              tuple_list));
+                                              tuple_list, &nv));
     ASSERT_EQ(tuple_list.size(), ary_size - i);
+    ASSERT_EQ(tuple_list.size(), nv.size());
     for (std::size_t j = i; j < ary_size; ++j) {
       ASSERT_EQ(memcmp(std::get<value_index>(tuple_list.at(j - i)), v.at(j).data(), v.at(j).size()), 0);
     }
   }
   for (std::size_t i = ary_size - 1; i > 1; --i) {
+    std::vector<std::pair<node_version64_body, node_version64 *>> nv;
     ASSERT_EQ(status::OK,
-              yakushima_kvs::scan(std::string_view(nullptr, 0), false, std::string_view(k.at(i)), false, tuple_list));
+              yakushima_kvs::scan(std::string_view(nullptr, 0), false, std::string_view(k.at(i)), false, tuple_list,
+                                  &nv));
     ASSERT_EQ(tuple_list.size(), i + 1);
+    ASSERT_EQ(tuple_list.size(), nv.size());
     for (std::size_t j = 0; j < i; ++j) {
       ASSERT_EQ(memcmp(std::get<value_index>(tuple_list.at(j)), v.at(j).data(), v.at(j).size()), 0);
     }
@@ -198,8 +217,9 @@ TEST_F(st, test4) { // NOLINT
   constexpr std::size_t value_index = 0;
   std::vector<std::pair<char *, std::size_t>> tuple_list{}; // NOLINT
   for (std::size_t i = 0; i < ary_size; ++i) {
+    std::vector<std::pair<node_version64_body, node_version64 *>> nv;
     ASSERT_EQ(status::OK, yakushima_kvs::scan(std::string_view(k.at(i)), false, std::string_view(nullptr, 0), false,
-                                              tuple_list));
+                                              tuple_list, &nv));
     for (std::size_t j = i; j < ary_size; ++j) {
       ASSERT_EQ(memcmp(std::get<value_index>(tuple_list.at(j - i)), v.at(j).data(), v.at(j).size()), 0);
     }
@@ -230,8 +250,9 @@ TEST_F(st, test5) { // NOLINT
   constexpr std::size_t value_index = 0;
   std::vector<std::pair<char *, std::size_t>> tuple_list{}; // NOLINT
   for (std::size_t i = 0; i < ary_size; ++i) {
+    std::vector<std::pair<node_version64_body, node_version64 *>> nv;
     ASSERT_EQ(status::OK, yakushima_kvs::scan(std::string_view(k.at(i)), false, std::string_view(nullptr, 0), false,
-                                              tuple_list));
+                                              tuple_list, &nv));
     for (std::size_t j = i; j < ary_size; ++j) {
       ASSERT_EQ(memcmp(std::get<value_index>(tuple_list.at(j - i)), v.at(j).data(), v.at(j).size()), 0);
     }
