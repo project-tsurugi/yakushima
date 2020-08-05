@@ -39,10 +39,10 @@ TEST_F(mtdt, test1) { // NOLINT
 #else
     for (std::size_t h = 0; h < 100; ++h) {
 #endif
-    yakushima_kvs::init();
+    init();
     std::array<Token, 2> token{};
-    ASSERT_EQ(yakushima_kvs::enter(token.at(0)), status::OK);
-    ASSERT_EQ(yakushima_kvs::enter(token.at(1)), status::OK);
+    ASSERT_EQ(enter(token.at(0)), status::OK);
+    ASSERT_EQ(enter(token.at(1)), status::OK);
 
     std::reverse(kv1.begin(), kv1.end());
     std::reverse(kv2.begin(), kv2.end());
@@ -52,7 +52,7 @@ TEST_F(mtdt, test1) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::put(k, v.data(), v.size());
+          status ret = put(k, v.data(), v.size());
           if (ret != status::OK) {
             EXPECT_EQ(ret, status::OK); // output log
             std::abort();
@@ -64,7 +64,7 @@ TEST_F(mtdt, test1) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::remove(token, std::string_view(k));
+          status ret = remove(token, std::string_view(k));
           if (ret != status::OK) {
             EXPECT_EQ(ret, status::OK); // output log
             std::abort();
@@ -82,9 +82,9 @@ TEST_F(mtdt, test1) { // NOLINT
     S::remove_work(std::ref(kv1), std::ref(token[1]));
     t.join();
 
-    ASSERT_EQ(yakushima_kvs::leave(token[0]), status::OK);
-    ASSERT_EQ(yakushima_kvs::leave(token[1]), status::OK);
-    yakushima_kvs::fin();
+    ASSERT_EQ(leave(token[0]), status::OK);
+    ASSERT_EQ(leave(token[1]), status::OK);
+    fin();
   }
 }
 
@@ -111,10 +111,10 @@ TEST_F(mtdt, test2) { // NOLINT
 #else
     for (std::size_t h = 0; h < 100; ++h) {
 #endif
-    yakushima_kvs::init();
+    init();
     std::array<Token, 2> token{};
-    ASSERT_EQ(yakushima_kvs::enter(token.at(0)), status::OK);
-    ASSERT_EQ(yakushima_kvs::enter(token.at(1)), status::OK);
+    ASSERT_EQ(enter(token.at(0)), status::OK);
+    ASSERT_EQ(enter(token.at(1)), status::OK);
 
     std::shuffle(kv1.begin(), kv1.end(), engine);
     std::shuffle(kv2.begin(), kv2.end(), engine);
@@ -124,7 +124,7 @@ TEST_F(mtdt, test2) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::put(k, v.data(), v.size());
+          status ret = put(k, v.data(), v.size());
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -136,7 +136,7 @@ TEST_F(mtdt, test2) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::remove(token, std::string_view(k));
+          status ret = remove(token, std::string_view(k));
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -153,9 +153,9 @@ TEST_F(mtdt, test2) { // NOLINT
     S::remove_work(std::ref(token.at(1)), std::ref(kv1));
     t.join();
 
-    ASSERT_EQ(yakushima_kvs::leave(token.at(0)), status::OK);
-    ASSERT_EQ(yakushima_kvs::leave(token.at(1)), status::OK);
-    yakushima_kvs::fin();
+    ASSERT_EQ(leave(token.at(0)), status::OK);
+    ASSERT_EQ(leave(token.at(1)), status::OK);
+    fin();
   }
 }
 
@@ -180,10 +180,10 @@ TEST_F(mtdt, test3) { // NOLINT
 #else
     for (std::size_t h = 0; h < 200; ++h) {
 #endif
-    yakushima_kvs::init();
+    init();
     std::array<Token, 2> token{};
-    ASSERT_EQ(yakushima_kvs::enter(token.at(0)), status::OK);
-    ASSERT_EQ(yakushima_kvs::enter(token.at(1)), status::OK);
+    ASSERT_EQ(enter(token.at(0)), status::OK);
+    ASSERT_EQ(enter(token.at(1)), status::OK);
 
     std::reverse(kv1.begin(), kv1.end());
     std::reverse(kv2.begin(), kv2.end());
@@ -193,7 +193,7 @@ TEST_F(mtdt, test3) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::put(k, v.data(), v.size());
+          status ret = put(k, v.data(), v.size());
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -205,7 +205,7 @@ TEST_F(mtdt, test3) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::remove(token, std::string_view(k));
+          status ret = remove(token, std::string_view(k));
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -222,9 +222,9 @@ TEST_F(mtdt, test3) { // NOLINT
     S::remove_work(std::ref(token.at(1)), std::ref(kv2));
     t.join();
 
-    ASSERT_EQ(yakushima_kvs::leave(token.at(0)), status::OK);
-    ASSERT_EQ(yakushima_kvs::leave(token.at(1)), status::OK);
-    yakushima_kvs::fin();
+    ASSERT_EQ(leave(token.at(0)), status::OK);
+    ASSERT_EQ(leave(token.at(1)), status::OK);
+    fin();
   }
 }
 
@@ -252,10 +252,10 @@ TEST_F(mtdt, test4) { // NOLINT
 #else
     for (std::size_t h = 0; h < 100; ++h) {
 #endif
-    yakushima_kvs::init();
+    init();
     std::array<Token, 2> token{};
-    ASSERT_EQ(yakushima_kvs::enter(token.at(0)), status::OK);
-    ASSERT_EQ(yakushima_kvs::enter(token.at(1)), status::OK);
+    ASSERT_EQ(enter(token.at(0)), status::OK);
+    ASSERT_EQ(enter(token.at(1)), status::OK);
 
     std::shuffle(kv1.begin(), kv1.end(), engine);
     std::shuffle(kv2.begin(), kv2.end(), engine);
@@ -265,7 +265,7 @@ TEST_F(mtdt, test4) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::put(k, v.data(), v.size());
+          status ret = put(k, v.data(), v.size());
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -277,7 +277,7 @@ TEST_F(mtdt, test4) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::remove(token, std::string_view(k));
+          status ret = remove(token, std::string_view(k));
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -294,9 +294,9 @@ TEST_F(mtdt, test4) { // NOLINT
     S::remove_work(std::ref(token.at(1)), std::ref(kv2));
     t.join();
 
-    ASSERT_EQ(yakushima_kvs::leave(token.at(0)), status::OK);
-    ASSERT_EQ(yakushima_kvs::leave(token.at(1)), status::OK);
-    yakushima_kvs::fin();
+    ASSERT_EQ(leave(token.at(0)), status::OK);
+    ASSERT_EQ(leave(token.at(1)), status::OK);
+    fin();
   }
 }
 
@@ -321,10 +321,10 @@ TEST_F(mtdt, test5) { // NOLINT
 #else
     for (std::size_t h = 0; h < 100; ++h) {
 #endif
-    yakushima_kvs::init();
+    init();
     std::array<Token, 2> token{};
-    ASSERT_EQ(yakushima_kvs::enter(token.at(0)), status::OK);
-    ASSERT_EQ(yakushima_kvs::enter(token.at(1)), status::OK);
+    ASSERT_EQ(enter(token.at(0)), status::OK);
+    ASSERT_EQ(enter(token.at(1)), status::OK);
 
     std::reverse(kv1.begin(), kv1.end());
     std::reverse(kv2.begin(), kv2.end());
@@ -334,7 +334,7 @@ TEST_F(mtdt, test5) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::put(k, v.data(), v.size());
+          status ret = put(k, v.data(), v.size());
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -346,7 +346,7 @@ TEST_F(mtdt, test5) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::remove(token, std::string_view(k));
+          status ret = remove(token, std::string_view(k));
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -363,9 +363,9 @@ TEST_F(mtdt, test5) { // NOLINT
     S::remove_work(std::ref(token.at(1)), std::ref(kv2));
     t.join();
 
-    ASSERT_EQ(yakushima_kvs::leave(token.at(0)), status::OK);
-    ASSERT_EQ(yakushima_kvs::leave(token.at(1)), status::OK);
-    yakushima_kvs::fin();
+    ASSERT_EQ(leave(token.at(0)), status::OK);
+    ASSERT_EQ(leave(token.at(1)), status::OK);
+    fin();
   }
 }
 
@@ -392,10 +392,10 @@ TEST_F(mtdt, test6) { // NOLINT
 #else
     for (std::size_t h = 0; h < 100; ++h) {
 #endif
-    yakushima_kvs::init();
+    init();
     std::array<Token, 2> token{};
-    ASSERT_EQ(yakushima_kvs::enter(token.at(0)), status::OK);
-    ASSERT_EQ(yakushima_kvs::enter(token.at(1)), status::OK);
+    ASSERT_EQ(enter(token.at(0)), status::OK);
+    ASSERT_EQ(enter(token.at(1)), status::OK);
 
     std::shuffle(kv1.begin(), kv1.end(), engine);
     std::shuffle(kv2.begin(), kv2.end(), engine);
@@ -405,7 +405,7 @@ TEST_F(mtdt, test6) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::put(k, v.data(), v.size());
+          status ret = put(k, v.data(), v.size());
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -417,7 +417,7 @@ TEST_F(mtdt, test6) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::remove(token, std::string_view(k));
+          status ret = remove(token, std::string_view(k));
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -434,9 +434,9 @@ TEST_F(mtdt, test6) { // NOLINT
     S::remove_work(std::ref(token.at(1)), std::ref(kv2));
     t.join();
 
-    ASSERT_EQ(yakushima_kvs::leave(token.at(0)), status::OK);
-    ASSERT_EQ(yakushima_kvs::leave(token.at(1)), status::OK);
-    yakushima_kvs::fin();
+    ASSERT_EQ(leave(token.at(0)), status::OK);
+    ASSERT_EQ(leave(token.at(1)), status::OK);
+    fin();
   }
 }
 
@@ -461,10 +461,10 @@ TEST_F(mtdt, test7) { // NOLINT
 #else
     for (size_t h = 0; h < 20; ++h) {
 #endif
-    yakushima_kvs::init();
+    init();
     std::array<Token, 2> token{};
-    ASSERT_EQ(yakushima_kvs::enter(token.at(0)), status::OK);
-    ASSERT_EQ(yakushima_kvs::enter(token.at(1)), status::OK);
+    ASSERT_EQ(enter(token.at(0)), status::OK);
+    ASSERT_EQ(enter(token.at(1)), status::OK);
 
     std::reverse(kv1.begin(), kv1.end());
     std::reverse(kv2.begin(), kv2.end());
@@ -474,7 +474,7 @@ TEST_F(mtdt, test7) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::put(k, v.data(), v.size());
+          status ret = put(k, v.data(), v.size());
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -486,7 +486,7 @@ TEST_F(mtdt, test7) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::remove(token, std::string_view(k));
+          status ret = remove(token, std::string_view(k));
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -503,9 +503,9 @@ TEST_F(mtdt, test7) { // NOLINT
     S::remove_work(std::ref(token.at(1)), std::ref(kv2));
     t.join();
 
-    ASSERT_EQ(yakushima_kvs::leave(token.at(0)), status::OK);
-    ASSERT_EQ(yakushima_kvs::leave(token.at(1)), status::OK);
-    yakushima_kvs::fin();
+    ASSERT_EQ(leave(token.at(0)), status::OK);
+    ASSERT_EQ(leave(token.at(1)), status::OK);
+    fin();
   }
 }
 
@@ -534,10 +534,10 @@ TEST_F(mtdt, test8) { // NOLINT
 #else
     for (std::size_t h = 0; h < 30; ++h) {
 #endif
-    yakushima_kvs::init();
+    init();
     std::array<Token, 2> token{};
-    ASSERT_EQ(yakushima_kvs::enter(token.at(0)), status::OK);
-    ASSERT_EQ(yakushima_kvs::enter(token.at(1)), status::OK);
+    ASSERT_EQ(enter(token.at(0)), status::OK);
+    ASSERT_EQ(enter(token.at(1)), status::OK);
 
     std::shuffle(kv1.begin(), kv1.end(), engine);
     std::shuffle(kv2.begin(), kv2.end(), engine);
@@ -547,7 +547,7 @@ TEST_F(mtdt, test8) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::put(k, v.data(), v.size());
+          status ret = put(k, v.data(), v.size());
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -559,7 +559,7 @@ TEST_F(mtdt, test8) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::remove(token, k);
+          status ret = remove(token, k);
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -576,9 +576,9 @@ TEST_F(mtdt, test8) { // NOLINT
     S::remove_work(std::ref(token.at(1)), std::ref(kv2));
     t.join();
 
-    ASSERT_EQ(yakushima_kvs::leave(token.at(0)), status::OK);
-    ASSERT_EQ(yakushima_kvs::leave(token.at(1)), status::OK);
-    yakushima_kvs::fin();
+    ASSERT_EQ(leave(token.at(0)), status::OK);
+    ASSERT_EQ(leave(token.at(1)), status::OK);
+    fin();
   }
 }
 
@@ -603,10 +603,10 @@ TEST_F(mtdt, test9) { // NOLINT
 #else
     for (std::size_t h = 0; h < 30; ++h) {
 #endif
-    yakushima_kvs::init();
+    init();
     std::array<Token, 2> token{};
-    ASSERT_EQ(yakushima_kvs::enter(token.at(0)), status::OK);
-    ASSERT_EQ(yakushima_kvs::enter(token.at(1)), status::OK);
+    ASSERT_EQ(enter(token.at(0)), status::OK);
+    ASSERT_EQ(enter(token.at(1)), status::OK);
 
     std::reverse(kv1.begin(), kv1.end());
     std::reverse(kv2.begin(), kv2.end());
@@ -616,7 +616,7 @@ TEST_F(mtdt, test9) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::put(k, v.data(), v.size());
+          status ret = put(k, v.data(), v.size());
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -628,7 +628,7 @@ TEST_F(mtdt, test9) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::remove(token, k);
+          status ret = remove(token, k);
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -645,9 +645,9 @@ TEST_F(mtdt, test9) { // NOLINT
     S::remove_work(std::ref(token.at(1)), std::ref(kv2));
     t.join();
 
-    ASSERT_EQ(yakushima_kvs::leave(token.at(0)), status::OK);
-    ASSERT_EQ(yakushima_kvs::leave(token.at(1)), status::OK);
-    yakushima_kvs::fin();
+    ASSERT_EQ(leave(token.at(0)), status::OK);
+    ASSERT_EQ(leave(token.at(1)), status::OK);
+    fin();
   }
 }
 
@@ -674,10 +674,10 @@ TEST_F(mtdt, test10) { // NOLINT
 #else
     for (std::size_t h = 0; h < 30; ++h) {
 #endif
-    yakushima_kvs::init();
+    init();
     std::array<Token, 2> token{};
-    ASSERT_EQ(yakushima_kvs::enter(token.at(0)), status::OK);
-    ASSERT_EQ(yakushima_kvs::enter(token.at(1)), status::OK);
+    ASSERT_EQ(enter(token.at(0)), status::OK);
+    ASSERT_EQ(enter(token.at(1)), status::OK);
 
     std::shuffle(kv1.begin(), kv1.end(), engine);
     std::shuffle(kv2.begin(), kv2.end(), engine);
@@ -687,7 +687,7 @@ TEST_F(mtdt, test10) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::put(k, v.data(), v.size());
+          status ret = put(k, v.data(), v.size());
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -699,7 +699,7 @@ TEST_F(mtdt, test10) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::remove(token, k);
+          status ret = remove(token, k);
           if (ret != status::OK) {
             EXPECT_EQ(status::OK, ret); // output log
             std::abort();
@@ -716,9 +716,9 @@ TEST_F(mtdt, test10) { // NOLINT
     S::remove_work(std::ref(token.at(1)), std::ref(kv2));
     t.join();
 
-    ASSERT_EQ(yakushima_kvs::leave(token.at(0)), status::OK);
-    ASSERT_EQ(yakushima_kvs::leave(token.at(1)), status::OK);
-    yakushima_kvs::fin();
+    ASSERT_EQ(leave(token.at(0)), status::OK);
+    ASSERT_EQ(leave(token.at(1)), status::OK);
+    fin();
   }
 }
 

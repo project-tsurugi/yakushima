@@ -6,6 +6,7 @@
 
 #include "gtest/gtest.h"
 
+#include "kvs.h"
 #include "version.h"
 
 using namespace yakushima;
@@ -66,4 +67,13 @@ TEST_F(vt, test3) { // NOLINT
   //v.display();
 }
 
+TEST_F(vt, vinsert_delete) { // NOLINT
+  init();
+  constexpr std::size_t key_length = 2;
+  std::array<std::string, key_length> key{};
+  for (std::size_t i = 0; i < key_length; ++i) {
+    key.at(i) = std::string{1, static_cast<char>(i)}; // NOLINT
+  }
+  fin();
+}
 }  // namespace yakushima::testing

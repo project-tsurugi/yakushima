@@ -95,14 +95,14 @@ void parallel_build_tree() {
   struct S {
     static void parallel_build_worker(std::uint64_t left_edge, std::uint64_t right_edge) {
       Token token{};
-      yakushima_kvs::enter(token);
+      enter(token);
       std::string value(FLAGS_value_size, '0');
       for (std::uint64_t i = left_edge; i < right_edge; ++i) {
         void *p = (&i);
         std::string key{static_cast<char *>(p), sizeof(std::uint64_t)}; // sizeof(std::size_t) points to loop variable.
-        yakushima_kvs::put(std::string_view(key), value.data(), value.size());
+        put(std::string_view(key), value.data(), value.size());
       }
-      yakushima_kvs::leave(token);
+      leave(token);
     }
   };
 
@@ -144,20 +144,20 @@ void get_worker(const size_t thid, char &ready, const bool &start, const bool &q
   while (!loadAcquireN(start)) _mm_pause();
 
   Token token{};
-  yakushima_kvs::enter(token);
+  enter(token);
   std::uint64_t local_res{0};
   while (!loadAcquireN(quit)) {
     std::uint64_t keynm = zipf() % FLAGS_get_initial_record;
     void *p = (&keynm);
     std::string key{static_cast<char *>(p), sizeof(std::uint64_t)};
-    std::tuple<char *, std::size_t> ret = yakushima_kvs::get<char>(std::string_view(key));
+    std::tuple<char *, std::size_t> ret = get<char>(std::string_view(key));
     if (std::get<0>(ret) == nullptr) {
       std::cout << __FILE__ << " : " << __LINE__ << " : fatal error." << std::endl;
       std::abort();
     }
     ++local_res;
   }
-  yakushima_kvs::leave(token);
+  leave(token);
   res = local_res;
 }
 
@@ -168,7 +168,7 @@ void put_worker(const size_t thid, char &ready, const bool &start, const bool &q
 #endif
 
   Token token{};
-  yakushima_kvs::enter(token);
+  enter(token);
   std::uint64_t left_edge(UINT64_MAX / FLAGS_thread * thid);
   std::uint64_t right_edge(UINT64_MAX / FLAGS_thread * (thid + 1));
   std::string value(FLAGS_value_size, '0');
@@ -181,7 +181,7 @@ void put_worker(const size_t thid, char &ready, const bool &start, const bool &q
     void *p = (&i);
     std::string key{static_cast<char *>(p), sizeof(std::uint64_t)};
     try {
-      yakushima_kvs::put(std::string_view(key), value.data(), value.size());
+      put(std::string_view(key), value.data(), value.size());
     } catch (std::bad_alloc &) {
       std::cout << __FILE__ << " : " << __LINE__ << "bad_alloc. Please set less duration." << std::endl;
       std::abort();
@@ -202,10 +202,10 @@ void put_worker(const size_t thid, char &ready, const bool &start, const bool &q
   for (std::uint64_t i = left_edge; i <= left_edge + local_res; ++i) {
     void *p = (&i);
     std::string key{static_cast<char *>(p), sizeof(std::uint64_t)};
-    yakushima_kvs::remove(token, std::string_view(key));
+    remove(token, std::string_view(key));
   }
 
-  yakushima_kvs::leave(token);
+  leave(token);
   res = local_res;
 }
 
@@ -215,7 +215,7 @@ static void invoke_leader() try {
   alignas(CACHE_LINE_SIZE) std::vector<std::size_t> res(FLAGS_thread);
 
   std::cout << "[start] init masstree database." << std::endl;
-  yakushima_kvs::init();
+  init();
   std::cout << "[end] init masstree database." << std::endl;
 
   std::cout << "[report] This experiments use ";
@@ -270,7 +270,7 @@ static void invoke_leader() try {
   std::cout << "throughput[ops/s]: " << fin_res / FLAGS_duration << std::endl;
 
   std::cout << "[start] fin masstree." << std::endl;
-  yakushima_kvs::fin();
+  fin();
   std::cout << "[end] fin masstree." << std::endl;
 } catch (...) {
   std::cout << __FILE__ << " : " << __LINE__ << " : catch exception" << std::endl;

@@ -221,7 +221,10 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, vo
     key_length = static_cast<key_length_type>(key_view.size());
   }
   int ret_memcmp{memcmp(&key_slice, &new_border->get_key_slice_at(0),
-                        key_length < new_border->get_key_length_at(0) ? key_length : new_border->get_key_length_at(0))};
+                        (key_length > sizeof(key_slice_type) &&
+                         new_border->get_key_length_at(0) > sizeof(key_slice_type)) ?
+                        sizeof(key_slice_type) : key_length < new_border->get_key_length_at(0) ?
+                                                 key_length : new_border->get_key_length_at(0))};
   if (key_length == 0 || ret_memcmp < 0 || (ret_memcmp == 0 && key_length < new_border->get_key_length_at(0))) {
     /**
      * insert to lower border node.
@@ -241,7 +244,7 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, vo
   base_node *p = border->lock_parent();
   if (p == nullptr) {
 #ifndef NDEBUG
-    if (base_node::get_root() != border) {
+    if (base_node::get_root_ptr() != border) {
       std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
       std::abort();
     }

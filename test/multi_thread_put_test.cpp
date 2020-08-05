@@ -33,9 +33,9 @@ TEST_F(mtpt, test1) { // NOLINT
 #else
     for (std::size_t h = 0; h < 100; ++h) {
 #endif
-    yakushima_kvs::init();
+    init();
     Token token{};
-    ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
+    ASSERT_EQ(enter(token), status::OK);
 
     std::reverse(kv1.begin(), kv1.end());
     std::reverse(kv2.begin(), kv2.end());
@@ -45,7 +45,7 @@ TEST_F(mtpt, test1) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::put(std::string_view(k), v.data(), v.size());
+          status ret = put(std::string_view(k), v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -62,15 +62,15 @@ TEST_F(mtpt, test1) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(i, '\0');
-      yakushima_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
+      scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
                                 tuple_list);
       for (std::size_t j = 0; j < i + 1; ++j) {
         std::string v(std::to_string(j));
         ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
       }
     }
-    ASSERT_EQ(yakushima_kvs::leave(token), status::OK);
-    yakushima_kvs::fin();
+    ASSERT_EQ(leave(token), status::OK);
+    fin();
   }
 }
 
@@ -93,9 +93,9 @@ TEST_F(mtpt, test2) { // NOLINT
 #else
     for (std::size_t h = 0; h < 100; ++h) {
 #endif
-    yakushima_kvs::init();
+    init();
     Token token{};
-    ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
+    ASSERT_EQ(enter(token), status::OK);
 
     std::shuffle(kv1.begin(), kv1.end(), engine);
     std::shuffle(kv2.begin(), kv2.end(), engine);
@@ -105,7 +105,7 @@ TEST_F(mtpt, test2) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::put(std::string_view(k), v.data(), v.size());
+          status ret = put(std::string_view(k), v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(status::OK, ret);
             std::abort();
@@ -122,16 +122,16 @@ TEST_F(mtpt, test2) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(i, '\0');
-      yakushima_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
+      scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
                                 tuple_list);
       for (std::size_t j = 0; j < i + 1; ++j) {
         std::string v(std::to_string(j));
         ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
       }
     }
-    ASSERT_EQ(yakushima_kvs::leave(token), status::OK);
-    yakushima_kvs::destroy();
-    yakushima_kvs::fin();
+    ASSERT_EQ(leave(token), status::OK);
+    destroy();
+    fin();
   }
 }
 
@@ -152,9 +152,9 @@ TEST_F(mtpt, test3) { // NOLINT
 #else
     for (std::size_t h = 0; h < 100; ++h) {
 #endif
-    yakushima_kvs::init();
+    init();
     Token token{};
-    ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
+    ASSERT_EQ(enter(token), status::OK);
 
     std::reverse(kv1.begin(), kv1.end());
     std::reverse(kv2.begin(), kv2.end());
@@ -164,7 +164,7 @@ TEST_F(mtpt, test3) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::put(std::string_view(k), v.data(), v.size());
+          status ret = put(std::string_view(k), v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -181,15 +181,15 @@ TEST_F(mtpt, test3) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(i, '\0');
-      yakushima_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
+      scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
                                 tuple_list);
       for (std::size_t j = 0; j < i + 1; ++j) {
         std::string v(std::to_string(j));
         ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
       }
     }
-    ASSERT_EQ(yakushima_kvs::leave(token), status::OK);
-    yakushima_kvs::fin();
+    ASSERT_EQ(leave(token), status::OK);
+    fin();
   }
 }
 
@@ -212,9 +212,9 @@ TEST_F(mtpt, test4) { // NOLINT
 #else
     for (std::size_t h = 0; h < 30; ++h) {
 #endif
-    yakushima_kvs::init();
+    init();
     Token token{};
-    ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
+    ASSERT_EQ(enter(token), status::OK);
 
     std::shuffle(kv1.begin(), kv1.end(), engine);
     std::shuffle(kv2.begin(), kv2.end(), engine);
@@ -224,7 +224,7 @@ TEST_F(mtpt, test4) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::put(std::string_view(k), v.data(), v.size());
+          status ret = put(std::string_view(k), v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -241,15 +241,15 @@ TEST_F(mtpt, test4) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(i, '\0');
-      yakushima_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
+      scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
                                 tuple_list);
       for (std::size_t j = 0; j < i + 1; ++j) {
         std::string v(std::to_string(j));
         ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
       }
     }
-    ASSERT_EQ(yakushima_kvs::leave(token), status::OK);
-    yakushima_kvs::fin();
+    ASSERT_EQ(leave(token), status::OK);
+    fin();
   }
 }
 
@@ -270,9 +270,9 @@ TEST_F(mtpt, test5) { // NOLINT
 #else
     for (std::size_t h = 0; h < 100; ++h) {
 #endif
-    yakushima_kvs::init();
+    init();
     Token token{};
-    ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
+    ASSERT_EQ(enter(token), status::OK);
 
     std::reverse(kv1.begin(), kv1.end());
     std::reverse(kv2.begin(), kv2.end());
@@ -282,7 +282,7 @@ TEST_F(mtpt, test5) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::put(std::string_view(k), v.data(), v.size());
+          status ret = put(std::string_view(k), v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -299,15 +299,15 @@ TEST_F(mtpt, test5) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(1, 'a' + i);
-      yakushima_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
+      scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
                                 tuple_list);
       for (std::size_t j = 0; j < i + 1; ++j) {
         std::string v(std::to_string(j));
         ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
       }
     }
-    ASSERT_EQ(yakushima_kvs::leave(token), status::OK);
-    yakushima_kvs::fin();
+    ASSERT_EQ(leave(token), status::OK);
+    fin();
   }
 }
 
@@ -330,9 +330,9 @@ TEST_F(mtpt, test6) { // NOLINT
 #else
     for (std::size_t h = 0; h < 100; ++h) {
 #endif
-    yakushima_kvs::init();
+    init();
     Token token{};
-    ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
+    ASSERT_EQ(enter(token), status::OK);
 
     std::shuffle(kv1.begin(), kv1.end(), engine);
     std::shuffle(kv2.begin(), kv2.end(), engine);
@@ -342,7 +342,7 @@ TEST_F(mtpt, test6) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::put(std::string_view(k), v.data(), v.size());
+          status ret = put(std::string_view(k), v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -359,15 +359,15 @@ TEST_F(mtpt, test6) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(1, 'a' + i);
-      yakushima_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
+      scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
                                 tuple_list);
       for (std::size_t j = 0; j < i + 1; ++j) {
         std::string v(std::to_string(j));
         ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
       }
     }
-    ASSERT_EQ(yakushima_kvs::leave(token), status::OK);
-    yakushima_kvs::fin();
+    ASSERT_EQ(leave(token), status::OK);
+    fin();
   }
 }
 
@@ -388,9 +388,9 @@ TEST_F(mtpt, test7) { // NOLINT
 #else
     for (size_t h = 0; h < 100; ++h) {
 #endif
-    yakushima_kvs::init();
+    init();
     Token token{};
-    ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
+    ASSERT_EQ(enter(token), status::OK);
 
     std::reverse(kv1.begin(), kv1.end());
     std::reverse(kv2.begin(), kv2.end());
@@ -400,7 +400,7 @@ TEST_F(mtpt, test7) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::put(std::string_view(k), v.data(), v.size());
+          status ret = put(std::string_view(k), v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -417,7 +417,7 @@ TEST_F(mtpt, test7) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(1, i);
-      yakushima_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
+      scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
                                 tuple_list);
       if (tuple_list.size() != i + 1) {
         EXPECT_EQ(tuple_list.size(), i + 1);
@@ -428,8 +428,8 @@ TEST_F(mtpt, test7) { // NOLINT
         ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
       }
     }
-    ASSERT_EQ(yakushima_kvs::leave(token), status::OK);
-    yakushima_kvs::fin();
+    ASSERT_EQ(leave(token), status::OK);
+    fin();
   }
 }
 
@@ -453,9 +453,9 @@ TEST_F(mtpt, test8) { // NOLINT
 #else
     for (std::size_t h = 0; h < 100; ++h) {
 #endif
-    yakushima_kvs::init();
+    init();
     Token token{};
-    ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
+    ASSERT_EQ(enter(token), status::OK);
 
     std::shuffle(kv1.begin(), kv1.end(), engine);
     std::shuffle(kv2.begin(), kv2.end(), engine);
@@ -465,7 +465,7 @@ TEST_F(mtpt, test8) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::put(std::string_view(k), v.data(), v.size());
+          status ret = put(std::string_view(k), v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -482,7 +482,7 @@ TEST_F(mtpt, test8) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(1, i);
-      yakushima_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
+      scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
                                 tuple_list);
       if (tuple_list.size() != i + 1) {
         EXPECT_EQ(tuple_list.size(), i + 1);
@@ -493,8 +493,8 @@ TEST_F(mtpt, test8) { // NOLINT
         ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
       }
     }
-    ASSERT_EQ(yakushima_kvs::leave(token), status::OK);
-    yakushima_kvs::fin();
+    ASSERT_EQ(leave(token), status::OK);
+    fin();
   }
 }
 
@@ -515,9 +515,9 @@ TEST_F(mtpt, test9) { // NOLINT
 #else
     for (std::size_t h = 0; h < 100; ++h) {
 #endif
-    yakushima_kvs::init();
+    init();
     Token token{};
-    ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
+    ASSERT_EQ(enter(token), status::OK);
 
     std::reverse(kv1.begin(), kv1.end());
     std::reverse(kv2.begin(), kv2.end());
@@ -527,7 +527,7 @@ TEST_F(mtpt, test9) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::put(std::string_view(k), v.data(), v.size());
+          status ret = put(std::string_view(k), v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -544,7 +544,7 @@ TEST_F(mtpt, test9) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(1, i);
-      yakushima_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
+      scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
                                 tuple_list);
       ASSERT_EQ(tuple_list.size(), i + 1);
       for (std::size_t j = 0; j < i + 1; ++j) {
@@ -552,8 +552,8 @@ TEST_F(mtpt, test9) { // NOLINT
         ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
       }
     }
-    ASSERT_EQ(yakushima_kvs::leave(token), status::OK);
-    yakushima_kvs::fin();
+    ASSERT_EQ(leave(token), status::OK);
+    fin();
   }
 }
 
@@ -577,9 +577,9 @@ TEST_F(mtpt, test10) { // NOLINT
 #else
     for (std::size_t h = 0; h < 100; ++h) {
 #endif
-    yakushima_kvs::init();
+    init();
     Token token{};
-    ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
+    ASSERT_EQ(enter(token), status::OK);
 
     std::shuffle(kv1.begin(), kv1.end(), engine);
     std::shuffle(kv2.begin(), kv2.end(), engine);
@@ -589,7 +589,7 @@ TEST_F(mtpt, test10) { // NOLINT
         for (auto &i : kv) {
           std::string k(std::get<0>(i));
           std::string v(std::get<1>(i));
-          status ret = yakushima_kvs::put(std::string_view(k), v.data(), v.size());
+          status ret = put(std::string_view(k), v.data(), v.size());
           if (ret != status::OK) {
             ASSERT_EQ(ret, status::OK);
             std::abort();
@@ -606,7 +606,7 @@ TEST_F(mtpt, test10) { // NOLINT
     constexpr std::size_t v_index = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       std::string k(1, i);
-      yakushima_kvs::scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false, tuple_list);
+      scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false, tuple_list);
       if (tuple_list.size() != i + 1) {
         ASSERT_EQ(tuple_list.size(), i + 1);
       }
@@ -616,9 +616,9 @@ TEST_F(mtpt, test10) { // NOLINT
         ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
       }
     }
-    ASSERT_EQ(yakushima_kvs::leave(token), status::OK);
+    ASSERT_EQ(leave(token), status::OK);
 
-    yakushima_kvs::fin();
+    fin();
   }
 }
 

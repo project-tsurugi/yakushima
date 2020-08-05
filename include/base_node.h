@@ -131,7 +131,11 @@ public:
     return version_.get_locked();
   }
 
-  static base_node *get_root() {
+  static std::atomic<base_node *>& get_root() {
+    return root_;
+  }
+
+  static base_node *get_root_ptr() {
     return root_.load(std::memory_order_acquire);
   }
 
@@ -298,7 +302,6 @@ public:
   }
 
 private:
-  friend yakushima_kvs;
   /**
    * @attention This variable is read/written concurrently.
    */

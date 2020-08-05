@@ -18,11 +18,11 @@ namespace yakushima::testing {
 class kt : public ::testing::Test {
 protected:
   void SetUp() override {
-    yakushima_kvs::init();
+    init();
   }
 
   void TearDown() override {
-    yakushima_kvs::fin();
+    fin();
   }
 };
 
@@ -33,55 +33,55 @@ TEST_F(kt, test1) { // NOLINT
   std::string k("a");
   std::string v("v-a");
   Token token{};
-  ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
-  ASSERT_EQ(status::OK, yakushima_kvs::put(k, v.data(), v.size()));
-  base_node *root = base_node::get_root(); // this is border node.
+  ASSERT_EQ(enter(token), status::OK);
+  ASSERT_EQ(status::OK, put(k, v.data(), v.size()));
+  base_node *root = base_node::get_root_ptr(); // this is border node.
   ASSERT_NE(root, nullptr);
   key_slice_type lvalue_key_slice = root->get_key_slice_at(0);
   ASSERT_EQ(memcmp(&lvalue_key_slice, k.data(), k.size()), 0);
   ASSERT_EQ(root->get_key_length_at(0), k.size());
-  std::pair<char *, std::size_t> tuple = yakushima_kvs::get<char>(k);
+  std::pair<char *, std::size_t> tuple = get<char>(k);
   ASSERT_NE(std::get<0>(tuple), nullptr);
   ASSERT_EQ(std::get<1>(tuple), v.size());
   ASSERT_EQ(memcmp(std::get<0>(tuple), v.data(), v.size()), 0);
-  ASSERT_EQ(yakushima_kvs::leave(token), status::OK);
+  ASSERT_EQ(leave(token), status::OK);
 }
 
 TEST_F(kt, test2) { // NOLINT
   /**
    * put one key-long_value
    */
-  ASSERT_EQ(base_node::get_root(), nullptr);
+  ASSERT_EQ(base_node::get_root_ptr(), nullptr);
   std::string k("a");
   std::string v(100, 'a');
   ASSERT_EQ(v.size(), 100);
   Token token{};
-  ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
-  ASSERT_EQ(status::OK, yakushima_kvs::put(std::string_view(k), v.data(), v.size()));
-  base_node *root = base_node::get_root(); // this is border node.
+  ASSERT_EQ(enter(token), status::OK);
+  ASSERT_EQ(status::OK, put(std::string_view(k), v.data(), v.size()));
+  base_node *root = base_node::get_root_ptr(); // this is border node.
   ASSERT_NE(root, nullptr);
   key_slice_type lvalue_key_slice = root->get_key_slice_at(0);
   ASSERT_EQ(memcmp(&lvalue_key_slice, k.data(), k.size()), 0);
   ASSERT_EQ(root->get_key_length_at(0), k.size());
-  std::pair<char *, std::size_t> tuple = yakushima_kvs::get<char>(std::string_view(k));
+  std::pair<char *, std::size_t> tuple = get<char>(std::string_view(k));
   ASSERT_NE(std::get<0>(tuple), nullptr);
   ASSERT_EQ(std::get<1>(tuple), v.size());
   ASSERT_EQ(memcmp(std::get<0>(tuple), v.data(), v.size()), 0);
-  ASSERT_EQ(yakushima_kvs::destroy(), status::OK_DESTROY_ALL);
-  ASSERT_EQ(yakushima_kvs::leave(token), status::OK);
+  ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
+  ASSERT_EQ(leave(token), status::OK);
 }
 
 TEST_F(kt, test3) { // NOLINT
   Token token{};
-  ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
+  ASSERT_EQ(enter(token), status::OK);
   constexpr std::size_t ary_size = 8;
   std::array<std::string, ary_size> k; // NOLINT
   std::array<std::string, ary_size> v; // NOLINT
   for (std::size_t i = 0; i < ary_size; ++i) {
     k.at(i).assign(i, '\0');
     v.at(i) = std::to_string(i);
-    ASSERT_EQ(status::OK, yakushima_kvs::put(std::string_view(k.at(i)), v.at(i).data(), v.at(i).size()));
-    auto *br = dynamic_cast<border_node *>(base_node::get_root());
+    ASSERT_EQ(status::OK, put(std::string_view(k.at(i)), v.at(i).data(), v.at(i).size()));
+    auto *br = dynamic_cast<border_node *>(base_node::get_root_ptr());
     /**
      * There are 9 key which has the same slice and the different length.
      * key length == 0, same_slice and length is 1, 2, ..., 8.
@@ -91,20 +91,20 @@ TEST_F(kt, test3) { // NOLINT
   constexpr std::size_t value_index = 0;
   constexpr std::size_t size_index = 1;
   for (std::size_t i = 0; i < ary_size; ++i) {
-    std::pair<char *, std::size_t> tuple = yakushima_kvs::get<char>(std::string_view(k.at(i)));
+    std::pair<char *, std::size_t> tuple = get<char>(std::string_view(k.at(i)));
     ASSERT_EQ(memcmp(std::get<value_index>(tuple), v.at(i).data(), v.at(i).size()), 0);
     ASSERT_EQ(std::get<size_index>(tuple), v.at(i).size());
   }
-  ASSERT_EQ(yakushima_kvs::destroy(), status::OK_DESTROY_ALL);
-  ASSERT_EQ(yakushima_kvs::leave(token), status::OK);
+  ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
+  ASSERT_EQ(leave(token), status::OK);
 }
 
 TEST_F(kt, test4) { // NOLINT
-  yakushima_kvs::fin();
+  fin();
   for (std::size_t h = 0; h < 10; ++h) {
-    yakushima_kvs::init();
+    init();
     Token token{};
-    ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
+    ASSERT_EQ(enter(token), status::OK);
     constexpr std::size_t ary_size = 8;
     std::vector<std::pair<std::string, std::string>> kv; // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
@@ -116,12 +116,12 @@ TEST_F(kt, test4) { // NOLINT
     std::shuffle(kv.begin(), kv.end(), engine);
     for (std::size_t i = 0; i < ary_size; ++i) {
       ASSERT_EQ(status::OK,
-                yakushima_kvs::put(std::get<0>(kv[i]), std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()));
+                put(std::get<0>(kv[i]), std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()));
     }
     for (std::size_t i = 0; i < ary_size; ++i) {
       constexpr std::size_t value_index = 0;
       constexpr std::size_t size_index = 1;
-      std::pair<char *, std::size_t> tuple = yakushima_kvs::get<char>(std::get<0>(kv[i]));
+      std::pair<char *, std::size_t> tuple = get<char>(std::get<0>(kv[i]));
       ASSERT_EQ(std::get<size_index>(tuple), std::get<1>(kv[i]).size());
       ASSERT_EQ(memcmp(std::get<value_index>(tuple), std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()), 0);
     }
@@ -130,7 +130,7 @@ TEST_F(kt, test4) { // NOLINT
     for (std::size_t i = 1; i < ary_size; ++i) {
       std::string k(i, '\0');
       ASSERT_EQ(status::OK,
-                yakushima_kvs::scan<char>("", false, std::string_view(k), false, tuple_list));
+                scan<char>("", false, std::string_view(k), false, tuple_list));
       ASSERT_EQ(tuple_list.size(), i + 1);
       for (std::size_t j = 0; j < i + 1; ++j) {
         std::string v(std::to_string(j));
@@ -141,7 +141,7 @@ TEST_F(kt, test4) { // NOLINT
     for (std::size_t i = ary_size - 1; i < 1; --i) {
       std::string k(i, '\0');
       ASSERT_EQ(status::OK,
-                yakushima_kvs::scan<char>(k, false, "", false, tuple_list));
+                scan<char>(k, false, "", false, tuple_list));
       ASSERT_EQ(tuple_list.size(), ary_size - i);
       for (std::size_t j = i; j < ary_size; ++j) {
         std::string v(std::to_string(j));
@@ -149,23 +149,23 @@ TEST_F(kt, test4) { // NOLINT
       }
     }
 
-    ASSERT_EQ(yakushima_kvs::leave(token), status::OK);
-    yakushima_kvs::fin();
+    ASSERT_EQ(leave(token), status::OK);
+    fin();
   }
-  yakushima_kvs::init();
+  init();
 }
 
 TEST_F(kt, test5) { // NOLINT
   Token token{};
-  ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
+  ASSERT_EQ(enter(token), status::OK);
   constexpr std::size_t ary_size = 15;
   std::array<std::string, ary_size> k; // NOLINT
   std::array<std::string, ary_size> v; // NOLINT
   for (std::size_t i = 0; i < ary_size; ++i) {
     k.at(i).assign(i, '\0');
     v.at(i) = std::to_string(i);
-    ASSERT_EQ(status::OK, yakushima_kvs::put(k.at(i), v.at(i).data(), v.at(i).size()));
-    auto *br = dynamic_cast<border_node *>(base_node::get_root());
+    ASSERT_EQ(status::OK, put(k.at(i), v.at(i).data(), v.at(i).size()));
+    auto *br = dynamic_cast<border_node *>(base_node::get_root_ptr());
     if (i <= 8) {
       /**
        * There are 9 key which has the same slice and the different length.
@@ -183,26 +183,26 @@ TEST_F(kt, test5) { // NOLINT
   for (std::size_t i = 0; i < ary_size; ++i) {
     constexpr std::size_t value_index = 0;
     constexpr std::size_t size_index = 1;
-    std::pair<char *, std::size_t> tuple = yakushima_kvs::get<char>(std::string_view(k.at(i)));
+    std::pair<char *, std::size_t> tuple = get<char>(std::string_view(k.at(i)));
     ASSERT_EQ(std::get<size_index>(tuple), v.at(i).size());
     ASSERT_EQ(memcmp(std::get<value_index>(tuple), v.at(i).data(), v.at(i).size()), 0);
   }
   /**
    * check next layer is border.
    */
-  auto *br = dynamic_cast<border_node *>(base_node::get_root());
+  auto *br = dynamic_cast<border_node *>(base_node::get_root_ptr());
   auto *n = br->get_lv_at(9)->get_next_layer();
   ASSERT_EQ(typeid(*n), typeid(border_node)); // NOLINT
-  ASSERT_EQ(yakushima_kvs::destroy(), status::OK_DESTROY_ALL);
-  ASSERT_EQ(yakushima_kvs::leave(token), status::OK);
+  ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
+  ASSERT_EQ(leave(token), status::OK);
 }
 
 TEST_F(kt, test6) { // NOLINT
-  yakushima_kvs::fin();
+  fin();
   for (std::size_t h = 0; h < 30; ++h) {
-    yakushima_kvs::init();
+    init();
     Token token{};
-    ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
+    ASSERT_EQ(enter(token), status::OK);
     constexpr std::size_t ary_size = 15;
     std::vector<std::pair<std::string, std::string>> kv; // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
@@ -215,12 +215,12 @@ TEST_F(kt, test6) { // NOLINT
 
     for (std::size_t i = 0; i < ary_size; ++i) {
       ASSERT_EQ(status::OK,
-                yakushima_kvs::put(std::get<0>(kv[i]), std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()));
+                put(std::get<0>(kv[i]), std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()));
     }
     for (std::size_t i = 0; i < ary_size; ++i) {
       constexpr std::size_t value_index = 0;
       constexpr std::size_t size_index = 1;
-      std::pair<char *, std::size_t> tuple = yakushima_kvs::get<char>(std::get<0>(kv[i]));
+      std::pair<char *, std::size_t> tuple = get<char>(std::get<0>(kv[i]));
       ASSERT_EQ(std::get<size_index>(tuple), std::get<1>(kv[i]).size());
       ASSERT_EQ(memcmp(std::get<value_index>(tuple), std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()), 0);
     }
@@ -228,23 +228,23 @@ TEST_F(kt, test6) { // NOLINT
     std::vector<std::pair<char *, std::size_t>> tuple_list; // NOLINT
     for (std::size_t i = 1; i < ary_size; ++i) {
       std::string k(i, 'a');
-      ASSERT_EQ(status::OK, yakushima_kvs::scan<char>("", false, k, false, tuple_list));
+      ASSERT_EQ(status::OK, scan<char>("", false, k, false, tuple_list));
       ASSERT_EQ(tuple_list.size(), i + 1);
       for (std::size_t j = 0; j < i + 1; ++j) {
         std::string v(std::to_string(j));
         ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(j)), v.data(), v.size()), 0);
       }
     }
-    ASSERT_EQ(yakushima_kvs::destroy(), status::OK_DESTROY_ALL);
-    ASSERT_EQ(yakushima_kvs::leave(token), status::OK);
-    yakushima_kvs::fin();
+    ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
+    ASSERT_EQ(leave(token), status::OK);
+    fin();
   }
-  yakushima_kvs::init();
+  init();
 }
 
 TEST_F(kt, test7) { // NOLINT
   Token token{};
-  ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
+  ASSERT_EQ(enter(token), status::OK);
   constexpr std::size_t ary_size = base_node::key_slice_length + 1;
   std::array<std::string, ary_size> k{};
   std::array<std::string, ary_size> v{};
@@ -253,26 +253,26 @@ TEST_F(kt, test7) { // NOLINT
     v.at(i).assign(1, 'a' + i);
   }
   for (std::size_t i = 0; i < ary_size; ++i) {
-    ASSERT_EQ(status::OK, yakushima_kvs::put(k.at(i), v.at(i).data(), v.at(i).size()));
+    ASSERT_EQ(status::OK, put(k.at(i), v.at(i).data(), v.at(i).size()));
   }
-  auto *in = dynamic_cast<interior_node *>(base_node::get_root());
-  auto *n = base_node::get_root();
+  auto *in = dynamic_cast<interior_node *>(base_node::get_root_ptr());
+  auto *n = base_node::get_root_ptr();
   ASSERT_EQ(typeid(*n), typeid(interior_node)); // NOLINT
   auto *bn = dynamic_cast<border_node *>(in->get_child_at(0));
   ASSERT_EQ(bn->get_permutation_cnk(), 8);
   bn = dynamic_cast<border_node *>(in->get_child_at(1));
   ASSERT_EQ(bn->get_permutation_cnk(), 8);
 
-  ASSERT_EQ(yakushima_kvs::destroy(), status::OK_DESTROY_ALL);
-  ASSERT_EQ(yakushima_kvs::leave(token), status::OK);
+  ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
+  ASSERT_EQ(leave(token), status::OK);
 }
 
 TEST_F(kt, test8) { // NOLINT
-  yakushima_kvs::fin();
+  fin();
   for (std::size_t h = 0; h < 30; ++h) {
-    yakushima_kvs::init();
+    init();
     Token token{};
-    ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
+    ASSERT_EQ(enter(token), status::OK);
     constexpr std::size_t ary_size = base_node::key_slice_length + 1;
     std::vector<std::pair<std::string, std::string>> kv; // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
@@ -284,20 +284,20 @@ TEST_F(kt, test8) { // NOLINT
 
     for (std::size_t i = 0; i < ary_size; ++i) {
       ASSERT_EQ(status::OK,
-                yakushima_kvs::put(std::get<0>(kv[i]), std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()));
+                put(std::get<0>(kv[i]), std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()));
     }
-    auto *n = base_node::get_root();
+    auto *n = base_node::get_root_ptr();
     ASSERT_EQ(typeid(*n), typeid(interior_node)); // NOLINT
-    ASSERT_EQ(yakushima_kvs::destroy(), status::OK_DESTROY_ALL);
-    ASSERT_EQ(yakushima_kvs::leave(token), status::OK);
-    yakushima_kvs::fin();
+    ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
+    ASSERT_EQ(leave(token), status::OK);
+    fin();
   }
-  yakushima_kvs::init();
+  init();
 }
 
 TEST_F(kt, test9) { // NOLINT
   Token token{};
-  ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
+  ASSERT_EQ(enter(token), status::OK);
   /**
    * first border split occurs at inserting_deleting (base_node::key_slice_length + 1) times.
    * after first border split, split occurs at inserting_deleting (base_node::key_slice_length / 2 + 1) times.
@@ -313,41 +313,41 @@ TEST_F(kt, test9) { // NOLINT
     v.at(i).assign(1, i);
   }
   for (std::size_t i = 0; i < ary_size; ++i) {
-    ASSERT_EQ(status::OK, yakushima_kvs::put(k.at(i), v.at(i).data(), v.at(i).size()));
+    ASSERT_EQ(status::OK, put(k.at(i), v.at(i).data(), v.at(i).size()));
     if (i == base_node::key_slice_length - 1) {
       /**
        * root is full-border.
        */
-      auto *n = base_node::get_root();
+      auto *n = base_node::get_root_ptr();
       ASSERT_EQ(typeid(*n), typeid(border_node)); // NOLINT
     } else if (i == base_node::key_slice_length) {
       /**
        * split and insert.
        */
-      auto *n = base_node::get_root();
+      auto *n = base_node::get_root_ptr();
       ASSERT_EQ(typeid(*n), typeid(interior_node)); // NOLINT
-      ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root())->get_child_at(
+      ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root_ptr())->get_child_at(
               0))->get_permutation_cnk(), 8);
-      ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root())->get_child_at(
+      ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root_ptr())->get_child_at(
               1))->get_permutation_cnk(), 8);
     } else if (i == base_node::key_slice_length + (base_node::key_slice_length / 2)) {
       /**
        * root is interior, root has 2 children, child[0] of root has 8 keys and child[1] of root has 15 keys.
        */
-      ASSERT_EQ(dynamic_cast<interior_node *>(base_node::get_root())->get_n_keys(), 1);
-      ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root())->get_child_at(
+      ASSERT_EQ(dynamic_cast<interior_node *>(base_node::get_root_ptr())->get_n_keys(), 1);
+      ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root_ptr())->get_child_at(
               0))->get_permutation_cnk(), 8);
-      ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root())->get_child_at(
+      ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root_ptr())->get_child_at(
               1))->get_permutation_cnk(), 15);
     } else if (i == base_node::key_slice_length + (base_node::key_slice_length / 2) + 1) {
       /**
        * root is interior, root has 3 children, child[0-2] of root has 8 keys.
        */
-      ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root())->get_child_at(
+      ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root_ptr())->get_child_at(
               0))->get_permutation_cnk(), 8);
-      ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root())->get_child_at(
+      ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root_ptr())->get_child_at(
               1))->get_permutation_cnk(), 8);
-      ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root())->get_child_at(
+      ASSERT_EQ(dynamic_cast<border_node *>(dynamic_cast<interior_node *>(base_node::get_root_ptr())->get_child_at(
               2))->get_permutation_cnk(), 8);
     } else if ((i > base_node::key_slice_length + (base_node::key_slice_length / 2) + 1) &&
                (i < base_node::key_slice_length +
@@ -357,16 +357,16 @@ TEST_F(kt, test9) { // NOLINT
        * When it puts (base_node::key_slice_length / 2) keys, the root interior node has (i-base_node::key_slice
        * _length) / (base_node::key_slice_length / 2);
        */
-      ASSERT_EQ(dynamic_cast<interior_node *>(base_node::get_root())->get_n_keys(),
+      ASSERT_EQ(dynamic_cast<interior_node *>(base_node::get_root_ptr())->get_n_keys(),
                 (i - base_node::key_slice_length) / (base_node::key_slice_length / 2 + 1) + 1);
 
     } else if (i == base_node::key_slice_length +
                     ((base_node::key_slice_length / 2 + 1)) * (base_node::key_slice_length - 1)) {
-      ASSERT_EQ(dynamic_cast<interior_node *>(base_node::get_root())->get_n_keys(), base_node::key_slice_length);
+      ASSERT_EQ(dynamic_cast<interior_node *>(base_node::get_root_ptr())->get_n_keys(), base_node::key_slice_length);
     }
   }
 
-  auto *in = dynamic_cast<interior_node *>(base_node::get_root());
+  auto *in = dynamic_cast<interior_node *>(base_node::get_root_ptr());
   /**
    * root is interior.
    */
@@ -386,15 +386,15 @@ TEST_F(kt, test9) { // NOLINT
    * child of child of root[0] is border.
    */
   ASSERT_EQ(child_child_of_root->get_version_border(), true);
-  ASSERT_EQ(yakushima_kvs::leave(token), status::OK);
+  ASSERT_EQ(leave(token), status::OK);
 }
 
 TEST_F(kt, test10) { // NOLINT
-  yakushima_kvs::fin();
+  fin();
   for (std::size_t h = 0; h < 30; ++h) {
-    yakushima_kvs::init();
+    init();
     Token token{};
-    ASSERT_EQ(yakushima_kvs::enter(token), status::OK);
+    ASSERT_EQ(enter(token), status::OK);
     std::size_t ary_size = base_node::key_slice_length * interior_node::child_length + 1;
 
     std::vector<std::pair<std::string, std::string>> kv; // NOLINT
@@ -409,9 +409,9 @@ TEST_F(kt, test10) { // NOLINT
     std::size_t putctr = 0;
     for (std::size_t i = 0; i < ary_size; ++i) {
       ASSERT_EQ(status::OK,
-                yakushima_kvs::put(std::get<0>(kv[i]), std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()));
+                put(std::get<0>(kv[i]), std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()));
       if (i > base_node::key_slice_length / 2 * interior_node::child_length) { // about minimum
-        base_node *bn = base_node::get_root();
+        base_node *bn = base_node::get_root_ptr();
         if (!bn->get_version_border()) {
           auto *in = dynamic_cast<interior_node *>(bn);
           if (in->get_n_keys() == 2) {
@@ -428,7 +428,7 @@ TEST_F(kt, test10) { // NOLINT
     std::sort(kv.begin(), kv.end());
     for (std::size_t i = 0; i <= putctr; ++i) {
       std::vector<std::pair<char *, std::size_t>> tuple_list; // NOLINT
-      yakushima_kvs::scan<char>("", false, std::get<0>(kv[i]), false, tuple_list);
+      scan<char>("", false, std::get<0>(kv[i]), false, tuple_list);
       if (tuple_list.size() != i + 1) {
         ASSERT_EQ(tuple_list.size(), i + 1);
       }
@@ -437,9 +437,9 @@ TEST_F(kt, test10) { // NOLINT
       }
     }
 
-    yakushima_kvs::fin();
+    fin();
   }
-  yakushima_kvs::init();
+  init();
 }
 
 TEST_F(kt, test11) { // NOLINT
@@ -447,11 +447,11 @@ TEST_F(kt, test11) { // NOLINT
    * test about argument @a created_ptr of put function.
    */
   Token token{};
-  ASSERT_EQ(status::OK, yakushima_kvs::enter(token));
+  ASSERT_EQ(status::OK, enter(token));
   std::string k("a");
   std::string v("b");
   char *created_ptr{};
-  ASSERT_EQ(status::OK, yakushima_kvs::put(k, v.data(), v.size(), &created_ptr));
+  ASSERT_EQ(status::OK, put(k, v.data(), v.size(), &created_ptr));
   ASSERT_EQ(memcmp(created_ptr, v.data(), v.size()), 0);
 }
 
@@ -462,13 +462,13 @@ TEST_F(kt, test12) { // NOLINT
   std::string k3("aac");                        // NOLINT
   std::string k4("b");                          // NOLINT
   std::string v("v");                          // NOLINT
-  ASSERT_EQ(status::OK, yakushima_kvs::enter(token));
-  ASSERT_EQ(status::OK, yakushima_kvs::put(k, v.data(), v.size()));
-  ASSERT_EQ(status::OK, yakushima_kvs::put(k2, v.data(), v.size()));
-  ASSERT_EQ(status::OK, yakushima_kvs::put(k3, v.data(), v.size()));
-  ASSERT_EQ(status::OK, yakushima_kvs::put(k4, v.data(), v.size()));
+  ASSERT_EQ(status::OK, enter(token));
+  ASSERT_EQ(status::OK, put(k, v.data(), v.size()));
+  ASSERT_EQ(status::OK, put(k2, v.data(), v.size()));
+  ASSERT_EQ(status::OK, put(k3, v.data(), v.size()));
+  ASSERT_EQ(status::OK, put(k4, v.data(), v.size()));
   std::vector<std::pair<char *, std::size_t>> tuple_list;
-  yakushima_kvs::scan<char>(k, true, k4, true, tuple_list);
+  scan<char>(k, true, k4, true, tuple_list);
   ASSERT_EQ(tuple_list.size(), 2);
 }
 }  // namespace yakushima::testing
