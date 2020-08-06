@@ -293,7 +293,7 @@ static void invoke_leader() try {
   std::cout << "[end] fin masstree." << std::endl;
 
 #ifdef PERFORMANCE_TOOLS
-  performance_tools::counter_class sum;
+  performance_tools::counter_class sum{};
   for(auto &&r: *performance_tools::get_watch().laps(0,1)) {
       sum += r;
   }
