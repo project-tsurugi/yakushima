@@ -20,12 +20,22 @@ jobs:
           submodules: recursive
           ssh-key: ${{ secrets.SSH_KEY }}
 
+      - id: Install_sandbox-performance-tools
+        name: Install_sandbox-performance-tools
+        run: |
+          cd third_party/sandbox-performance-tools
+          mkdir -p build
+          cd build
+          rm -f CMakeCache.txt
+          cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=OFF -DBUILD_DOCUMENTS=OFF -DFORCE_INSTALL_RPATH=ON -DCMAKE_INSTALL_PREFIX=${GITHUB_WORKSPACE}/.local ..
+          cmake --build . --target install --clean-first -- -j8
+
       - id: CMake_Build
         name: CMake_Build
         run: |
           mkdir build
           cd build
-          cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
+          cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DFORCE_INSTALL_RPATH=ON -DCMAKE_INSTALL_PREFIX=${GITHUB_WORKSPACE}/.local -DPERFORMANCE_TOOLS=ON ..
           cmake --build . --target all --clean-first -- -j8
 
       - id: CTest
