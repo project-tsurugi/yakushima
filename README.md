@@ -41,6 +41,9 @@ default : `OFF`
 * for bench/malloc.cc
   * `-DENABLE_JEMALLOC=ON` : enable jemalloc as memory allocator.<br>
   default : `OFF`
+* for bench
+  * `-DPERFORMANCE_TOOLS=ON` : enable tooling to measure benchmark performance.<br>
+  default : `OFF`
 
 You can use one sanitizer from 
  * address for AddressSanitizer

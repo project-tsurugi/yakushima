@@ -24,7 +24,14 @@ target_link_libraries(yakushima_bench
         PRIVATE Threads::Threads
         PRIVATE gflags::gflags
         )
-
+if (PERFORMANCE_TOOLS)
+    target_link_libraries(yakushima_bench
+            PRIVATE performance-tools::api
+            PRIVATE performance-tools::lib
+            )
+    target_compile_definitions(yakushima_bench PUBLIC PERFORMANCE_TOOLS)
+endif()
+  
 target_include_directories(yakushima_bench
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include

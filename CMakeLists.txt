@@ -15,11 +15,15 @@ option(ENABLE_SANITIZER "enable sanitizer on debug build" ON)
 option(ENABLE_UB_SANITIZER "enable undefined behavior sanitizer on debug build" ON)
 option(ENABLE_COVERAGE "enable coverage on debug build" OFF)
 option(ENABLE_JEMALLOC "use jemalloc as memory allocator." OFF)
+option(PERFORMANCE_TOOLS "Enable tooling to measure performance" OFF)
 
 find_package(Doxygen REQUIRED)
 find_package(Threads REQUIRED)
 find_package(gflags REQUIRED)
 find_package(glog REQUIRED)
+if(PERFORMANCE_TOOLS)
+    find_package(performance-tools REQUIRED)
+endif()
 # for logging
 find_package(Boost COMPONENTS filesystem)
 
