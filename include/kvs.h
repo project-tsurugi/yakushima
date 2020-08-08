@@ -14,7 +14,7 @@
 #include "manager_thread.h"
 #include "scan_helper.h"
 #include "scheme.h"
-#include "thread_info_table.h"
+#include "session_info_table.h"
 
 namespace yakushima {
 
@@ -30,7 +30,7 @@ using key_length_type = base_node::key_length_type;
  * @return status::WARN_MAX_SESSIONS The maximum number of sessions is already up and running.
  */
 [[maybe_unused]] static status enter(Token &token) {
-  return thread_info_table::assign_session(token);
+  return session_info_table::assign_session(token);
 }
 
 /**
@@ -41,7 +41,7 @@ using key_length_type = base_node::key_length_type;
  * @return status::WARN_INVALID_TOKEN @a token of argument is invalid.
  */
 [[maybe_unused]] static status leave(Token token) {
-  return thread_info_table::leave_session<interior_node, border_node>(token);
+  return session_info_table::leave_session<interior_node, border_node>(token);
 }
 
 /**
@@ -164,7 +164,7 @@ retry_fetch_lv:
   /**
    * initialize thread information table (kThreadInfoTable)
    */
-  thread_info_table::init();
+  session_info_table::init();
   epoch_manager::invoke_epoch_thread();
 }
 

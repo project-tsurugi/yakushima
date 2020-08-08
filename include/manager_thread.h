@@ -1,12 +1,12 @@
 /**
- * @file thread_info_table.h
+ * @file session_info_table.h
  */
 
 #pragma once
 
 #include <atomic>
 #include <thread>
-#include "thread_info_table.h"
+#include "session_info_table.h"
 
 namespace yakushima {
 
@@ -21,7 +21,7 @@ public:
        * attention : type of epoch is uint64_t
        */
       Epoch min_epoch(UINT64_MAX);
-      for (auto &&elem : thread_info_table::get_thread_info_table()) {
+      for (auto &&elem : session_info_table::get_thread_info_table()) {
         Epoch itr_epoch = elem.get_begin_epoch();
         if (itr_epoch != 0) {
           /**

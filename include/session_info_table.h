@@ -1,5 +1,5 @@
 /**
- * @file thread_info_table.h
+ * @file session_info_table.h
  */
 
 #pragma once
@@ -8,7 +8,7 @@
 
 namespace yakushima {
 
-class thread_info_table {
+class session_info_table {
 public:
   /**
    * @brief Allocates a free session.

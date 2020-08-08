@@ -6,7 +6,7 @@
 
 #include "border_node.h"
 #include "session_info.h"
-#include "thread_info_table.h"
+#include "session_info_table.h"
 
 using namespace yakushima;
 
@@ -16,11 +16,11 @@ class tit : public ::testing::Test {
 };
 
 TEST_F(tit, test1) { // NOLINT
-  thread_info_table::init();
+  session_info_table::init();
   constexpr std::size_t length = 5;
   std::array<Token, length> token; // NOLINT
   for (auto &&elem : token) {
-    ASSERT_EQ(thread_info_table::assign_session(elem), status::OK);
+    ASSERT_EQ(session_info_table::assign_session(elem), status::OK);
   }
   for (auto &&elem : token) {
     session_info *ti = reinterpret_cast<session_info *>(elem); // NOLINT
@@ -35,7 +35,7 @@ TEST_F(tit, test1) { // NOLINT
   }
 
   for (auto &&elem : token) {
-    ASSERT_EQ((thread_info_table::leave_session<interior_node, border_node>(elem)), status::OK);
+    ASSERT_EQ((session_info_table::leave_session<interior_node, border_node>(elem)), status::OK);
   }
 }
 }  // namespace yakushima::testing
