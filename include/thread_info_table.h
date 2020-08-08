@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "thread_info.h"
+#include "session_info.h"
 
 namespace yakushima {
 
@@ -27,7 +27,7 @@ public:
     return status::WARN_MAX_SESSIONS;
   }
 
-  static std::array<thread_info, YAKUSHIMA_MAX_PARALLEL_SESSIONS> &get_thread_info_table() {
+  static std::array<session_info, YAKUSHIMA_MAX_PARALLEL_SESSIONS> &get_thread_info_table() {
     return kThreadInfoTable;
   }
 
@@ -64,7 +64,7 @@ public:
   }
 
 private:
-  static inline std::array<thread_info, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kThreadInfoTable; // NOLINT
+  static inline std::array<session_info, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kThreadInfoTable; // NOLINT
 };
 
 } // namespace yakushima

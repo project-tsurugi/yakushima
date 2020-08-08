@@ -5,7 +5,7 @@
 #include "gtest/gtest.h"
 
 #include "border_node.h"
-#include "thread_info.h"
+#include "session_info.h"
 #include "thread_info_table.h"
 
 using namespace yakushima;
@@ -23,7 +23,7 @@ TEST_F(tit, test1) { // NOLINT
     ASSERT_EQ(thread_info_table::assign_session(elem), status::OK);
   }
   for (auto &&elem : token) {
-    thread_info *ti = reinterpret_cast<thread_info *>(elem); // NOLINT
+    session_info *ti = reinterpret_cast<session_info *>(elem); // NOLINT
     ASSERT_EQ(ti->get_running(), true);
     ASSERT_EQ(ti->get_begin_epoch(), 0);
     ASSERT_NE(ti->get_node_container(), nullptr);
