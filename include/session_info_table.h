@@ -19,6 +19,7 @@ public:
   static status assign_session(Token &token) {
     for (auto &&elem : kThreadInfoTable) {
       if (elem.gain_the_right()) {
+        elem.lock_epoch();
         elem.set_begin_epoch(epoch_management::get_epoch());
         token = static_cast<void *>(&(elem));
         return status::OK;
@@ -39,6 +40,12 @@ public:
       itr->set_begin_epoch(0);
       itr->set_gc_container(static_cast<size_t>(std::distance(kThreadInfoTable.begin(), itr)));
       itr->set_running(false);
+      /**
+       * If the fin function is called with the session opened before, it will deadlock in the assign session.
+       * To prevent this, be sure to unlock the lock here.
+       */
+      itr->try_lock_epoch();
+      itr->unlock_epoch();
     }
   }
 
@@ -57,6 +64,7 @@ public:
         elem.gc<interior_node, border_node>();
         elem.set_running(false);
         elem.set_begin_epoch(0);
+        elem.unlock_epoch();
         return status::OK;
       }
     }
