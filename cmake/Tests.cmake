@@ -52,10 +52,6 @@ function(register_tests)
 
       add_executable(${test_name} ${src} ${TESTS_COMMON_SOURCES})
 
-      if (CMAKE_SYSTEM_NAME MATCHES "Linux")
-        add_definitions(-DKVS_Linux)
-      endif ()
-
       target_include_directories(${test_name}
               PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
               PRIVATE ${PROJECT_SOURCE_DIR}/include
