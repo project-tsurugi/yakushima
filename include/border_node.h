@@ -13,7 +13,7 @@
 #include "interior_node.h"
 #include "link_or_value.h"
 #include "permutation.h"
-#include "session_info.h"
+#include "gc_info.h"
 
 namespace yakushima {
 
@@ -32,7 +32,7 @@ public:
    * @param[in] target_is_value
    */
   void delete_at(Token token, std::size_t pos, bool target_is_value) {
-    session_info *ti = reinterpret_cast<session_info *>(token); // NOLINT
+    gc_info *ti = reinterpret_cast<gc_info *>(token); // NOLINT
     if (target_is_value) {
       ti->move_value_to_gc_container(lv_.at(pos).get_v_or_vp_(), lv_.at(pos).get_value_length(),
                                      lv_.at(pos).get_value_align());
@@ -144,7 +144,7 @@ retry_prev_lock:
             pn->version_unlock();
           }
           set_version_deleted(true);
-          reinterpret_cast<session_info *>(token)->move_node_to_gc_container(this); // NOLINT
+          reinterpret_cast<gc_info *>(token)->move_node_to_gc_container(this); // NOLINT
         }
         return;
       }

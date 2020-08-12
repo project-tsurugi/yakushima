@@ -32,7 +32,7 @@ enum class status : std::int32_t {
   WARN_RETRY_FROM_ROOT_OF_ALL,
   /**
    * @brief Warning
-   * @details (assign_session) The maximum number of sessions is already up and running.
+   * @details (assign_gc_info) The maximum number of sessions is already up and running.
    */
   WARN_MAX_SESSIONS,
   /**

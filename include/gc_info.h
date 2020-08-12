@@ -1,5 +1,5 @@
 /**
- * @file session_info.h
+ * @file gc_info.h
  */
 
 #pragma once
@@ -20,10 +20,10 @@
 
 namespace yakushima {
 
-class alignas(CACHE_LINE_SIZE) session_info {
+class alignas(CACHE_LINE_SIZE) gc_info {
 public:
   /**
-   * @details Take the right to assign this session_info.
+   * @details Take the right to assign this gc_info.
    * @return true success.
    * @return false fail.
    */

@@ -1,14 +1,14 @@
 /**
- * @file session_info_table.h
+ * @file gc_info_table.h
  */
 
 #pragma once
 
-#include "session_info.h"
+#include "gc_info.h"
 
 namespace yakushima {
 
-class session_info_table {
+class gc_info_table {
 public:
   /**
    * @brief Allocates a free session.
@@ -16,7 +16,7 @@ public:
    * @return status::OK success.
    * @return status::WARN_MAX_SESSIONS The maximum number of sessions is already up and running.
    */
-  static status assign_session(Token &token) {
+  static status assign_gc_info(Token &token) {
     for (auto &&elem : kThreadInfoTable) {
       if (elem.gain_the_right()) {
         elem.lock_epoch();
@@ -28,7 +28,7 @@ public:
     return status::WARN_MAX_SESSIONS;
   }
 
-  static std::array<session_info, YAKUSHIMA_MAX_PARALLEL_SESSIONS> &get_thread_info_table() {
+  static std::array<gc_info, YAKUSHIMA_MAX_PARALLEL_SESSIONS> &get_thread_info_table() {
     return kThreadInfoTable;
   }
 
@@ -58,7 +58,7 @@ public:
    * @return
    */
   template<class interior_node, class border_node>
-  static status leave_session(Token token) {
+  static status leave_gc_info(Token token) {
     for (auto &&elem : kThreadInfoTable) {
       if (token == static_cast<void *>(&(elem))) {
         elem.gc<interior_node, border_node>();
@@ -72,7 +72,7 @@ public:
   }
 
 private:
-  static inline std::array<session_info, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kThreadInfoTable; // NOLINT
+  static inline std::array<gc_info, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kThreadInfoTable; // NOLINT
 };
 
 } // namespace yakushima

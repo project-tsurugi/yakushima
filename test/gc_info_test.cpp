@@ -5,8 +5,8 @@
 #include "gtest/gtest.h"
 
 #include "border_node.h"
-#include "session_info.h"
-#include "session_info_table.h"
+#include "gc_info.h"
+#include "gc_info_table.h"
 
 using namespace yakushima;
 
@@ -16,14 +16,14 @@ class tit : public ::testing::Test {
 };
 
 TEST_F(tit, test1) { // NOLINT
-  session_info_table::init();
+  gc_info_table::init();
   constexpr std::size_t length = 5;
   std::array<Token, length> token; // NOLINT
   for (auto &&elem : token) {
-    ASSERT_EQ(session_info_table::assign_session(elem), status::OK);
+    ASSERT_EQ(gc_info_table::assign_gc_info(elem), status::OK);
   }
   for (auto &&elem : token) {
-    session_info *ti = reinterpret_cast<session_info *>(elem); // NOLINT
+    gc_info *ti = reinterpret_cast<gc_info *>(elem); // NOLINT
     ASSERT_EQ(ti->get_running(), true);
     ASSERT_EQ(ti->get_begin_epoch(), 0);
     ASSERT_NE(ti->get_node_container(), nullptr);
@@ -35,7 +35,7 @@ TEST_F(tit, test1) { // NOLINT
   }
 
   for (auto &&elem : token) {
-    ASSERT_EQ((session_info_table::leave_session<interior_node, border_node>(elem)), status::OK);
+    ASSERT_EQ((gc_info_table::leave_gc_info<interior_node, border_node>(elem)), status::OK);
   }
 }
 }  // namespace yakushima::testing

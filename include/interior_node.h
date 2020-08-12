@@ -11,7 +11,7 @@
 #include "atomic_wrapper.h"
 #include "base_node.h"
 #include "interior_helper.h"
-#include "session_info.h"
+#include "gc_info.h"
 
 namespace yakushima {
 
@@ -67,7 +67,7 @@ public:
             get_child_at(!i)->set_parent(pn);
             pn->version_unlock();
           }
-          reinterpret_cast<session_info *>(token)->move_node_to_gc_container(this); // NOLINT
+          reinterpret_cast<gc_info *>(token)->move_node_to_gc_container(this); // NOLINT
           set_version_deleted(true);
         } else { // n_key > 1
           if (i == 0) { // leftmost points
