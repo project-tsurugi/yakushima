@@ -22,8 +22,8 @@ namespace yakushima {
  * @return std::tuple<base_node*, node_version64_body>
  * node_version64_body is stable version of base_node*.
  */
-static std::tuple<border_node *, node_version64_body>
-find_border(base_node *root, key_slice_type key_slice, key_length_type key_slice_length, status &special_status) {
+static std::tuple<border_node *, const node_version64_body>
+find_border(base_node *const root, const key_slice_type key_slice, const key_length_type key_slice_length, status &special_status) {
 retry:
   base_node *n = root;
   node_version64_body v = n->get_stable_version();

@@ -37,7 +37,7 @@ public:
     std::vector<std::tuple<Epoch, void *, std::size_t, std::align_val_t>> body_;
   };
 
-  void set(std::size_t index) {
+  void set(const std::size_t index) {
     try {
       set_node_container(&kGarbageNodes.at(index));
       set_value_container(&kGarbageValues.at(index));
@@ -48,11 +48,12 @@ public:
     }
   }
 
-  void add_node_to_gc_container(Epoch gc_epoch, base_node *n) {
+  void add_node_to_gc_container(const Epoch gc_epoch, base_node *const n) {
     node_container_->get_body().emplace_back(std::make_pair(gc_epoch, n));
   }
 
-  void add_value_to_gc_container(Epoch gc_epoch, void *vp, std::size_t size, std::align_val_t alignment) {
+  void add_value_to_gc_container(const Epoch gc_epoch, void *const vp, const std::size_t size,
+                                 const std::align_val_t alignment) {
     value_container_->get_body().emplace_back(std::make_tuple(gc_epoch, vp, size, alignment));
   }
 
@@ -64,7 +65,7 @@ public:
   template<class interior_node, class border_node>
   static void fin() {
     struct S {
-      static void parallel_worker(std::uint64_t left_edge, std::uint64_t right_edge) {
+      static void parallel_worker(const std::uint64_t left_edge, const std::uint64_t right_edge) {
         for (std::size_t i = left_edge; i < right_edge; ++i) {
           auto &ncontainer = kGarbageNodes.at(i);
           for (auto &&elem : ncontainer.get_body()) {
@@ -156,15 +157,15 @@ public:
     set_gc_epoch(0);
   }
 
-  static void set_gc_epoch(Epoch epoch) {
+  static void set_gc_epoch(const Epoch epoch) {
     kGCEpoch.store(epoch, std::memory_order_release);
   }
 
-  void set_node_container(node_container *container) {
+  void set_node_container(node_container *const container) {
     node_container_ = container;
   }
 
-  void set_value_container(value_container *container) {
+  void set_value_container(value_container *const container) {
     value_container_ = container;
   }
 
@@ -172,11 +173,11 @@ public:
     return kGCEpoch.load(std::memory_order_acquire);
   }
 
-  node_container *get_node_container() {
+  [[nodiscard]] node_container *get_node_container() const {
     return node_container_;
   }
 
-  value_container *get_value_container() {
+  [[nodiscard]] value_container *get_value_container() const {
     return value_container_;
   }
 
