@@ -15,11 +15,6 @@
 
 namespace yakushima {
 
-/**
- * forward declaration to use friend
- */
-class yakushima_kvs;
-
 class base_node { // NOLINT
 public:
   static constexpr std::size_t key_slice_length = 15;
@@ -62,11 +57,11 @@ public:
       return key_slice_ == r.key_slice_ && key_length_ == r.key_length_;
     }
 
-    key_length_type get_key_length() {
+    [[nodiscard]] key_length_type get_key_length() const {
       return key_length_;
     }
 
-    key_slice_type get_key_slice() {
+    [[nodiscard]] key_slice_type get_key_slice() const {
       return key_slice_;
     }
 
@@ -328,10 +323,6 @@ private:
    */
   std::array<key_length_type, key_slice_length> key_length_{};
 
-/**
- * @details
- * Todo : It will be container to be able to switch database.
- */
   static inline std::atomic<base_node *> root_; // NOLINT
 };
 

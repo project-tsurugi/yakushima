@@ -210,7 +210,7 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, vo
    * key_slice must be initialized to 0.
    */
   key_slice_type key_slice{0};
-  key_length_type key_length{0}; // NOLINT
+  key_length_type key_length; // NOLINT
   if (key_view.size() > sizeof(key_slice_type)) {
     memcpy(&key_slice, key_view.data(), sizeof(key_slice_type));
     key_length = sizeof(key_slice_type) + 1;
@@ -237,9 +237,6 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, vo
     new_border->insert_lv_at(base_node::key_slice_length - remaining_size, key_view, value_ptr, created_value_ptr,
                              value_length, value_align);
   }
-
-  std::vector<base_node *> next_layers;
-  std::vector<node_version64 *> next_layers_lock;
 
   base_node *p = border->lock_parent();
   if (p == nullptr) {

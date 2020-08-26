@@ -521,8 +521,8 @@ retry_fetch_lv:
   node_version64_body v_at_fetch_lv{};
   std::size_t lv_pos{0};
   link_or_value *lv_ptr = target_border->get_lv_of(key_slice, key_slice_length, v_at_fetch_lv, lv_pos);
-  [[maybe_unused]] std::size_t kl{0};
-  [[maybe_unused]] base_node *next_layer{nullptr};
+  [[maybe_unused]] std::size_t kl{0}; // NOLINT
+  [[maybe_unused]] base_node *next_layer{nullptr}; // NOLINT
   if (lv_ptr != nullptr) {
     kl = target_border->get_key_length_at(lv_pos);
     next_layer = lv_ptr->get_next_layer();
