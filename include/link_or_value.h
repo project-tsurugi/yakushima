@@ -71,15 +71,15 @@ public:
     std::cout << "value_align_ : " << static_cast<std::size_t>(get_value_align()) << std::endl;
   }
 
-  [[nodiscard]] bool get_need_delete_value() {
+  [[nodiscard]] bool get_need_delete_value() const {
     return loadAcquireN(need_delete_value_);
   }
 
-  [[nodiscard]] base_node *get_next_layer() {
+  [[nodiscard]] base_node *get_next_layer() const {
     return loadAcquireN(next_layer_);
   }
 
-  [[maybe_unused]] [[nodiscard]] const std::type_info *get_lv_type() {
+  [[maybe_unused]] [[nodiscard]] const std::type_info *get_lv_type() const {
     if (get_next_layer() != nullptr) {
       return &typeid(get_next_layer());
     }
@@ -89,15 +89,15 @@ public:
     return &typeid(nullptr);
   }
 
-  [[nodiscard]] void *get_v_or_vp_() {
+  [[nodiscard]] void *get_v_or_vp_() const {
     return loadAcquireN(v_or_vp_);
   }
 
-  [[nodiscard]] value_align_type get_value_align() {
+  [[nodiscard]] value_align_type get_value_align() const {
     return value_align_;
   }
 
-  [[nodiscard]] value_length_type get_value_length() {
+  [[nodiscard]] value_length_type get_value_length() const {
     return loadAcquireN(value_length_);
   }
 
@@ -114,7 +114,7 @@ public:
    * @details This is move process.
    * @param nlv
    */
-  void set(link_or_value *nlv) {
+  void set(link_or_value *const nlv) {
     /**
      * This object in this function is not accessed concurrently, so it can copy assign.
      */
@@ -129,8 +129,8 @@ public:
    * @param[in] arg_value_size The byte size of value.
    * @param[in] value_align The alignment of value.
    */
-  void set_value(void *vptr, void **created_value_ptr, std::size_t arg_value_size,
-                 std::align_val_t value_align) {
+  void set_value(void *const vptr, void **const created_value_ptr, const std::size_t arg_value_size,
+                 const std::align_val_t value_align) {
     if (get_need_delete_value()) {
       ::operator delete(get_v_or_vp_(), get_value_length(), get_value_align());
       set_need_delete_value(false);
@@ -159,23 +159,23 @@ public:
    * @pre This function called at initialization.
    * @param[in] new_next_layer
    */
-  void set_next_layer(base_node *new_next_layer) {
+  void set_next_layer(base_node *const new_next_layer) {
     storeReleaseN(next_layer_, new_next_layer);
   }
 
-  void set_v_or_vp(void *new_v_or_vp) {
+  void set_v_or_vp(void *const new_v_or_vp) {
     storeReleaseN(v_or_vp_, new_v_or_vp);
   }
 
-  void set_value_align(value_align_type new_value_align) {
+  void set_value_align(const value_align_type new_value_align) {
     value_align_ = new_value_align;
   }
 
-  void set_value_length(value_length_type new_value_length) {
+  void set_value_length(const value_length_type new_value_length) {
     storeReleaseN(value_length_, new_value_length);
   }
 
-  void set_need_delete_value(bool new_need_delete_value) {
+  void set_need_delete_value(const bool new_need_delete_value) {
     storeReleaseN(need_delete_value_, new_need_delete_value);
   }
 

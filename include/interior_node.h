@@ -37,7 +37,7 @@ public:
    * @param[in] lock_list
    */
   template<class border_node>
-  void delete_of(Token token, base_node *child) {
+  void delete_of(Token token, base_node *const child) {
     set_version_inserting_deleting(true);
     std::size_t n_key = get_n_keys();
 #ifndef NDEBUG
@@ -128,7 +128,7 @@ public:
     return loadAcquireN(children.at(index));
   }
 
-  base_node *get_child_of(key_slice_type key_slice, key_length_type key_length) {
+  base_node *get_child_of(const key_slice_type key_slice, const key_length_type key_length) {
     node_version64_body v = get_stable_version();
     for (;;) {
       n_keys_body_type n_key = get_n_keys();
@@ -180,7 +180,8 @@ public:
  * @param child new inserted child.
  */
   template<class border_node>
-  void insert(base_node *child, std::pair<base_node::key_slice_type, base_node::key_length_type> pivot_key) {
+  void
+  insert(base_node *const child, const std::pair<base_node::key_slice_type, base_node::key_length_type> pivot_key) {
     set_version_inserting_deleting(true);
     //std::tuple<key_slice_type, key_length_type> visitor = std::make_tuple(pivot_key.first, pivot_key.second);
     key_slice_type key_slice{pivot_key.first};
@@ -213,7 +214,7 @@ public:
     n_keys_increment();
   }
 
-  [[maybe_unused]] void move_children_to_interior_range(interior_node *right_interior, std::size_t start) {
+  [[maybe_unused]] void move_children_to_interior_range(interior_node *const right_interior, const std::size_t start) {
     for (auto i = start; i < child_length; ++i) {
       right_interior->set_child_at(i - start, get_child_at(i));
       /**
@@ -224,11 +225,11 @@ public:
     }
   }
 
-  void set_child_at(std::size_t index, base_node *new_child) {
+  void set_child_at(const std::size_t index, base_node *const new_child) {
     storeReleaseN(children.at(index), new_child);
   }
 
-  void set_n_keys(n_keys_body_type new_n_key) {
+  void set_n_keys(const n_keys_body_type new_n_key) {
     n_keys_.store(new_n_key, std::memory_order_release);
   }
 
@@ -237,7 +238,7 @@ public:
  * @param start_pos
  * @param shift_size
  */
-  void shift_left_children(std::size_t start_pos, std::size_t shift_size) {
+  void shift_left_children(const std::size_t start_pos, const std::size_t shift_size) {
     for (std::size_t i = start_pos; i < child_length; ++i) {
       set_child_at(i - shift_size, get_child_at(i));
     }
@@ -249,7 +250,7 @@ public:
  * @param start_pos
  * @param shift_size
  */
-  void shift_right_children(std::size_t start_pos) {
+  void shift_right_children(const std::size_t start_pos) {
     std::size_t n_key = get_n_keys();
     for (std::size_t i = n_key + 1; i > start_pos; --i) {
       set_child_at(i, get_child_at(i - 1));
@@ -264,7 +265,7 @@ public:
     n_keys_.fetch_add(1);
   }
 
-  void swap_child(base_node *old_child, base_node *new_child) {
+  void swap_child(base_node *const old_child, base_node *const new_child) {
     for (std::size_t i = 0; i < child_length; ++i) {
       if (get_child_at(i) == old_child) {
         set_child_at(i, new_child);
