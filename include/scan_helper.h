@@ -22,8 +22,8 @@ static status scan_border(border_node **target, std::string_view l_key, bool l_e
 template<class ValueType>
 status scan_check_retry(border_node *const bn, node_version64_body &v_at_fetch_lv,
                         std::vector<std::pair<ValueType *, std::size_t>> &tuple_list,
-                        std::size_t tuple_pushed_num,
-                        std::vector<std::pair<node_version64_body, node_version64 *>> *node_version_vec) {
+                        const std::size_t tuple_pushed_num,
+                        std::vector<std::pair<node_version64_body, node_version64 *>> *const node_version_vec) {
   node_version64_body check = bn->get_stable_version();
   if (check != v_at_fetch_lv) {
     if (tuple_pushed_num != 0) {
@@ -50,9 +50,10 @@ status scan_check_retry(border_node *const bn, node_version64_body &v_at_fetch_l
 }
 
 template<class ValueType>
-static status scan(base_node *root, std::string_view l_key, bool l_exclusive, std::string_view r_key, bool r_exclusive,
-                   std::vector<std::pair<ValueType *, std::size_t>> &tuple_list,
-                   std::vector<std::pair<node_version64_body, node_version64 *>> *node_version_vec) {
+static status
+scan(base_node *const root, const std::string_view l_key, const bool l_exclusive, const std::string_view r_key,
+     const bool r_exclusive, std::vector<std::pair<ValueType *, std::size_t>> &tuple_list,
+     std::vector<std::pair<node_version64_body, node_version64 *>> *const node_version_vec) {
 retry:
   if (root->get_version_deleted() || !root->get_version_root()) {
     return status::OK_RETRY_FROM_ROOT;
@@ -106,10 +107,11 @@ retry:
 }
 
 template<class ValueType>
-static status scan_border(border_node **target, std::string_view l_key, bool l_exclusive, std::string_view r_key,
+static status scan_border(border_node **const target, const std::string_view l_key, const bool l_exclusive,
+                          const std::string_view r_key,
                           bool r_exclusive, std::vector<std::pair<ValueType *, std::size_t>> &tuple_list,
                           node_version64_body &v_at_fetch_lv,
-                          std::vector<std::pair<node_version64_body, node_version64 *>> *node_version_vec) {
+                          std::vector<std::pair<node_version64_body, node_version64 *>> *const node_version_vec) {
 retry:
   std::size_t tuple_pushed_num{0};
   border_node *bn = *target;
@@ -123,7 +125,7 @@ retry:
     void *vp = lv->get_v_or_vp_();
     std::size_t vsize = lv->get_value_length();
     base_node *next_layer = lv->get_next_layer();
-    node_version64* node_version_ptr = bn->get_version_ptr();
+    node_version64 *node_version_ptr = bn->get_version_ptr();
     status check_status = scan_check_retry(bn, v_at_fetch_lv, tuple_list, tuple_pushed_num, node_version_vec);
     if (check_status == status::OK_RETRY_FROM_ROOT) {
       return status::OK_RETRY_FROM_ROOT;

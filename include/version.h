@@ -284,7 +284,7 @@ public:
   /**
    * @details display function for analysis and debug.
    */
-  void display() {
+  void display() const {
     get_body().display();
   }
 

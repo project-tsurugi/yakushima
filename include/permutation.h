@@ -150,7 +150,7 @@ public:
   }
 
 private:
-  std::atomic<uint64_t> body_;
+  std::atomic<std::uint64_t> body_;
 };
 
 } // namespace yakushima
