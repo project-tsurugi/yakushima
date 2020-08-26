@@ -62,7 +62,7 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, vo
 
 template<class interior_node, class border_node>
 static void
-create_interior_parent_of_border(border_node *left, border_node *right, interior_node **new_parent) {
+create_interior_parent_of_border(border_node *const left, border_node *const right, interior_node **const new_parent) {
   left->set_version_root(false);
   right->set_version_root(false);
   /**
@@ -106,9 +106,9 @@ create_interior_parent_of_border(border_node *left, border_node *right, interior
 
 template<class interior_node, class border_node>
 static void
-insert_lv(border_node *border, std::string_view key_view, void *value_ptr, void **created_value_ptr,
-          value_length_type arg_value_length,
-          value_align_type value_align) {
+insert_lv(border_node *const border, std::string_view key_view, void *const value_ptr, void **const created_value_ptr,
+          const value_length_type arg_value_length,
+          const value_align_type value_align) {
   border->set_version_inserting_deleting(true);
   std::size_t cnk = border->get_permutation_cnk();
   if (cnk == base_node::key_slice_length) {
@@ -128,9 +128,8 @@ insert_lv(border_node *border, std::string_view key_view, void *value_ptr, void 
 
 template<class interior_node, class border_node>
 static void
-border_split(border_node *border, std::string_view key_view, void *value_ptr, void **created_value_ptr,
-             value_length_type value_length,
-             value_align_type value_align) {
+border_split(border_node *const border, std::string_view key_view, void *const value_ptr,
+             void **const created_value_ptr, const value_length_type value_length, const value_align_type value_align) {
   border->set_version_splitting(true);
   border_node *new_border = new border_node(); // NOLINT
   new_border->init_border();

@@ -34,6 +34,7 @@ public:
   class key_tuple {
   public:
     key_tuple() = default;
+
     key_tuple(key_slice_type slice, key_length_type length) : key_slice_(slice), key_length_(length) {}
 
     bool operator<(const key_tuple &r) const {
@@ -122,11 +123,11 @@ public:
     return key_slice_.at(index);
   }
 
-  [[maybe_unused]] [[nodiscard]] bool get_lock() &{
+  [[maybe_unused]] [[nodiscard]] bool get_lock() const {
     return version_.get_locked();
   }
 
-  static std::atomic<base_node *>& get_root() {
+  static std::atomic<base_node *> &get_root() {
     return root_;
   }
 
@@ -134,15 +135,15 @@ public:
     return root_.load(std::memory_order_acquire);
   }
 
-  [[nodiscard]] node_version64_body get_stable_version() &{
+  [[nodiscard]] node_version64_body get_stable_version() const {
     return version_.get_stable_version();
   }
 
-  [[nodiscard]] base_node *get_parent() &{
+  [[nodiscard]] base_node *get_parent() const {
     return loadAcquireN(parent_);
   }
 
-  [[nodiscard]] node_version64_body get_version() &{
+  [[nodiscard]] node_version64_body get_version() const {
     return version_.get_body();
   }
 
@@ -150,23 +151,23 @@ public:
     return &version_;
   }
 
-  [[nodiscard]] bool get_version_border() {
+  [[nodiscard]] bool get_version_border() const {
     return version_.get_border();
   }
 
-  [[nodiscard]] bool get_version_deleted() {
+  [[nodiscard]] bool get_version_deleted() const {
     return version_.get_deleted();
   }
 
-  [[nodiscard]] bool get_version_root() {
+  [[nodiscard]] bool get_version_root() const {
     return version_.get_root();
   }
 
-  [[nodiscard]] node_version64_body::vinsert_delete_type get_version_vinsert_delete() {
+  [[nodiscard]] node_version64_body::vinsert_delete_type get_version_vinsert_delete() const {
     return version_.get_vinsert_delete();
   }
 
-  [[nodiscard]] node_version64_body::vsplit_type get_version_vsplit() {
+  [[nodiscard]] node_version64_body::vsplit_type get_version_vsplit() const {
     return version_.get_vsplit();
   }
 
@@ -181,11 +182,11 @@ public:
    * @details init at @a pos as position.
    * @param[in] pos This is a position (index) to be initialized.
    */
-  void init_base(std::size_t pos) {
+  void init_base(const std::size_t pos) {
     set_key(pos, 0, 0);
   }
 
-  [[maybe_unused]] void init_base_member_range(std::size_t start) {
+  [[maybe_unused]] void init_base_member_range(const std::size_t start) {
     for (std::size_t i = start; i < key_slice_length; ++i) {
       set_key(i, 0, 0);
     }
@@ -196,14 +197,14 @@ public:
    * @pre It didn't lock by myself.
    * @return void
    */
-  void lock() &{
+  void lock() {
     version_.lock();
   }
 
   /**
    * @pre This function is called by split.
    */
-  base_node *lock_parent() &{
+  [[nodiscard]] base_node *lock_parent() const {
     base_node *p = get_parent();
     for (;;) {
       if (p == nullptr) return nullptr;
@@ -217,66 +218,66 @@ public:
     }
   }
 
-  [[maybe_unused]] void move_key_to_base_range(base_node *right, std::size_t start) {
+  [[maybe_unused]] void move_key_to_base_range(base_node *const right, const std::size_t start) {
     for (auto i = start; i < key_slice_length; ++i) {
       right->set_key(i - start, get_key_slice_at(i), get_key_length_at(i));
       set_key(i, 0, 0);
     }
   }
 
-  void set_key(std::size_t index, key_slice_type key_slice, key_length_type key_length) {
+  void set_key(const std::size_t index, const key_slice_type key_slice, const key_length_type key_length) {
     set_key_slice_at(index, key_slice);
     set_key_length_at(index, key_length);
   }
 
-  void set_key_length_at(std::size_t index, key_length_type length) {
+  void set_key_length_at(const std::size_t index, const key_length_type length) {
     storeReleaseN(key_length_.at(index), length);
   }
 
-  void set_key_slice_at(std::size_t index, key_slice_type key_slice) {
+  void set_key_slice_at(const std::size_t index, const key_slice_type key_slice) {
     storeReleaseN(key_slice_.at(index), key_slice);
   }
 
-  void set_parent(base_node *new_parent) {
+  void set_parent(base_node *const new_parent) {
     storeReleaseN(parent_, new_parent);
   }
 
-  static void set_root(base_node *nr) {
+  static void set_root(base_node *const nr) {
     root_.store(nr, std::memory_order_release);
   }
 
-  [[maybe_unused]] void set_version(node_version64_body nv) { // this function is used.
+  [[maybe_unused]] void set_version(const node_version64_body nv) { // this function is used.
     version_.set_body(nv);
   }
 
-  void set_version_border(bool tf) {
+  void set_version_border(const bool tf) {
     version_.atomic_set_border(tf);
   }
 
-  void set_version_deleted(bool tf) {
+  void set_version_deleted(const bool tf) {
     version_.atomic_set_deleted(tf);
   }
 
-  void set_version_inserting_deleting(bool tf) {
+  void set_version_inserting_deleting(const bool tf) {
     version_.atomic_set_inserting_deleting(tf);
   }
 
-  void set_version_root(bool tf) {
+  void set_version_root(const bool tf) {
     version_.atomic_set_root(tf);
   }
 
-  [[maybe_unused]] void set_version_splitting(bool tf) {
+  [[maybe_unused]] void set_version_splitting(const bool tf) {
     version_.atomic_set_splitting(tf);
   }
 
-  void shift_left_base_member(std::size_t start_pos, std::size_t shift_size) {
+  void shift_left_base_member(const std::size_t start_pos, const std::size_t shift_size) {
     memmove(&key_slice_.at(start_pos - shift_size), &key_slice_.at(start_pos),
             sizeof(key_slice_type) * (key_slice_length - start_pos));
     memmove(&key_length_.at(start_pos - shift_size), &key_length_.at(start_pos),
             sizeof(key_length_type) * (key_slice_length - start_pos));
   }
 
-  void shift_right_base_member(std::size_t start, std::size_t shift_size) {
+  void shift_right_base_member(const std::size_t start, const std::size_t shift_size) {
     memmove(&key_slice_.at(start + shift_size), &key_slice_.at(start),
             sizeof(key_slice_type) * (key_slice_length - start - shift_size));
     memmove(&key_length_.at(start + shift_size), &key_length_.at(start),
@@ -288,7 +289,7 @@ public:
    * @pre This node was already locked.
    * @return void
    */
-  void version_unlock() &{
+  void version_unlock() {
     version_.unlock();
   }
 
