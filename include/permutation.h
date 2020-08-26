@@ -33,7 +33,7 @@ public:
 
   permutation() : body_{} {}
 
-  explicit permutation(std::uint64_t body) : body_{body} {}
+  explicit permutation(const std::uint64_t body) : body_{body} {}
 
   /**
    * @brief decrement key number.
@@ -48,27 +48,27 @@ public:
     body_.store(per_body, std::memory_order_release);
   }
 
-  void display() {
+  void display() const {
     std::bitset<64> bs{get_body()};
     std::cout << " perm : " << bs << std::endl;
   }
 
-  std::uint64_t get_body() &{
+  [[nodiscard]] std::uint64_t get_body() const {
     return body_.load(std::memory_order_acquire);
   }
 
-  uint8_t get_cnk() &{
+  [[nodiscard]] std::uint8_t get_cnk() const {
     std::uint64_t per_body(body_.load(std::memory_order_acquire));
     return static_cast<uint8_t>(per_body & cnk_mask);
   }
 
-  [[nodiscard]] std::size_t get_lowest_key_pos() {
+  [[nodiscard]] std::size_t get_lowest_key_pos() const {
     std::uint64_t per = get_body();
     per = per >> cnk_bit_size;
     return per & cnk_mask;
   }
 
-  [[nodiscard]] std::size_t get_index_of_rank(std::size_t rank) {
+  [[nodiscard]] std::size_t get_index_of_rank(const std::size_t rank) const {
     std::uint64_t per = get_body();
     per = per >> cnk_bit_size;
     if (rank != 0) {
@@ -93,7 +93,7 @@ public:
     body_.store(per_body, std::memory_order_release);
   }
 
-  void init() &{
+  void init() {
     body_.store(0, std::memory_order_release);
   }
 
@@ -131,11 +131,11 @@ public:
     body_.store(new_body, std::memory_order_release);
   }
 
-  void set_body(std::uint64_t nb) &{
+  void set_body(const std::uint64_t nb) {
     body_.store(nb, std::memory_order_release);
   }
 
-  status set_cnk(uint8_t cnk) &{
+  status set_cnk(const std::uint8_t cnk) {
 #ifndef NDEBUG
     if (powl(2, cnk_bit_size) <= cnk) {
       std::cerr << __FILE__ << " : " << __LINE__ << " : fatal error." << std::endl;
