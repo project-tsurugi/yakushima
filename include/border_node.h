@@ -31,7 +31,7 @@ public:
    * @param[in] pos The position of being deleted.
    * @param[in] target_is_value
    */
-  void delete_at(Token token, std::size_t pos, bool target_is_value) {
+  void delete_at(Token token, const std::size_t pos, const bool target_is_value) {
     gc_info *ti = reinterpret_cast<gc_info *>(token); // NOLINT
     if (target_is_value) {
       ti->move_value_to_gc_container(lv_.at(pos).get_v_or_vp_(), lv_.at(pos).get_value_length(),
@@ -59,7 +59,7 @@ public:
    * @param[in] token
    * @param[in] child
    */
-  void delete_of(Token token, base_node *child, std::vector<node_version64 *> &lock_list) {
+  void delete_of(Token token, base_node *const child, std::vector<node_version64 *> &lock_list) {
     std::size_t cnk = get_permutation_cnk();
     for (std::size_t i = 0; i < cnk; ++i) {
       if (child == lv_.at(i).get_next_layer()) {
@@ -94,7 +94,7 @@ public:
    * @param[in] target_is_value
    */
   template<bool target_is_value>
-  void delete_of(Token token, key_slice_type key_slice, key_length_type key_slice_length,
+  void delete_of(Token token, const key_slice_type key_slice, const key_length_type key_slice_length,
                  std::vector<node_version64 *> &lock_list) {
     set_version_inserting_deleting(true);
     /**
@@ -197,7 +197,7 @@ retry_prev_lock:
   * @param[in] next_layer
   * @return link_or_value*
   */
-  [[maybe_unused]] [[nodiscard]] link_or_value *get_lv(base_node *next_layer) {
+  [[maybe_unused]] [[nodiscard]] link_or_value *get_lv(base_node *const next_layer) {
     for (std::size_t i = 0; i < base_node::key_slice_length; ++i) {
       if (lv_.at(i).get_next_layer() == next_layer) {
         return &lv_.at(i);
@@ -210,7 +210,7 @@ retry_prev_lock:
     std::abort();
   }
 
-  [[nodiscard]] link_or_value *get_lv_at(std::size_t index) {
+  [[nodiscard]] link_or_value *get_lv_at(const std::size_t index) {
     return &lv_.at(index);
   }
 
@@ -223,7 +223,7 @@ retry_prev_lock:
    * @param[out] lv_pos
    * @return
    */
-  [[nodiscard]] link_or_value *get_lv_of(key_slice_type key_slice, key_length_type key_length,
+  [[nodiscard]] link_or_value *get_lv_of(const key_slice_type key_slice, const key_length_type key_length,
                                          node_version64_body &stable_v, std::size_t &lv_pos) {
     node_version64_body v = get_stable_version();
     for (;;) {
@@ -267,11 +267,11 @@ retry_prev_lock:
     return permutation_;
   }
 
-  [[nodiscard]] std::uint8_t get_permutation_cnk() {
+  [[nodiscard]] std::uint8_t get_permutation_cnk() const {
     return permutation_.get_cnk();
   }
 
-  [[maybe_unused]] [[nodiscard]] std::size_t get_permutation_lowest_key_pos() {
+  [[maybe_unused]] [[nodiscard]] std::size_t get_permutation_lowest_key_pos() const {
     return permutation_.get_lowest_key_pos();
   }
 
@@ -292,7 +292,7 @@ retry_prev_lock:
    * @details init at @a pos as position.
    * @param[in] pos This is a position (index) to be initialized.
    */
-  void init_border(std::size_t pos) {
+  void init_border(const std::size_t pos) {
     init_base(pos);
     lv_.at(pos).init_lv();
   }
@@ -313,11 +313,11 @@ retry_prev_lock:
    */
   template<class ValueType>
   void init_border(std::string_view key_view,
-                   ValueType *value_ptr,
-                   ValueType **created_value_ptr,
-                   bool root,
-                   value_length_type arg_value_length,
-                   value_align_type value_align) {
+                   ValueType *const value_ptr,
+                   ValueType **const created_value_ptr,
+                   const bool root,
+                   const value_length_type arg_value_length,
+                   const value_align_type value_align) {
     init_border();
     set_version_root(root);
     set_version_border(true);
@@ -325,7 +325,7 @@ retry_prev_lock:
                  value_align);
   }
 
-  void init_border_member_range(std::size_t start) {
+  void init_border_member_range(const std::size_t start) {
     for (auto i = start; i < lv_.size(); ++i) {
       lv_.at(i).init_lv();
     }
@@ -340,12 +340,12 @@ retry_prev_lock:
    * @param[in] arg_value_length
    * @param[in] value_align
    */
-  void insert_lv_at(std::size_t index,
+  void insert_lv_at(const std::size_t index,
                     std::string_view key_view,
-                    void *value_ptr,
-                    void **created_value_ptr,
-                    value_length_type arg_value_length,
-                    value_align_type value_align) {
+                    void *const value_ptr,
+                    void **const created_value_ptr,
+                    const value_length_type arg_value_length,
+                    const value_align_type value_align) {
     /**
      * @attention key_slice must be initialized to 0.
      * If key_view.size() is smaller than sizeof(key_slice_type),
@@ -386,7 +386,7 @@ retry_prev_lock:
     permutation_.rearrange(get_key_slice_ref(), get_key_length_ref());
   }
 
-  [[maybe_unused]] void set_permutation_cnk(std::uint8_t n) {
+  [[maybe_unused]] void set_permutation_cnk(const std::uint8_t n) {
     permutation_.set_cnk(n);
   }
 
@@ -395,31 +395,31 @@ retry_prev_lock:
    * @param index
    * @param nlv
    */
-  void set_lv(std::size_t index, link_or_value *nlv) {
+  void set_lv(const std::size_t index, link_or_value *const nlv) {
     lv_.at(index).set(nlv);
   }
 
-  void set_lv_value(std::size_t index,
-                    void *value,
-                    void **created_value_ptr,
-                    value_length_type arg_value_length,
-                    value_align_type value_align) {
+  void set_lv_value(const std::size_t index,
+                    void *const value,
+                    void **const created_value_ptr,
+                    const value_length_type arg_value_length,
+                    const value_align_type value_align) {
     lv_.at(index).set_value(value, created_value_ptr, arg_value_length, value_align);
   }
 
-  void set_lv_next_layer(std::size_t index, base_node *next_layer) {
+  void set_lv_next_layer(const std::size_t index, base_node *const next_layer) {
     lv_.at(index).set_next_layer(next_layer);
   }
 
-  void set_next(border_node *nnext) {
+  void set_next(border_node *const nnext) {
     storeReleaseN(next_, nnext);
   }
 
-  void set_prev(border_node *prev) {
+  void set_prev(border_node *const prev) {
     storeReleaseN(prev_, prev);
   }
 
-  void shift_left_border_member(std::size_t start_pos, std::size_t shift_size) {
+  void shift_left_border_member(const std::size_t start_pos, const std::size_t shift_size) {
     memmove(get_lv_at(start_pos - shift_size), get_lv_at(start_pos),
             sizeof(link_or_value) * (key_slice_length - start_pos));
   }
