@@ -103,8 +103,8 @@ public:
    * @param key_slice
    * @param key_length
    */
-  void rearrange(std::array<base_node::key_slice_type, base_node::key_slice_length> &key_slice,
-                 std::array<base_node::key_length_type, base_node::key_slice_length> &key_length) {
+  void rearrange(const std::array<base_node::key_slice_type, base_node::key_slice_length> &key_slice,
+                 const std::array<base_node::key_length_type, base_node::key_slice_length> &key_length) {
     std::uint64_t per_body(body_.load(std::memory_order_acquire));
     // get current number of keys
     auto cnk = static_cast<uint8_t>(per_body & cnk_mask);

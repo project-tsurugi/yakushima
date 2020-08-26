@@ -65,11 +65,11 @@ public:
       return key_slice_;
     }
 
-    void set_key_length(key_length_type length) {
+    void set_key_length(const key_length_type length) {
       key_length_ = length;
     }
 
-    void set_key_slice(key_slice_type slice) {
+    void set_key_slice(const key_slice_type slice) {
       key_slice_ = slice;
     }
 
@@ -80,7 +80,7 @@ public:
 
   virtual ~base_node() = default; // NOLINT
 
-  void atomic_set_version_root(bool tf) {
+  void atomic_set_version_root(const bool tf) {
     version_.atomic_set_root(tf);
   }
 
@@ -106,15 +106,15 @@ public:
     }
   }
 
-  [[nodiscard]] std::array<key_length_type, key_slice_length> &get_key_length() {
+  [[nodiscard]] std::array<key_length_type, key_slice_length> &get_key_length_ref() {
     return key_length_;
   }
 
-  [[nodiscard]] key_length_type &get_key_length_at(std::size_t index) {
+  [[nodiscard]] key_length_type get_key_length_at(const std::size_t index) const {
     return key_length_.at(index);
   }
 
-  [[nodiscard]] std::array<key_slice_type, key_slice_length> &get_key_slice() {
+  [[nodiscard]] std::array<key_slice_type, key_slice_length> &get_key_slice_ref() {
     return key_slice_;
   }
 

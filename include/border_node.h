@@ -383,7 +383,7 @@ retry_prev_lock:
   }
 
   void permutation_rearrange() {
-    permutation_.rearrange(get_key_slice(), get_key_length());
+    permutation_.rearrange(get_key_slice_ref(), get_key_length_ref());
   }
 
   [[maybe_unused]] void set_permutation_cnk(std::uint8_t n) {
