@@ -121,27 +121,27 @@ public:
     vsplit = 0;
   }
 
-  void set_border(bool new_border) &{
+  void set_border(const bool new_border) {
     border = new_border;
   }
 
-  void set_deleted(bool new_deleted) &{
+  void set_deleted(const bool new_deleted) {
     deleted = new_deleted;
   }
 
-  void set_inserting_deleting(bool new_inserting_deleting) &{
+  void set_inserting_deleting(const bool new_inserting_deleting) {
     inserting_deleting = new_inserting_deleting;
   }
 
-  void set_locked(bool new_locked) &{
+  void set_locked(const bool new_locked) {
     locked = new_locked;
   }
 
-  void set_root(bool new_root) &{
+  void set_root(const bool new_root) {
     root = new_root;
   }
 
-  void set_splitting(bool new_splitting) &{
+  void set_splitting(const bool new_splitting) {
     splitting = new_splitting;
   }
 
@@ -221,7 +221,7 @@ public:
     }
   }
 
-  void atomic_set_border(bool tf) {
+  void atomic_set_border(const bool tf) {
     node_version64_body expected(get_body());
     node_version64_body desired{};
     for (;;) {
@@ -233,7 +233,7 @@ public:
     }
   }
 
-  void atomic_set_deleted(bool tf) {
+  void atomic_set_deleted(const bool tf) {
     node_version64_body expected(get_body());
     node_version64_body desired{};
     for (;;) {
@@ -245,7 +245,7 @@ public:
     }
   }
 
-  void atomic_set_inserting_deleting(bool tf) &{
+  void atomic_set_inserting_deleting(const bool tf) {
     node_version64_body expected(get_body());
     node_version64_body desired{};
     for (;;) {
@@ -257,7 +257,7 @@ public:
     }
   }
 
-  void atomic_set_root(bool tf) {
+  void atomic_set_root(const bool tf) {
     node_version64_body expected(get_body());
     node_version64_body desired{};
     for (;;) {
@@ -269,7 +269,7 @@ public:
     }
   }
 
-  void atomic_set_splitting(bool tf) {
+  void atomic_set_splitting(const bool tf) {
     node_version64_body expected(get_body());
     node_version64_body desired{};
     for (;;) {
@@ -309,27 +309,27 @@ public:
     }
   }
 
-  [[nodiscard]] node_version64_body get_body() {
+  [[nodiscard]] node_version64_body get_body() const {
     return body_.load(std::memory_order_acquire);
   }
 
-  [[nodiscard]] bool get_border() {
+  [[nodiscard]] bool get_border() const {
     return get_body().get_border();
   }
 
-  [[nodiscard]] bool get_deleted() {
+  [[nodiscard]] bool get_deleted() const {
     return get_body().get_deleted();
   }
 
-  [[nodiscard]] bool get_locked() {
+  [[nodiscard]] bool get_locked() const {
     return get_body().get_locked();
   }
 
-  [[nodiscard]] bool get_root() {
+  [[nodiscard]] bool get_root() const {
     return get_body().get_root();
   }
 
-  [[nodiscard]] node_version64_body get_stable_version() {
+  [[nodiscard]] node_version64_body get_stable_version() const {
     for (;;) {
       node_version64_body sv = get_body();
       /**
@@ -345,11 +345,11 @@ public:
     }
   }
 
-  [[nodiscard]] node_version64_body::vinsert_delete_type get_vinsert_delete() {
+  [[nodiscard]] node_version64_body::vinsert_delete_type get_vinsert_delete() const {
     return get_body().get_vinsert_delete();
   }
 
-  [[nodiscard]] node_version64_body::vsplit_type get_vsplit() {
+  [[nodiscard]] node_version64_body::vsplit_type get_vsplit() const {
     return get_body().get_vsplit();
   }
 
@@ -360,7 +360,7 @@ public:
     set_body(node_version64_body());
   }
 
-  void set_body(node_version64_body newv) &{
+  void set_body(const node_version64_body newv) {
     body_.store(newv, std::memory_order_release);
   }
 
@@ -368,7 +368,7 @@ public:
    * @details This function unlocks @a atomically.
    * @pre The caller already succeeded acquiring lock.
    */
-  void unlock() &{
+  void unlock() {
     node_version64_body expected(get_body());
     node_version64_body desired{};
     for (;;) {

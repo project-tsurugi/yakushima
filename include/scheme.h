@@ -82,7 +82,7 @@ enum class status : std::int32_t {
   ERR_UNKNOWN_ROOT,
 };
 
-inline constexpr std::string_view to_string_view(status value) noexcept {
+inline constexpr std::string_view to_string_view(const status value) noexcept {
   using namespace std::string_view_literals;
   switch (value) {
     case status::WARN_BAD_USAGE:
@@ -129,7 +129,7 @@ inline constexpr std::string_view to_string_view(status value) noexcept {
   std::abort();
 }
 
-inline std::ostream &operator<<(std::ostream &out, status value) {
+inline std::ostream &operator<<(std::ostream &out, const status value) {
   return out << to_string_view(value);
 }
 

@@ -106,7 +106,7 @@ public:
     }
   }
 
-  [[nodiscard]] std::array<key_length_type, key_slice_length> &get_key_length_ref() {
+  [[nodiscard]] const std::array<key_length_type, key_slice_length> &get_key_length_ref() const {
     return key_length_;
   }
 
@@ -114,11 +114,11 @@ public:
     return key_length_.at(index);
   }
 
-  [[nodiscard]] std::array<key_slice_type, key_slice_length> &get_key_slice_ref() {
+  [[nodiscard]] const std::array<key_slice_type, key_slice_length> &get_key_slice_ref() const {
     return key_slice_;
   }
 
-  [[nodiscard]] key_slice_type &get_key_slice_at(std::size_t index) {
+  [[nodiscard]] key_slice_type get_key_slice_at(const std::size_t index) const {
     return key_slice_.at(index);
   }
 
