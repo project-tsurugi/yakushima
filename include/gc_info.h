@@ -42,19 +42,19 @@ public:
     gc_container_.gc<interior_node, border_node>();
   }
 
-  Epoch get_begin_epoch() {
+  [[nodiscard]] Epoch get_begin_epoch() const {
     return begin_epoch_.load(std::memory_order_acquire);
   }
 
-  gc_container::node_container *get_node_container() {
+  [[nodiscard]] gc_container::node_container *get_node_container() const {
     return gc_container_.get_node_container();
   }
 
-  bool get_running() {
+  [[nodiscard]] bool get_running() const {
     return running_.load(std::memory_order_acquire);
   }
 
-  gc_container::value_container *get_value_container() {
+  [[nodiscard]] gc_container::value_container *get_value_container() const {
     return gc_container_.get_value_container();
   }
 
@@ -62,23 +62,23 @@ public:
     lock_epoch_.lock();
   }
 
-  void move_node_to_gc_container(base_node *n) {
+  void move_node_to_gc_container(base_node *const n) {
     gc_container_.add_node_to_gc_container(begin_epoch_.load(std::memory_order_acquire), n);
   }
 
-  void move_value_to_gc_container(void *vp, std::size_t size, std::align_val_t alignment) {
+  void move_value_to_gc_container(void *const vp, const std::size_t size, const std::align_val_t alignment) {
     gc_container_.add_value_to_gc_container(begin_epoch_.load(std::memory_order_acquire), vp, size, alignment);
   }
 
-  void set_begin_epoch(Epoch epoch) {
+  void set_begin_epoch(const Epoch epoch) {
     begin_epoch_.store(epoch, std::memory_order_relaxed);
   }
 
-  void set_gc_container(std::size_t index) {
+  void set_gc_container(const std::size_t index) {
     gc_container_.set(index);
   }
 
-  void set_running(bool tf) {
+  void set_running(const bool tf) {
     running_.store(tf, std::memory_order_relaxed);
   }
 

@@ -19,9 +19,9 @@ namespace yakushima {
  */
 template<class interior_node, class border_node>
 static void
-create_interior_parent_of_interior(interior_node *left, interior_node *right,
-                                   std::pair<base_node::key_slice_type, base_node::key_length_type> pivot_key,
-                                   base_node **new_parent) {
+create_interior_parent_of_interior(interior_node *const left, interior_node *const right,
+                                   const std::pair<base_node::key_slice_type, base_node::key_length_type> pivot_key,
+                                   base_node **const new_parent) {
   left->set_version_root(false);
   right->set_version_root(false);
   interior_node *ni = new interior_node(); // NOLINT
@@ -54,7 +54,8 @@ create_interior_parent_of_interior(interior_node *left, interior_node *right,
  * @param[in] child_node After split, it inserts this @a child_node.
  */
 template<class interior_node, class border_node>
-static void interior_split(interior_node *interior, base_node *child_node, std::pair<base_node::key_slice_type,
+static void
+interior_split(interior_node *const interior, base_node *const child_node, const std::pair<base_node::key_slice_type,
         base_node::key_length_type> inserting_key) {
   interior->set_version_splitting(true);
   interior_node *new_interior = new interior_node(); // NOLINT
