@@ -144,7 +144,7 @@ interior_split(interior_node *const interior, base_node *const child_node, const
                                                                    std::make_pair(pivot_key, pivot_length), &new_p);
     interior->version_unlock();
     new_interior->version_unlock();
-    link_or_value *lv = pb->get_lv(dynamic_cast<base_node *>(interior));
+    link_or_value *lv = pb->get_lv(interior);
     lv->set_next_layer(new_p);
     new_p->set_parent(pb);
     new_p->version_unlock();

@@ -197,7 +197,7 @@ root_nullptr:
     border_node *new_border = new border_node(); // NOLINT
     new_border->init_border(key_view, value, created_value_ptr, true, arg_value_length, value_align);
     for (;;) {
-      if (base_node::get_root().compare_exchange_weak(expected, dynamic_cast<base_node *>(new_border),
+      if (base_node::get_root().compare_exchange_weak(expected, new_border,
                                                       std::memory_order_acq_rel, std::memory_order_acquire)) {
         return status::OK;
       }

@@ -220,7 +220,7 @@ public:
       /**
        * right interiror is new parent of get_child_at(i). // NOLINT
        */
-      get_child_at(i)->set_parent(dynamic_cast<base_node *>(right_interior));
+      get_child_at(i)->set_parent(right_interior);
       set_child_at(i, nullptr);
     }
   }

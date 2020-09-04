@@ -80,14 +80,14 @@ create_interior_parent_of_border(border_node *const left, border_node *const rig
   /**
    * process interior node members
    */
-  ni->set_child_at(0, dynamic_cast<base_node *>(left));
-  ni->set_child_at(1, dynamic_cast<base_node *>(right));
+  ni->set_child_at(0, left);
+  ni->set_child_at(1, right);
   ni->n_keys_increment();
   /**
    * release interior parent to global.
    */
-  left->set_parent(dynamic_cast<base_node *>(ni));
-  right->set_parent(dynamic_cast<base_node *>(ni));
+  left->set_parent(ni);
+  right->set_parent(ni);
   *new_parent = ni;
 }
 
@@ -283,7 +283,7 @@ border_split(border_node *const border, std::string_view key_view, void *const v
     new_border->version_unlock();
     pi->set_parent(p);
     pi->version_unlock();
-    link_or_value *lv = pb->get_lv(dynamic_cast<base_node *>(border));
+    link_or_value *lv = pb->get_lv(border);
     lv->set_next_layer(pi);
     p->version_unlock();
     return;
