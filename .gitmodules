@@ -7,9 +7,6 @@
 [submodule ".github/actions/tsurugi-slack-action"]
 	path = .github/actions/tsurugi-slack-action
 	url = git@github.com:project-tsurugi/tsurugi-slack-action.git
-[submodule "third_party/jemalloc"]
-	path = third_party/jemalloc
-	url = https://github.com/jemalloc/jemalloc.git
 [submodule "third_party/sandbox-performance-tools"]
 	path = third_party/sandbox-performance-tools
 	url = git@github.com:project-tsurugi/sandbox-performance-tools.git

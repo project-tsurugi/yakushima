@@ -4,7 +4,7 @@ Benchmarking of yakushima and malloc.
 ## Preparation
 Please do release-build. 
 If you do benchmarking of yakushima, 
-you should also build jemalloc of third_party to avoid contentions against heap.
+you should also build some high performance memory allocator (ex. jemalloc) to avoid contentions against heap.
 
 ```
 cd [/path/to/project_root]
@@ -17,8 +17,8 @@ cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..
 ```
 cd [/path/to/project_root]
 cd build-release/bench
-LD_PRELOAD=[/path/to/jemalloc lib] ./yakushima
-LD_PRELOAD=[/path/to/jemalloc lib] ./malloc
+LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima
+LD_PRELOAD=[/path/to/some memory allocator lib] ./malloc
 ```
 
 yakushima : Available options
@@ -64,7 +64,7 @@ malloc : Available options
   - thread : `200`
   - value_size : default : `4`
 ```
-LD_PRELOAD=[/path/to/jemalloc lib] ./yakushima -duration 10 -get_initial_record 1000000 -thread 200
+LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima -duration 10 -get_initial_record 1000000 -thread 200
 ```
 - Put benchmark.
   - duration : `10`
@@ -74,7 +74,7 @@ LD_PRELOAD=[/path/to/jemalloc lib] ./yakushima -duration 10 -get_initial_record 
   - thread : `200`
   - value_size : default : `4`
 ```
-LD_PRELOAD=[/path/to/jemalloc lib] ./yakushima -instruction put -duration 10 -thread 200
+LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima -instruction put -duration 10 -thread 200
 ```
 
 ## malloc Example
@@ -83,5 +83,5 @@ LD_PRELOAD=[/path/to/jemalloc lib] ./yakushima -instruction put -duration 10 -th
   - duration : `10`
   - thread : `224`
 ```
-LD_PRELOAD=[/path/to/jemalloc lib] ./malloc -alloc_size 1000 -duration 10 -thread 224
+LD_PRELOAD=[/path/to/some memory allocator lib] ./malloc -alloc_size 1000 -duration 10 -thread 224
 ```
