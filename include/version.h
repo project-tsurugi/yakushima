@@ -383,8 +383,9 @@ public:
             }
             desired.set_locked(false);
             if (body_.compare_exchange_weak(expected, desired, std::memory_order_acq_rel,
-                                            std::memory_order_acquire))
+                                            std::memory_order_acquire)) {
                 break;
+            }
         }
     }
 
