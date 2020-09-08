@@ -69,7 +69,7 @@ TEST_F(dt, test2) { // NOLINT
 
 TEST_F(dt, test3) { // NOLINT
     fin();
-    for (std::size_t h = 0; h < 10; ++h) {
+    for (std::size_t h = 0; h < 1; ++h) {
         init();
         Token token{};
         ASSERT_EQ(enter(token), status::OK);
@@ -128,7 +128,7 @@ TEST_F(dt, test4) { // NOLINT
 
 TEST_F(dt, test5) { // NOLINT
     fin();
-    for (std::size_t h = 0; h < 10; ++h) {
+    for (std::size_t h = 0; h < 1; ++h) {
         init();
         Token token{};
         ASSERT_EQ(enter(token), status::OK);
@@ -183,7 +183,7 @@ TEST_F(dt, test6) { // NOLINT
 
 TEST_F(dt, test7) { // NOLINT
     fin();
-    for (std::size_t h = 0; h < 10; ++h) {
+    for (std::size_t h = 0; h < 1; ++h) {
         init();
         Token token{};
         ASSERT_EQ(enter(token), status::OK);
@@ -339,7 +339,7 @@ TEST_F(dt, test8) { // NOLINT
 
 TEST_F(dt, test9) { // NOLINT
     fin();
-    for (std::size_t h = 0; h < 10; ++h) {
+    for (std::size_t h = 0; h < 1; ++h) {
         init();
         Token token{};
         ASSERT_EQ(enter(token), status::OK);

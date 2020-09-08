@@ -35,7 +35,7 @@ TEST_F(mtdt, test1) { // NOLINT
     }
 
 #ifndef NDEBUG
-    for (std::size_t h = 0; h < 5; ++h) {
+    for (std::size_t h = 0; h < 1; ++h) {
 #else
         for (std::size_t h = 0; h < 100; ++h) {
 #endif
@@ -107,7 +107,7 @@ TEST_F(mtdt, test2) { // NOLINT
     std::random_device seed_gen;
     std::mt19937 engine(seed_gen());
 #ifndef NDEBUG
-    for (std::size_t h = 0; h < 5; ++h) {
+    for (std::size_t h = 0; h < 1; ++h) {
 #else
         for (std::size_t h = 0; h < 100; ++h) {
 #endif
@@ -176,7 +176,7 @@ TEST_F(mtdt, test3) { // NOLINT
     }
 
 #ifndef NDEBUG
-    for (std::size_t h = 0; h < 5; ++h) {
+    for (std::size_t h = 0; h < 1; ++h) {
 #else
         for (std::size_t h = 0; h < 200; ++h) {
 #endif
@@ -248,7 +248,7 @@ TEST_F(mtdt, test4) { // NOLINT
     std::mt19937 engine(seed_gen());
 
 #ifndef NDEBUG
-    for (std::size_t h = 0; h < 5; ++h) {
+    for (std::size_t h = 0; h < 1; ++h) {
 #else
         for (std::size_t h = 0; h < 100; ++h) {
 #endif
@@ -317,7 +317,7 @@ TEST_F(mtdt, test5) { // NOLINT
     }
 
 #ifndef NDEBUG
-    for (std::size_t h = 0; h < 5; ++h) {
+    for (std::size_t h = 0; h < 1; ++h) {
 #else
         for (std::size_t h = 0; h < 100; ++h) {
 #endif
@@ -388,7 +388,7 @@ TEST_F(mtdt, test6) { // NOLINT
     std::mt19937 engine(seed_gen());
 
 #ifndef NDEBUG
-    for (std::size_t h = 0; h < 5; ++h) {
+    for (std::size_t h = 0; h < 1; ++h) {
 #else
         for (std::size_t h = 0; h < 100; ++h) {
 #endif
@@ -457,7 +457,7 @@ TEST_F(mtdt, test7) { // NOLINT
     }
 
 #ifndef NDEBUG
-    for (size_t h = 0; h < 5; ++h) {
+    for (size_t h = 0; h < 1; ++h) {
 #else
         for (size_t h = 0; h < 20; ++h) {
 #endif
@@ -530,7 +530,7 @@ TEST_F(mtdt, test8) { // NOLINT
     std::mt19937 engine(seed_gen());
 
 #ifndef NDEBUG
-    for (std::size_t h = 0; h < 5; ++h) {
+    for (std::size_t h = 0; h < 1; ++h) {
 #else
         for (std::size_t h = 0; h < 30; ++h) {
 #endif
@@ -599,7 +599,7 @@ TEST_F(mtdt, test9) { // NOLINT
     }
 
 #ifndef NDEBUG
-    for (std::size_t h = 0; h < 5; ++h) {
+    for (std::size_t h = 0; h < 1; ++h) {
 #else
         for (std::size_t h = 0; h < 30; ++h) {
 #endif
@@ -670,7 +670,7 @@ TEST_F(mtdt, test10) { // NOLINT
     std::mt19937 engine(seed_gen());
 
 #ifndef NDEBUG
-    for (std::size_t h = 0; h < 5; ++h) {
+    for (std::size_t h = 0; h < 1; ++h) {
 #else
         for (std::size_t h = 0; h < 30; ++h) {
 #endif
