@@ -30,8 +30,8 @@ if (PERFORMANCE_TOOLS)
             PRIVATE performance-tools::lib
             )
     target_compile_definitions(yakushima_bench PUBLIC PERFORMANCE_TOOLS)
-endif()
-  
+endif ()
+
 target_include_directories(yakushima_bench
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include

@@ -21,7 +21,7 @@ namespace yakushima {
  */
 template<class interior_node, class border_node>
 static void
-interior_split(interior_node *interior, base_node *child_node, base_node::key_slice_type pivot_slice, // NOLINT
+interior_split(interior_node* interior, base_node* child_node, base_node::key_slice_type pivot_slice, // NOLINT
                base_node::key_length_type pivot_length);
 
 using key_slice_type = base_node::key_slice_type;
@@ -41,7 +41,7 @@ using value_length_type = base_node::value_length_type;
  */
 template<class interior_node, class border_node>
 static void
-border_split(border_node *border, std::string_view key_view, void *value_ptr, void **created_value_ptr, // NOLINT
+border_split(border_node* border, std::string_view key_view, void* value_ptr, void** created_value_ptr, // NOLINT
              value_length_type value_length,
              value_align_type value_align);
 
@@ -62,33 +62,33 @@ border_split(border_node *border, std::string_view key_view, void *value_ptr, vo
 
 template<class interior_node, class border_node>
 static void
-create_interior_parent_of_border(border_node *const left, border_node *const right, interior_node **const new_parent) {
-  left->set_version_root(false);
-  right->set_version_root(false);
-  /**
-   * create a new interior node p with children n, n'
-   */
-  auto ni = new interior_node(); // NOLINT
-  ni->init_interior();
-  ni->set_version_root(true);
-  ni->set_version_inserting_deleting(true);
-  ni->lock();
-  /**
-   * process base node members
-   */
-  ni->set_key(0, right->get_key_slice_at(0), right->get_key_length_at(0));
-  /**
-   * process interior node members
-   */
-  ni->set_child_at(0, left);
-  ni->set_child_at(1, right);
-  ni->n_keys_increment();
-  /**
-   * release interior parent to global.
-   */
-  left->set_parent(ni);
-  right->set_parent(ni);
-  *new_parent = ni;
+create_interior_parent_of_border(border_node* const left, border_node* const right, interior_node** const new_parent) {
+    left->set_version_root(false);
+    right->set_version_root(false);
+    /**
+     * create a new interior node p with children n, n'
+     */
+    auto ni = new interior_node(); // NOLINT
+    ni->init_interior();
+    ni->set_version_root(true);
+    ni->set_version_inserting_deleting(true);
+    ni->lock();
+    /**
+     * process base node members
+     */
+    ni->set_key(0, right->get_key_slice_at(0), right->get_key_length_at(0));
+    /**
+     * process interior node members
+     */
+    ni->set_child_at(0, left);
+    ni->set_child_at(1, right);
+    ni->n_keys_increment();
+    /**
+     * release interior parent to global.
+     */
+    left->set_parent(ni);
+    right->set_parent(ni);
+    *new_parent = ni;
 }
 
 /**
@@ -106,218 +106,218 @@ create_interior_parent_of_border(border_node *const left, border_node *const rig
 
 template<class interior_node, class border_node>
 static void
-insert_lv(border_node *const border, std::string_view key_view, void *const value_ptr, void **const created_value_ptr,
+insert_lv(border_node* const border, std::string_view key_view, void* const value_ptr, void** const created_value_ptr,
           const value_length_type arg_value_length,
           const value_align_type value_align) {
-  border->set_version_inserting_deleting(true);
-  std::size_t cnk = border->get_permutation_cnk();
-  if (cnk == base_node::key_slice_length) {
-    /**
-     * It needs splitting
-     */
-    border_split<interior_node, border_node>(border, key_view, value_ptr, created_value_ptr, arg_value_length,
-                                             value_align);
-  } else {
-    /**
-     * Insert into this nodes.
-     */
-    border->insert_lv_at(cnk, key_view, value_ptr, created_value_ptr, arg_value_length, value_align);
-    border->version_unlock();
-  }
+    border->set_version_inserting_deleting(true);
+    std::size_t cnk = border->get_permutation_cnk();
+    if (cnk == base_node::key_slice_length) {
+        /**
+         * It needs splitting
+         */
+        border_split<interior_node, border_node>(border, key_view, value_ptr, created_value_ptr, arg_value_length,
+                                                 value_align);
+    } else {
+        /**
+         * Insert into this nodes.
+         */
+        border->insert_lv_at(cnk, key_view, value_ptr, created_value_ptr, arg_value_length, value_align);
+        border->version_unlock();
+    }
 }
 
 template<class interior_node, class border_node>
 static void
-border_split(border_node *const border, std::string_view key_view, void *const value_ptr,
-             void **const created_value_ptr, const value_length_type value_length, const value_align_type value_align) {
-  border->set_version_splitting(true);
-  border_node *new_border = new border_node(); // NOLINT
-  new_border->init_border();
-  new_border->set_next(border->get_next());
-  new_border->set_prev(border);
+border_split(border_node* const border, std::string_view key_view, void* const value_ptr,
+             void** const created_value_ptr, const value_length_type value_length, const value_align_type value_align) {
+    border->set_version_splitting(true);
+    border_node* new_border = new border_node(); // NOLINT
+    new_border->init_border();
+    new_border->set_next(border->get_next());
+    new_border->set_prev(border);
 
-  /**
-   * new border is initially locked
-   */
-  new_border->set_version(border->get_version());
-  border->set_next(new_border);
-  if (new_border->get_next() != nullptr) {
     /**
-     * The prev of border next can be updated if it posesses the border lock.
+     * new border is initially locked
      */
-    new_border->get_next()->set_prev(new_border);
-  }
-  /**
-   * split keys among n and n'
-   */
-  constexpr std::size_t key_tuple_index = 0;
-  constexpr std::size_t key_pos = 1;
-  std::vector<std::tuple<base_node::key_tuple, std::uint8_t>> vec;
-  std::uint8_t cnk = border->get_permutation_cnk();
-  vec.reserve(cnk);
-  for (std::uint8_t i = 0; i < cnk; ++i) {
-    vec.emplace_back(base_node::key_tuple(border->get_key_slice_at(i), border->get_key_length_at(i)), i); // NOLINT
-  }
-  std::sort(vec.begin(), vec.end());
-  /**
-   * split
-   * If the fan-out is odd, keep more than half to improve the performance.
-   */
-  std::size_t remaining_size = base_node::key_slice_length / 2 + 1;
-
-  std::size_t index_ctr(0);
-  std::vector<std::size_t> shift_pos;
-  for (auto itr = vec.begin() + remaining_size; itr != vec.end(); ++itr) {
-    /**
-     * move base_node members to new nodes
-     */
-    new_border->set_key_slice_at(index_ctr, std::get<key_tuple_index>(*itr).get_key_slice());
-    new_border->set_key_length_at(index_ctr, std::get<key_tuple_index>(*itr).get_key_length());
-    new_border->set_lv(index_ctr, border->get_lv_at(std::get<key_pos>(*itr)));
-    base_node *nl = border->get_lv_at(std::get<key_pos>(*itr))->get_next_layer();
-    if (nl != nullptr) {
-      nl->set_parent(new_border);
+    new_border->set_version(border->get_version());
+    border->set_next(new_border);
+    if (new_border->get_next() != nullptr) {
+        /**
+         * The prev of border next can be updated if it posesses the border lock.
+         */
+        new_border->get_next()->set_prev(new_border);
     }
-    shift_pos.emplace_back(std::get<key_pos>(*itr));
-    ++index_ctr;
-  }
-  /**
-   * fix member positions of old border_node.
-   */
-  std::sort(shift_pos.begin(), shift_pos.end());
-  std::size_t shifted_ctr(0);
-  for (std::size_t &shift_po : shift_pos) {
-    border->shift_left_base_member(shift_po + 1 - shifted_ctr, 1);
-    border->shift_left_border_member(shift_po + 1 - shifted_ctr, 1);
-    ++shifted_ctr;
-  }
-  /**
-   * maintenance about empty parts due to new border.
-   */
-  border->init_base_member_range(remaining_size);
-  border->init_border_member_range(remaining_size);
-  /**
-   * fix permutations
-   */
-  border->set_permutation_cnk(remaining_size);
-  border->permutation_rearrange();
-  new_border->set_permutation_cnk(base_node::key_slice_length - remaining_size);
-  new_border->permutation_rearrange();
-
-  /**
-   * The insert process we wanted to do before we split.
-   * key_slice must be initialized to 0.
-   */
-  key_slice_type key_slice{0};
-  key_length_type key_length; // NOLINT
-  if (key_view.size() > sizeof(key_slice_type)) {
-    memcpy(&key_slice, key_view.data(), sizeof(key_slice_type));
-    key_length = sizeof(key_slice_type) + 1;
-  } else {
-    if (!key_view.empty()) {
-      memcpy(&key_slice, key_view.data(), key_view.size());
+    /**
+     * split keys among n and n'
+     */
+    constexpr std::size_t key_tuple_index = 0;
+    constexpr std::size_t key_pos = 1;
+    std::vector<std::tuple<base_node::key_tuple, std::uint8_t>> vec;
+    std::uint8_t cnk = border->get_permutation_cnk();
+    vec.reserve(cnk);
+    for (std::uint8_t i = 0; i < cnk; ++i) {
+        vec.emplace_back(base_node::key_tuple(border->get_key_slice_at(i), border->get_key_length_at(i)), i); // NOLINT
     }
-    key_length = static_cast<key_length_type>(key_view.size());
-  }
-  int ret_memcmp{memcmp(&key_slice, &new_border->get_key_slice_ref().at(0),
-                        (key_length > sizeof(key_slice_type) &&
-                         new_border->get_key_length_at(0) > sizeof(key_slice_type)) ?
-                        sizeof(key_slice_type) : key_length < new_border->get_key_length_at(0) ?
-                                                 key_length : new_border->get_key_length_at(0))};
-  if (key_length == 0 || ret_memcmp < 0 || (ret_memcmp == 0 && key_length < new_border->get_key_length_at(0))) {
+    std::sort(vec.begin(), vec.end());
     /**
-     * insert to lower border node.
+     * split
+     * If the fan-out is odd, keep more than half to improve the performance.
      */
-    border->insert_lv_at(remaining_size, key_view, value_ptr, created_value_ptr, value_length, value_align);
-  } else {
-    /**
-     * insert to higher border node.
-     */
-    new_border->insert_lv_at(base_node::key_slice_length - remaining_size, key_view, value_ptr, created_value_ptr,
-                             value_length, value_align);
-  }
+    std::size_t remaining_size = base_node::key_slice_length / 2 + 1;
 
-  base_node *p = border->lock_parent();
-  if (p == nullptr) {
+    std::size_t index_ctr(0);
+    std::vector<std::size_t> shift_pos;
+    for (auto itr = vec.begin() + remaining_size; itr != vec.end(); ++itr) {
+        /**
+         * move base_node members to new nodes
+         */
+        new_border->set_key_slice_at(index_ctr, std::get<key_tuple_index>(*itr).get_key_slice());
+        new_border->set_key_length_at(index_ctr, std::get<key_tuple_index>(*itr).get_key_length());
+        new_border->set_lv(index_ctr, border->get_lv_at(std::get<key_pos>(*itr)));
+        base_node* nl = border->get_lv_at(std::get<key_pos>(*itr))->get_next_layer();
+        if (nl != nullptr) {
+            nl->set_parent(new_border);
+        }
+        shift_pos.emplace_back(std::get<key_pos>(*itr));
+        ++index_ctr;
+    }
+    /**
+     * fix member positions of old border_node.
+     */
+    std::sort(shift_pos.begin(), shift_pos.end());
+    std::size_t shifted_ctr(0);
+    for (std::size_t &shift_po : shift_pos) {
+        border->shift_left_base_member(shift_po + 1 - shifted_ctr, 1);
+        border->shift_left_border_member(shift_po + 1 - shifted_ctr, 1);
+        ++shifted_ctr;
+    }
+    /**
+     * maintenance about empty parts due to new border.
+     */
+    border->init_base_member_range(remaining_size);
+    border->init_border_member_range(remaining_size);
+    /**
+     * fix permutations
+     */
+    border->set_permutation_cnk(remaining_size);
+    border->permutation_rearrange();
+    new_border->set_permutation_cnk(base_node::key_slice_length - remaining_size);
+    new_border->permutation_rearrange();
+
+    /**
+     * The insert process we wanted to do before we split.
+     * key_slice must be initialized to 0.
+     */
+    key_slice_type key_slice{0};
+    key_length_type key_length; // NOLINT
+    if (key_view.size() > sizeof(key_slice_type)) {
+        memcpy(&key_slice, key_view.data(), sizeof(key_slice_type));
+        key_length = sizeof(key_slice_type) + 1;
+    } else {
+        if (!key_view.empty()) {
+            memcpy(&key_slice, key_view.data(), key_view.size());
+        }
+        key_length = static_cast<key_length_type>(key_view.size());
+    }
+    int ret_memcmp{memcmp(&key_slice, &new_border->get_key_slice_ref().at(0),
+                          (key_length > sizeof(key_slice_type) &&
+                           new_border->get_key_length_at(0) > sizeof(key_slice_type)) ?
+                          sizeof(key_slice_type) : key_length < new_border->get_key_length_at(0) ?
+                                                   key_length : new_border->get_key_length_at(0))};
+    if (key_length == 0 || ret_memcmp < 0 || (ret_memcmp == 0 && key_length < new_border->get_key_length_at(0))) {
+        /**
+         * insert to lower border node.
+         */
+        border->insert_lv_at(remaining_size, key_view, value_ptr, created_value_ptr, value_length, value_align);
+    } else {
+        /**
+         * insert to higher border node.
+         */
+        new_border->insert_lv_at(base_node::key_slice_length - remaining_size, key_view, value_ptr, created_value_ptr,
+                                 value_length, value_align);
+    }
+
+    base_node* p = border->lock_parent();
+    if (p == nullptr) {
 #ifndef NDEBUG
-    if (base_node::get_root_ptr() != border) {
-      std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
-      std::abort();
+        if (base_node::get_root_ptr() != border) {
+            std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
+            std::abort();
+        }
+#endif
+        /**
+         * create interior as parents and insert k.
+         * The disappearance of the parent node may have made this node the root node in parallel.
+         * It cares in below function.
+         */
+        create_interior_parent_of_border<interior_node, border_node>(border, new_border,
+                                                                     reinterpret_cast<interior_node**>(&p)); // NOLINT
+        border->version_unlock();
+        new_border->version_unlock();
+        base_node::set_root(p);
+        p->version_unlock();
+        return;
+    }
+
+#ifndef NDEBUG
+    if (p != border->get_parent()) {
+        std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
+        std::abort();
     }
 #endif
-    /**
-     * create interior as parents and insert k.
-     * The disappearance of the parent node may have made this node the root node in parallel.
-     * It cares in below function.
-     */
-    create_interior_parent_of_border<interior_node, border_node>(border, new_border,
-                                                                 reinterpret_cast<interior_node **>(&p)); // NOLINT
-    border->version_unlock();
-    new_border->version_unlock();
-    base_node::set_root(p);
-    p->version_unlock();
-    return;
-  }
 
+    if (p->get_version_border()) {
+        /**
+         * parent is border node.
+         * The old border node which is before this split was root of the some layer.
+         * So it creates new interior nodes in the layer and insert its interior pointer
+         * to the (parent) border node.
+         * attention : The parent border node had this border node as one of the next_layer before the split.
+         * The pointer is exchanged for a new parent interior node.
+         */
+        auto pb = dynamic_cast<border_node*>(p);
+        pb->set_version_inserting_deleting(true);
+        interior_node* pi{};
+        create_interior_parent_of_border<interior_node, border_node>(border, new_border, &pi);
+        border->version_unlock();
+        new_border->version_unlock();
+        pi->set_parent(p);
+        pi->version_unlock();
+        link_or_value* lv = pb->get_lv(border);
+        lv->set_next_layer(pi);
+        p->version_unlock();
+        return;
+    }
+    /**
+     * parent is interior node.
+     */
 #ifndef NDEBUG
-  if (p != border->get_parent()) {
-    std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
-    std::abort();
-  }
+    if (p->get_version_deleted()) {
+        std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
+        std::abort();
+    }
 #endif
-
-  if (p->get_version_border()) {
-    /**
-     * parent is border node.
-     * The old border node which is before this split was root of the some layer.
-     * So it creates new interior nodes in the layer and insert its interior pointer
-     * to the (parent) border node.
-     * attention : The parent border node had this border node as one of the next_layer before the split.
-     * The pointer is exchanged for a new parent interior node.
-     */
-    auto pb = dynamic_cast<border_node *>(p);
-    pb->set_version_inserting_deleting(true);
-    interior_node *pi{};
-    create_interior_parent_of_border<interior_node, border_node>(border, new_border, &pi);
+    auto pi = dynamic_cast<interior_node*>(p);
+    border->set_version_root(false);
+    new_border->set_version_root(false);
     border->version_unlock();
     new_border->version_unlock();
-    pi->set_parent(p);
+    if (pi->get_n_keys() == base_node::key_slice_length) {
+        /**
+         * interior full case, it splits and inserts.
+         */
+        interior_split<interior_node, border_node>(pi, reinterpret_cast<base_node*>(new_border), // NOLINT
+                                                   std::make_pair(new_border->get_key_slice_at(0),
+                                                                  new_border->get_key_length_at(0)));
+        return;
+    }
+    /**
+     * interior not-full case, it inserts.
+     */
+    new_border->set_parent(pi);
+    pi->template insert<border_node>(new_border,
+                                     std::make_pair(new_border->get_key_slice_at(0), new_border->get_key_length_at(0)));
     pi->version_unlock();
-    link_or_value *lv = pb->get_lv(border);
-    lv->set_next_layer(pi);
-    p->version_unlock();
-    return;
-  }
-  /**
-   * parent is interior node.
-   */
-#ifndef NDEBUG
-  if (p->get_version_deleted()) {
-    std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
-    std::abort();
-  }
-#endif
-  auto pi = dynamic_cast<interior_node *>(p);
-  border->set_version_root(false);
-  new_border->set_version_root(false);
-  border->version_unlock();
-  new_border->version_unlock();
-  if (pi->get_n_keys() == base_node::key_slice_length) {
-    /**
-     * interior full case, it splits and inserts.
-     */
-    interior_split<interior_node, border_node>(pi, reinterpret_cast<base_node *>(new_border), // NOLINT
-                                               std::make_pair(new_border->get_key_slice_at(0),
-                                                              new_border->get_key_length_at(0)));
-    return;
-  }
-  /**
-   * interior not-full case, it inserts.
-   */
-  new_border->set_parent(pi);
-  pi->template insert<border_node>(new_border,
-                                   std::make_pair(new_border->get_key_slice_at(0), new_border->get_key_length_at(0)));
-  pi->version_unlock();
 }
 
 } // namespace yakushima
