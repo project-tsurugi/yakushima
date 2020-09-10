@@ -260,5 +260,22 @@ TEST_F(st, test5) { // NOLINT
     ASSERT_EQ(leave(token), status::OK);
 }
 
+TEST_F(st, test6) { // NOLINT
+    /**
+     * Scan with prefix for 2 layers.
+     */
+    std::string k("T6\000\200\000\000\n\200\000\000\001", 11); // NOLINT
+    std::string end("T6\001", 3); // NOLINT
+    std::string v("bbb");  // NOLINT
+
+    Token token{};
+    ASSERT_EQ(enter(token), status::OK);
+    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
+    std::vector<std::pair<char*, std::size_t>> tuple_list{};
+    ASSERT_EQ(status::OK, scan("", false, end, true, tuple_list));
+    ASSERT_EQ(tuple_list.size(), 1);
+    ASSERT_EQ(leave(token), status::OK);
+}
+
 } // namespace yakushima
 
