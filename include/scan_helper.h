@@ -14,8 +14,8 @@ namespace yakushima {
 
 // forward declaration
 template<class ValueType>
-static status scan_border(border_node** target, std::string_view l_key, bool l_exclusive, std::string_view r_key,
-                          bool r_exclusive, std::vector<std::pair<ValueType*, std::size_t>> &tuple_list,
+static status scan_border(border_node** target, std::string_view l_key, scan_endpoint l_end, std::string_view r_key,
+                          scan_endpoint r_end, std::vector<std::pair<ValueType*, std::size_t>> &tuple_list,
                           node_version64_body &v_at_fetch_lv,
                           std::vector<std::pair<node_version64_body, node_version64*>>* node_version_vec);
 
@@ -51,8 +51,8 @@ status scan_check_retry(border_node* const bn, node_version64_body &v_at_fetch_l
 
 template<class ValueType>
 static status
-scan(base_node* const root, const std::string_view l_key, const bool l_exclusive, const std::string_view r_key,
-     const bool r_exclusive, std::vector<std::pair<ValueType*, std::size_t>> &tuple_list,
+scan(base_node* const root, const std::string_view l_key, const scan_endpoint l_end, const std::string_view r_key,
+     const scan_endpoint r_end, std::vector<std::pair<ValueType*, std::size_t>> &tuple_list,
      std::vector<std::pair<node_version64_body, node_version64*>>* const node_version_vec) {
 retry:
     if (root->get_version_deleted() || !root->get_version_root()) {
@@ -82,7 +82,7 @@ retry:
     node_version64_body check_v = std::get<tuple_v_index>(node_and_v);
 
     for (;;) {
-        check_status = scan_border<ValueType>(&bn, l_key, l_exclusive, r_key, r_exclusive, tuple_list, check_v,
+        check_status = scan_border<ValueType>(&bn, l_key, l_end, r_key, r_end, tuple_list, check_v,
                                               node_version_vec);
         if (check_status == status::OK_SCAN_END) {
             return status::OK;
@@ -107,9 +107,9 @@ retry:
 }
 
 template<class ValueType>
-static status scan_border(border_node** const target, const std::string_view l_key, const bool l_exclusive,
-                          const std::string_view r_key,
-                          bool r_exclusive, std::vector<std::pair<ValueType*, std::size_t>> &tuple_list,
+static status scan_border(border_node** const target, const std::string_view l_key, const scan_endpoint l_end,
+                          const std::string_view r_key, const scan_endpoint r_end,
+                          std::vector<std::pair<ValueType*, std::size_t>> &tuple_list,
                           node_version64_body &v_at_fetch_lv,
                           std::vector<std::pair<node_version64_body, node_version64*>>* const node_version_vec) {
 retry:
@@ -133,70 +133,94 @@ retry:
         if (check_status == status::OK_RETRY_FETCH_LV) {
             goto retry; // NOLINT
         }
+        key_slice_type new_key_slice_one{1};
+        /**
+         * Given an 8-byte length key_view and next_exclusive == false, set key_slice = 1 / key_length = 1 /
+         * next_exclusive = true to distinguish it from inf (key_view ("")) when descending to the next layer.
+         */
         if (kl > sizeof(key_slice_type)) {
             std::string_view arg_l_key;
-            bool next_l_exclusive(false);
-            std::string_view next_target(reinterpret_cast<char*>(&ks), sizeof(key_slice_type)); // NOLINT
-            if (l_key < next_target) {
-                arg_l_key = std::string_view(nullptr, 0);
-            } else if (l_key == next_target) {
-                arg_l_key = std::string_view(nullptr, 0);
-                next_l_exclusive = l_exclusive;
+            scan_endpoint arg_l_end;
+            if (l_end == scan_endpoint::INF) {
+                arg_l_key = "";
+                arg_l_end = scan_endpoint::INF;
             } else {
-                continue;
+                key_slice_type l_key_slice{};
+                memcpy(&l_key_slice, l_key.data(),
+                       l_key.size() < sizeof(key_slice_type) ? l_key.size() : sizeof(key_slice_type));
+                int ret_cmp = memcmp(&l_key_slice, &ks, sizeof(key_slice_type));
+                if (ret_cmp < 0) {
+                    arg_l_key = "";
+                    arg_l_end = scan_endpoint::INF;
+                } else if (ret_cmp == 0) {
+                    arg_l_key = l_key;
+                    arg_l_key.remove_prefix(sizeof(key_slice_type));
+                    arg_l_end = l_end;
+                } else {
+                    continue;
+                }
             }
             std::string_view arg_r_key;
-            bool next_r_exclusive(false);
-            if (r_key == std::string_view(nullptr, 0) && !r_exclusive) {
-                arg_r_key = r_key;
+            scan_endpoint arg_r_end;
+            if (r_end == scan_endpoint::INF) {
+                arg_r_key = "";
+                arg_r_end = scan_endpoint::INF;
             } else {
-                if (r_key < next_target) {
+                key_slice_type r_key_slice{};
+                memcpy(&r_key_slice, r_key.data(),
+                       r_key.size() < sizeof(key_slice_type) ? r_key.size() : sizeof(key_slice_type));
+                int ret_cmp = memcmp(&r_key_slice, &ks, sizeof(key_slice_type));
+                if (ret_cmp < 0) {
                     return status::OK_SCAN_END;
                 }
-                if (r_key == next_target) {
-                    if (r_exclusive) return status::OK_SCAN_END;
-                    arg_r_key = std::string_view(nullptr, 0);
+                if (ret_cmp == 0) {
+                    arg_r_key = r_key;
+                    arg_r_key.remove_prefix(sizeof(key_slice_type));
+                    arg_r_end = r_end;
                 } else {
-                    if (r_key.substr(0, sizeof(key_slice_type)) == next_target) {
-                        arg_r_key = r_key;
-                        arg_r_key.remove_prefix(sizeof(key_slice_type));
-                    } else {
-                        arg_r_key = std::string_view(nullptr, 0);
-                    }
-                }
-                if (r_key != std::string_view(nullptr, 0) && arg_r_key == std::string_view(nullptr, 0)) {
-/**
- * r_key was not 0,0, but new one is that. However, originally it was not all range for right direction.
- * So it is care by exclusive(true).
- */
-                    next_r_exclusive = true;
+                    arg_r_key = "";
+                    arg_r_end = scan_endpoint::INF;
                 }
             }
-            check_status = scan(next_layer, arg_l_key, next_l_exclusive, arg_r_key, next_r_exclusive, tuple_list,
-                                node_version_vec);
+            check_status = scan(next_layer, arg_l_key, arg_l_end, arg_r_key, arg_r_end, tuple_list, node_version_vec);
             if (check_status != status::OK) {
                 goto retry; // NOLINT
             }
         } else {
-            std::string_view resident{reinterpret_cast<char*>(&ks), kl}; // NOLINT
-            std::string_view inf{nullptr, 0};
-            if (resident < l_key || (resident == l_key && l_exclusive)) {
-                continue;
-            }
-            if ((l_key == inf && r_key == inf && !l_exclusive && !r_exclusive) || // all range
-                (l_key == inf && !l_exclusive && resident < r_key) || // left is inf, in range
-                (l_key < resident && r_key == inf && !r_exclusive) || // right is inf, in range
-                (l_key < resident && resident < r_key) || // no inf, in range
-                (resident == l_key && !l_exclusive) ||
-                (resident == r_key && !r_exclusive)) {
+            if (l_end == scan_endpoint::INF && r_end == scan_endpoint::INF) {
+                // all range
                 tuple_list.emplace_back(std::make_pair(reinterpret_cast<ValueType*>(vp), vsize)); // NOLINT
                 if (node_version_vec != nullptr) {
                     node_version_vec->emplace_back(std::make_pair(v_at_fetch_lv, node_version_ptr));
                 }
                 ++tuple_pushed_num;
-            } else {
-                return status::OK_SCAN_END;
+                continue;
             }
+            // not all range
+            key_slice_type l_key_slice{};
+            memcpy(&l_key_slice, l_key.data(),
+                   l_key.size() < sizeof(key_slice_type) ? l_key.size() : sizeof(key_slice_type));
+            int l_cmp = memcmp(&l_key_slice, &ks, sizeof(key_slice_type));
+            if (l_cmp > 0 ||
+                (l_cmp == 0 && (l_key.size() > kl || (l_key.size() == kl && l_end == scan_endpoint::EXCLUSIVE)))) {
+                continue;
+            }
+            // pass left endpoint.
+            key_slice_type r_key_slice{};
+            memcpy(&r_key_slice, r_key.data(),
+                   r_key.size() < sizeof(key_slice_type) ? r_key.size() : sizeof(key_slice_type));
+            int r_cmp = memcmp(&r_key_slice, &ks, sizeof(key_slice_type));
+            if (r_cmp > 0 ||
+                (r_cmp == 0 && (r_key.size() < kl || (r_key.size() == kl && r_end == scan_endpoint::INCLUSIVE)))) {
+                tuple_list.emplace_back(std::make_pair(reinterpret_cast<ValueType*>(vp), vsize)); // NOLINT
+                if (node_version_vec != nullptr) {
+                    node_version_vec->emplace_back(std::make_pair(v_at_fetch_lv, node_version_ptr));
+                }
+                ++tuple_pushed_num;
+                continue;
+            }
+            // pass right endpoint.
+            return status::OK_SCAN_END;
         }
     }
 

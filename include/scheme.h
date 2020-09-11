@@ -133,4 +133,22 @@ inline std::ostream &operator<<(std::ostream &out, const status value) {
     return out << to_string_view(value);
 }
 
+/**
+ * @brief Information about scan's endpoints.
+ */
+enum class scan_endpoint : char {
+    /**
+     * @details Excludes those that match the key specified for the endpoint.
+     */
+    EXCLUSIVE,
+    /**
+     * @details Includes those that match the key specified for the endpoint.
+     */
+    INCLUSIVE,
+    /**
+     * @details Do not limit the endpoints.
+     */
+    INF,
+};
+
 } // namespace yakushima

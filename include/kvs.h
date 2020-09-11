@@ -460,10 +460,14 @@ retry_fetch_lv:
 /**
  * @brief scan range between @a l_key and @a r_key.
  * @tparam ValueType The returned pointer is cast to the given type information before it is returned.
- * @param[in] l_key An argument that specifies the left end point. If this size is 0, the left end point is invalidated.
- * @param[in] l_exclusive If this argument is true, the function does not include l_key in the range interval. If not, include it.
- * @param[in] r_key An argument that specifies the right end point. If this size is 0, the right end point is invalidated.
- * @param[in] r_exclusive If this argument is true, the function does not include r_key in the range interval. If not, include it.
+ * @param[in] l_key An argument that specifies the left endpoint.
+ * @param[in] l_end If this argument is scan_endpoint :: EXCLUSIVE, the interval does not include the endpoint.
+ * If this argument is scan_endpoint :: INCLUSIVE, the interval contains the endpoint.
+ * If this is scan_endpoint :: INF, there is no limit on the interval in left direction. And ignore @a l_key.
+ * @param[in] r_key An argument that specifies the right endpoint.
+ * @param[in] r_end If this argument is scan_endpoint :: EXCLUSIVE, the interval does not include the endpoint.
+ * If this argument is scan_endpoint :: INCLUSIVE, the interval contains the endpoint.
+ * If this is scan_endpoint :: INF, there is no limit on the interval in right direction. And ignore @a r_key.
  * @param[out] tuple_list A set with a pointer to value and size as a result of this function.
  * @param[out] node_version_vec The set of node_version for transaction processing (protection of phantom problems).
  * If you don't use yakushima for transaction processing, you don't have to use this argument.
@@ -471,17 +475,24 @@ retry_fetch_lv:
  */
 template<class ValueType>
 [[maybe_unused]] static status
-scan(std::string_view l_key, bool l_exclusive, std::string_view r_key, bool r_exclusive,
+scan(std::string_view l_key, scan_endpoint l_end, std::string_view r_key, scan_endpoint r_end,
      std::vector<std::pair<ValueType*, std::size_t>> &tuple_list,
      std::vector<std::pair<node_version64_body, node_version64*>>* node_version_vec = nullptr) {
+    /**
+     * Prohibition : std::string_view{nullptr, non-zero value}.
+     */
     if ((l_key.data() == nullptr && !l_key.empty()) ||
         (r_key.data() == nullptr && !r_key.empty())) {
         return status::ERR_BAD_USAGE;
     }
 
-    if ((l_key != std::string_view(nullptr, 0) && r_key != std::string_view(nullptr, 0)) &&
-        l_key == r_key &&
-        (l_exclusive || r_exclusive)) {
+    /**
+     * Case of l_key == r_key.
+     * 1 : l_end == r_end == scan_endpoint::INCLUSIVE, only one point that matches the endpoint can be scanned.
+     * 2 : l_end == r_end == scan_endpoint::INF, all range.
+     */
+    if (l_key == r_key && !((l_end == scan_endpoint::INCLUSIVE && r_end == scan_endpoint::INCLUSIVE) ||
+                            (l_end == scan_endpoint::INF && r_end == scan_endpoint::INF))) {
         return status::ERR_BAD_USAGE;
     }
 
@@ -546,7 +557,7 @@ retry_fetch_lv:
     }
     // here, it decides to scan from this nodes.
     for (;;) {
-        check_status = scan_border<ValueType>(&target_border, traverse_key_view, l_exclusive, r_key, r_exclusive,
+        check_status = scan_border<ValueType>(&target_border, traverse_key_view, l_end, r_key, r_end,
                                               tuple_list, v_at_fetch_lv, node_version_vec);
         if (check_status == status::OK_SCAN_END) {
             return status::OK;

@@ -34,16 +34,14 @@ TEST_F(st, test1) { // NOLINT
     ASSERT_EQ(status::OK, put(std::string_view(k), v.data(), v.size()));
     std::vector<std::pair<char*, std::size_t>> tuple_list{}; // NOLINT
     std::vector<std::pair<node_version64_body, node_version64*>> nv;
-    ASSERT_EQ(status::OK, scan<char>(std::string_view(nullptr, 0), false, std::string_view(nullptr, 0),
-                                     false, tuple_list, &nv));
+    ASSERT_EQ(status::ERR_BAD_USAGE, scan<char>("", scan_endpoint::EXCLUSIVE, "", scan_endpoint::EXCLUSIVE, tuple_list, &nv));
+    ASSERT_EQ(status::ERR_BAD_USAGE, scan<char>("", scan_endpoint::INF, "", scan_endpoint::EXCLUSIVE, tuple_list, &nv));
+    ASSERT_EQ(status::ERR_BAD_USAGE, scan<char>("", scan_endpoint::EXCLUSIVE, "", scan_endpoint::INF, tuple_list, &nv));
+    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list, &nv));
     ASSERT_EQ(tuple_list.size(), 1);
     ASSERT_EQ(tuple_list.size(), nv.size());
     ASSERT_EQ(std::get<1>(tuple_list.at(0)), v.size());
     ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(0)), v.data(), v.size()), 0);
-    ASSERT_EQ(status::OK, scan<char>(std::string_view(nullptr, 0), false, std::string_view(nullptr, 0),
-                                     true, tuple_list, &nv));
-    ASSERT_EQ(tuple_list.size(), 0);
-    ASSERT_EQ(tuple_list.size(), nv.size());
     ASSERT_EQ(status::OK, scan<char>(std::string_view(nullptr, 0), false, std::string_view(k),
                                      false, tuple_list, &nv));
     ASSERT_EQ(tuple_list.size(), 1);
@@ -187,11 +185,10 @@ TEST_F(st, test3) { // NOLINT
             ASSERT_EQ(memcmp(std::get<value_index>(tuple_list.at(j - i)), v.at(j).data(), v.at(j).size()), 0);
         }
     }
-    for (std::size_t i = ary_size - 1; i > 1; --i) {
+    for (std::size_t i = ary_size - 1; i > 0; --i) {
         std::vector<std::pair<node_version64_body, node_version64*>> nv;
         ASSERT_EQ(status::OK,
-                  scan(std::string_view(nullptr, 0), false, std::string_view(k.at(i)), false, tuple_list,
-                       &nv));
+                  scan(std::string_view(nullptr, 0), false, std::string_view(k.at(i)), false, tuple_list, &nv));
         ASSERT_EQ(tuple_list.size(), i + 1);
         ASSERT_EQ(tuple_list.size(), nv.size());
         for (std::size_t j = 0; j < i; ++j) {
