@@ -465,6 +465,7 @@ retry_fetch_lv:
  * If this argument is scan_endpoint :: INCLUSIVE, the interval contains the endpoint.
  * If this is scan_endpoint :: INF, there is no limit on the interval in left direction. And ignore @a l_key.
  * @param[in] r_key An argument that specifies the right endpoint.
+ * @note If r_key <l_key is specified in dictionary order, nothing will be hit.
  * @param[in] r_end If this argument is scan_endpoint :: EXCLUSIVE, the interval does not include the endpoint.
  * If this argument is scan_endpoint :: INCLUSIVE, the interval contains the endpoint.
  * If this is scan_endpoint :: INF, there is no limit on the interval in right direction. And ignore @a r_key.
@@ -488,11 +489,15 @@ scan(std::string_view l_key, scan_endpoint l_end, std::string_view r_key, scan_e
 
     /**
      * Case of l_key == r_key.
-     * 1 : l_end == r_end == scan_endpoint::INCLUSIVE, only one point that matches the endpoint can be scanned.
-     * 2 : l_end == r_end == scan_endpoint::INF, all range.
+     * 1 : l_key == r_key && (
+     * (l_end == scan_endpoint::INCLUSIVE || r_end == scan_endpoint::INCLUSIVE) ||
+     * (l_end == scan_endpoint::INCLUSIVE || r_end == scan_endpoint::INF) ||
+     * (l_end == scan_endpoint::INF || r_end == scan_endpoint::INCLUSIVE) ||
+     * )
+     * , only one point that matches the endpoint can be scanned.
+     * 2 : l_key == r_key &&  l_end == r_end == scan_endpoint::INF, all range.
      */
-    if (l_key == r_key && !((l_end == scan_endpoint::INCLUSIVE && r_end == scan_endpoint::INCLUSIVE) ||
-                            (l_end == scan_endpoint::INF && r_end == scan_endpoint::INF))) {
+    if (l_key == r_key && (l_end == scan_endpoint::EXCLUSIVE || r_end == scan_endpoint::EXCLUSIVE)) {
         return status::ERR_BAD_USAGE;
     }
 

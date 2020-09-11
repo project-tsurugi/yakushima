@@ -26,7 +26,9 @@
   8. delete repeatedly until vanishing the structure which has one interior node having two interior nodes.
   9. test of 8 which is using shuffled data.
 - scan_test.cpp
-  1. scan against single put to one border.
+  - basic_usage.  
+  - scan_against_single_put_null_key_to_one_border.  
+  - scan_against_single_put_non_null_key_to_one_border.  
   2. scan against multiple put same null char key whose length is different each other against single border node.
   3. scan against multiple put same null char key whose length is different each other against multiple border node, 
   which is across some layer.

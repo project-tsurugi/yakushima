@@ -22,112 +22,159 @@ class st : public ::testing::Test {
     }
 };
 
-TEST_F(st, test1) { // NOLINT
+TEST_F(st, basic_usage) { // NOLINT
     /**
-     * put one key-value
+     * basic usage
      */
     ASSERT_EQ(base_node::get_root_ptr(), nullptr);
-    std::string k("a");
-    std::string v("v-a");
+    std::string k("k");
+    std::string v("v");
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     ASSERT_EQ(status::OK, put(std::string_view(k), v.data(), v.size()));
-    std::vector<std::pair<char*, std::size_t>> tuple_list{}; // NOLINT
+    std::vector<std::pair<char*, std::size_t>> tup_lis{}; // NOLINT
     std::vector<std::pair<node_version64_body, node_version64*>> nv;
-    ASSERT_EQ(status::ERR_BAD_USAGE, scan<char>("", scan_endpoint::EXCLUSIVE, "", scan_endpoint::EXCLUSIVE, tuple_list, &nv));
-    ASSERT_EQ(status::ERR_BAD_USAGE, scan<char>("", scan_endpoint::INF, "", scan_endpoint::EXCLUSIVE, tuple_list, &nv));
-    ASSERT_EQ(status::ERR_BAD_USAGE, scan<char>("", scan_endpoint::EXCLUSIVE, "", scan_endpoint::INF, tuple_list, &nv));
-    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list, &nv));
-    ASSERT_EQ(tuple_list.size(), 1);
-    ASSERT_EQ(tuple_list.size(), nv.size());
-    ASSERT_EQ(std::get<1>(tuple_list.at(0)), v.size());
-    ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(0)), v.data(), v.size()), 0);
-    ASSERT_EQ(status::OK, scan<char>(std::string_view(nullptr, 0), false, std::string_view(k),
-                                     false, tuple_list, &nv));
-    ASSERT_EQ(tuple_list.size(), 1);
-    ASSERT_EQ(tuple_list.size(), nv.size());
-    ASSERT_EQ(std::get<1>(tuple_list.at(0)), v.size());
-    ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(0)), v.data(), v.size()), 0);
-    ASSERT_EQ(status::OK, scan<char>(std::string_view(nullptr, 0), false, std::string_view(k),
-                                     true, tuple_list, &nv));
-    ASSERT_EQ(tuple_list.size(), 0);
-    ASSERT_EQ(tuple_list.size(), nv.size());
-    ASSERT_EQ(status::OK, scan<char>(std::string_view(nullptr, 0), true, std::string_view(nullptr, 0),
-                                     false, tuple_list, &nv));
-    ASSERT_EQ(tuple_list.size(), 1);
-    ASSERT_EQ(tuple_list.size(), nv.size());
-    ASSERT_EQ(status::OK, scan<char>(std::string_view(nullptr, 0), true, std::string_view(nullptr, 0),
-                                     true, tuple_list, &nv));
-    ASSERT_EQ(tuple_list.size(), 0);
-    ASSERT_EQ(status::OK, scan<char>(std::string_view(nullptr, 0), true, std::string_view(k),
-                                     false, tuple_list, &nv));
-    ASSERT_EQ(tuple_list.size(), 1);
-    ASSERT_EQ(tuple_list.size(), nv.size());
-    ASSERT_EQ(std::get<1>(tuple_list.at(0)), v.size());
-    ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(0)), v.data(), v.size()), 0);
-    ASSERT_EQ(status::OK, scan<char>(std::string_view(nullptr, 0), true, std::string_view(k),
-                                     true, tuple_list, &nv));
-    ASSERT_EQ(tuple_list.size(), 0);
-    ASSERT_EQ(tuple_list.size(), nv.size());
-    ASSERT_EQ(status::OK, scan<char>(std::string_view(k), false, std::string_view(nullptr, 0),
-                                     false, tuple_list, &nv));
-    ASSERT_EQ(tuple_list.size(), 1);
-    ASSERT_EQ(tuple_list.size(), nv.size());
-    ASSERT_EQ(std::get<1>(tuple_list.at(0)), v.size());
-    ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(0)), v.data(), v.size()), 0);
-    ASSERT_EQ(status::OK, scan<char>(std::string_view(k), false, std::string_view(nullptr, 0),
-                                     true, tuple_list, &nv));
-    ASSERT_EQ(tuple_list.size(), 1);
-    ASSERT_EQ(tuple_list.size(), nv.size());
-    ASSERT_EQ(std::get<1>(tuple_list.at(0)), v.size());
-    ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(0)), v.data(), v.size()), 0);
-    ASSERT_EQ(status::OK, scan<char>(std::string_view(k), false, std::string_view(k),
-                                     false, tuple_list, &nv));
-    ASSERT_EQ(tuple_list.size(), 1);
-    ASSERT_EQ(tuple_list.size(), nv.size());
-    ASSERT_EQ(std::get<1>(tuple_list.at(0)), v.size());
-    ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(0)), v.data(), v.size()), 0);
-    ASSERT_EQ(status::ERR_BAD_USAGE, scan<char>(std::string_view(k), false, std::string_view(k),
-                                                true, tuple_list, &nv));
-    ASSERT_EQ(status::OK, scan<char>(std::string_view(k), true, std::string_view(nullptr, 0),
-                                     false, tuple_list, &nv));
-    ASSERT_EQ(tuple_list.size(), 0);
-    ASSERT_EQ(tuple_list.size(), nv.size());
-    ASSERT_EQ(status::OK, scan<char>(std::string_view(k), true, std::string_view(nullptr, 0),
-                                     true, tuple_list, &nv));
-    ASSERT_EQ(tuple_list.size(), 0);
-    ASSERT_EQ(tuple_list.size(), nv.size());
-    ASSERT_EQ(status::ERR_BAD_USAGE, scan<char>(std::string_view(k), true, std::string_view(k),
-                                                false, tuple_list, &nv));
-    ASSERT_EQ(status::ERR_BAD_USAGE, scan<char>(std::string_view(k), true, std::string_view(k),
-                                                true, tuple_list, &nv));
+    auto verify = [&tup_lis, &nv, &v]() {
+        if (tup_lis.size() != 1) return false;
+        if (tup_lis.size() != nv.size()) return false;
+        if (std::get<1>(tup_lis.at(0)) != v.size()) return false;
+        if (memcmp(std::get<0>(tup_lis.at(0)), v.data(), v.size()) != 0) return false;
+        return true;
+    };
+    auto verify_no_exist = [&tup_lis, &nv]() {
+        if (tup_lis.size() != 0) return false;
+        if (tup_lis.size() != nv.size()) return false;
+        return true;
+    };
+    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INCLUSIVE, "", scan_endpoint::INCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(true, verify_no_exist());
+    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INF, "", scan_endpoint::INF, tup_lis, &nv));
+    ASSERT_EQ(true, verify());
+    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INF, "", scan_endpoint::INCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(true, verify_no_exist());
+    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INCLUSIVE, "", scan_endpoint::INF, tup_lis, &nv));
+    ASSERT_EQ(true, verify());
     ASSERT_EQ(status::ERR_BAD_USAGE,
-              scan<char>(std::string_view(nullptr, 0), false, std::string_view(nullptr, 1),
-                         false, tuple_list, &nv));
+              scan<char>("", scan_endpoint::EXCLUSIVE, "", scan_endpoint::EXCLUSIVE, tup_lis, &nv));
     ASSERT_EQ(status::ERR_BAD_USAGE,
-              scan<char>(std::string_view(nullptr, 0), false, std::string_view(nullptr, 1),
-                         true, tuple_list, &nv));
+              scan<char>("", scan_endpoint::INCLUSIVE, "", scan_endpoint::EXCLUSIVE, tup_lis, &nv));
     ASSERT_EQ(status::ERR_BAD_USAGE,
-              scan<char>(std::string_view(nullptr, 0), true, std::string_view(nullptr, 1),
-                         false, tuple_list, &nv));
-    ASSERT_EQ(status::ERR_BAD_USAGE,
-              scan<char>(std::string_view(nullptr, 0), true, std::string_view(nullptr, 1),
-                         true, tuple_list, &nv));
-    ASSERT_EQ(status::ERR_BAD_USAGE,
-              scan<char>(std::string_view(nullptr, 1), false, std::string_view(nullptr, 0),
-                         false, tuple_list, &nv));
-    ASSERT_EQ(status::ERR_BAD_USAGE,
-              scan<char>(std::string_view(nullptr, 1), false, std::string_view(nullptr, 0),
-                         true, tuple_list, &nv));
-    ASSERT_EQ(status::ERR_BAD_USAGE,
-              scan<char>(std::string_view(nullptr, 1), true, std::string_view(nullptr, 1),
-                         false, tuple_list, &nv));
-    ASSERT_EQ(status::ERR_BAD_USAGE,
-              scan<char>(std::string_view(nullptr, 1), true, std::string_view(nullptr, 1),
-                         true, tuple_list, &nv));
+              scan<char>("", scan_endpoint::EXCLUSIVE, "", scan_endpoint::INCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(status::ERR_BAD_USAGE, scan<char>("", scan_endpoint::EXCLUSIVE, "", scan_endpoint::INF, tup_lis, &nv));
+    ASSERT_EQ(status::ERR_BAD_USAGE, scan<char>("", scan_endpoint::INF, "", scan_endpoint::EXCLUSIVE, tup_lis, &nv));
     ASSERT_EQ(leave(token), status::OK);
 }
 
+TEST_F(st, scan_against_single_put_null_key_to_one_border) { // NOLINT
+    /**
+     * put one key-value non-null key
+     */
+    std::string k;
+    std::string v("v");
+    Token token{};
+    ASSERT_EQ(enter(token), status::OK);
+    ASSERT_EQ(status::OK, put(std::string_view(k), v.data(), v.size()));
+    std::vector<std::pair<char*, std::size_t>> tup_lis{}; // NOLINT
+    std::vector<std::pair<node_version64_body, node_version64*>> nv;
+    auto verify_exist = [&tup_lis, &nv, &v]() {
+        ASSERT_EQ(tup_lis.size(), 1);
+        ASSERT_EQ(tup_lis.size(), nv.size());
+        ASSERT_EQ(std::get<1>(tup_lis.at(0)), v.size());
+        ASSERT_EQ(memcmp(std::get<0>(tup_lis.at(0)), v.data(), v.size()), 0);
+    };
+    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INF, "", scan_endpoint::INF, tup_lis, &nv));
+    verify_exist();
+    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INCLUSIVE, "", scan_endpoint::INCLUSIVE, tup_lis, &nv));
+    verify_exist();
+    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INF, "", scan_endpoint::INCLUSIVE, tup_lis, &nv));
+    verify_exist();
+    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INCLUSIVE, "", scan_endpoint::INF, tup_lis, &nv));
+    verify_exist();
+    ASSERT_EQ(leave(token), status::OK);
+}
+
+TEST_F(st, scan_against_single_put_non_null_key_to_one_border) { // NOLINT
+    /**
+     * put one key-value non-null key
+     */
+    std::string k("k");
+    std::string v("v");
+    Token token{};
+    ASSERT_EQ(enter(token), status::OK);
+    ASSERT_EQ(status::OK, put(std::string_view(k), v.data(), v.size()));
+    std::vector<std::pair<char*, std::size_t>> tup_lis{}; // NOLINT
+    std::vector<std::pair<node_version64_body, node_version64*>> nv;
+    auto verify_exist = [&tup_lis, &nv, &v]() {
+        if (tup_lis.size() != 1) return false;
+        if (tup_lis.size() != nv.size()) return false;
+        if (std::get<1>(tup_lis.at(0)) != v.size()) return false;
+        if (memcmp(std::get<0>(tup_lis.at(0)), v.data(), v.size()) != 0) return false;
+        return true;
+    };
+    auto verify_no_exist = [&tup_lis, &nv]() {
+        if (tup_lis.size() != 0) return false;
+        if (tup_lis.size() != nv.size()) return false;
+        return true;
+    };
+    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INF, "", scan_endpoint::INF, tup_lis, &nv));
+    ASSERT_EQ(verify_exist(), true);
+    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INCLUSIVE, "", scan_endpoint::INCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(verify_no_exist(), true);
+    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INF, "", scan_endpoint::INCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(verify_no_exist(), true);
+    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INCLUSIVE, "", scan_endpoint::INF, tup_lis, &nv));
+    ASSERT_EQ(verify_exist(), true);
+    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INF, k, scan_endpoint::INF, tup_lis, &nv));
+    ASSERT_EQ(verify_exist(), true);
+    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(verify_exist(), true);
+    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INF, k, scan_endpoint::EXCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(verify_no_exist(), true);
+    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INCLUSIVE, k, scan_endpoint::INF, tup_lis, &nv));
+    ASSERT_EQ(verify_exist(), true);
+    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INCLUSIVE, k, scan_endpoint::EXCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(verify_no_exist(), true);
+    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INCLUSIVE, k, scan_endpoint::INCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(verify_exist(), true);
+    ASSERT_EQ(status::OK, scan<char>(k, scan_endpoint::INF, "", scan_endpoint::INF, tup_lis, &nv));
+    ASSERT_EQ(verify_exist(), true);
+    ASSERT_EQ(status::OK, scan<char>(k, scan_endpoint::INF, "", scan_endpoint::INCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(verify_no_exist(), true);
+    ASSERT_EQ(status::OK, scan<char>(k, scan_endpoint::INF, "", scan_endpoint::EXCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(verify_no_exist(), true);
+    ASSERT_EQ(status::OK, scan<char>(k, scan_endpoint::INCLUSIVE, "", scan_endpoint::INF, tup_lis, &nv));
+    ASSERT_EQ(verify_exist(), true);
+    ASSERT_EQ(status::OK, scan<char>(k, scan_endpoint::INCLUSIVE, "", scan_endpoint::INCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(verify_no_exist(), true);
+    ASSERT_EQ(status::OK, scan<char>(k, scan_endpoint::INCLUSIVE, "", scan_endpoint::EXCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(verify_no_exist(), true);
+    ASSERT_EQ(status::OK, scan<char>(k, scan_endpoint::EXCLUSIVE, "", scan_endpoint::EXCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(verify_no_exist(), true);
+    ASSERT_EQ(status::OK, scan<char>(k, scan_endpoint::EXCLUSIVE, "", scan_endpoint::EXCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(verify_no_exist(), true);
+    ASSERT_EQ(status::OK, scan<char>(k, scan_endpoint::EXCLUSIVE, "", scan_endpoint::EXCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(verify_no_exist(), true);
+    ASSERT_EQ(status::OK, scan<char>(k, scan_endpoint::INF, k, scan_endpoint::INF, tup_lis, &nv));
+    ASSERT_EQ(verify_exist(), true);
+    ASSERT_EQ(status::OK, scan<char>(k, scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(verify_exist(), true);
+    ASSERT_EQ(status::ERR_BAD_USAGE, scan<char>(k, scan_endpoint::INF, k, scan_endpoint::EXCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(status::OK, scan<char>(k, scan_endpoint::INCLUSIVE, k, scan_endpoint::INF, tup_lis, &nv));
+    ASSERT_EQ(verify_exist(), true);
+    ASSERT_EQ(status::OK, scan<char>(k, scan_endpoint::INCLUSIVE, k, scan_endpoint::INCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(verify_exist(), true);
+    ASSERT_EQ(status::ERR_BAD_USAGE,
+              scan<char>(k, scan_endpoint::INCLUSIVE, k, scan_endpoint::EXCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(status::ERR_BAD_USAGE,
+              scan<char>(k, scan_endpoint::EXCLUSIVE, k, scan_endpoint::EXCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(status::ERR_BAD_USAGE,
+              scan<char>(k, scan_endpoint::EXCLUSIVE, k, scan_endpoint::EXCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(status::ERR_BAD_USAGE,
+              scan<char>(k, scan_endpoint::EXCLUSIVE, k, scan_endpoint::EXCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(leave(token), status::OK);
+}
+
+#if 0
 TEST_F(st, test2) { // NOLINT
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
@@ -274,5 +321,6 @@ TEST_F(st, test6) { // NOLINT
     ASSERT_EQ(leave(token), status::OK);
 }
 
+#endif
 } // namespace yakushima
 
