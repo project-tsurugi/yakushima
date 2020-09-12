@@ -26,16 +26,20 @@
   8. delete repeatedly until vanishing the structure which has one interior node having two interior nodes.
   9. test of 8 which is using shuffled data.
 - scan_test.cpp
-  - basic_usage.  
-  - scan_against_single_put_null_key_to_one_border.  
-  - scan_against_single_put_non_null_key_to_one_border.  
-  2. scan against multiple put same null char key whose length is different each other against single border node.
-  3. scan against multiple put same null char key whose length is different each other against multiple border node, 
+  - `basic_usage`
+  - `scan_against_single_put_null_key_to_one_border` 
+  - `scan_against_single_put_non_null_key_to_one_border`  
+  - `scan_multiple_same_null_char_key_1`<br>
+  scan against multiple put same null char key whose length is different each other against single border node.
+  - `scan_multiple_same_null_char_key_2`<br>
+  scan against multiple put same null char key whose length is different each other against multiple border node, 
   which is across some layer.
-  4. scan against the structure which it has interior node as root, and the interior has some border nodes as children.
-  5. scan against the structure which it has interior node as root, root has two interior nodes as children, 
+  - `scan_against_1_interior_some_border`<br>
+  scan against the structure which it has interior node as root, and the interior has some border nodes as children.
+  - `scan_against_1_interior_2_interior_some_border`<br>
+  scan against the structure which it has interior node as root, root has two interior nodes as children, 
   and each of children has some border nodes as children.
-  6. Scan with prefix for 2 layers.
+  - `Scan with prefix for 2 layers`
 - multi_thread_put_test.cpp<br>
 put by multi threads and verify final state by scan.
   1. multiple put same null char key whose length is different each other against single border node.

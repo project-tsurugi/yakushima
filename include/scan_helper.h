@@ -140,7 +140,7 @@ retry:
                 arg_l_key = "";
                 arg_l_end = scan_endpoint::INF;
             } else {
-                key_slice_type l_key_slice{};
+                key_slice_type l_key_slice{0};
                 memcpy(&l_key_slice, l_key.data(),
                        l_key.size() < sizeof(key_slice_type) ? l_key.size() : sizeof(key_slice_type));
                 int ret_cmp = memcmp(&l_key_slice, &ks, sizeof(key_slice_type));
@@ -149,7 +149,11 @@ retry:
                     arg_l_end = scan_endpoint::INF;
                 } else if (ret_cmp == 0) {
                     arg_l_key = l_key;
-                    arg_l_key.remove_prefix(sizeof(key_slice_type));
+                    if (arg_l_key.size() > sizeof(key_slice_type)) {
+                        arg_l_key.remove_prefix(sizeof(key_slice_type));
+                    } else {
+                        arg_l_key = "";
+                    }
                     arg_l_end = l_end;
                 } else {
                     continue;
@@ -170,7 +174,11 @@ retry:
                 }
                 if (ret_cmp == 0) {
                     arg_r_key = r_key;
-                    arg_r_key.remove_prefix(sizeof(key_slice_type));
+                    if (arg_r_key.size() > sizeof(key_slice_type)) {
+                        arg_r_key.remove_prefix(sizeof(key_slice_type));
+                    } else {
+                        arg_r_key = "";
+                    }
                     arg_r_end = r_end;
                 } else {
                     arg_r_key = "";
@@ -215,7 +223,7 @@ retry:
                    r_key.size() < sizeof(key_slice_type) ? r_key.size() : sizeof(key_slice_type));
             int r_cmp = memcmp(&r_key_slice, &ks, sizeof(key_slice_type));
             if (r_cmp > 0 ||
-                (r_cmp == 0 && (r_key.size() < kl || (r_key.size() == kl && r_end == scan_endpoint::INCLUSIVE)))) {
+                (r_cmp == 0 && (r_key.size() > kl || (r_key.size() == kl && r_end == scan_endpoint::INCLUSIVE)))) {
                 in_range();
                 continue;
             }
