@@ -9,8 +9,6 @@
 #include "kvs.h"
 
 using namespace yakushima;
-using std::cout;
-using std::endl;
 
 namespace yakushima::testing {
 
