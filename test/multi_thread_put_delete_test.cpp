@@ -18,7 +18,7 @@ namespace yakushima::testing {
 class mtpdt : public ::testing::Test {
 };
 
-TEST_F(mtpdt, test1) { // NOLINT
+TEST_F(mtpdt, concurrent_put_delete_against_single_border) { // NOLINT
     /**
      * concurrent put/delete same null char key slices and different key length to single border
      * by multi threads.
@@ -52,30 +52,18 @@ TEST_F(mtpdt, test1) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(k, v.data(), v.size());
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = remove(token, k);
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(remove(token, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -88,7 +76,7 @@ TEST_F(mtpdt, test1) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(i, '\0');
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
                 ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
@@ -100,11 +88,10 @@ TEST_F(mtpdt, test1) { // NOLINT
     }
 }
 
-TEST_F(mtpdt, test2) { // NOLINT
+TEST_F(mtpdt, concurrent_put_delete_against_single_border_with_shuffled_data) { // NOLINT
     /**
-     * test1 variant which is the test using shuffle order data.
+     * @a concurrent_put_delete_against_single_border variant which is the test using shuffle order data.
      */
-
     constexpr std::size_t ary_size = 9;
     std::vector<std::pair<std::string, std::string>> kv1; // NOLINT
     std::vector<std::pair<std::string, std::string>> kv2; // NOLINT
@@ -137,30 +124,18 @@ TEST_F(mtpdt, test2) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(k, v.data(), v.size());
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = remove(token, k);
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(remove(token, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -173,7 +148,7 @@ TEST_F(mtpdt, test2) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(i, '\0');
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
                 ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
@@ -185,7 +160,7 @@ TEST_F(mtpdt, test2) { // NOLINT
     }
 }
 
-TEST_F(mtpdt, test3) { // NOLINT
+TEST_F(mtpdt, concurrent_put_delete_key_using_null_char_against_multiple_border) { // NOLINT
     /**
      * multiple put same null char key whose length is different each other against multiple border,
      * which is across some layer.
@@ -222,30 +197,18 @@ TEST_F(mtpdt, test3) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(k, v.data(), v.size());
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = remove(token, k);
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(remove(token, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -258,7 +221,7 @@ TEST_F(mtpdt, test3) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(i, '\0');
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
                 ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
@@ -270,9 +233,9 @@ TEST_F(mtpdt, test3) { // NOLINT
     }
 }
 
-TEST_F(mtpdt, test4) { // NOLINT
+TEST_F(mtpdt, 4_with_shuffled_data) { // NOLINT
     /**
-     * test3 variant which is the test using shuffle order data.
+     * @a concurrent_put_delete_key_using_null_char_against_multiple_border variant which is the test using shuffle order data.
      */
 
     constexpr std::size_t ary_size = 15;
@@ -307,30 +270,18 @@ TEST_F(mtpdt, test4) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(k, v.data(), v.size());
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = remove(token, k);
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(remove(token, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -343,7 +294,7 @@ TEST_F(mtpdt, test4) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(i, '\0');
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
                 ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
@@ -355,11 +306,10 @@ TEST_F(mtpdt, test4) { // NOLINT
     }
 }
 
-TEST_F(mtpdt, test5) { // NOLINT
+TEST_F(mtpdt, concurrent_put_delete_between_none_and_interior) { // NOLINT
     /**
-     * The number of puts that can be split only once and the deletes are repeated in multiple threads.
+     * The number of puts that can be split border only once and the deletes are repeated in multiple threads.
      */
-
     constexpr std::size_t ary_size = base_node::key_slice_length + 1;
     std::vector<std::pair<std::string, std::string>> kv1; // NOLINT
     std::vector<std::pair<std::string, std::string>> kv2; // NOLINT
@@ -389,30 +339,18 @@ TEST_F(mtpdt, test5) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(k, v.data(), v.size());
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = remove(token, k);
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(remove(token, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -425,9 +363,9 @@ TEST_F(mtpdt, test5) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 1; i < ary_size; ++i) {
             std::string k(1, i);
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
-                scan<char>("", false, k, false, tuple_list);
+                scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
             for (std::size_t j = 0; j < i + 1; ++j) {
@@ -441,10 +379,9 @@ TEST_F(mtpdt, test5) { // NOLINT
     }
 }
 
-TEST_F(mtpdt, test5_2) { // NOLINT
+TEST_F(mtpdt, concurrent_put_delete_between_none_and_interior_in_second_layer) { // NOLINT
     /**
-     * The number of puts that can be split only once and the deletes are repeated in multiple threads.
-     * 5_2 : this situations in multiple layer.
+     * The number of puts that can be split only once and the deletes are repeated in multiple threads. This situations in second layer.
      */
 
     constexpr std::size_t ary_size = base_node::key_slice_length + 1;
@@ -512,11 +449,11 @@ TEST_F(mtpdt, test5_2) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 1; i < ary_size; ++i) {
             std::string k = std::string(8, INT8_MAX) + std::string(1, i);
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
-                scan<char>("", false, k, false, tuple_list);
+                scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 if (tuple_list.size() != i + 1) {
-                    scan<char>("", false, k, false, tuple_list);
+                    scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                     ASSERT_EQ(tuple_list.size(), i + 1);
                 }
             }
@@ -531,12 +468,11 @@ TEST_F(mtpdt, test5_2) { // NOLINT
     }
 }
 
-TEST_F(mtpdt, test6) { // NOLINT
+TEST_F(mtpdt, concurrent_put_delete_between_none_and_interior_in_first_layer) { // NOLINT
     /**
      * The number of puts that can be split only once and the deletes are repeated in multiple threads.
      * Use shuffled data.
      */
-
     constexpr std::size_t ary_size = base_node::key_slice_length + 1;
     std::vector<std::pair<std::string, std::string>> kv1; // NOLINT
     std::vector<std::pair<std::string, std::string>> kv2; // NOLINT
@@ -569,30 +505,18 @@ TEST_F(mtpdt, test6) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(k, v.data(), v.size());
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = remove(token, k);
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(remove(token, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -605,9 +529,9 @@ TEST_F(mtpdt, test6) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 1; i < ary_size; ++i) {
             std::string k(1, i);
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
-                scan<char>("", false, k, false, tuple_list);
+                scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
             for (std::size_t j = 0; j < i + 1; ++j) {
@@ -621,9 +545,9 @@ TEST_F(mtpdt, test6) { // NOLINT
     }
 }
 
-TEST_F(mtpdt, test6_2) { // NOLINT
+TEST_F(mtpdt, concurrent_put_delete_between_none_and_interior_in_second_layer_with_shuffle) { // NOLINT
     /**
-     * multiple layer version of test6
+     * The number of puts that can be split only once and the deletes are repeated in multiple threads. Use shuffled data.
      */
 
     constexpr std::size_t ary_size = base_node::key_slice_length + 1;
@@ -658,30 +582,18 @@ TEST_F(mtpdt, test6_2) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(k, v.data(), v.size());
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = remove(token, k);
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(remove(token, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -694,9 +606,9 @@ TEST_F(mtpdt, test6_2) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 1; i < ary_size; ++i) {
             std::string k = std::string(8, INT8_MAX) + std::string(1, i);
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
-                scan<char>("", false, k, false, tuple_list);
+                scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
             for (std::size_t j = 0; j < i + 1; ++j) {
@@ -710,7 +622,7 @@ TEST_F(mtpdt, test6_2) { // NOLINT
     }
 }
 
-TEST_F(mtpdt, test7) { // NOLINT
+TEST_F(mtpdt, concurrent_put_delete_between_none_and_sprit_interior_in_first_layer_with_shuffle) { // NOLINT
     /**
      * concurrent put/delete in the state between none to split of interior, which is using shuffled data.
      */
@@ -747,30 +659,18 @@ TEST_F(mtpdt, test7) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(k, v.data(), v.size());
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = remove(token, k);
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(remove(token, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -784,9 +684,9 @@ TEST_F(mtpdt, test7) { // NOLINT
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k;
             k = std::string(1, i);
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
-                scan<char>("", false, k, false, tuple_list);
+                scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
             for (std::size_t j = 0; j < i + 1; ++j) {
@@ -800,11 +700,10 @@ TEST_F(mtpdt, test7) { // NOLINT
     }
 }
 
-TEST_F(mtpdt, test7_2) { // NOLINT
+TEST_F(mtpdt, concurrent_put_delete_between_none_and_sprit_interior_in_second_layer_with_shuffle) { // NOLINT
     /**
-     * multiple layer version of test 7
+     * concurrent put/delete in the state between none to split of interior, which is using shuffled data.
      */
-
     constexpr std::size_t ary_size = interior_node::child_length * base_node::key_slice_length / 2;
     std::vector<std::pair<std::string, std::string>> kv1; // NOLINT
     std::vector<std::pair<std::string, std::string>> kv2; // NOLINT
@@ -837,30 +736,18 @@ TEST_F(mtpdt, test7_2) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(k, v.data(), v.size());
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = remove(token, k);
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(remove(token, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -874,9 +761,9 @@ TEST_F(mtpdt, test7_2) { // NOLINT
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k;
             k = std::string(8, INT8_MAX) + std::string(1, i);
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
-                scan<char>("", false, k, false, tuple_list);
+                scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
             for (std::size_t j = 0; j < i + 1; ++j) {
@@ -890,6 +777,7 @@ TEST_F(mtpdt, test7_2) { // NOLINT
     }
 }
 
+#if 0
 TEST_F(mtpdt, test8) { // NOLINT
     /**
      * concurrent put/delete in the state between none to many split of interior.
@@ -1207,5 +1095,5 @@ TEST_F(mtpdt, test10) { // NOLINT
         fin();
     }
 }
-
+#endif
 }  // namespace yakushima::testing
