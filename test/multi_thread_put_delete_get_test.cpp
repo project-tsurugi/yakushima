@@ -6,7 +6,6 @@
 #include <array>
 #include <random>
 #include <thread>
-#include <tuple>
 
 #include "gtest/gtest.h"
 
@@ -53,11 +52,7 @@ TEST_F(mtpdgt, test1) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(k, v.data(), v.size());
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
@@ -68,21 +63,13 @@ TEST_F(mtpdgt, test1) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = remove(token, k);
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(remove(token, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -95,7 +82,7 @@ TEST_F(mtpdgt, test1) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(i, '\0');
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
                 ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
@@ -144,11 +131,7 @@ TEST_F(mtpdgt, test2) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(k, v.data(), v.size());
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
@@ -159,21 +142,13 @@ TEST_F(mtpdgt, test2) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = remove(token, k);
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(remove(token, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -186,7 +161,7 @@ TEST_F(mtpdgt, test2) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(i, '\0');
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
                 ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
@@ -235,11 +210,7 @@ TEST_F(mtpdgt, test3) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(k, v.data(), v.size());
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
@@ -250,21 +221,13 @@ TEST_F(mtpdgt, test3) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = remove(token, k);
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(remove(token, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -277,7 +240,7 @@ TEST_F(mtpdgt, test3) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(i, '\0');
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
                 ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
@@ -326,11 +289,7 @@ TEST_F(mtpdgt, test4) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(k, v.data(), v.size());
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
@@ -341,21 +300,13 @@ TEST_F(mtpdgt, test4) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = remove(token, k);
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(remove(token, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -368,7 +319,7 @@ TEST_F(mtpdgt, test4) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(i, '\0');
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
                 ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
@@ -414,11 +365,7 @@ TEST_F(mtpdgt, test5) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(k, v.data(), v.size());
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
@@ -429,21 +376,13 @@ TEST_F(mtpdgt, test5) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = remove(token, k);
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(remove(token, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -456,9 +395,9 @@ TEST_F(mtpdgt, test5) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 1; i < ary_size; ++i) {
             std::string k(1, i);
-            scan<char>("", false, std::string_view(k), false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
-                scan<char>("", false, std::string_view(k), false, tuple_list);
+                scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
             for (std::size_t j = 0; j < i + 1; ++j) {
@@ -510,11 +449,7 @@ TEST_F(mtpdgt, test6) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(k, v.data(), v.size());
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
@@ -525,21 +460,13 @@ TEST_F(mtpdgt, test6) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = remove(token, k);
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(remove(token, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -552,9 +479,9 @@ TEST_F(mtpdgt, test6) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 1; i < ary_size; ++i) {
             std::string k(1, i);
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
-                scan<char>("", false, k, false, tuple_list);
+                scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
             for (std::size_t j = 0; j < i + 1; ++j) {
@@ -615,11 +542,7 @@ TEST_F(mtpdgt, test7) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(k, v.data(), v.size());
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
@@ -630,11 +553,7 @@ TEST_F(mtpdgt, test7) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = remove(token, k);
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(remove(token, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
@@ -662,9 +581,9 @@ TEST_F(mtpdgt, test7) { // NOLINT
             } else {
                 k = std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i);
             }
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
-                scan<char>("", false, k, false, tuple_list);
+                scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
             for (std::size_t j = 0; j < i + 1; ++j) {
@@ -724,12 +643,7 @@ TEST_F(mtpdgt, test8) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(k, v.data(), v.size());
-                        if (ret != status::OK) {
-                            ret = put(k, v.data(), v.size());
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
@@ -744,22 +658,13 @@ TEST_F(mtpdgt, test8) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = remove(token, k);
-                        if (ret != status::OK) {
-                            ret = remove(token, k);
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(remove(token, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -777,9 +682,9 @@ TEST_F(mtpdgt, test8) { // NOLINT
             } else {
                 k = std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX);
             }
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
-                scan<char>("", false, k, false, tuple_list);
+                scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
             for (std::size_t j = 0; j < i + 1; ++j) {
@@ -842,11 +747,7 @@ TEST_F(mtpdgt, test9) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(k, v.data(), v.size());
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
@@ -857,21 +758,13 @@ TEST_F(mtpdgt, test9) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = remove(token, k);
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(remove(token, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(std::string_view(k), v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(std::string_view(k), v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -889,9 +782,9 @@ TEST_F(mtpdgt, test9) { // NOLINT
             } else {
                 k = std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX);
             }
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
-                scan<char>("", false, k, false, tuple_list);
+                scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
             for (std::size_t j = 0; j < i + 1; ++j) {
@@ -955,11 +848,7 @@ TEST_F(mtpdgt, test10) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(k, v.data(), v.size());
-                        if (status::OK != ret) {
-                            ASSERT_EQ(status::OK, ret);
-                            std::abort();
-                        }
+                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
@@ -970,21 +859,13 @@ TEST_F(mtpdgt, test10) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = remove(token, k);
-                        if (status::OK != ret) {
-                            ASSERT_EQ(status::OK, ret);
-                            std::abort();
-                        }
+                        ASSERT_EQ(remove(token, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
-                    if (status::OK != ret) {
-                        ASSERT_EQ(status::OK, ret);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -1002,9 +883,9 @@ TEST_F(mtpdgt, test10) { // NOLINT
             } else {
                 k = std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX);
             }
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
-                scan<char>("", false, k, false, tuple_list);
+                scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
             for (std::size_t j = 0; j < i + 1; ++j) {

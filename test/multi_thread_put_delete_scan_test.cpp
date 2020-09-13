@@ -68,7 +68,8 @@ TEST_F(mtpdst, test1) { // NOLINT
                         left = std::string_view(std::get<0>(kv.front()));
                         right = std::string_view(std::get<0>(kv.back()));
                     }
-                    ASSERT_EQ(status::OK, scan<char>(left, false, right, false, tuple_list));
+                    ASSERT_EQ(status::OK,
+                              scan<char>(left, scan_endpoint::INCLUSIVE, right, scan_endpoint::INCLUSIVE, tuple_list));
                     ASSERT_EQ(tuple_list.size() >= kv.size(), true);
                     std::size_t check_ctr{0};
                     for (auto &&elem : tuple_list) {
@@ -112,7 +113,7 @@ TEST_F(mtpdst, test1) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(i, '\0');
-            scan<char>("", false, std::string_view(k), false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
                 ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
@@ -168,7 +169,7 @@ TEST_F(mtpdst, test2) { // NOLINT
                         }
                     }
                     std::vector<std::pair<char*, std::size_t>> tuple_list; // NOLINT
-                    ASSERT_EQ(status::OK, scan<char>("", false, "", false, tuple_list));
+                    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list));
                     ASSERT_EQ(tuple_list.size() >= kv.size(), true);
                     std::size_t check_ctr{0};
                     for (auto &&elem : tuple_list) {
@@ -212,7 +213,7 @@ TEST_F(mtpdst, test2) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(i, '\0');
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
                 ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
@@ -268,7 +269,7 @@ TEST_F(mtpdst, test3) { // NOLINT
                         }
                     }
                     std::vector<std::pair<char*, std::size_t>> tuple_list; // NOLINT
-                    ASSERT_EQ(status::OK, scan<char>("", false, "", false, tuple_list));
+                    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list));
                     ASSERT_EQ(tuple_list.size() >= kv.size(), true);
                     std::size_t check_ctr{0};
                     for (auto &&elem : tuple_list) {
@@ -312,7 +313,7 @@ TEST_F(mtpdst, test3) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(i, '\0');
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
                 ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
@@ -368,7 +369,7 @@ TEST_F(mtpdst, test4) { // NOLINT
                         }
                     }
                     std::vector<std::pair<char*, std::size_t>> tuple_list; // NOLINT
-                    ASSERT_EQ(status::OK, scan<char>("", false, "", false, tuple_list));
+                    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list));
                     ASSERT_EQ(tuple_list.size() >= kv.size(), true);
                     std::size_t check_ctr{0};
                     for (auto &&elem : tuple_list) {
@@ -412,7 +413,7 @@ TEST_F(mtpdst, test4) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(i, '\0');
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
                 ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
@@ -465,7 +466,7 @@ TEST_F(mtpdst, test5) { // NOLINT
                         }
                     }
                     std::vector<std::pair<char*, std::size_t>> tuple_list; // NOLINT
-                    ASSERT_EQ(status::OK, scan<char>("", false, "", false, tuple_list));
+                    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list));
                     ASSERT_EQ(tuple_list.size() >= kv.size(), true);
                     std::size_t check_ctr{0};
                     for (auto &&elem : tuple_list) {
@@ -510,9 +511,9 @@ TEST_F(mtpdst, test5) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 1; i < ary_size; ++i) {
             std::string k(1, i);
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
-                scan<char>("", false, k, false, tuple_list);
+                scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
             for (std::size_t j = 0; j < i + 1; ++j) {
@@ -571,7 +572,7 @@ TEST_F(mtpdst, test6) { // NOLINT
                         }
                     }
                     std::vector<std::pair<char*, std::size_t>> tuple_list; // NOLINT
-                    ASSERT_EQ(status::OK, scan<char>("", false, "", false, tuple_list));
+                    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list));
                     ASSERT_EQ(tuple_list.size() >= kv.size(), true);
                     std::size_t check_ctr{0};
                     for (auto &&elem : tuple_list) {
@@ -615,9 +616,9 @@ TEST_F(mtpdst, test6) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 1; i < ary_size; ++i) {
             std::string k(1, i);
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
-                scan<char>("", false, k, false, tuple_list);
+                scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
             for (std::size_t j = 0; j < i + 1; ++j) {
@@ -689,7 +690,7 @@ TEST_F(mtpdst, test7) { // NOLINT
                         }
                     }
                     std::vector<std::pair<char*, std::size_t>> tuple_list; // NOLINT
-                    ASSERT_EQ(status::OK, scan<char>("", false, "", false, tuple_list));
+                    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list));
                     ASSERT_EQ(tuple_list.size() >= kv.size(), true);
                     std::size_t check_ctr{0};
                     for (auto &&elem : tuple_list) {
@@ -738,9 +739,9 @@ TEST_F(mtpdst, test7) { // NOLINT
             } else {
                 k = std::string(i / INT8_MAX, static_cast<char>(INT8_MAX)) + std::string(1, i - INT8_MAX);
             }
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
-                scan<char>("", false, k, false, tuple_list);
+                scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
             for (std::size_t j = 0; j < i + 1; ++j) {
@@ -809,7 +810,7 @@ TEST_F(mtpdst, test8) { // NOLINT
                         }
                     }
                     std::vector<std::pair<char*, std::size_t>> tuple_list; // NOLINT
-                    ASSERT_EQ(status::OK, scan<char>("", false, "", false, tuple_list));
+                    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list));
                     ASSERT_EQ(tuple_list.size() >= kv.size(), true);
                     std::size_t check_ctr{0};
                     for (auto &&elem : tuple_list) {
@@ -858,9 +859,9 @@ TEST_F(mtpdst, test8) { // NOLINT
             } else {
                 k = std::string(i / INT8_MAX, static_cast<char>(INT8_MAX)) + std::string(1, i - INT8_MAX);
             }
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
-                scan<char>("", false, k, false, tuple_list);
+                scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
             for (std::size_t j = 0; j < i + 1; ++j) {
@@ -932,7 +933,7 @@ TEST_F(mtpdst, test9) { // NOLINT
                         }
                     }
                     std::vector<std::pair<char*, std::size_t>> tuple_list; // NOLINT
-                    ASSERT_EQ(status::OK, scan<char>("", false, "", false, tuple_list));
+                    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list));
                     ASSERT_EQ(tuple_list.size() >= kv.size(), true);
                     std::size_t check_ctr{0};
                     for (auto &&elem : tuple_list) {
@@ -981,9 +982,9 @@ TEST_F(mtpdst, test9) { // NOLINT
             } else {
                 k = std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX);
             }
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
-                scan<char>("", false, k, false, tuple_list);
+                scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
             for (std::size_t j = 0; j < i + 1; ++j) {
@@ -1054,7 +1055,7 @@ TEST_F(mtpdst, test10) { // NOLINT
                         }
                     }
                     std::vector<std::pair<char*, std::size_t>> tuple_list; // NOLINT
-                    ASSERT_EQ(status::OK, scan<char>("", false, "", false, tuple_list));
+                    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list));
                     ASSERT_EQ(tuple_list.size() >= kv.size(), true);
                     std::size_t check_ctr{0};
                     for (auto &&elem : tuple_list) {
@@ -1103,9 +1104,9 @@ TEST_F(mtpdst, test10) { // NOLINT
             } else {
                 k = std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX);
             }
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
-                scan<char>("", false, k, false, tuple_list);
+                scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
             for (std::size_t j = 0; j < i + 1; ++j) {
