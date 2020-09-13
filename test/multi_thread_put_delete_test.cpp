@@ -777,8 +777,7 @@ TEST_F(mtpdt, concurrent_put_delete_between_none_and_sprit_interior_in_second_la
     }
 }
 
-#if 0
-TEST_F(mtpdt, test8) { // NOLINT
+TEST_F(mtpdt, concurrent_put_delete_between_none_and_many_split_of_interior) { // NOLINT
     /**
      * concurrent put/delete in the state between none to many split of interior.
      */
@@ -824,30 +823,18 @@ TEST_F(mtpdt, test8) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(k, v.data(), v.size());
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = remove(token, k);
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(remove(token, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -865,9 +852,9 @@ TEST_F(mtpdt, test8) { // NOLINT
             } else {
                 k = std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX);
             }
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
-                scan<char>("", false, k, false, tuple_list);
+                scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
             for (std::size_t j = 0; j < i + 1; ++j) {
@@ -881,7 +868,7 @@ TEST_F(mtpdt, test8) { // NOLINT
     }
 }
 
-TEST_F(mtpdt, test9) { // NOLINT
+TEST_F(mtpdt, concurrent_put_delete_between_none_and_many_split_of_interior_with_shuffle) { // NOLINT
     /**
      * concurrent put/delete in the state between none to many split of interior with shuffle.
      */
@@ -930,30 +917,18 @@ TEST_F(mtpdt, test9) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(k, v.data(), v.size());
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = remove(token, k);
-                        if (ret != status::OK) {
-                            ASSERT_EQ(ret, status::OK);
-                            std::abort();
-                        }
+                        ASSERT_EQ(remove(token, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -971,9 +946,9 @@ TEST_F(mtpdt, test9) { // NOLINT
             } else {
                 k = std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX);
             }
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
-                scan<char>("", false, k, false, tuple_list);
+                scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
             for (std::size_t j = 0; j < i + 1; ++j) {
@@ -987,7 +962,7 @@ TEST_F(mtpdt, test9) { // NOLINT
     }
 }
 
-TEST_F(mtpdt, test10) { // NOLINT
+TEST_F(mtpdt, concurrent_put_delete_between_none_and_many_split_of_interior_with_shuffle_in_multi_layer) { // NOLINT
     /**
      * multi-layer put-delete test.
      */
@@ -1080,9 +1055,9 @@ TEST_F(mtpdt, test10) { // NOLINT
             } else {
                 k = std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX);
             }
-            scan<char>("", false, k, false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
-                scan<char>("", false, k, false, tuple_list);
+                scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
             for (std::size_t j = 0; j < i + 1; ++j) {
@@ -1095,5 +1070,5 @@ TEST_F(mtpdt, test10) { // NOLINT
         fin();
     }
 }
-#endif
+
 }  // namespace yakushima::testing
