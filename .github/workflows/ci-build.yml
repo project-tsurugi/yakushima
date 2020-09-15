@@ -28,7 +28,7 @@ jobs:
           cd build
           rm -f CMakeCache.txt
           cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=OFF -DBUILD_DOCUMENTS=OFF -DFORCE_INSTALL_RPATH=ON -DCMAKE_INSTALL_PREFIX=${GITHUB_WORKSPACE}/.local ..
-          cmake --build . --target install --clean-first -- -j8
+          cmake --build . --target install --clean-first -- -j
 
       - id: CMake_Build
         name: CMake_Build
@@ -36,7 +36,7 @@ jobs:
           mkdir build
           cd build
           cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DFORCE_INSTALL_RPATH=ON -DCMAKE_INSTALL_PREFIX=${GITHUB_WORKSPACE}/.local -DPERFORMANCE_TOOLS=ON ..
-          cmake --build . --target all --clean-first -- -j8
+          cmake --build . --target all --clean-first -- -j
 
       - id: CTest
         name: CTest
@@ -46,7 +46,7 @@ jobs:
           ASAN_OPTIONS: detect_stack_use_after_return=true
         run: |
           cd build
-          ctest --verbose --timeout 100
+          ctest --verbose --timeout 100 -j 100
 
       - id: Clang-Tidy
         name: Clang-Tidy
