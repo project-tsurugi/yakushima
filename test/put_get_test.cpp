@@ -130,7 +130,7 @@ TEST_F(kt, test4) { // NOLINT
         for (std::size_t i = 1; i < ary_size; ++i) {
             std::string k(i, '\0');
             ASSERT_EQ(status::OK,
-                      scan<char>("", false, std::string_view(k), false, tuple_list));
+                      scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list));
             ASSERT_EQ(tuple_list.size(), i + 1);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
@@ -141,7 +141,7 @@ TEST_F(kt, test4) { // NOLINT
         for (std::size_t i = ary_size - 1; i < 1; --i) {
             std::string k(i, '\0');
             ASSERT_EQ(status::OK,
-                      scan<char>(k, false, "", false, tuple_list));
+                      scan<char>(k, scan_endpoint::INCLUSIVE, "", scan_endpoint::INF, tuple_list));
             ASSERT_EQ(tuple_list.size(), ary_size - i);
             for (std::size_t j = i; j < ary_size; ++j) {
                 std::string v(std::to_string(j));
@@ -228,7 +228,7 @@ TEST_F(kt, test6) { // NOLINT
         std::vector<std::pair<char*, std::size_t>> tuple_list; // NOLINT
         for (std::size_t i = 1; i < ary_size; ++i) {
             std::string k(i, 'a');
-            ASSERT_EQ(status::OK, scan<char>("", false, k, false, tuple_list));
+            ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list));
             ASSERT_EQ(tuple_list.size(), i + 1);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
@@ -429,7 +429,7 @@ TEST_F(kt, test10) { // NOLINT
         std::sort(kv.begin(), kv.end());
         for (std::size_t i = 0; i <= putctr; ++i) {
             std::vector<std::pair<char*, std::size_t>> tuple_list; // NOLINT
-            scan<char>("", false, std::get<0>(kv[i]), false, tuple_list);
+            scan<char>("", scan_endpoint::INF, std::get<0>(kv[i]), scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
@@ -471,7 +471,7 @@ TEST_F(kt, test12) { // NOLINT
     ASSERT_EQ(status::OK, put(k3, v.data(), v.size()));
     ASSERT_EQ(status::OK, put(k4, v.data(), v.size()));
     std::vector<std::pair<char*, std::size_t>> tuple_list;
-    scan<char>(k, true, k4, true, tuple_list);
+    scan<char>(k, scan_endpoint::EXCLUSIVE, k4, scan_endpoint::EXCLUSIVE, tuple_list);
     ASSERT_EQ(tuple_list.size(), 2);
 }
 }  // namespace yakushima::testing

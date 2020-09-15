@@ -17,7 +17,7 @@ namespace yakushima::testing {
 class mtpt : public ::testing::Test {
 };
 
-TEST_F(mtpt, test1) { // NOLINT
+TEST_F(mtpt, concurrent_put_against_single_border) { // NOLINT
     constexpr std::size_t ary_size = 9;
     std::vector<std::pair<std::string, std::string>> kv1{}; // NOLINT
     std::vector<std::pair<std::string, std::string>> kv2{}; // NOLINT
@@ -45,11 +45,7 @@ TEST_F(mtpt, test1) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(std::string_view(k), v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(std::string_view(k), v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -62,8 +58,7 @@ TEST_F(mtpt, test1) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(i, '\0');
-            scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
-                       tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
                 ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
@@ -74,7 +69,7 @@ TEST_F(mtpt, test1) { // NOLINT
     }
 }
 
-TEST_F(mtpt, test2) { // NOLINT
+TEST_F(mtpt, concurrent_put_against_single_border_with_shuffle) { // NOLINT
 
     constexpr std::size_t ary_size = 9;
     std::vector<std::pair<std::string, std::string>> kv1{}; // NOLINT
@@ -105,11 +100,7 @@ TEST_F(mtpt, test2) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(std::string_view(k), v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(status::OK, ret);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(std::string_view(k), v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -122,8 +113,7 @@ TEST_F(mtpt, test2) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(i, '\0');
-            scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
-                       tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
                 ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
@@ -135,7 +125,7 @@ TEST_F(mtpt, test2) { // NOLINT
     }
 }
 
-TEST_F(mtpt, test3) { // NOLINT
+TEST_F(mtpt, concurrent_put_against_multiple_border_multiple_layer) { // NOLINT
 
     constexpr std::size_t ary_size = 15;
     std::vector<std::pair<std::string, std::string>> kv1{}; // NOLINT
@@ -164,11 +154,7 @@ TEST_F(mtpt, test3) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(std::string_view(k), v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(std::string_view(k), v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -181,8 +167,7 @@ TEST_F(mtpt, test3) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(i, '\0');
-            scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
-                       tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
                 ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
@@ -193,7 +178,7 @@ TEST_F(mtpt, test3) { // NOLINT
     }
 }
 
-TEST_F(mtpt, test4) { // NOLINT
+TEST_F(mtpt, concurrent_put_against_multiple_border_multiple_layer_with_shuffle) { // NOLINT
 
     constexpr std::size_t ary_size = 15;
     std::vector<std::pair<std::string, std::string>> kv1{}; // NOLINT
@@ -224,11 +209,7 @@ TEST_F(mtpt, test4) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(std::string_view(k), v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(std::string_view(k), v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -241,8 +222,7 @@ TEST_F(mtpt, test4) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(i, '\0');
-            scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
-                       tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
                 ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
@@ -253,7 +233,7 @@ TEST_F(mtpt, test4) { // NOLINT
     }
 }
 
-TEST_F(mtpt, test5) { // NOLINT
+TEST_F(mtpt, concurrent_put_untill_first_split_border) { // NOLINT
 
     constexpr std::size_t ary_size = base_node::key_slice_length + 1;
     std::vector<std::pair<std::string, std::string>> kv1{}; // NOLINT
@@ -282,11 +262,7 @@ TEST_F(mtpt, test5) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(std::string_view(k), v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(std::string_view(k), v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -299,8 +275,7 @@ TEST_F(mtpt, test5) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(1, 'a' + i);
-            scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
-                       tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
                 ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
@@ -311,7 +286,7 @@ TEST_F(mtpt, test5) { // NOLINT
     }
 }
 
-TEST_F(mtpt, test6) { // NOLINT
+TEST_F(mtpt, concurrent_put_untill_first_split_border_with_shuffle) { // NOLINT
 
     constexpr std::size_t ary_size = base_node::key_slice_length + 1;
     std::vector<std::pair<std::string, std::string>> kv1{}; // NOLINT
@@ -342,11 +317,7 @@ TEST_F(mtpt, test6) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(std::string_view(k), v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(std::string_view(k), v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -359,8 +330,7 @@ TEST_F(mtpt, test6) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(1, 'a' + i);
-            scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
-                       tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
                 ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
@@ -371,7 +341,7 @@ TEST_F(mtpt, test6) { // NOLINT
     }
 }
 
-TEST_F(mtpt, test7) { // NOLINT
+TEST_F(mtpt, concurrent_put_many_split_border) { // NOLINT
 
     constexpr std::size_t ary_size = 100;
     std::vector<std::pair<std::string, std::string>> kv1{}; // NOLINT
@@ -400,11 +370,7 @@ TEST_F(mtpt, test7) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(std::string_view(k), v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(std::string_view(k), v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -417,8 +383,7 @@ TEST_F(mtpt, test7) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(1, i);
-            scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
-                       tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
                 EXPECT_EQ(tuple_list.size(), i + 1);
             }
@@ -433,9 +398,8 @@ TEST_F(mtpt, test7) { // NOLINT
     }
 }
 
-TEST_F(mtpt, test8) { // NOLINT
-
-    constexpr std::size_t ary_size = 100;
+TEST_F(mtpt, concurrent_put_many_split_border_with_shuffle) { // NOLINT
+    constexpr std::size_t ary_size{100};
     std::vector<std::pair<std::string, std::string>> kv1{}; // NOLINT
     std::vector<std::pair<std::string, std::string>> kv2{}; // NOLINT
     for (std::size_t i = 0; i < ary_size / 2; ++i) {
@@ -465,11 +429,7 @@ TEST_F(mtpt, test8) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(std::string_view(k), v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(std::string_view(k), v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -482,8 +442,7 @@ TEST_F(mtpt, test8) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(1, i);
-            scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
-                       tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
                 EXPECT_EQ(tuple_list.size(), i + 1);
             }
@@ -498,9 +457,8 @@ TEST_F(mtpt, test8) { // NOLINT
     }
 }
 
-TEST_F(mtpt, test9) { // NOLINT
-
-    std::size_t ary_size = 241;
+TEST_F(mtpt, concurrent_put_untill_first_split_interior) { // NOLINT
+    constexpr std::size_t ary_size{241}; // value fanout 15 * node fanout 16 + 1
     std::vector<std::pair<std::string, std::string>> kv1{}; // NOLINT
     std::vector<std::pair<std::string, std::string>> kv2{}; // NOLINT
     for (std::size_t i = 0; i < ary_size / 2; ++i) {
@@ -544,8 +502,7 @@ TEST_F(mtpt, test9) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(1, i);
-            scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false,
-                       tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             ASSERT_EQ(tuple_list.size(), i + 1);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
@@ -557,7 +514,7 @@ TEST_F(mtpt, test9) { // NOLINT
     }
 }
 
-TEST_F(mtpt, test10) { // NOLINT
+TEST_F(mtpt, concurrent_put_untill_first_split_interior_with_shuffle) { // NOLINT
 
     std::size_t ary_size = 241;
     std::vector<std::pair<std::string, std::string>> kv1{}; // NOLINT
@@ -589,11 +546,7 @@ TEST_F(mtpt, test10) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(std::string_view(k), v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(std::string_view(k), v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -606,7 +559,7 @@ TEST_F(mtpt, test10) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(1, i);
-            scan<char>(std::string_view(nullptr, 0), false, std::string_view(k), false, tuple_list);
+            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
