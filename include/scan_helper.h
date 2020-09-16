@@ -17,7 +17,8 @@ template<class ValueType>
 static status scan_border(border_node** target, std::string_view l_key, scan_endpoint l_end, std::string_view r_key,
                           scan_endpoint r_end, std::vector<std::pair<ValueType*, std::size_t>> &tuple_list,
                           node_version64_body &v_at_fetch_lv,
-                          std::vector<std::pair<node_version64_body, node_version64*>>* node_version_vec);
+                          std::vector<std::pair<node_version64_body, node_version64*>>* node_version_vec,
+                          const std::string &key_prefix);
 
 template<class ValueType>
 status scan_check_retry(border_node* const bn, node_version64_body &v_at_fetch_lv,
@@ -53,7 +54,8 @@ template<class ValueType>
 static status
 scan(base_node* const root, const std::string_view l_key, const scan_endpoint l_end, const std::string_view r_key,
      const scan_endpoint r_end, std::vector<std::pair<ValueType*, std::size_t>> &tuple_list,
-     std::vector<std::pair<node_version64_body, node_version64*>>* const node_version_vec) {
+     std::vector<std::pair<node_version64_body, node_version64*>>* const node_version_vec,
+     const std::string &key_prefix) {
 retry:
     if (root->get_version_deleted() || !root->get_version_root()) {
         return status::OK_RETRY_FROM_ROOT;
@@ -64,15 +66,13 @@ retry:
     constexpr std::size_t tuple_v_index = 1;
     status check_status;
     key_slice_type ks{0};
-    key_length_type kl; // NOLINT
+    key_length_type kl = l_key.size(); // NOLINT
     if (l_key.size() > sizeof(key_slice_type)) {
         memcpy(&ks, l_key.data(), sizeof(key_slice_type));
-        kl = sizeof(key_slice_type);
     } else {
         if (!l_key.empty()) {
             memcpy(&ks, l_key.data(), l_key.size());
         }
-        kl = static_cast<key_length_type>(l_key.size());
     }
     node_and_v = find_border(root, ks, kl, check_status);
     if (check_status == status::WARN_RETRY_FROM_ROOT_OF_ALL) {
@@ -83,7 +83,7 @@ retry:
 
     for (;;) {
         check_status = scan_border<ValueType>(&bn, l_key, l_end, r_key, r_end, tuple_list, check_v,
-                                              node_version_vec);
+                                              node_version_vec, key_prefix);
         if (check_status == status::OK_SCAN_END) {
             return status::OK;
         }
@@ -111,7 +111,8 @@ static status scan_border(border_node** const target, const std::string_view l_k
                           const std::string_view r_key, const scan_endpoint r_end,
                           std::vector<std::pair<ValueType*, std::size_t>> &tuple_list,
                           node_version64_body &v_at_fetch_lv,
-                          std::vector<std::pair<node_version64_body, node_version64*>>* const node_version_vec) {
+                          std::vector<std::pair<node_version64_body, node_version64*>>* const node_version_vec,
+                          const std::string &key_prefix) {
 retry:
     std::size_t tuple_pushed_num{0};
     border_node* bn = *target;
@@ -121,6 +122,11 @@ retry:
         std::size_t index = perm.get_index_of_rank(i);
         key_slice_type ks = bn->get_key_slice_at(index);
         key_length_type kl = bn->get_key_length_at(index);
+        std::string full_key{key_prefix};
+        if (kl > 0) {
+            full_key.append(reinterpret_cast<char*>(&ks), // NOLINT
+                            kl < sizeof(key_slice_type) ? kl : sizeof(key_slice_type));
+        }
         link_or_value* lv = bn->get_lv_at(index);
         void* vp = lv->get_v_or_vp_();
         std::size_t vsize = lv->get_value_length();
@@ -165,27 +171,24 @@ retry:
                 arg_r_key = "";
                 arg_r_end = scan_endpoint::INF;
             } else {
-                key_slice_type r_key_slice{};
-                memcpy(&r_key_slice, r_key.data(),
-                       r_key.size() < sizeof(key_slice_type) ? r_key.size() : sizeof(key_slice_type));
-                int ret_cmp = memcmp(&r_key_slice, &ks, sizeof(key_slice_type));
+                int ret_cmp = memcmp(r_key.data(), full_key.data(),
+                                     r_key.size() < full_key.size() ? r_key.size() : full_key.size());
                 if (ret_cmp < 0) {
                     return status::OK_SCAN_END;
                 }
                 if (ret_cmp == 0) {
-                    arg_r_key = r_key;
-                    if (arg_r_key.size() > sizeof(key_slice_type)) {
-                        arg_r_key.remove_prefix(sizeof(key_slice_type));
-                    } else {
-                        arg_r_key = "";
+                    if (r_key.size() <= full_key.size()) {
+                        return status::OK_SCAN_END;
                     }
+                    arg_r_key = r_key;
                     arg_r_end = r_end;
                 } else {
                     arg_r_key = "";
                     arg_r_end = scan_endpoint::INF;
                 }
             }
-            check_status = scan(next_layer, arg_l_key, arg_l_end, arg_r_key, arg_r_end, tuple_list, node_version_vec);
+            check_status = scan(next_layer, arg_l_key, arg_l_end, arg_r_key, arg_r_end, tuple_list, node_version_vec,
+                                std::move(full_key));
             if (check_status != status::OK) {
                 goto retry; // NOLINT
             }
@@ -204,9 +207,11 @@ retry:
             }
             // not all range
             if (l_end != scan_endpoint::INF) {
-                key_slice_type l_key_slice{};
-                memcpy(&l_key_slice, l_key.data(),
-                       l_key.size() < sizeof(key_slice_type) ? l_key.size() : sizeof(key_slice_type));
+                key_slice_type l_key_slice{0};
+                if (!l_key.empty()) {
+                    memcpy(&l_key_slice, l_key.data(),
+                           l_key.size() < sizeof(key_slice_type) ? l_key.size() : sizeof(key_slice_type));
+                }
                 int l_cmp = memcmp(&l_key_slice, &ks, sizeof(key_slice_type));
                 if (l_cmp > 0 ||
                     (l_cmp == 0 && (l_key.size() > kl || (l_key.size() == kl && l_end == scan_endpoint::EXCLUSIVE)))) {
@@ -218,12 +223,11 @@ retry:
                 in_range();
                 continue;
             }
-            key_slice_type r_key_slice{};
-            memcpy(&r_key_slice, r_key.data(),
-                   r_key.size() < sizeof(key_slice_type) ? r_key.size() : sizeof(key_slice_type));
-            int r_cmp = memcmp(&r_key_slice, &ks, sizeof(key_slice_type));
+            int r_cmp = memcmp(r_key.data(), full_key.data(),
+                               r_key.size() < full_key.size() ? r_key.size() : full_key.size());
             if (r_cmp > 0 ||
-                (r_cmp == 0 && (r_key.size() > kl || (r_key.size() == kl && r_end == scan_endpoint::INCLUSIVE)))) {
+                (r_cmp == 0 && (r_key.size() > full_key.size() ||
+                                (r_key.size() == full_key.size() && r_end == scan_endpoint::INCLUSIVE)))) {
                 in_range();
                 continue;
             }

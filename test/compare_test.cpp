@@ -19,6 +19,17 @@ TEST_F(ct, compareBool) { // NOLINT
     ASSERT_EQ(false < true, true);
 }
 
+TEST_F(ct, string_length) { // NOLINT
+    std::string k{""};
+    ASSERT_EQ(k.empty(), true);
+}
+
+TEST_F(ct, memcmp) {  // NOLINT
+    std::string k1;
+    std::string k2;
+    ASSERT_EQ(memcmp(k1.data(), k2.data(), 0), 0);
+}
+
 TEST_F(ct, compareData) { // NOLINT
     std::string s1("aac");                        // NOLINT
     std::string s2("b");                          // NOLINT

@@ -506,6 +506,7 @@ scan(std::string_view l_key, scan_endpoint l_end, std::string_view r_key, scan_e
         node_version_vec->clear();
     }
 retry_from_root:
+    std::string key_prefix;
     base_node* root = base_node::get_root_ptr();
     if (root == nullptr) {
         return status::OK_ROOT_IS_NULL;
@@ -543,9 +544,11 @@ retry_fetch_lv:
     node_version64_body v_at_fetch_lv{};
     std::size_t lv_pos{0};
     link_or_value* lv_ptr = target_border->get_lv_of(key_slice, key_slice_length, v_at_fetch_lv, lv_pos);
+    [[maybe_unused]] std::size_t ks{0}; // NOLINT
     [[maybe_unused]] std::size_t kl{0}; // NOLINT
     [[maybe_unused]] base_node* next_layer{nullptr}; // NOLINT
     if (lv_ptr != nullptr) {
+        ks = target_border->get_key_slice_at(lv_pos);
         kl = target_border->get_key_length_at(lv_pos);
         next_layer = lv_ptr->get_next_layer();
     }
@@ -557,13 +560,14 @@ retry_fetch_lv:
     if (lv_ptr != nullptr &&
         kl > sizeof(key_slice_type)) {
         traverse_key_view.remove_prefix(sizeof(key_slice_type));
+        key_prefix.append(reinterpret_cast<char*>(&ks), sizeof(key_slice_type)); // NOLINT
         root = next_layer;
         goto retry_find_border; // NOLINT
     }
     // here, it decides to scan from this nodes.
     for (;;) {
         check_status = scan_border<ValueType>(&target_border, traverse_key_view, l_end, r_key, r_end,
-                                              tuple_list, v_at_fetch_lv, node_version_vec);
+                                              tuple_list, v_at_fetch_lv, node_version_vec, key_prefix);
         if (check_status == status::OK_SCAN_END) {
             return status::OK;
         }

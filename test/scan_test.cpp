@@ -77,19 +77,20 @@ TEST_F(st, scan_against_single_put_null_key_to_one_border) { // NOLINT
     std::vector<std::pair<char*, std::size_t>> tup_lis{}; // NOLINT
     std::vector<std::pair<node_version64_body, node_version64*>> nv;
     auto verify_exist = [&tup_lis, &nv, &v]() {
-        ASSERT_EQ(tup_lis.size(), 1);
-        ASSERT_EQ(tup_lis.size(), nv.size());
-        ASSERT_EQ(std::get<1>(tup_lis.at(0)), v.size());
-        ASSERT_EQ(memcmp(std::get<0>(tup_lis.at(0)), v.data(), v.size()), 0);
+        if (tup_lis.size() != 1) return false;
+        if (tup_lis.size() != nv.size()) return false;
+        if (std::get<1>(tup_lis.at(0)) != v.size())return false;
+        if (memcmp(std::get<0>(tup_lis.at(0)), v.data(), v.size()) != 0)return false;
+        return true;
     };
     ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INF, "", scan_endpoint::INF, tup_lis, &nv));
-    verify_exist();
+    ASSERT_EQ(verify_exist(), true);
     ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INCLUSIVE, "", scan_endpoint::INCLUSIVE, tup_lis, &nv));
-    verify_exist();
+    ASSERT_EQ(verify_exist(), true);
     ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INF, "", scan_endpoint::INCLUSIVE, tup_lis, &nv));
-    verify_exist();
+    ASSERT_EQ(verify_exist(), true);
     ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INCLUSIVE, "", scan_endpoint::INF, tup_lis, &nv));
-    verify_exist();
+    ASSERT_EQ(verify_exist(), true);
     ASSERT_EQ(leave(token), status::OK);
 }
 
@@ -329,5 +330,30 @@ TEST_F(st, scan_with_prefix_for_2_layers) { // NOLINT
     ASSERT_EQ(leave(token), status::OK);
 }
 
+TEST_F(st, scan_with_prefix_for_2_layers_2) { // NOLINT
+    std::string r1("T200\x00\x80\x00\x00\xc7\x80\x00\x01\x91\x80\x00\x01\x2d\x80\x00\x00\x01", 21); // NOLINT
+    std::string r2("T200\x00\x80\x00\x00\xc8\x80\x00\x01\x92\x80\x00\x01\x2e\x80\x00\x00\x02",
+                   21);                 // NOLINT
+    std::string be("T200\x00\x80\x00\x00\xc8\x80\x00\x01\x93", 13);                 // NOLINT
+    std::string r3("T200\x00\x80\x00\x00\xc8\x80\x00\x01\x93\x80\x00\x01\x2f\x80\x00\x00\x03",
+                   21);                 // NOLINT
+    std::string en("T200\x00\x80\x00\x00\xc8\x80\x00\x01\x94", 13); // NOLINT
+    std::string r4("T200\x00\x80\x00\x00\xc8\x80\x00\x01\x94\x80\x00\x01\x30\x80\x00\x00\x04",
+                   21);                 // NOLINT
+    std::string r5("T200\x00\x80\x00\x00\xc9\x80\x00\x01\x95\x80\x00\x01\x31\x80\x00\x00\x05",
+                   21);                 // NOLINT
+    std::string v("bbb");  // NOLINT
+    Token token{};
+    ASSERT_EQ(enter(token), status::OK);
+    ASSERT_EQ(put(r1, v.data(), v.size()), status::OK);
+    ASSERT_EQ(put(r2, v.data(), v.size()), status::OK);
+    ASSERT_EQ(put(r3, v.data(), v.size()), status::OK);
+    ASSERT_EQ(put(r4, v.data(), v.size()), status::OK);
+    ASSERT_EQ(put(r5, v.data(), v.size()), status::OK);
+    std::vector<std::pair<char*, std::size_t>> tuple_list{};
+    ASSERT_EQ(status::OK, scan(be, scan_endpoint::INCLUSIVE, en, scan_endpoint::EXCLUSIVE, tuple_list));
+    ASSERT_EQ(tuple_list.size(), 1);
+    ASSERT_EQ(leave(token), status::OK);
+}
 } // namespace yakushima
 
