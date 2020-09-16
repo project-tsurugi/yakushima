@@ -20,7 +20,7 @@ TEST_F(ct, compareBool) { // NOLINT
 }
 
 TEST_F(ct, string_length) { // NOLINT
-    std::string k{""};
+    std::string k;
     ASSERT_EQ(k.empty(), true);
 }
 
