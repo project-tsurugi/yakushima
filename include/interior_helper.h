@@ -94,7 +94,13 @@ interior_split(interior_node* const interior, base_node* const child_node, const
         std::abort();
     }
 #endif
-    int ret_memcmp = memcmp(&key_slice, &pivot_key, key_length < pivot_length ? key_length : pivot_length);
+    std::size_t comp_length{0};
+    if (key_length > sizeof(key_slice_type) && pivot_length > sizeof(key_slice_type)) {
+        comp_length = 8;
+    } else {
+        comp_length = key_length < pivot_length ? key_length : pivot_length;
+    }
+    int ret_memcmp = memcmp(&key_slice, &pivot_key, comp_length);
     if (ret_memcmp < 0 || (ret_memcmp == 0 && key_length < pivot_length)) {
         child_node->set_parent(interior);
         interior->template insert<border_node>(child_node, inserting_key);
