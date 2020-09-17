@@ -188,8 +188,13 @@ public:
         key_length_type key_length{pivot_key.second};
         n_keys_body_type n_key = get_n_keys();
         for (auto i = 0; i < n_key; ++i) {
-            int ret_memcmp = memcmp(&key_slice, &get_key_slice_ref().at(i),
-                                    key_length < get_key_length_at(i) ? key_length : get_key_length_at(i));
+            std::size_t comp_length{0};
+            if (key_length > sizeof(key_slice_type) && get_key_length_at(i) > sizeof(key_slice_type)) {
+                comp_length = 8;
+            } else {
+                comp_length = key_length < get_key_length_at(i) ? key_length : get_key_length_at(i);
+            }
+            int ret_memcmp = memcmp(&key_slice, &get_key_slice_ref().at(i), comp_length);
             if (ret_memcmp < 0 || (ret_memcmp == 0 && key_length < get_key_length_at(i))) {
                 if (i == 0) { // insert to child[0] or child[1].
                     shift_right_base_member(i, 1);
