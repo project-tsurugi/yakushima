@@ -4,21 +4,24 @@ on: [push, pull_request]
 
 jobs:
   Build:
-    runs-on: [self-hosted, oltp]
+    runs-on: [self-hosted, docker]
     timeout-minutes: 30
+    container:
+      image:  ghcr.io/project-tsurugi/oltp-sandbox:latest
+      credentials:
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GHCR_PAT }}
+    defaults:
+      run:
+        shell: bash
 
     steps:
-      - id: Begin
-        name: Begin
-        run: |
-          echo "Begin ${GITHUB_WORKFLOW}/${GITHUB_JOB} hostname:$(hostname)"
-
       - id: Checkout
         name: Checkout
         uses: actions/checkout@v2
         with:
           submodules: recursive
-          ssh-key: ${{ secrets.SSH_KEY }}
+          token: ${{ secrets.GHA_PAT }}
 
       - id: Install_sandbox-performance-tools
         name: Install_sandbox-performance-tools
@@ -63,15 +66,12 @@ jobs:
         name: Generate_Annotations
         uses: ./.github/actions/tsurugi-annotations-action
         if: always()
-        with:
-          access-token: ${{ secrets.GITHUB_TOKEN }}
 
       - id: Notify_Slack
         name: Notify_Slack
         uses: ./.github/actions/tsurugi-slack-action
         if: always() && (contains(github.ref, '/tags/') || contains(github.ref, '/pull/') || contains(github.ref, '/heads/master'))
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           kind: 'job-result'
