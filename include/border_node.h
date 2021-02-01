@@ -323,6 +323,7 @@ retry_prev_lock:
         init_border();
         set_version_root(root);
         set_version_border(true);
+        get_version_ptr()->atomic_inc_vinsert();
         insert_lv_at(0, key_view, value_ptr, reinterpret_cast<void**>(created_value_ptr), arg_value_length, // NOLINT
                      value_align);
     }

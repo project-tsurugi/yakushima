@@ -34,7 +34,10 @@ TEST_F(kt, test1) { // NOLINT
     std::string v("v-a");
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
-    ASSERT_EQ(status::OK, put(k, v.data(), v.size()));
+    node_version64* nvp{};
+    ASSERT_EQ(status::OK, put(k, v.data(), v.size(), (char**) nullptr, (value_align_type) sizeof(char), &nvp));
+    ASSERT_EQ(nvp->get_vsplit(), 0);
+    ASSERT_EQ(nvp->get_vinsert_delete(), 1);
     base_node* root = base_node::get_root_ptr(); // this is border node.
     ASSERT_NE(root, nullptr);
     key_slice_type lvalue_key_slice = root->get_key_slice_at(0);
@@ -80,7 +83,10 @@ TEST_F(kt, test3) { // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
         k.at(i).assign(i, '\0');
         v.at(i) = std::to_string(i);
-        ASSERT_EQ(status::OK, put(std::string_view(k.at(i)), v.at(i).data(), v.at(i).size()));
+        node_version64* nvp{};
+        ASSERT_EQ(status::OK, put(std::string_view(k.at(i)), v.at(i).data(), v.at(i).size(), (char**) nullptr,
+                                  (value_align_type) sizeof(char), &nvp));
+        ASSERT_EQ(nvp->get_vinsert_delete(), i + 1);
         auto* br = dynamic_cast<border_node*>(base_node::get_root_ptr());
         /**
          * There are 9 key which has the same slice and the different length.

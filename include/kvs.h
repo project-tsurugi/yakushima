@@ -183,6 +183,8 @@ retry_fetch_lv:
  * @param[out] created_value_ptr The pointer to created value in yakushima.
  * @param[in] arg_value_length The length of value object.
  * @param[in] value_align The alignment information of value object.
+ * @param[out] inserted_node_version_ptr The pointer to version of the inserted node. It may be used to find out
+ * difference of the version between some operations.
  * @return status::OK success.
  * @return status::WARN_UNIQUE_RESTRICTION The key-value whose key is same to given key already exists.
  */
@@ -190,7 +192,14 @@ template<class ValueType>
 [[maybe_unused]] static status
 put(std::string_view key_view, ValueType* value, std::size_t arg_value_length = sizeof(ValueType),
     ValueType** created_value_ptr = nullptr,
-    value_align_type value_align = static_cast<value_align_type>(alignof(ValueType))) {
+    value_align_type value_align = static_cast<value_align_type>(alignof(ValueType)),
+    node_version64** inserted_node_version_ptr = nullptr) {
+    if (inserted_node_version_ptr != nullptr) {
+        /**
+         * TODO : remove. This sentence is because if it forget to assign to this variable, it will cause segv with a reference to this variable.
+         */
+        *inserted_node_version_ptr = nullptr;
+    }
 root_nullptr:
     base_node* expected = base_node::get_root_ptr();
     if (expected == nullptr) {
@@ -200,6 +209,9 @@ root_nullptr:
         border_node* new_border = new border_node(); // NOLINT
         new_border->init_border(key_view, value, created_value_ptr, true, arg_value_length, value_align);
         for (;;) {
+            if (inserted_node_version_ptr != nullptr) {
+                *inserted_node_version_ptr = new_border->get_version_ptr();
+            }
             if (base_node::get_root().compare_exchange_weak(expected, new_border,
                                                             std::memory_order_acq_rel, std::memory_order_acquire)) {
                 return status::OK;
@@ -286,13 +298,14 @@ retry_fetch_lv:
             /**
              * next_layers may be wrong. However, when it rechecks the next_layers, it can't get the lock down,
              * so it have to try again.
+             * TODO : It can scan (its permutation) again and insert into this border node if it don't have the same key.
              */
             target_border->version_unlock();
             goto retry_fetch_lv; // NOLINT
         }
         insert_lv<interior_node, border_node>(target_border, traverse_key_view, value,
                                               reinterpret_cast<void**>(created_value_ptr), arg_value_length,  // NOLINT
-                                              value_align);
+                                              value_align, inserted_node_version_ptr);
         return status::OK;
     }
 
