@@ -57,6 +57,9 @@ You can use one sanitizer from
 ctest -V
 ```
 
+### How to use
+See [how_to_use.md](./docs/how_to_use.md) for details on how to use.
+
 ### generate documents
 
 ```sh
