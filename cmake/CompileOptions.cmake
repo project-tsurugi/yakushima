@@ -5,12 +5,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -fno-omit-frame-pointer")
 
-if (ENABLE_JEMALLOC)
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DENABLE_JEMALLOC")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DENABLE_JEMALLOC")
-  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DENABLE_JEMALLOC")
-endif ()
-
 set(sanitizers "address")
 if (ENABLE_UB_SANITIZER)
   set(sanitizers "${sanitizers},undefined")
@@ -36,6 +30,10 @@ endif ()
 add_definitions(-D YAKUSHIMA_EPOCH_TIME=40)
 add_definitions(-D YAKUSHIMA_MAX_PARALLEL_SESSIONS=250)
 add_definitions(-D YAKUSHIMA_LINUX)
+
+if (ENABLE_JEMALLOC)
+  add_definitions(-D ENABLE_JEMALLOC)
+endif ()
 
 function(set_compile_options target_name)
   target_compile_options(${target_name}

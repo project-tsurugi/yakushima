@@ -38,10 +38,9 @@ default : `OFF`
   default : `ON`
   * `-DENABLE_COVERAGE=ON` : enable code coverage analysis (requires `-DCMAKE_BUILD_TYPE=Debug`)<br>
   default : `OFF`
-* for bench/malloc.cc
-  * `-DENABLE_JEMALLOC=ON` : enable jemalloc as memory allocator.<br>
-  default : `OFF`
 * for bench
+  * `-DENABLE_JEMALLOC=ON` : enable including jemalloc header for using as memory allocator via ld_preload.<br>
+  default : `OFF`
   * `-DPERFORMANCE_TOOLS=ON` : enable tooling to measure benchmark performance.<br>
   default : `OFF`
 

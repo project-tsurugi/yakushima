@@ -4,7 +4,7 @@ Benchmarking of yakushima and malloc.
 ## Preparation
 Please do release-build. 
 If you do benchmarking of yakushima, 
-you should also build some high performance memory allocator (ex. jemalloc) to avoid contentions against heap.
+you should also build some high performance memory allocator (ex. jemalloc) to avoid contentions against heap memory.
 
 ```
 cd [/path/to/project_root]
@@ -21,7 +21,9 @@ LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima
 LD_PRELOAD=[/path/to/some memory allocator lib] ./malloc
 ```
 
-yakushima : Available options
+### note : If you don't use a high performance memory allocator, heap memory contention may result in poor performance.
+
+## yakushima : Available options
 - `-duration`
   - This is experimental time [seconds].
   - default : `3`
@@ -44,7 +46,7 @@ yakushima : Available options
   - Please set very small size if you want to check sharpness of parallel logic. Otherwise, if you want to check 
   the realistic performance, you should set appropriate size.
 
-malloc : Available options
+## malloc : Available options
 - `-alloc_size`
   - Memory allocation size for bench.
   - default : `4`
