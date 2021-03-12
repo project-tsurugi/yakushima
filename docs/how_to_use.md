@@ -34,6 +34,8 @@ int main() {
 }
 ```
 
+![Overview](./pic/Overview.pdf)
+
 For other usage, refer to the test file in the [test directory](./../test).
 
 TODO : Add sentences as needed due to the current task priority.
