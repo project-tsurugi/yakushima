@@ -355,5 +355,50 @@ TEST_F(st, scan_with_prefix_for_2_layers_2) { // NOLINT
     ASSERT_EQ(tuple_list.size(), 1);
     ASSERT_EQ(leave(token), status::OK);
 }
+
+TEST_F(st, scan_with_same_prefix_25char) { // NOLINT
+    std::string r1(
+            "CUSTOMER0\x00\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00\x00\x00\x00\x00\x01", // NOLINT
+            34);                 // NOLINT
+    std::string r2(
+            "CUSTOMER0\x00\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00\x00\x00\x00\x00\x02", // NOLINT
+            34);                 // NOLINT
+    std::string r3(
+            "CUSTOMER0\x00\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00\x00\x00\x00\x00\x03", // NOLINT
+            34);                 // NOLINT
+    std::string r4(
+            "CUSTOMER0\x00\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00\x00\x00\x00\x00\x02\x80\x00\x00\x00\x00\x00\x00\x01", // NOLINT
+            34);                 // NOLINT
+    std::string r5(
+            "CUSTOMER0\x00\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00\x00\x00\x00\x00\x02\x80\x00\x00\x00\x00\x00\x00\x02", // NOLINT
+            34);                 // NOLINT
+    std::string r6(
+            "CUSTOMER0\x00\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00\x00\x00\x00\x00\x02\x80\x00\x00\x00\x00\x00\x00\x03", // NOLINT
+            34);                 // NOLINT
+    std::string v("bbb");  // NOLINT
+    Token token{};
+    ASSERT_EQ(enter(token), status::OK);
+    ASSERT_EQ(put(r1, v.data(), v.size()), status::OK);
+    ASSERT_EQ(put(r2, v.data(), v.size()), status::OK);
+    ASSERT_EQ(put(r3, v.data(), v.size()), status::OK);
+    ASSERT_EQ(put(r4, v.data(), v.size()), status::OK);
+    ASSERT_EQ(put(r5, v.data(), v.size()), status::OK);
+    ASSERT_EQ(put(r6, v.data(), v.size()), status::OK);
+    std::vector<std::pair<char*, std::size_t>> tuple_list{};
+    ASSERT_EQ(status::OK, scan("", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list));
+    ASSERT_EQ(tuple_list.size(), 6);
+    ASSERT_EQ(status::OK, scan(r1, scan_endpoint::INCLUSIVE, "", scan_endpoint::INF, tuple_list));
+    ASSERT_EQ(tuple_list.size(), 6);
+    ASSERT_EQ(status::OK, scan(r2, scan_endpoint::INCLUSIVE, "", scan_endpoint::INF, tuple_list));
+    ASSERT_EQ(tuple_list.size(), 5);
+    ASSERT_EQ(status::OK, scan(r3, scan_endpoint::INCLUSIVE, "", scan_endpoint::INF, tuple_list));
+    ASSERT_EQ(tuple_list.size(), 4);
+    ASSERT_EQ(status::OK, scan(r4, scan_endpoint::INCLUSIVE, "", scan_endpoint::INF, tuple_list));
+    ASSERT_EQ(tuple_list.size(), 3);
+    ASSERT_EQ(status::OK, scan(r5, scan_endpoint::INCLUSIVE, "", scan_endpoint::INF, tuple_list));
+    ASSERT_EQ(tuple_list.size(), 2);
+    ASSERT_EQ(status::OK, scan(r6, scan_endpoint::INCLUSIVE, "", scan_endpoint::INF, tuple_list));
+    ASSERT_EQ(tuple_list.size(), 1);
+}
 } // namespace yakushima
 
