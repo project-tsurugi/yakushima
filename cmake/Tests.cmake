@@ -86,7 +86,6 @@ function(register_tests)
                 PROPERTIES EXCLUDE_FROM_ALL ON
                 )
       endif ()
-      clang_format(${test_name})
     endif ()
   endforeach ()
 

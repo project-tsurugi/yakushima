@@ -525,7 +525,7 @@ retry_from_root:
         return status::OK_ROOT_IS_NULL;
     }
     std::string_view traverse_key_view{l_key};
-retry_find_border:
+
     /**
      * prepare key_slice
      */
@@ -570,13 +570,6 @@ retry_fetch_lv:
     if (check_status == status::OK_RETRY_FROM_ROOT) goto retry_from_root; // NOLINT
     else if (check_status == status::OK_RETRY_FETCH_LV) goto retry_fetch_lv; // NOLINT
 
-    if (lv_ptr != nullptr &&
-        kl > sizeof(key_slice_type)) {
-        traverse_key_view.remove_prefix(sizeof(key_slice_type));
-        key_prefix.append(reinterpret_cast<char*>(&ks), sizeof(key_slice_type)); // NOLINT
-        root = next_layer;
-        goto retry_find_border; // NOLINT
-    }
     // here, it decides to scan from this nodes.
     for (;;) {
         check_status = scan_border<ValueType>(&target_border, traverse_key_view, l_end, r_key, r_end,

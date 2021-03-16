@@ -27,7 +27,6 @@ endif()
 # for logging
 find_package(Boost COMPONENTS filesystem)
 
-include(FormatFilesWithClangFormat)
 include(CompileOptions)
 include(Tests)
 
