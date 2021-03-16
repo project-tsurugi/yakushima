@@ -10,3 +10,6 @@
 [submodule "third_party/sandbox-performance-tools"]
 	path = third_party/sandbox-performance-tools
 	url = git@github.com:project-tsurugi/sandbox-performance-tools.git
+[submodule "third_party/spdlog"]
+	path = third_party/spdlog
+	url = https://github.com/gabime/spdlog.git
