@@ -13,6 +13,8 @@
 # limitations under the License.
 file(GLOB TEST_SOURCES
         "*.cpp"
+        "multi_thread/*.cpp"
+        "multi_thread/put_delete_scan/*.cpp"
         "scan/*.cpp"
         )
 
