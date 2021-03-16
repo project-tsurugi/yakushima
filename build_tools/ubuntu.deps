@@ -1,0 +1,12 @@
+build_essential
+clang-tidy-8
+cmake
+doxygen
+gcover
+git
+gnuplot
+libboost-filesystem-dev
+libgflags-dev
+libgoogle-glog-dev
+libspdlog-dev
+ninja-build

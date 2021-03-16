@@ -7,12 +7,18 @@
 * build related libararies - on Ubuntu, you can install with following command:
 
 ```
-apt update -y && apt install -y git build-essential cmake ninja-build doxygen libgflags-dev libgoogle-glog-dev gnuplot libboost-filesystem-dev clang-tidy-8 gcovr
+sudo apt update -y && sudo apt install -y $(cat build_tools/ubuntu.deps)
 ```
 
 ```sh
 # retrieve third party modules
 git submodule update --init --recursive
+```
+
+## Docerfile
+```dockerfile
+FROM ubuntu:18.04
+RUN apt update -y && apt install -y $(cat build_tools/ubuntu.deps)
 ```
 
 ## How to build
