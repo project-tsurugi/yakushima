@@ -483,15 +483,23 @@ retry_fetch_lv:
  * If this argument is scan_endpoint :: INCLUSIVE, the interval contains the endpoint.
  * If this is scan_endpoint :: INF, there is no limit on the interval in right direction. And ignore @a r_key.
  * @param[out] tuple_list A set with a pointer to value and size as a result of this function.
- * @param[out] node_version_vec The set of node_version for transaction processing (protection of phantom problems).
- * If you don't use yakushima for transaction processing, you don't have to use this argument.
+ * @param[out] node_version_vec Default is nullptr. The set of node_version for transaction processing (protection of phantom problems).
+ * If you don't use yakushima for transaction processing, you don't have to use this argument. 
+ * If you want high performance and don't have to use this argument, you should specify nullptr.
+ * If this argument is nullptr, it will not collect node_version.
+ * @param [out] max_size Default is 0. If this argument is 0, it will not use this argument.
+ * This argument limits the number of results. 
+ * If you later use node_version_vec to guarantee atomicity, you can split the atomic scan. 
+ * Suppose you want to scan with A: C, assuming the order A <B <C. 
+ * You can perform an atomic scan by scanning the range A: B, B: C and using node_version_vec to make sure the values ​​are not overwritten. 
+ * This advantage is effective when the right end point is unknown but you want to scan to a specific value.
  * @return status::OK success.
  */
 template<class ValueType>
 [[maybe_unused]] static status
 scan(std::string_view l_key, scan_endpoint l_end, std::string_view r_key, scan_endpoint r_end,
      std::vector<std::pair<ValueType*, std::size_t>> &tuple_list,
-     std::vector<std::pair<node_version64_body, node_version64*>>* node_version_vec = nullptr) {
+     std::vector<std::pair<node_version64_body, node_version64*>>* node_version_vec = nullptr, std::size_t max_size = 0) {
     /**
      * Prohibition : std::string_view{nullptr, non-zero value}.
      */
@@ -573,7 +581,7 @@ retry_fetch_lv:
     // here, it decides to scan from this nodes.
     for (;;) {
         check_status = scan_border<ValueType>(&target_border, traverse_key_view, l_end, r_key, r_end,
-                                              tuple_list, v_at_fetch_lv, node_version_vec, key_prefix);
+                                              tuple_list, v_at_fetch_lv, node_version_vec, key_prefix, max_size);
         if (check_status == status::OK_SCAN_END) {
             return status::OK;
         }
