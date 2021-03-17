@@ -162,7 +162,7 @@ retry:
                     }
                     arg_l_end = l_end;
                 } else {
-                    continue; // todo : return status::OK_SCAN_END ? next element must be larger?
+                    continue; // Ignore it because it is smaller than the left end point.
                 }
             }
             std::string_view arg_r_key;
