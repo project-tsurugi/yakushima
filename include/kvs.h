@@ -18,12 +18,12 @@ namespace yakushima {
  * @brief Initialize kThreadInfoTable which is a table that holds thread execution information about garbage
  * collection and invoke epoch thread.
  */
-[[maybe_unused]] static void init();
+[[maybe_unused]] static void init(); // NOLINT
 
 /**
  * @brief Delete all tree from the root, release all heap objects, and join epoch thread.
  */
-[[maybe_unused]] static void fin();
+[[maybe_unused]] static void fin(); // NOLINT
 
 /**
  * @brief release all heap objects and clean up.
@@ -31,7 +31,7 @@ namespace yakushima {
  * @return status::OK_DESTROY_ALL destroyed all tree.
  * @return status::OK_ROOT_IS_NULL tree was nothing.
  */
-[[maybe_unused]] static status destroy();
+[[maybe_unused]] static status destroy(); // NOLINT
 
 /**
  * @details It declares that the session starts. In a session defined as between enter and leave, it is guaranteed
@@ -41,7 +41,7 @@ namespace yakushima {
  * @return status::OK success.
  * @return status::WARN_MAX_SESSIONS The maximum number of sessions is already up and running.
  */
-[[maybe_unused]] static status enter(Token &token);
+[[maybe_unused]] static status enter(Token &token); // NOLINT
 
 /**
  * @details It declares that the session ends. Values read during the session may be invalidated from now on.
@@ -50,7 +50,7 @@ namespace yakushima {
  * @return status::OK success
  * @return status::WARN_INVALID_TOKEN @a token of argument is invalid.
  */
-[[maybe_unused]] static status leave(Token token);
+[[maybe_unused]] static status leave(Token token); // NOLINT
 
 /**
  * @brief Get value which is corresponding to given @a key_view.
@@ -59,7 +59,7 @@ namespace yakushima {
  * @return std::pair<ValueType *, std::size_t> The pair of pointer to value and the value size.
  */
 template<class ValueType>
-[[maybe_unused]] static std::pair<ValueType*, std::size_t> get(std::string_view key_view);
+[[maybe_unused]] static std::pair<ValueType*, std::size_t> get(std::string_view key_view); // NOLINT
 
 /**
  * @biref Put the value with given @a key_view.
@@ -81,7 +81,7 @@ template<class ValueType>
  */
 template<class ValueType>
 [[maybe_unused]] static status
-put(std::string_view key_view, ValueType* value, std::size_t arg_value_length, ValueType** created_value_ptr,
+put(std::string_view key_view, ValueType* value, std::size_t arg_value_length, ValueType** created_value_ptr, // NOLINT
     value_align_type value_align, node_version64** inserted_node_version_ptr);
 
 /**
@@ -90,7 +90,7 @@ put(std::string_view key_view, ValueType* value, std::size_t arg_value_length, V
  * @param[in] key_view The key_view of key-value.
  * @return status::OK_ROOT_IS_NULL No existing tree.
  */
-[[maybe_unused]] static status remove(Token token, std::string_view key_view);
+[[maybe_unused]] static status remove(Token token, std::string_view key_view); // NOLINT
 
 /**
  * TODO : add new 3 modes : try-mode : 1 trial : wait-mode : try until success : mid-mode : middle between try and wait.
@@ -122,7 +122,7 @@ put(std::string_view key_view, ValueType* value, std::size_t arg_value_length, V
  */
 template<class ValueType>
 [[maybe_unused]] static status
-scan(std::string_view l_key, scan_endpoint l_end, std::string_view r_key, scan_endpoint r_end,
+scan(std::string_view l_key, scan_endpoint l_end, std::string_view r_key, scan_endpoint r_end, // NOLINT
      std::vector<std::pair<ValueType*, std::size_t>> &tuple_list,
      std::vector<std::pair<node_version64_body, node_version64*>>* node_version_vec, std::size_t max_size);
 
