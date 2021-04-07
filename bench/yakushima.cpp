@@ -21,10 +21,11 @@
 // yakushima
 #include "kvs.h"
 
-// yakushima/src/
+// yakushima/include/
 #include "atomic_wrapper.h"
 #include "clock.h"
 #include "cpu.h"
+#include "logger.h"
 
 // yakushima/bench/include
 #include "affinity.h"
@@ -310,6 +311,7 @@ static void invoke_leader() try {
 
 
 int main(int argc, char* argv[]) {
+    logger::setup_spdlog();
     std::cout << "start yakushima bench." << std::endl;
     gflags::SetUsageMessage(static_cast<const std::string &>("micro-benchmark for yakushima"));
     gflags::ParseCommandLineFlags(&argc, &argv, true);

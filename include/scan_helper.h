@@ -18,7 +18,7 @@ static status scan_border(border_node** target, std::string_view l_key, scan_end
                           scan_endpoint r_end, std::vector<std::pair<ValueType*, std::size_t>> &tuple_list,
                           node_version64_body &v_at_fetch_lv,
                           std::vector<std::pair<node_version64_body, node_version64*>>* node_version_vec,
-                          const std::string &key_prefix);
+                          const std::string &key_prefix, std::size_t max_size);
 
 template<class ValueType>
 status scan_check_retry(border_node* const bn, node_version64_body &v_at_fetch_lv,
@@ -55,7 +55,7 @@ static status
 scan(base_node* const root, const std::string_view l_key, const scan_endpoint l_end, const std::string_view r_key,
      const scan_endpoint r_end, std::vector<std::pair<ValueType*, std::size_t>> &tuple_list,
      std::vector<std::pair<node_version64_body, node_version64*>>* const node_version_vec,
-     const std::string &key_prefix) {
+     const std::string &key_prefix, const std::size_t max_size) {
 retry:
     if (root->get_version_deleted() || !root->get_version_root()) {
         return status::OK_RETRY_FROM_ROOT;
@@ -83,7 +83,7 @@ retry:
 
     for (;;) {
         check_status = scan_border<ValueType>(&bn, l_key, l_end, r_key, r_end, tuple_list, check_v,
-                                              node_version_vec, key_prefix);
+                                              node_version_vec, key_prefix, max_size);
         if (check_status == status::OK_SCAN_END) {
             return status::OK;
         }
@@ -112,7 +112,7 @@ static status scan_border(border_node** const target, const std::string_view l_k
                           std::vector<std::pair<ValueType*, std::size_t>> &tuple_list,
                           node_version64_body &v_at_fetch_lv,
                           std::vector<std::pair<node_version64_body, node_version64*>>* const node_version_vec,
-                          const std::string &key_prefix) {
+                          const std::string &key_prefix, const std::size_t max_size) {
 retry:
     std::size_t tuple_pushed_num{0};
     border_node* bn = *target;
@@ -162,7 +162,7 @@ retry:
                     }
                     arg_l_end = l_end;
                 } else {
-                    continue;
+                    continue; // Ignore it because it is smaller than the left end point.
                 }
             }
             std::string_view arg_r_key;
@@ -188,21 +188,25 @@ retry:
                 }
             }
             check_status = scan(next_layer, arg_l_key, arg_l_end, arg_r_key, arg_r_end, tuple_list, node_version_vec,
-                                std::move(full_key));
+                                std::move(full_key), max_size);
             if (check_status != status::OK) {
                 goto retry; // NOLINT
             }
         } else {
-            auto in_range = [&tuple_list, &vp, &vsize, &node_version_vec, &v_at_fetch_lv, &node_version_ptr, &tuple_pushed_num]() {
+            auto in_range = [&tuple_list, &vp, &vsize, &node_version_vec, &v_at_fetch_lv, &node_version_ptr, &tuple_pushed_num, max_size]() {
                 tuple_list.emplace_back(std::make_pair(reinterpret_cast<ValueType*>(vp), vsize)); // NOLINT
-                if (node_version_vec != nullptr) {
+                if (node_version_vec != nullptr) { // todo add && std::get<1>(node_version_vec.back()) != node_version_ptr
                     node_version_vec->emplace_back(std::make_pair(v_at_fetch_lv, node_version_ptr));
                 }
                 ++tuple_pushed_num;
+                if (max_size != 0 && tuple_list.size() >= max_size) {
+                    return status::OK_SCAN_END;
+                }
+                return status::OK;
             };
             if (l_end == scan_endpoint::INF && r_end == scan_endpoint::INF) {
                 // all range
-                in_range();
+                if (in_range() != status::OK) return status::OK_SCAN_END;
                 continue;
             }
             // not all range
@@ -220,7 +224,7 @@ retry:
             }
             // pass left endpoint.
             if (r_end == scan_endpoint::INF) {
-                in_range();
+                if (in_range() != status::OK) return status::OK_SCAN_END;
                 continue;
             }
             int r_cmp = memcmp(r_key.data(), full_key.data(),
@@ -228,7 +232,7 @@ retry:
             if (r_cmp > 0 ||
                 (r_cmp == 0 && (r_key.size() > full_key.size() ||
                                 (r_key.size() == full_key.size() && r_end == scan_endpoint::INCLUSIVE)))) {
-                in_range();
+                if (in_range() != status::OK) return status::OK_SCAN_END;
                 continue;
             }
             // pass right endpoint.
