@@ -15,13 +15,6 @@ namespace yakushima {
 
 class link_or_value {
 public:
-    /**
-     * These are mainly used at link_or_value.h
-     * To avoid circular reference at there, declare originals at base_node.h.
-     */
-    using value_align_type = base_node::value_align_type;
-    using value_length_type = base_node::value_length_type;
-
     link_or_value() = default;
 
     link_or_value(const link_or_value &) = default;

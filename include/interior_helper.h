@@ -6,6 +6,7 @@
 #pragma once
 
 #include "border_helper.h"
+#include "gc_info_table.h"
 
 namespace yakushima {
 
@@ -20,7 +21,7 @@ namespace yakushima {
 template<class interior_node, class border_node>
 static void
 create_interior_parent_of_interior(interior_node* const left, interior_node* const right,
-                                   const std::pair<base_node::key_slice_type, base_node::key_length_type> pivot_key,
+                                   const std::pair<key_slice_type, key_length_type> pivot_key,
                                    base_node** const new_parent) {
     left->set_version_root(false);
     right->set_version_root(false);
@@ -55,8 +56,8 @@ create_interior_parent_of_interior(interior_node* const left, interior_node* con
  */
 template<class interior_node, class border_node>
 static void
-interior_split(interior_node* const interior, base_node* const child_node, const std::pair<base_node::key_slice_type,
-        base_node::key_length_type> inserting_key) {
+interior_split(interior_node* const interior, base_node* const child_node, const std::pair<key_slice_type,
+        key_length_type> inserting_key) {
     interior->set_version_splitting(true);
     interior_node* new_interior = new interior_node(); // NOLINT
     new_interior->init_interior();

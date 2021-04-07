@@ -58,21 +58,21 @@ TEST_F(ct, compareData) { // NOLINT
 }
 
 TEST_F(ct, compareTuple) { // NOLINT
-    std::array<base_node::key_slice_type, 2> key_slice{};
-    std::array<base_node::key_length_type, 2> key_length{};
+    std::array<key_slice_type, 2> key_slice{};
+    std::array<key_length_type, 2> key_length{};
     key_slice.at(0) = 0;
     key_length.at(0) = 0;
     key_slice.at(1) = 0;
     key_length.at(1) = 1;
-    std::array<std::tuple<base_node::key_slice_type, base_node::key_length_type>, 2> tuple; // NOLINT
+    std::array<std::tuple<key_slice_type, key_length_type>, 2> tuple; // NOLINT
     tuple.at(0) = std::make_tuple(key_slice.at(0), key_length.at(0));
     tuple.at(1) = std::make_tuple(key_slice.at(1), key_length.at(1));
     ASSERT_EQ(tuple.at(0) < tuple.at(1), true);
 }
 
 TEST_F(ct, compareStringView) { // NOLINT
-    std::array<base_node::key_slice_type, 2> key_slice{};
-    std::array<base_node::key_length_type, 2> key_length{};
+    std::array<key_slice_type, 2> key_slice{};
+    std::array<key_length_type, 2> key_length{};
     key_slice.at(0) = 0;
     key_length.at(0) = 0;
     key_slice.at(1) = 0;

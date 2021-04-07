@@ -30,9 +30,9 @@ TEST_F(bnt, constructor) { // NOLINT
 
 TEST_F(bnt, typeSize) { // NOLINT
     /**
-     * kvs.h uses the argument (sizeof(base_node::key_slice_type)) as 8 at std::string_view::remove_suffix function.
+     * kvs.h uses the argument (sizeof(key_slice_type)) as 8 at std::string_view::remove_suffix function.
      */
-    ASSERT_EQ(sizeof(base_node::key_slice_type), 8);
+    ASSERT_EQ(sizeof(key_slice_type), 8);
 }
 
 TEST_F(bnt, function) { // NOLINT

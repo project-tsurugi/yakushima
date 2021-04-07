@@ -181,7 +181,7 @@ public:
  */
     template<class border_node>
     void
-    insert(base_node* const child, const std::pair<base_node::key_slice_type, base_node::key_length_type> pivot_key) {
+    insert(base_node* const child, const std::pair<key_slice_type, key_length_type> pivot_key) {
         set_version_inserting_deleting(true);
         //std::tuple<key_slice_type, key_length_type> visitor = std::make_tuple(pivot_key.first, pivot_key.second);
         key_slice_type key_slice{pivot_key.first};

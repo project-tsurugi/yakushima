@@ -21,13 +21,8 @@ namespace yakushima {
  */
 template<class interior_node, class border_node>
 static void
-interior_split(interior_node* interior, base_node* child_node, base_node::key_slice_type pivot_slice, // NOLINT
-               base_node::key_length_type pivot_length);
-
-using key_slice_type = base_node::key_slice_type;
-using key_length_type = base_node::key_length_type;
-using value_align_type = base_node::value_align_type;
-using value_length_type = base_node::value_length_type;
+interior_split(interior_node* interior, base_node* child_node, key_slice_type pivot_slice, // NOLINT
+               key_length_type pivot_length);
 
 /**
  * @pre It already locked this node.

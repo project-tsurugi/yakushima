@@ -18,18 +18,6 @@ namespace yakushima {
 class base_node { // NOLINT
 public:
     static constexpr std::size_t key_slice_length = 15;
-    using key_slice_type = std::uint64_t;
-    /**
-     * key_length_type is used at permutation.h, border_node.h.
-     * To avoid circular reference at there, declare here.
-     */
-    using key_length_type = std::uint8_t;
-    /**
-     * These are mainly used at link_or_value.h
-     * To avoid circular reference at there, declare here.
-     */
-    using value_length_type = std::size_t;
-    using value_align_type = std::align_val_t;
 
     class key_tuple {
     public:

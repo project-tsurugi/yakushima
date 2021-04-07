@@ -16,6 +16,15 @@ namespace yakushima {
  */
 using Token = void*;
 
+using key_slice_type = std::uint64_t;
+/**
+ * key_length_type is used at permutation.h, border_node.h.
+ * To avoid circular reference at there, declare here.
+ */
+using key_length_type = std::uint8_t;
+using value_length_type = std::size_t;
+using value_align_type = std::align_val_t;
+
 enum class status : std::int32_t {
     /**
      * @brief Warning of mistaking usage.
