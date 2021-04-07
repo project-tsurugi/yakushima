@@ -5,7 +5,7 @@
 namespace yakushima {
 
 status storage::create_storage(std::string_view table_name) {
-    auto elem = storages.find(table_name);
+    auto elem = storages.find(std::string{table_name});
     if (elem == storages.end()) {
         storages.insert(std::make_pair(table_name, nullptr));
         return status::OK;
@@ -14,7 +14,7 @@ status storage::create_storage(std::string_view table_name) {
 }
 
 status storage::delete_storage(std::string_view table_name) {
-    auto ret = storages.erase(table_name);
+    auto ret = storages.erase(std::string{table_name});
     if (ret == 0) {
         return status::WARN_NOT_EXIST;
     }
@@ -22,11 +22,12 @@ status storage::delete_storage(std::string_view table_name) {
 }
 
 status storage::find_storage(std::string_view table_name, std::atomic<base_node*>** found_storage) {
-    auto elem = storages.find(table_name);
+    auto elem = storages.find(std::string{table_name});
     if (elem == storages.end()) {
         return status::WARN_NOT_EXIST;
     }
-    *found_storage = &elem;
+    *found_storage = &elem->second;
+    return status::OK;
 }
 
 }// namespace yakushima

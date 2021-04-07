@@ -5,11 +5,14 @@
 
 #pragma once
 
+#include "base_node.h"
 #include "interface_get.h"
 #include "interface_helper.h"
 #include "interface_put.h"
 #include "interface_remove.h"
 #include "interface_scan.h"
+#include "storage.h"
+#include "storage_impl.h"
 
 
 namespace yakushima {
@@ -32,6 +35,18 @@ namespace yakushima {
  * @return status::OK_ROOT_IS_NULL tree was nothing.
  */
 [[maybe_unused]] static status destroy(); // NOLINT
+
+[[maybe_unused]] static status create_storage(std::string_view table_name) {
+    return storage::create_storage(table_name);
+}
+
+[[maybe_unused]] static status delete_storage(std::string_view table_name) {
+    return storage::delete_storage(table_name);
+}
+
+[[maybe_unused]] static status find_storage(std::string_view table_name, std::atomic<base_node*>** found_storage) {
+    return storage::find_storage(table_name, found_storage);
+}
 
 /**
  * @details It declares that the session starts. In a session defined as between enter and leave, it is guaranteed
