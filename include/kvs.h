@@ -15,6 +15,25 @@
 namespace yakushima {
 
 /**
+ * @brief Initialize kThreadInfoTable which is a table that holds thread execution information about garbage
+ * collection and invoke epoch thread.
+ */
+[[maybe_unused]] static void init();
+
+/**
+ * @brief Delete all tree from the root, release all heap objects, and join epoch thread.
+ */
+[[maybe_unused]] static void fin();
+
+/**
+ * @brief release all heap objects and clean up.
+ * @pre This function is called by single thread.
+ * @return status::OK_DESTROY_ALL destroyed all tree.
+ * @return status::OK_ROOT_IS_NULL tree was nothing.
+ */
+[[maybe_unused]] static status destroy();
+
+/**
  * @details It declares that the session starts. In a session defined as between enter and leave, it is guaranteed
  * that the heap memory object object read by get function will not be released in session. An occupied GC container
  * is assigned.
@@ -34,19 +53,6 @@ namespace yakushima {
 [[maybe_unused]] static status leave(Token token);
 
 /**
- * @brief release all heap objects and clean up.
- * @pre This function is called by single thread.
- * @return status::OK_DESTROY_ALL destroyed all tree.
- * @return status::OK_ROOT_IS_NULL tree was nothing.
- */
-[[maybe_unused]] static status destroy();
-
-/**
- * @brief Delete all tree from the root, release all heap objects, and join epoch thread.
- */
-[[maybe_unused]] static void fin();
-
-/**
  * @brief Get value which is corresponding to given @a key_view.
  * @tparam ValueType The returned pointer is cast to the given type information before it is returned.
  * @param[in] key_view The key_view of key-value.
@@ -54,12 +60,6 @@ namespace yakushima {
  */
 template<class ValueType>
 [[maybe_unused]] static std::pair<ValueType*, std::size_t> get(std::string_view key_view);
-
-/**
- * @brief Initialize kThreadInfoTable which is a table that holds thread execution information about garbage
- * collection and invoke epoch thread.
- */
-[[maybe_unused]] static void init();
 
 /**
  * @biref Put the value with given @a key_view.
