@@ -16,6 +16,8 @@ namespace yakushima::testing {
 class vt : public ::testing::Test {
 };
 
+std::string test_storage_name{"1"}; // NOLINT
+
 TEST_F(vt, test1) { // NOLINT
     node_version64_body b1{};
     node_version64_body b2{};
@@ -69,33 +71,39 @@ TEST_F(vt, test3) { // NOLINT
 
 TEST_F(vt, vinsert_delete) { // NOLINT
     init();
+    create_storage(test_storage_name);
+    std::atomic<base_node*>* target_storage{};
+    find_storage(test_storage_name, &target_storage);
     constexpr std::size_t key_length = 2;
     std::array<std::string, key_length> key{};
     std::string v{"v"};
     for (std::size_t i = 0; i < key_length; ++i) {
         key.at(i) = std::string{1, static_cast<char>(i)}; // NOLINT
     }
-    ASSERT_EQ(status::OK, put(key.at(0), v.data(), v.size()));
-    std::size_t vid = base_node::get_root_ptr()->get_version_vinsert_delete();
-    ASSERT_EQ(status::OK, put(key.at(1), v.data(), v.size()));
-    ASSERT_EQ(vid + 1, base_node::get_root_ptr()->get_version_vinsert_delete());
+    ASSERT_EQ(status::OK, put(test_storage_name, key.at(0), v.data(), v.size()));
+    std::size_t vid = target_storage->load(std::memory_order_acquire)->get_version_vinsert_delete();
+    ASSERT_EQ(status::OK, put(test_storage_name, key.at(1), v.data(), v.size()));
+    ASSERT_EQ(vid + 1, target_storage->load(std::memory_order_acquire)->get_version_vinsert_delete());
     fin();
 }
 
 TEST_F(vt, vsplit) { // NOLINT
     init();
+    create_storage(test_storage_name);
+    std::atomic<base_node*>* target_storage{};
+    find_storage(test_storage_name, &target_storage);
     constexpr std::size_t key_length = base_node::key_slice_length + 1;
     std::array<std::string, key_length> key{};
     std::string v{"v"};
     for (std::size_t i = 0; i < key_length; ++i) {
         key.at(i) = std::string{1, static_cast<char>(i)}; // NOLINT
     }
-    ASSERT_EQ(status::OK, put(key.at(0), v.data(), v.size()));
-    std::size_t vid = base_node::get_root_ptr()->get_version_vsplit();
+    ASSERT_EQ(status::OK, put(test_storage_name, key.at(0), v.data(), v.size()));
+    std::size_t vid = target_storage->load(std::memory_order_acquire)->get_version_vsplit();
     for (std::size_t i = 1; i < key_length; ++i) {
-        ASSERT_EQ(status::OK, put(key.at(i), v.data(), v.size()));
+        ASSERT_EQ(status::OK, put(test_storage_name, key.at(i), v.data(), v.size()));
     }
-    ASSERT_EQ(vid + 1, dynamic_cast<border_node*>(dynamic_cast<interior_node*>(base_node::get_root_ptr())->get_child_at(
+    ASSERT_EQ(vid + 1, dynamic_cast<border_node*>(dynamic_cast<interior_node*>(target_storage->load(std::memory_order_acquire))->get_child_at(
             0))->get_version_vsplit());
     fin();
 }

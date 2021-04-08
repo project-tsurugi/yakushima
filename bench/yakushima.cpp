@@ -109,7 +109,7 @@ void parallel_build_tree() {
                 void* p = (&i);
                 std::string key{static_cast<char*>(p),
                                 sizeof(std::uint64_t)}; // sizeof(std::size_t) points to loop variable.
-                put(std::string_view(key), value.data(), value.size());
+                put("1", std::string_view(key), value.data(), value.size());
             }
             leave(token);
         }
@@ -164,7 +164,7 @@ void get_worker(const size_t thid, char &ready, const bool &start, const bool &q
         std::uint64_t keynm = zipf() % FLAGS_get_initial_record;
         void* p = (&keynm);
         std::string key{static_cast<char*>(p), sizeof(std::uint64_t)};
-        std::tuple<char*, std::size_t> ret = get<char>(std::string_view(key));
+        std::tuple<char*, std::size_t> ret = get<char>("1", std::string_view(key));
         if (std::get<0>(ret) == nullptr) {
             std::cout << __FILE__ << " : " << __LINE__ << " : fatal error." << std::endl;
             std::abort();
@@ -201,7 +201,7 @@ void put_worker(const size_t thid, char &ready, const bool &start, const bool &q
         void* p = (&i);
         std::string key{static_cast<char*>(p), sizeof(std::uint64_t)};
         try {
-            put(std::string_view(key), value.data(), value.size());
+            put("1", std::string_view(key), value.data(), value.size());
         } catch (std::bad_alloc &) {
             std::cout << __FILE__ << " : " << __LINE__ << "bad_alloc. Please set less duration." << std::endl;
             std::abort();
@@ -225,7 +225,7 @@ void put_worker(const size_t thid, char &ready, const bool &start, const bool &q
     for (std::uint64_t i = left_edge; i <= left_edge + local_res; ++i) {
         void* p = (&i);
         std::string key{static_cast<char*>(p), sizeof(std::uint64_t)};
-        remove(token, std::string_view(key));
+        remove(token, "1", std::string_view(key));
     }
 
     leave(token);

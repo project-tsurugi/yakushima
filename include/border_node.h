@@ -59,11 +59,11 @@ public:
      * @param[in] token
      * @param[in] child
      */
-    void delete_of(Token token, base_node* const child, std::vector<node_version64*> &lock_list) {
+    void delete_of(Token token, std::atomic<base_node*>* target_storage, base_node* const child, std::vector<node_version64*> &lock_list) {
         std::size_t cnk = get_permutation_cnk();
         for (std::size_t i = 0; i < cnk; ++i) {
             if (child == lv_.at(i).get_next_layer()) {
-                delete_of < false > (token, get_key_slice_at(i), get_key_length_at(i), lock_list); // NOLINT
+                delete_of < false > (token, target_storage, get_key_slice_at(i), get_key_length_at(i), lock_list); // NOLINT
                 return;
             }
         }
@@ -94,7 +94,7 @@ public:
      * @param[in] target_is_value
      */
     template<bool target_is_value>
-    void delete_of(Token token, const key_slice_type key_slice, const key_length_type key_slice_length,
+    void delete_of(Token token, std::atomic<base_node*>* target_storage, const key_slice_type key_slice, const key_length_type key_slice_length,
                    std::vector<node_version64*> &lock_list) {
         set_version_inserting_deleting(true);
         /**
@@ -135,12 +135,12 @@ retry_prev_lock:
                      */
                     base_node* pn = lock_parent();
                     if (pn == nullptr) {
-                        base_node::set_root(nullptr);
+                        target_storage->store(nullptr, std::memory_order_release);
                     } else {
                         if (pn->get_version_border()) {
-                            dynamic_cast<border_node*>(pn)->delete_of(token, this, lock_list);
+                            dynamic_cast<border_node*>(pn)->delete_of(token, target_storage, this, lock_list);
                         } else {
-                            dynamic_cast<interior_node*>(pn)->delete_of<border_node>(token, this);
+                            dynamic_cast<interior_node*>(pn)->delete_of<border_node>(token, target_storage, this);
                         }
                         pn->version_unlock();
                     }

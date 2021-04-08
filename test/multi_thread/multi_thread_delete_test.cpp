@@ -18,6 +18,8 @@ namespace yakushima::testing {
 class mtdt : public ::testing::Test {
 };
 
+std::string test_storage_name{"1"}; // NOLINT
+
 TEST_F(mtdt, test1) { // NOLINT
     /**
      * Initial state : multi threads put same null char key slices and different key length to multiple border.
@@ -40,6 +42,7 @@ TEST_F(mtdt, test1) { // NOLINT
         for (std::size_t h = 0; h < 100; ++h) {
 #endif
         init();
+        create_storage(test_storage_name);
         std::array<Token, 2> token{};
         ASSERT_EQ(enter(token.at(0)), status::OK);
         ASSERT_EQ(enter(token.at(1)), status::OK);
@@ -52,7 +55,7 @@ TEST_F(mtdt, test1) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
+                    status ret = put(test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         EXPECT_EQ(ret, status::OK); // output log
                         std::abort();
@@ -64,7 +67,7 @@ TEST_F(mtdt, test1) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, std::string_view(k));
+                    status ret = remove(token, test_storage_name, std::string_view(k));
                     if (ret != status::OK) {
                         EXPECT_EQ(ret, status::OK); // output log
                         std::abort();
@@ -112,6 +115,7 @@ TEST_F(mtdt, test2) { // NOLINT
         for (std::size_t h = 0; h < 100; ++h) {
 #endif
         init();
+        create_storage(test_storage_name);
         std::array<Token, 2> token{};
         ASSERT_EQ(enter(token.at(0)), status::OK);
         ASSERT_EQ(enter(token.at(1)), status::OK);
@@ -124,7 +128,7 @@ TEST_F(mtdt, test2) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
+                    status ret = put(test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -136,7 +140,7 @@ TEST_F(mtdt, test2) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, std::string_view(k));
+                    status ret = remove(token, test_storage_name, std::string_view(k));
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -181,6 +185,7 @@ TEST_F(mtdt, test3) { // NOLINT
         for (std::size_t h = 0; h < 200; ++h) {
 #endif
         init();
+        create_storage(test_storage_name);
         std::array<Token, 2> token{};
         ASSERT_EQ(enter(token.at(0)), status::OK);
         ASSERT_EQ(enter(token.at(1)), status::OK);
@@ -193,7 +198,7 @@ TEST_F(mtdt, test3) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
+                    status ret = put(test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -205,7 +210,7 @@ TEST_F(mtdt, test3) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, std::string_view(k));
+                    status ret = remove(token, test_storage_name, std::string_view(k));
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -253,6 +258,7 @@ TEST_F(mtdt, test4) { // NOLINT
         for (std::size_t h = 0; h < 100; ++h) {
 #endif
         init();
+        create_storage(test_storage_name);
         std::array<Token, 2> token{};
         ASSERT_EQ(enter(token.at(0)), status::OK);
         ASSERT_EQ(enter(token.at(1)), status::OK);
@@ -265,7 +271,7 @@ TEST_F(mtdt, test4) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
+                    status ret = put(test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -277,7 +283,7 @@ TEST_F(mtdt, test4) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, std::string_view(k));
+                    status ret = remove(token, test_storage_name, std::string_view(k));
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -322,6 +328,7 @@ TEST_F(mtdt, test5) { // NOLINT
         for (std::size_t h = 0; h < 100; ++h) {
 #endif
         init();
+        create_storage(test_storage_name);
         std::array<Token, 2> token{};
         ASSERT_EQ(enter(token.at(0)), status::OK);
         ASSERT_EQ(enter(token.at(1)), status::OK);
@@ -334,7 +341,7 @@ TEST_F(mtdt, test5) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
+                    status ret = put(test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -346,7 +353,7 @@ TEST_F(mtdt, test5) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, std::string_view(k));
+                    status ret = remove(token, test_storage_name, std::string_view(k));
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -393,6 +400,7 @@ TEST_F(mtdt, test6) { // NOLINT
         for (std::size_t h = 0; h < 100; ++h) {
 #endif
         init();
+        create_storage(test_storage_name);
         std::array<Token, 2> token{};
         ASSERT_EQ(enter(token.at(0)), status::OK);
         ASSERT_EQ(enter(token.at(1)), status::OK);
@@ -405,7 +413,7 @@ TEST_F(mtdt, test6) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
+                    status ret = put(test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -417,7 +425,7 @@ TEST_F(mtdt, test6) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, std::string_view(k));
+                    status ret = remove(token, test_storage_name, std::string_view(k));
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -462,6 +470,7 @@ TEST_F(mtdt, test7) { // NOLINT
         for (size_t h = 0; h < 20; ++h) {
 #endif
         init();
+        create_storage(test_storage_name);
         std::array<Token, 2> token{};
         ASSERT_EQ(enter(token.at(0)), status::OK);
         ASSERT_EQ(enter(token.at(1)), status::OK);
@@ -474,7 +483,7 @@ TEST_F(mtdt, test7) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
+                    status ret = put(test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -486,7 +495,7 @@ TEST_F(mtdt, test7) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, std::string_view(k));
+                    status ret = remove(token, test_storage_name, std::string_view(k));
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -535,6 +544,7 @@ TEST_F(mtdt, test8) { // NOLINT
         for (std::size_t h = 0; h < 30; ++h) {
 #endif
         init();
+        create_storage(test_storage_name);
         std::array<Token, 2> token{};
         ASSERT_EQ(enter(token.at(0)), status::OK);
         ASSERT_EQ(enter(token.at(1)), status::OK);
@@ -547,7 +557,7 @@ TEST_F(mtdt, test8) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
+                    status ret = put(test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -559,7 +569,7 @@ TEST_F(mtdt, test8) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, k);
+                    status ret = remove(token, test_storage_name, k);
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -604,6 +614,7 @@ TEST_F(mtdt, test9) { // NOLINT
         for (std::size_t h = 0; h < 30; ++h) {
 #endif
         init();
+        create_storage(test_storage_name);
         std::array<Token, 2> token{};
         ASSERT_EQ(enter(token.at(0)), status::OK);
         ASSERT_EQ(enter(token.at(1)), status::OK);
@@ -616,7 +627,7 @@ TEST_F(mtdt, test9) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
+                    status ret = put(test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -628,7 +639,7 @@ TEST_F(mtdt, test9) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, k);
+                    status ret = remove(token, test_storage_name, k);
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -675,6 +686,7 @@ TEST_F(mtdt, test10) { // NOLINT
         for (std::size_t h = 0; h < 30; ++h) {
 #endif
         init();
+        create_storage(test_storage_name);
         std::array<Token, 2> token{};
         ASSERT_EQ(enter(token.at(0)), status::OK);
         ASSERT_EQ(enter(token.at(1)), status::OK);
@@ -687,7 +699,7 @@ TEST_F(mtdt, test10) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
+                    status ret = put(test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -699,7 +711,7 @@ TEST_F(mtdt, test10) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, k);
+                    status ret = remove(token, test_storage_name, k);
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();

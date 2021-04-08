@@ -13,11 +13,14 @@
 using namespace yakushima;
 
 namespace yakushima::testing {
+std::string test_storage_name{"1"}; // NOLINT
+
 
 class garbage_collection : public ::testing::Test {
 protected:
     void SetUp() override {
         init();
+        create_storage(test_storage_name);
     }
 
     void TearDown() override {
@@ -36,7 +39,7 @@ TEST_F(garbage_collection, gc) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
+                    status ret = put(test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         ASSERT_EQ(ret, status::OK);
                         std::abort();
@@ -45,7 +48,7 @@ TEST_F(garbage_collection, gc) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, k);
+                    status ret = remove(token, test_storage_name, k);
                     if (ret != status::OK) {
                         ASSERT_EQ(ret, status::OK);
                         std::abort();

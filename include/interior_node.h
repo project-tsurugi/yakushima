@@ -37,7 +37,7 @@ public:
      * @param[in] lock_list
      */
     template<class border_node>
-    void delete_of(Token token, base_node* const child) {
+    void delete_of(Token token, std::atomic<base_node*>* target_storage, base_node* const child) {
         set_version_inserting_deleting(true);
         std::size_t n_key = get_n_keys();
 #ifndef NDEBUG
@@ -52,7 +52,7 @@ public:
                     base_node* pn = lock_parent();
                     if (pn == nullptr) {
                         get_child_at(!i)->atomic_set_version_root(true);
-                        base_node::set_root(get_child_at(!i)); // i == 0 or 1
+                        target_storage->store(get_child_at(!i), std::memory_order_release); // i == 0 or 1
                         get_child_at(!i)->set_parent(nullptr);
                     } else {
                         pn->set_version_inserting_deleting(true);

@@ -1,20 +1,24 @@
 #pragma once
 
+#include <atomic>
+
 #include "base_node.h"
 #include "border_node.h"
 #include "common_helper.h"
 #include "link_or_value.h"
 #include "kvs.h"
+#include "storage_impl.h"
 
 namespace yakushima {
 
 template<class ValueType>
-[[maybe_unused]] static std::pair<ValueType*, std::size_t> get(std::string_view key_view) {
-retry_from_root:
-    base_node* root = base_node::get_root_ptr();
-    if (root == nullptr) {
+[[maybe_unused]] static std::pair<ValueType*, std::size_t> get(std::string_view storage_name, std::string_view key_view) {
+    std::atomic<base_node*>* root_atomic{};
+    if (status::OK != storage::find_storage(storage_name, &root_atomic)) {
         return std::make_pair(nullptr, 0);
     }
+retry_from_root:
+    base_node* root = root_atomic->load(std::memory_order_acquire);
     std::string_view traverse_key_view{key_view};
 retry_find_border:
     /**

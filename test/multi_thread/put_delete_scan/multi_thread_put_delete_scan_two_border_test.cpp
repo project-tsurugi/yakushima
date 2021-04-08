@@ -18,6 +18,8 @@ namespace yakushima::testing {
 class mtpdst : public ::testing::Test {
 };
 
+std::string test_storage_name{"1"}; // NOLINT
+
 TEST_F(mtpdst, test3) { // NOLINT
     /**
      * multiple put/delete/scan same null char key whose length is different each other against multiple border,
@@ -43,6 +45,7 @@ TEST_F(mtpdst, test3) { // NOLINT
         for (std::size_t h = 0; h < 10; ++h) {
 #endif
         init();
+        create_storage(test_storage_name);
         std::array<Token, 2> token{};
         ASSERT_EQ(enter(token.at(0)), status::OK);
         ASSERT_EQ(enter(token.at(1)), status::OK);
@@ -55,14 +58,14 @@ TEST_F(mtpdst, test3) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(k, v.data(), v.size());
+                        status ret = put(test_storage_name, k, v.data(), v.size());
                         if (ret != status::OK) {
                             ASSERT_EQ(ret, status::OK);
                             std::abort();
                         }
                     }
                     std::vector<std::pair<char*, std::size_t>> tuple_list; // NOLINT
-                    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list));
+                    ASSERT_EQ(status::OK, scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list));
                     ASSERT_EQ(tuple_list.size() >= kv.size(), true);
                     std::size_t check_ctr{0};
                     for (auto &&elem : tuple_list) {
@@ -79,7 +82,7 @@ TEST_F(mtpdst, test3) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = remove(token, k);
+                        status ret = remove(token, test_storage_name, k);
                         if (ret != status::OK) {
                             ASSERT_EQ(ret, status::OK);
                             std::abort();
@@ -89,7 +92,7 @@ TEST_F(mtpdst, test3) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
+                    status ret = put(test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         ASSERT_EQ(ret, status::OK);
                         std::abort();
@@ -106,7 +109,7 @@ TEST_F(mtpdst, test3) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(i, '\0');
-            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
+            scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
                 ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
@@ -142,6 +145,7 @@ TEST_F(mtpdst, test4) { // NOLINT
         for (std::size_t h = 0; h < 10; ++h) {
 #endif
         init();
+        create_storage(test_storage_name);
         std::array<Token, 2> token{};
         ASSERT_EQ(enter(token.at(0)), status::OK);
         ASSERT_EQ(enter(token.at(1)), status::OK);
@@ -155,14 +159,14 @@ TEST_F(mtpdst, test4) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(k, v.data(), v.size());
+                        status ret = put(test_storage_name, k, v.data(), v.size());
                         if (ret != status::OK) {
                             ASSERT_EQ(ret, status::OK);
                             std::abort();
                         }
                     }
                     std::vector<std::pair<char*, std::size_t>> tuple_list; // NOLINT
-                    ASSERT_EQ(status::OK, scan<char>("", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list));
+                    ASSERT_EQ(status::OK, scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list));
                     ASSERT_EQ(tuple_list.size() >= kv.size(), true);
                     std::size_t check_ctr{0};
                     for (auto &&elem : tuple_list) {
@@ -179,7 +183,7 @@ TEST_F(mtpdst, test4) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = remove(token, k);
+                        status ret = remove(token, test_storage_name, k);
                         if (ret != status::OK) {
                             ASSERT_EQ(ret, status::OK);
                             std::abort();
@@ -189,7 +193,7 @@ TEST_F(mtpdst, test4) { // NOLINT
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
+                    status ret = put(test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         ASSERT_EQ(ret, status::OK);
                         std::abort();
@@ -206,7 +210,7 @@ TEST_F(mtpdst, test4) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(i, '\0');
-            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
+            scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
                 ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);

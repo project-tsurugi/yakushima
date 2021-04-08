@@ -7,6 +7,7 @@
 
 #include "border_helper.h"
 #include "gc_info_table.h"
+#include "storage_impl.h"
 
 namespace yakushima {
 
@@ -56,7 +57,7 @@ create_interior_parent_of_interior(interior_node* const left, interior_node* con
  */
 template<class interior_node, class border_node>
 static void
-interior_split(interior_node* const interior, base_node* const child_node, const std::pair<key_slice_type,
+interior_split(std::atomic<base_node*>* target_storage, interior_node* const interior, base_node* const child_node, const std::pair<key_slice_type,
         key_length_type> inserting_key) {
     interior->set_version_splitting(true);
     interior_node* new_interior = new interior_node(); // NOLINT
@@ -113,7 +114,7 @@ interior_split(interior_node* const interior, base_node* const child_node, const
     base_node* p = interior->lock_parent();
     if (p == nullptr) {
 #ifndef NDEBUG
-        if (base_node::get_root_ptr() != interior) {
+        if (target_storage->load(std::memory_order_acquire) != interior) {
             std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
             std::abort();
         }
@@ -129,7 +130,7 @@ interior_split(interior_node* const interior, base_node* const child_node, const
         /**
          * p became new root.
          */
-        base_node::set_root(p);
+        target_storage->store(p, std::memory_order_release);
         p->version_unlock();
         return;
     }
@@ -166,7 +167,7 @@ interior_split(interior_node* const interior, base_node* const child_node, const
         /**
          * parent interior full case.
          */
-        interior_split<interior_node, border_node>(pi, new_interior, std::make_pair(pivot_key, pivot_length));
+        interior_split<interior_node, border_node>(target_storage, pi, new_interior, std::make_pair(pivot_key, pivot_length));
         return;
     }
     /**

@@ -2,10 +2,11 @@
 
 #include "kvs.h"
 #include "manager_thread.h"
+#include "storage.h"
 
 namespace yakushima {
 
-[[maybe_unused]] static status enter(Token &token) {
+[[maybe_unused]] static status enter(Token& token) {
     return gc_info_table::assign_gc_info(token);
 }
 
@@ -14,11 +15,17 @@ namespace yakushima {
 }
 
 [[maybe_unused]] static status destroy() {
-    base_node* root{base_node::get_root_ptr()};
-    if (root == nullptr) return status::OK_ROOT_IS_NULL;
-    base_node::get_root_ptr()->destroy();
-    delete base_node::get_root_ptr(); // NOLINT
-    base_node::set_root(nullptr);
+    if (storage::get_storages().empty()) {
+        return status::OK_ROOT_IS_NULL;
+    }
+    for (auto&& each_storage : storage::get_storages()) {
+        base_node* root{each_storage.second.load(std::memory_order_acquire)};
+        if (root == nullptr) continue;
+        root->destroy();
+        delete root;// NOLINT
+        each_storage.second.store(nullptr, std::memory_order_release);
+    }
+    storage::get_storages().clear();
     return status::OK_DESTROY_ALL;
 }
 
@@ -37,4 +44,4 @@ namespace yakushima {
     gc_container::fin<interior_node, border_node>();
 }
 
-}
+}// namespace yakushima

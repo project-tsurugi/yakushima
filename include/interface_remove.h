@@ -1,12 +1,19 @@
 #pragma once
 
 #include "kvs.h"
+#include "storage_impl.h"
 
 namespace yakushima {
 
-[[maybe_unused]] static status remove(Token token, std::string_view key_view) {
+[[maybe_unused]] static status remove(Token token, std::string_view storage_name, std::string_view key_view) {
+    // check storage
+    std::atomic<base_node*>* target_storage{};
+    if (storage::find_storage(storage_name, &target_storage) != status::OK) {
+        return status::WARN_NOT_EXIST;
+    }
+
 retry_from_root:
-    base_node* root = base_node::get_root_ptr();
+    base_node* root = target_storage->load(std::memory_order_acquire);
     if (root == nullptr) {
         /**
          * root is nullptr
@@ -90,7 +97,7 @@ retry_fetch_lv:
             goto retry_fetch_lv; // NOLINT
         }
 
-        target_border->delete_of<true>(token, key_slice, key_slice_length, lock_list);
+        target_border->delete_of<true>(token, target_storage, key_slice, key_slice_length, lock_list);
         node_version64::unlock(lock_list);
         return status::OK;
     }

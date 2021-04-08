@@ -5,15 +5,21 @@
 #include "border_node.h"
 #include "interior_node.h"
 #include "kvs.h"
+#include "storage_impl.h"
 
 namespace yakushima {
 
 template<class ValueType>
 [[maybe_unused]] static status
-put(std::string_view key_view, ValueType* value, std::size_t arg_value_length = sizeof(ValueType),
-    ValueType** created_value_ptr = nullptr,
-    value_align_type value_align = static_cast<value_align_type>(alignof(ValueType)),
+put(std::string_view storage_name, std::string_view key_view, ValueType* value, std::size_t arg_value_length = sizeof(ValueType),
+    ValueType** created_value_ptr = nullptr, value_align_type value_align = static_cast<value_align_type>(alignof(ValueType)),
     node_version64** inserted_node_version_ptr = nullptr) {
+    // check storage
+    std::atomic<base_node*>* target_storage{};
+    if (storage::find_storage(storage_name, &target_storage) != status::OK) {
+        return status::WARN_NOT_EXIST;
+    }
+
     if (inserted_node_version_ptr != nullptr) {
         /**
          * TODO : remove. This sentence is because if it forget to assign to this variable, it will cause segv with a reference to this variable.
@@ -21,7 +27,7 @@ put(std::string_view key_view, ValueType* value, std::size_t arg_value_length = 
         *inserted_node_version_ptr = nullptr;
     }
 root_nullptr:
-    base_node* expected = base_node::get_root_ptr();
+    base_node* expected = target_storage->load(std::memory_order_acquire);
     if (expected == nullptr) {
         /**
          * root is nullptr, so put single border nodes.
@@ -32,7 +38,7 @@ root_nullptr:
             if (inserted_node_version_ptr != nullptr) {
                 *inserted_node_version_ptr = new_border->get_version_ptr();
             }
-            if (base_node::get_root().compare_exchange_weak(expected, new_border,
+            if (target_storage->compare_exchange_weak(expected, new_border,
                                                             std::memory_order_acq_rel, std::memory_order_acquire)) {
                 return status::OK;
             }
@@ -50,7 +56,7 @@ retry_from_root:
      * here, root is not nullptr.
      * Prepare key for traversing tree.
      */
-    base_node* root = base_node::get_root_ptr();
+    base_node* root = target_storage->load(std::memory_order_acquire);
     if (root == nullptr) goto root_nullptr; // NOLINT
 
     std::string_view traverse_key_view{key_view};
@@ -123,7 +129,7 @@ retry_fetch_lv:
             target_border->version_unlock();
             goto retry_fetch_lv; // NOLINT
         }
-        insert_lv<interior_node, border_node>(target_border, traverse_key_view, value,
+        insert_lv<interior_node, border_node>(target_storage, target_border, traverse_key_view, value,
                                               reinterpret_cast<void**>(created_value_ptr), arg_value_length,  // NOLINT
                                               value_align, inserted_node_version_ptr);
         return status::OK;

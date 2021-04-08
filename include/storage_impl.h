@@ -4,26 +4,26 @@
 
 namespace yakushima {
 
-status storage::create_storage(std::string_view table_name) {
-    auto elem = storages.find(std::string{table_name});
-    if (elem == storages.end()) {
-        storages.insert(std::make_pair(table_name, nullptr));
+status storage::create_storage(std::string_view storage_name) { // NOLINT
+    auto elem = storages_.find(std::string{storage_name});
+    if (elem == storages_.end()) {
+        storages_.insert(std::make_pair(storage_name, nullptr));
         return status::OK;
     }
     return status::WARN_EXIST;
 }
 
-status storage::delete_storage(std::string_view table_name) {
-    auto ret = storages.erase(std::string{table_name});
+status storage::delete_storage(std::string_view storage_name) { // NOLINT
+    auto ret = storages_.erase(std::string{storage_name});
     if (ret == 0) {
         return status::WARN_NOT_EXIST;
     }
     return status::OK;
 }
 
-status storage::find_storage(std::string_view table_name, std::atomic<base_node*>** found_storage) {
-    auto elem = storages.find(std::string{table_name});
-    if (elem == storages.end()) {
+status storage::find_storage(std::string_view storage_name, std::atomic<base_node*>** found_storage) { // NOLINT
+    auto elem = storages_.find(std::string{storage_name});
+    if (elem == storages_.end()) {
         return status::WARN_NOT_EXIST;
     }
     *found_storage = &elem->second;

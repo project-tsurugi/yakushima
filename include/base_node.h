@@ -115,14 +115,6 @@ public:
         return version_.get_locked();
     }
 
-    static std::atomic<base_node*> &get_root() {
-        return root_;
-    }
-
-    static base_node* get_root_ptr() {
-        return root_.load(std::memory_order_acquire);
-    }
-
     [[nodiscard]] node_version64_body get_stable_version() const {
         return version_.get_stable_version();
     }
@@ -230,10 +222,6 @@ public:
         storeReleaseN(parent_, new_parent);
     }
 
-    static void set_root(base_node* const nr) {
-        root_.store(nr, std::memory_order_release);
-    }
-
     [[maybe_unused]] void set_version(const node_version64_body nv) { // this function is used.
         version_.set_body(nv);
     }
@@ -311,8 +299,6 @@ private:
      * If the length is more than 8, the lv points out to next layer.
      */
     std::array<key_length_type, key_slice_length> key_length_{};
-
-    static inline std::atomic<base_node*> root_; // NOLINT
 };
 
 } // namespace yakushima

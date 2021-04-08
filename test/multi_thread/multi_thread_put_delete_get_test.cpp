@@ -18,6 +18,8 @@ namespace yakushima::testing {
 class mtpdgt : public ::testing::Test {
 };
 
+std::string test_storage_name{"1"}; // NOLINT
+
 TEST_F(mtpdgt, test1) { // NOLINT
     /**
      * concurrent put/delete/get same null char key slices and different key length to single border
@@ -39,6 +41,7 @@ TEST_F(mtpdgt, test1) { // NOLINT
         for (std::size_t h = 0; h < 50; ++h) {
 #endif
         init();
+        create_storage(test_storage_name);
         std::array<Token, 2> token{};
         ASSERT_EQ(enter(token.at(0)), status::OK);
         ASSERT_EQ(enter(token.at(1)), status::OK);
@@ -52,24 +55,24 @@ TEST_F(mtpdgt, test1) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
+                        ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        std::pair<char*, std::size_t> ret = get<char>(k);
+                        std::pair<char*, std::size_t> ret = get<char>(test_storage_name, k);
                         ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        ASSERT_EQ(remove(token, k), status::OK);
+                        ASSERT_EQ(remove(token, test_storage_name, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
+                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -82,7 +85,7 @@ TEST_F(mtpdgt, test1) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(i, '\0');
-            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
+            scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
                 ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
@@ -118,6 +121,7 @@ TEST_F(mtpdgt, test2) { // NOLINT
         for (std::size_t h = 0; h < 50; ++h) {
 #endif
         init();
+        create_storage(test_storage_name);
         std::array<Token, 2> token{};
         ASSERT_EQ(enter(token[0]), status::OK);
         ASSERT_EQ(enter(token[1]), status::OK);
@@ -131,24 +135,24 @@ TEST_F(mtpdgt, test2) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
+                        ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        std::pair<char*, std::size_t> ret = get<char>(k);
+                        std::pair<char*, std::size_t> ret = get<char>(test_storage_name, k);
                         ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        ASSERT_EQ(remove(token, k), status::OK);
+                        ASSERT_EQ(remove(token, test_storage_name, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
+                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -161,7 +165,7 @@ TEST_F(mtpdgt, test2) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(i, '\0');
-            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
+            scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
                 ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
@@ -198,6 +202,7 @@ TEST_F(mtpdgt, test3) { // NOLINT
         for (std::size_t h = 0; h < 100; ++h) {
 #endif
         init();
+        create_storage(test_storage_name);
         std::array<Token, 2> token{};
         ASSERT_EQ(enter(token[0]), status::OK);
         ASSERT_EQ(enter(token[1]), status::OK);
@@ -210,24 +215,24 @@ TEST_F(mtpdgt, test3) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
+                        ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        std::pair<char*, std::size_t> ret = get<char>(k);
+                        std::pair<char*, std::size_t> ret = get<char>(test_storage_name, k);
                         ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        ASSERT_EQ(remove(token, k), status::OK);
+                        ASSERT_EQ(remove(token, test_storage_name, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
+                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -240,7 +245,7 @@ TEST_F(mtpdgt, test3) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(i, '\0');
-            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
+            scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
                 ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
@@ -276,6 +281,7 @@ TEST_F(mtpdgt, test4) { // NOLINT
         for (std::size_t h = 0; h < 100; ++h) {
 #endif
         init();
+        create_storage(test_storage_name);
         std::array<Token, 2> token{};
         ASSERT_EQ(enter(token[0]), status::OK);
         ASSERT_EQ(enter(token[1]), status::OK);
@@ -289,24 +295,24 @@ TEST_F(mtpdgt, test4) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
+                        ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        std::pair<char*, std::size_t> ret = get<char>(k);
+                        std::pair<char*, std::size_t> ret = get<char>(test_storage_name, k);
                         ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        ASSERT_EQ(remove(token, k), status::OK);
+                        ASSERT_EQ(remove(token, test_storage_name, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
+                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -319,7 +325,7 @@ TEST_F(mtpdgt, test4) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k(i, '\0');
-            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
+            scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
                 ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
@@ -352,6 +358,7 @@ TEST_F(mtpdgt, test5) { // NOLINT
         for (std::size_t h = 0; h < 100; ++h) {
 #endif
         init();
+        create_storage(test_storage_name);
         std::array<Token, 2> token{};
         ASSERT_EQ(enter(token[0]), status::OK);
         ASSERT_EQ(enter(token[1]), status::OK);
@@ -365,24 +372,24 @@ TEST_F(mtpdgt, test5) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
+                        ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        std::pair<char*, std::size_t> ret = get<char>(k);
+                        std::pair<char*, std::size_t> ret = get<char>(test_storage_name, k);
                         ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        ASSERT_EQ(remove(token, k), status::OK);
+                        ASSERT_EQ(remove(token, test_storage_name, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
+                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -395,9 +402,9 @@ TEST_F(mtpdgt, test5) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 1; i < ary_size; ++i) {
             std::string k(1, i);
-            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
+            scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
-                scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
+                scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
             for (std::size_t j = 0; j < i + 1; ++j) {
@@ -436,6 +443,7 @@ TEST_F(mtpdgt, test6) { // NOLINT
         for (std::size_t h = 0; h < 100; ++h) {
 #endif
         init();
+        create_storage(test_storage_name);
         std::array<Token, 2> token{};
         ASSERT_EQ(enter(token[0]), status::OK);
         ASSERT_EQ(enter(token[1]), status::OK);
@@ -449,24 +457,24 @@ TEST_F(mtpdgt, test6) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
+                        ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        std::pair<char*, std::size_t> ret = get<char>(k);
+                        std::pair<char*, std::size_t> ret = get<char>(test_storage_name, k);
                         ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        ASSERT_EQ(remove(token, k), status::OK);
+                        ASSERT_EQ(remove(token, test_storage_name, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
+                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -479,9 +487,9 @@ TEST_F(mtpdgt, test6) { // NOLINT
         constexpr std::size_t v_index = 0;
         for (std::size_t i = 1; i < ary_size; ++i) {
             std::string k(1, i);
-            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
+            scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
-                scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
+                scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
             for (std::size_t j = 0; j < i + 1; ++j) {
@@ -529,6 +537,7 @@ TEST_F(mtpdgt, test7) { // NOLINT
         for (std::size_t h = 0; h < 200; ++h) {
 #endif
         init();
+        create_storage(test_storage_name);
         std::array<Token, 2> token{};
         ASSERT_EQ(enter(token[0]), status::OK);
         ASSERT_EQ(enter(token[1]), status::OK);
@@ -542,24 +551,24 @@ TEST_F(mtpdgt, test7) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
+                        ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        std::pair<char*, std::size_t> ret = get<char>(k);
+                        std::pair<char*, std::size_t> ret = get<char>(test_storage_name, k);
                         ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        ASSERT_EQ(remove(token, k), status::OK);
+                        ASSERT_EQ(remove(token, test_storage_name, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(k, v.data(), v.size());
+                    status ret = put(test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         ASSERT_EQ(ret, status::OK);
                         std::abort();
@@ -581,9 +590,9 @@ TEST_F(mtpdgt, test7) { // NOLINT
             } else {
                 k = std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i);
             }
-            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
+            scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
-                scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
+                scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
             for (std::size_t j = 0; j < i + 1; ++j) {
@@ -630,6 +639,7 @@ TEST_F(mtpdgt, test8) { // NOLINT
         for (std::size_t h = 0; h < 100; ++h) {
 #endif
         init();
+        create_storage(test_storage_name);
         std::array<Token, 2> token{};
         ASSERT_EQ(enter(token[0]), status::OK);
         ASSERT_EQ(enter(token[1]), status::OK);
@@ -643,14 +653,14 @@ TEST_F(mtpdgt, test8) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
+                        ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        std::pair<char*, std::size_t> ret = get<char>(k);
+                        std::pair<char*, std::size_t> ret = get<char>(test_storage_name, k);
                         if (std::get<0>(ret) == nullptr) {
-                            ret = get<char>(k);
+                            ret = get<char>(test_storage_name, k);
                             ASSERT_EQ(true, false);
                         }
                         ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
@@ -658,13 +668,13 @@ TEST_F(mtpdgt, test8) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        ASSERT_EQ(remove(token, k), status::OK);
+                        ASSERT_EQ(remove(token, test_storage_name, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
+                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -682,9 +692,9 @@ TEST_F(mtpdgt, test8) { // NOLINT
             } else {
                 k = std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX);
             }
-            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
+            scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
-                scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
+                scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
             for (std::size_t j = 0; j < i + 1; ++j) {
@@ -734,6 +744,7 @@ TEST_F(mtpdgt, test9) { // NOLINT
         for (size_t h = 0; h < 100; ++h) {
 #endif
         init();
+        create_storage(test_storage_name);
         std::array<Token, 2> token{};
         ASSERT_EQ(enter(token[0]), status::OK);
         ASSERT_EQ(enter(token[1]), status::OK);
@@ -747,24 +758,24 @@ TEST_F(mtpdgt, test9) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
+                        ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        std::pair<char*, std::size_t> ret = get<char>(k);
+                        std::pair<char*, std::size_t> ret = get<char>(test_storage_name, k);
                         ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        ASSERT_EQ(remove(token, k), status::OK);
+                        ASSERT_EQ(remove(token, test_storage_name, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(std::string_view(k), v.data(), v.size()), status::OK);
+                    ASSERT_EQ(put(test_storage_name, std::string_view(k), v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -782,9 +793,9 @@ TEST_F(mtpdgt, test9) { // NOLINT
             } else {
                 k = std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX);
             }
-            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
+            scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
-                scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
+                scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
             for (std::size_t j = 0; j < i + 1; ++j) {
@@ -802,7 +813,6 @@ TEST_F(mtpdgt, test10) { // NOLINT
     /**
      * multi-layer put-delete-get test.
      */
-
     constexpr std::size_t ary_size = interior_node::child_length * base_node::key_slice_length * 10;
     std::vector<std::pair<std::string, std::string>> kv1;
     std::vector<std::pair<std::string, std::string>> kv2;
@@ -834,7 +844,10 @@ TEST_F(mtpdgt, test10) { // NOLINT
         for (size_t h = 0; h < 20; ++h) {
 #endif
         init();
-        ASSERT_EQ(base_node::get_root_ptr(), nullptr);
+        create_storage(test_storage_name);
+        std::atomic<base_node*>* target_storage{};
+        find_storage(test_storage_name, &target_storage);
+        ASSERT_EQ(target_storage->load(std::memory_order_acquire), nullptr);
         std::array<Token, 2> token{};
         ASSERT_EQ(enter(token[0]), status::OK);
         ASSERT_EQ(enter(token[1]), status::OK);
@@ -848,24 +861,24 @@ TEST_F(mtpdgt, test10) { // NOLINT
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
+                        ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        std::pair<char*, std::size_t> ret = get<char>(k);
+                        std::pair<char*, std::size_t> ret = get<char>(test_storage_name, k);
                         ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
                     }
                     for (auto &i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        ASSERT_EQ(remove(token, k), status::OK);
+                        ASSERT_EQ(remove(token, test_storage_name, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(k, v.data(), v.size()), status::OK);
+                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -883,9 +896,9 @@ TEST_F(mtpdgt, test10) { // NOLINT
             } else {
                 k = std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX);
             }
-            scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
+            scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
-                scan<char>("", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
+                scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
             for (std::size_t j = 0; j < i + 1; ++j) {
