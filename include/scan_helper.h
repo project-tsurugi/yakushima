@@ -132,6 +132,7 @@ retry:
         std::size_t vsize = lv->get_value_length();
         base_node* next_layer = lv->get_next_layer();
         node_version64* node_version_ptr = bn->get_version_ptr();
+        // This verification may seem verbose, but it can also be considered an early abort.
         status check_status = scan_check_retry(bn, v_at_fetch_lv, tuple_list, tuple_pushed_num, node_version_vec);
         if (check_status == status::OK_RETRY_FROM_ROOT) {
             return status::OK_RETRY_FROM_ROOT;
