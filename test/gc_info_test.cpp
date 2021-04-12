@@ -25,7 +25,7 @@ TEST_F(tit, test1) { // NOLINT
     for (auto &&elem : token) {
         gc_info* ti = reinterpret_cast<gc_info*>(elem); // NOLINT
         ASSERT_EQ(ti->get_running(), true);
-        ASSERT_EQ(ti->get_begin_epoch(), 0);
+        ASSERT_NE(ti->get_begin_epoch(), 0);
         ASSERT_NE(ti->get_node_container(), nullptr);
         ASSERT_NE(ti->get_value_container(), nullptr);
         for (auto &&elem2 : token) {

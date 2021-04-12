@@ -34,7 +34,7 @@ TEST_F(mtpdgt, many_layer_many_interior_many_border) {// NOLINT
      * multi-layer put-delete-get test.
      */
     constexpr std::size_t ary_size = interior_node::child_length * base_node::key_slice_length * 10;
-    constexpr std::size_t th_nm{ary_size / 20};
+    std::size_t th_nm{std::thread::hardware_concurrency()};
 
 #ifndef NDEBUG
     for (size_t h = 0; h < 1; ++h) {
@@ -44,10 +44,10 @@ TEST_F(mtpdgt, many_layer_many_interior_many_border) {// NOLINT
         create_storage(test_storage_name);
 
         struct S {
-            static void work(std::size_t th_id) {
+            static void work(std::size_t th_id, std::size_t max_thread) {
                 std::vector<std::pair<std::string, std::string>> kv;
-                kv.reserve(ary_size / th_nm);
-                for (std::size_t i = (ary_size / th_nm) * th_id; i < (th_id != th_nm - 1 ? (ary_size / th_nm) * (th_id + 1) : ary_size); ++i) {
+                kv.reserve(ary_size / max_thread);
+                for (std::size_t i = (ary_size / max_thread) * th_id; i < (th_id != max_thread - 1 ? (ary_size / max_thread) * (th_id + 1) : ary_size); ++i) {
                     if (i <= INT8_MAX) {
                         kv.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
                     } else {
@@ -96,7 +96,7 @@ TEST_F(mtpdgt, many_layer_many_interior_many_border) {// NOLINT
         std::vector<std::thread> thv;
         thv.reserve(th_nm);
         for (std::size_t i = 0; i < th_nm; ++i) {
-            thv.emplace_back(S::work, i);
+            thv.emplace_back(S::work, i, th_nm);
         }
         for (auto&& th : thv) { th.join(); }
         thv.clear();
