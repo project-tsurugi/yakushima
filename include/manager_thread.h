@@ -43,8 +43,8 @@ public:
                     min_epoch = std::min(min_epoch, itr_epoch);
                 }
             }
-            if (min_epoch != UINT64_MAX) {
-                gc_container::set_gc_epoch(min_epoch);
+            if (min_epoch != UINT64_MAX && min_epoch) {
+                gc_container::set_gc_epoch(min_epoch - 1);
             }
             if (kEpochThreadEnd.load(std::memory_order_acquire)) break;
         }
