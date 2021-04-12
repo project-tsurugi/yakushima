@@ -129,7 +129,7 @@ TEST_F(mtpdgt, many_layer_many_interior_many_border) {// NOLINT
         };
 
         thv.reserve(ary_size);
-        for (std::size_t i = 0; i < ary_size; ++i) {
+        for (int i = ary_size - 1; i != 0; --i) {
             thv.emplace_back(parallel_verify::work, i);
         }
         for (auto&& th : thv) { th.join(); }

@@ -1,11 +1,10 @@
 /**
- * @file multi_thread_put_delete_test.cpp
+ * @file multi_thread_put_test.cpp
  */
 
 #include <algorithm>
 #include <random>
 #include <thread>
-#include <tuple>
 
 #include "gtest/gtest.h"
 
@@ -15,7 +14,7 @@ using namespace yakushima;
 
 namespace yakushima::testing {
 
-class mtpdt : public ::testing::Test {
+class mtpt : public ::testing::Test {
     void SetUp() override {
         init();
     }
@@ -27,12 +26,8 @@ class mtpdt : public ::testing::Test {
 
 std::string test_storage_name{"1"};// NOLINT
 
-TEST_F(mtpdt, one_interior_many_border_shuffle) {// NOLINT
-    /**
-     * concurrent put/delete in the state between none to split of interior, which is using shuffled data.
-     */
-
-    constexpr std::size_t ary_size = interior_node::child_length * base_node::key_slice_length / 2;
+TEST_F(mtpt, one_interior) {// NOLINT
+    constexpr std::size_t ary_size = 100;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
         th_nm = std::thread::hardware_concurrency();
@@ -41,9 +36,9 @@ TEST_F(mtpdt, one_interior_many_border_shuffle) {// NOLINT
     }
 
 #ifndef NDEBUG
-    for (std::size_t h = 0; h < 1; ++h) {
+    for (size_t h = 0; h < 1; ++h) {
 #else
-    for (std::size_t h = 0; h < 200; ++h) {
+    for (size_t h = 0; h < 100; ++h) {
 #endif
         create_storage(test_storage_name);
 
@@ -56,34 +51,13 @@ TEST_F(mtpdt, one_interior_many_border_shuffle) {// NOLINT
                     kv.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
                 }
 
-                std::random_device seed_gen;
-                std::mt19937 engine(seed_gen());
                 Token token{};
                 enter(token);
-#ifndef NDEBUG
-                for (std::size_t j = 0; j < 1; ++j) {
-#else
-                for (std::size_t j = 0; j < 10; ++j) {
-#endif
-                    std::shuffle(kv.begin(), kv.end(), engine);
-
-                    for (auto& i : kv) {
-                        std::string k(std::get<0>(i));
-                        std::string v(std::get<1>(i));
-                        ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
-                    }
-                    for (auto& i : kv) {
-                        std::string k(std::get<0>(i));
-                        std::string v(std::get<1>(i));
-                        ASSERT_EQ(remove(token, test_storage_name, k), status::OK);
-                    }
-                }
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
+                    ASSERT_EQ(put(test_storage_name, std::string_view(k), v.data(), v.size()), status::OK);
                 }
-
                 leave(token);
             }
         };
@@ -98,14 +72,13 @@ TEST_F(mtpdt, one_interior_many_border_shuffle) {// NOLINT
 
         struct parallel_verify {
             static void work(std::size_t i) {
-                std::string k;
-                k = std::string(1, i);
-                std::vector<std::pair<char*, std::size_t>> tuple_list;// NOLINT
+                std::string k(1, i);
+                std::vector<std::pair<char*, std::size_t>> tuple_list{};// NOLINT
                 scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 if (tuple_list.size() != i + 1) {
-                    scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
-                    ASSERT_EQ(tuple_list.size(), i + 1);
+                    EXPECT_EQ(tuple_list.size(), i + 1);
                 }
+                ASSERT_EQ(tuple_list.size(), i + 1);
                 for (std::size_t j = 0; j < i + 1; ++j) {
                     std::string v(std::to_string(j));
                     constexpr std::size_t v_index = 0;
@@ -125,11 +98,8 @@ TEST_F(mtpdt, one_interior_many_border_shuffle) {// NOLINT
     }
 }
 
-TEST_F(mtpdt, second_layer_one_interior_many_border_shuffle) {// NOLINT
-    /**
-     * concurrent put/delete in the state between none to split of interior, which is using shuffled data.
-     */
-    constexpr std::size_t ary_size = interior_node::child_length * base_node::key_slice_length / 2;
+TEST_F(mtpt, one_interior_shuffle) {// NOLINT
+    constexpr std::size_t ary_size = 100;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
         th_nm = std::thread::hardware_concurrency();
@@ -138,9 +108,9 @@ TEST_F(mtpdt, second_layer_one_interior_many_border_shuffle) {// NOLINT
     }
 
 #ifndef NDEBUG
-    for (std::size_t h = 0; h < 1; ++h) {
+    for (size_t h = 0; h < 1; ++h) {
 #else
-    for (std::size_t h = 0; h < 200; ++h) {
+    for (size_t h = 0; h < 100; ++h) {
 #endif
         create_storage(test_storage_name);
 
@@ -150,36 +120,20 @@ TEST_F(mtpdt, second_layer_one_interior_many_border_shuffle) {// NOLINT
                 kv.reserve(ary_size / max_thread);
                 // data generation
                 for (std::size_t i = (ary_size / max_thread) * th_id; i < (th_id != max_thread - 1 ? (ary_size / max_thread) * (th_id + 1) : ary_size); ++i) {
-                    kv.emplace_back(std::make_pair(std::string(8, INT8_MAX) + std::string(1, i), std::to_string(i)));
+                    kv.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
                 }
 
-                std::random_device seed_gen;
+                std::random_device seed_gen{};
                 std::mt19937 engine(seed_gen());
                 Token token{};
                 enter(token);
-
                 std::shuffle(kv.begin(), kv.end(), engine);
-#ifndef NDEBUG
-                for (std::size_t j = 0; j < 1; ++j) {
-#else
-                for (std::size_t j = 0; j < 10; ++j) {
-#endif
-                    for (auto& i : kv) {
-                        std::string k(std::get<0>(i));
-                        std::string v(std::get<1>(i));
-                        ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
-                    }
-                    for (auto& i : kv) {
-                        std::string k(std::get<0>(i));
-                        std::string v(std::get<1>(i));
-                        ASSERT_EQ(remove(token, test_storage_name, k), status::OK);
-                    }
-                }
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
+                    ASSERT_EQ(put(test_storage_name, std::string_view(k), v.data(), v.size()), status::OK);
                 }
+                leave(token);
             }
         };
 
@@ -193,14 +147,13 @@ TEST_F(mtpdt, second_layer_one_interior_many_border_shuffle) {// NOLINT
 
         struct parallel_verify {
             static void work(std::size_t i) {
-                std::string k;
-                k = std::string(8, INT8_MAX) + std::string(1, i);
-                std::vector<std::pair<char*, std::size_t>> tuple_list;// NOLINT
+                std::string k(1, i);
+                std::vector<std::pair<char*, std::size_t>> tuple_list{};// NOLINT
                 scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 if (tuple_list.size() != i + 1) {
-                    scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
-                    ASSERT_EQ(tuple_list.size(), i + 1);
+                    EXPECT_EQ(tuple_list.size(), i + 1);
                 }
+                ASSERT_EQ(tuple_list.size(), i + 1);
                 for (std::size_t j = 0; j < i + 1; ++j) {
                     std::string v(std::to_string(j));
                     constexpr std::size_t v_index = 0;
