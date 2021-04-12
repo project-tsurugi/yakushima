@@ -73,26 +73,16 @@ TEST_F(mtpt, many_interior) {           // NOLINT
         for (auto&& th : thv) { th.join(); }
         thv.clear();
 
-        struct parallel_verify {
-            static void work(std::size_t i) {
-                std::string k(1, i);
-                std::vector<std::pair<char*, std::size_t>> tuple_list{};// NOLINT
-                scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
-                ASSERT_EQ(tuple_list.size(), i + 1);
-                for (std::size_t j = 0; j < i + 1; ++j) {
-                    std::string v(std::to_string(j));
-                    constexpr std::size_t v_index = 0;
-                    ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
-                }
-            }
-        };
+        std::string k(1, ary_size - 1);
+        std::vector<std::pair<char*, std::size_t>> tuple_list{};// NOLINT
+        scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
+        ASSERT_EQ(tuple_list.size(), ary_size);
 
-        thv.reserve(ary_size);
-        for (int i = ary_size - 1; i != 0; --i) {
-            thv.emplace_back(parallel_verify::work, i);
+        for (std::size_t i = 0; i < ary_size; ++i) {
+            std::string v(std::to_string(i));
+            constexpr std::size_t v_index = 0;
+            ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(i)), v.data(), v.size()), 0);
         }
-        for (auto&& th : thv) { th.join(); }
-        thv.clear();
 
         destroy();
     }
@@ -148,26 +138,16 @@ TEST_F(mtpt, many_interior_shuffle) {   // NOLINT
         for (auto&& th : thv) { th.join(); }
         thv.clear();
 
-        struct parallel_verify {
-            static void work(std::size_t i) {
-                std::string k(1, i);
-                std::vector<std::pair<char*, std::size_t>> tuple_list{};// NOLINT
-                scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
-                ASSERT_EQ(tuple_list.size(), i + 1);
-                for (std::size_t j = 0; j < i + 1; ++j) {
-                    std::string v(std::to_string(j));
-                    constexpr std::size_t v_index = 0;
-                    ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
-                }
-            }
-        };
-
-        thv.reserve(ary_size);
-        for (int i = ary_size - 1; i != 0; --i) {
-            thv.emplace_back(parallel_verify::work, i);
+        std::string k(1, ary_size - 1);
+        std::vector<std::pair<char*, std::size_t>> tuple_list{};// NOLINT
+        scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
+        ASSERT_EQ(tuple_list.size(), ary_size);
+        for (std::size_t j = 0; j < ary_size; ++j) {
+            std::string v(std::to_string(j));
+            constexpr std::size_t v_index = 0;
+            ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
         }
-        for (auto&& th : thv) { th.join(); }
-        thv.clear();
+
 
         destroy();
     }

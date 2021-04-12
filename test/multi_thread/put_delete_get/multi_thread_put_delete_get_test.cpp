@@ -21,7 +21,6 @@ class mtpdgt : public ::testing::Test {
 protected:
     void SetUp() override {
         init();
-        create_storage(test_storage_name);
     }
 
     void TearDown() override {
@@ -106,34 +105,14 @@ TEST_F(mtpdgt, many_layer_many_interior_many_border) {// NOLINT
         for (auto&& th : thv) { th.join(); }
         thv.clear();
 
-        struct parallel_verify {
-            static void work(std::size_t i) {
-                std::string k;
-                if (i <= INT8_MAX) {
-                    k = std::string(1, i);
-                } else {
-                    k = std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i % INT8_MAX);
-                }
-                std::vector<std::pair<char*, std::size_t>> tuple_list;
-                scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
-                if (tuple_list.size() != i + 1) {
-                    scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
-                    ASSERT_EQ(tuple_list.size(), i + 1);
-                }
-                for (std::size_t j = 0; j < i + 1; ++j) {
-                    std::string v(std::to_string(j));
-                    constexpr std::size_t v_index = 0;
-                    ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
-                }
-            }
-        };
-
-        thv.reserve(ary_size);
-        for (int i = ary_size - 1; i != 0; --i) {
-            thv.emplace_back(parallel_verify::work, i);
+        std::vector<std::pair<char*, std::size_t>> tuple_list;
+        scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list);
+        ASSERT_EQ(tuple_list.size(), ary_size);
+        for (std::size_t j = 0; j < ary_size; ++j) {
+            std::string v(std::to_string(j));
+            constexpr std::size_t v_index = 0;
+            ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
         }
-        for (auto&& th : thv) { th.join(); }
-        thv.clear();
 
         destroy();
     }

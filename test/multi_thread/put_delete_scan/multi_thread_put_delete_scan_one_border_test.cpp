@@ -16,43 +16,54 @@ using namespace yakushima;
 namespace yakushima::testing {
 
 class mtpdst : public ::testing::Test {
+    void SetUp() override {
+        init();
+    }
+    void TearDown() override {
+        fin();
+    }
 };
 
-std::string test_storage_name{"1"}; // NOLINT
+std::string test_storage_name{"1"};// NOLINT
 
-TEST_F(mtpdst, test1) { // NOLINT
+TEST_F(mtpdst, one_border) {// NOLINT
     /**
      * concurrent put/delete/scan same null char key slices and different key length to single border
      * by multi threads.
      */
     constexpr std::size_t ary_size = 9;
-    std::vector<std::pair<std::string, std::string>> kv1; // NOLINT
-    std::vector<std::pair<std::string, std::string>> kv2; // NOLINT
-    for (std::size_t i = 0; i < 5; ++i) {
-        kv1.emplace_back(std::make_pair(std::string(i, '\0'), std::to_string(i)));
-    }
-    for (std::size_t i = 5; i < ary_size; ++i) {
-        kv2.emplace_back(std::make_pair(std::string(i, '\0'), std::to_string(i)));
+    std::size_t th_nm{};
+    if (ary_size > std::thread::hardware_concurrency()) {
+        th_nm = std::thread::hardware_concurrency();
+    } else {
+        th_nm = ary_size;
     }
 
 #ifndef NDEBUG
     for (std::size_t h = 0; h < 1; ++h) {
 #else
-        for (std::size_t h = 0; h < 50; ++h) {
+    for (std::size_t h = 0; h < 50; ++h) {
 #endif
-        init();
         create_storage(test_storage_name);
-        std::array<Token, 2> token{};
-        ASSERT_EQ(enter(token.at(0)), status::OK);
-        ASSERT_EQ(enter(token.at(1)), status::OK);
-
-        std::reverse(kv1.begin(), kv1.end());
-        std::reverse(kv2.begin(), kv2.end());
 
         struct S {
-            static void work(std::vector<std::pair<std::string, std::string>> &kv, Token &token) {
+            static void work(std::size_t th_id, std::size_t max_thread) {
+                std::vector<std::pair<std::string, std::string>> kv;
+                kv.reserve(ary_size / max_thread);
+                // data generation
+                for (std::size_t i = (ary_size / max_thread) * th_id; i < (th_id != max_thread - 1 ? (ary_size / max_thread) * (th_id + 1) : ary_size); ++i) {
+                    kv.emplace_back(std::make_pair(std::string(i, '\0'), std::to_string(i)));
+                }
+
+                Token token{};
+                enter(token);
+
+#ifndef NDEBUG
+                for (std::size_t j = 0; j < 1; ++j) {
+#else
                 for (std::size_t j = 0; j < 10; ++j) {
-                    for (auto &&i : kv) {
+#endif
+                    for (auto&& i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
                         status ret = put(test_storage_name, k, v.data(), v.size());
@@ -61,7 +72,7 @@ TEST_F(mtpdst, test1) { // NOLINT
                             std::abort();
                         }
                     }
-                    std::vector<std::pair<char*, std::size_t>> tuple_list; // NOLINT
+                    std::vector<std::pair<char*, std::size_t>> tuple_list;// NOLINT
                     std::string_view left{};
                     std::string_view right{};
                     if (std::get<0>(kv.front()).size() > std::get<0>(kv.back()).size()) {
@@ -75,9 +86,9 @@ TEST_F(mtpdst, test1) { // NOLINT
                               scan<char>(test_storage_name, left, scan_endpoint::INCLUSIVE, right, scan_endpoint::INCLUSIVE, tuple_list));
                     ASSERT_EQ(tuple_list.size() >= kv.size(), true);
                     std::size_t check_ctr{0};
-                    for (auto &&elem : tuple_list) {
+                    for (auto&& elem : tuple_list) {
                         if (kv.size() == check_ctr) break;
-                        for (auto &&elem2 : kv) {
+                        for (auto&& elem2 : kv) {
                             if (memcmp(std::get<1>(elem2).data(), std::get<0>(elem), std::get<1>(elem)) == 0) {
                                 ++check_ctr;
                                 break;
@@ -85,7 +96,7 @@ TEST_F(mtpdst, test1) { // NOLINT
                         }
                     }
                     ASSERT_EQ(check_ctr, kv.size());
-                    for (auto &&i : kv) {
+                    for (auto&& i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
                         status ret = remove(token, test_storage_name, k);
@@ -96,7 +107,7 @@ TEST_F(mtpdst, test1) { // NOLINT
                     }
                 }
 
-                for (auto &&i: kv) {
+                for (auto&& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
                     status ret = put(test_storage_name, k, v.data(), v.size());
@@ -105,65 +116,70 @@ TEST_F(mtpdst, test1) { // NOLINT
                         std::abort();
                     }
                 }
+
+                leave(token);
             }
         };
 
-        std::thread t(S::work, std::ref(kv2), std::ref(token.at(0)));
-        S::work(std::ref(kv1), std::ref(token.at(1)));
-        t.join();
-
-        std::vector<std::pair<char*, std::size_t>> tuple_list; // NOLINT
-        constexpr std::size_t v_index = 0;
-        for (std::size_t i = 0; i < ary_size; ++i) {
-            std::string k(i, '\0');
-            scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
-            for (std::size_t j = 0; j < i + 1; ++j) {
-                std::string v(std::to_string(j));
-                ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
-            }
+        std::vector<std::thread> thv;
+        thv.reserve(th_nm);
+        for (std::size_t i = 0; i < th_nm; ++i) {
+            thv.emplace_back(S::work, i, th_nm);
         }
-        ASSERT_EQ(leave(token.at(0)), status::OK);
-        ASSERT_EQ(leave(token.at(1)), status::OK);
-        fin();
+        for (auto&& th : thv) { th.join(); }
+        thv.clear();
+
+        std::vector<std::pair<char*, std::size_t>> tuple_list;// NOLINT
+        scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list);
+        for (std::size_t j = 0; j < ary_size; ++j) {
+            std::string v(std::to_string(j));
+            constexpr std::size_t v_index = 0;
+            ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
+        }
+        destroy();
     }
 }
 
-TEST_F(mtpdst, test2) { // NOLINT
+TEST_F(mtpdst, one_border_shuffle) {// NOLINT
     /**
      * test1 variant which is the test using shuffle order data.
      */
-
     constexpr std::size_t ary_size = 9;
-    std::vector<std::pair<std::string, std::string>> kv1; // NOLINT
-    std::vector<std::pair<std::string, std::string>> kv2; // NOLINT
-    for (std::size_t i = 0; i < 5; ++i) {
-        kv1.emplace_back(std::make_pair(std::string(i, '\0'), std::to_string(i)));
+    std::size_t th_nm{};
+    if (ary_size > std::thread::hardware_concurrency()) {
+        th_nm = std::thread::hardware_concurrency();
+    } else {
+        th_nm = ary_size;
     }
-    for (std::size_t i = 5; i < ary_size; ++i) {
-        kv2.emplace_back(std::make_pair(std::string(i, '\0'), std::to_string(i)));
-    }
-
-    std::random_device seed_gen{};
-    std::mt19937 engine(seed_gen());
 
 #ifndef NDEBUG
     for (std::size_t h = 0; h < 1; ++h) {
 #else
-        for (std::size_t h = 0; h < 10; ++h) {
+    for (std::size_t h = 0; h < 50; ++h) {
 #endif
-        init();
         create_storage(test_storage_name);
-        std::array<Token, 2> token{};
-        ASSERT_EQ(enter(token.at(0)), status::OK);
-        ASSERT_EQ(enter(token.at(1)), status::OK);
-
-        std::shuffle(kv1.begin(), kv1.end(), engine);
-        std::shuffle(kv2.begin(), kv2.end(), engine);
 
         struct S {
-            static void work(std::vector<std::pair<std::string, std::string>> &kv, Token &token) {
+            static void work(std::size_t th_id, std::size_t max_thread) {
+                std::vector<std::pair<std::string, std::string>> kv;
+                kv.reserve(ary_size / max_thread);
+                // data generation
+                for (std::size_t i = (ary_size / max_thread) * th_id; i < (th_id != max_thread - 1 ? (ary_size / max_thread) * (th_id + 1) : ary_size); ++i) {
+                    kv.emplace_back(std::make_pair(std::string(i, '\0'), std::to_string(i)));
+                }
+
+                std::random_device seed_gen{};
+                std::mt19937 engine(seed_gen());
+                Token token{};
+                enter(token);
+
+#ifndef NDEBUG
+                for (std::size_t j = 0; j < 1; ++j) {
+#else
                 for (std::size_t j = 0; j < 10; ++j) {
-                    for (auto &i : kv) {
+#endif
+                    std::shuffle(kv.begin(), kv.end(), engine);
+                    for (auto&& i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
                         status ret = put(test_storage_name, k, v.data(), v.size());
@@ -172,22 +188,31 @@ TEST_F(mtpdst, test2) { // NOLINT
                             std::abort();
                         }
                     }
-                    std::vector<std::pair<char*, std::size_t>> tuple_list; // NOLINT
-                    ASSERT_EQ(status::OK, scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list));
+                    std::vector<std::pair<char*, std::size_t>> tuple_list;// NOLINT
+                    std::string_view left{};
+                    std::string_view right{};
+                    if (std::get<0>(kv.front()).size() > std::get<0>(kv.back()).size()) {
+                        left = std::string_view(std::get<0>(kv.back()));
+                        right = std::string_view(std::get<0>(kv.front()));
+                    } else {
+                        left = std::string_view(std::get<0>(kv.front()));
+                        right = std::string_view(std::get<0>(kv.back()));
+                    }
+                    ASSERT_EQ(status::OK,
+                              scan<char>(test_storage_name, left, scan_endpoint::INCLUSIVE, right, scan_endpoint::INCLUSIVE, tuple_list));
                     ASSERT_EQ(tuple_list.size() >= kv.size(), true);
                     std::size_t check_ctr{0};
-                    for (auto &&elem : tuple_list) {
+                    for (auto&& elem : tuple_list) {
                         if (kv.size() == check_ctr) break;
-                        for (auto &&elem2 : kv) {
-                            if (std::get<1>(elem2).size() == std::get<1>(elem) &&
-                                memcmp(std::get<1>(elem2).data(), std::get<0>(elem), std::get<1>(elem)) == 0) {
+                        for (auto&& elem2 : kv) {
+                            if (memcmp(std::get<1>(elem2).data(), std::get<0>(elem), std::get<1>(elem)) == 0) {
                                 ++check_ctr;
                                 break;
                             }
                         }
                     }
                     ASSERT_EQ(check_ctr, kv.size());
-                    for (auto &&i : kv) {
+                    for (auto&& i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
                         status ret = remove(token, test_storage_name, k);
@@ -197,7 +222,8 @@ TEST_F(mtpdst, test2) { // NOLINT
                         }
                     }
                 }
-                for (auto &i : kv) {
+
+                for (auto&& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
                     status ret = put(test_storage_name, k, v.data(), v.size());
@@ -206,27 +232,28 @@ TEST_F(mtpdst, test2) { // NOLINT
                         std::abort();
                     }
                 }
+
+                leave(token);
             }
         };
 
-        std::thread t(S::work, std::ref(kv2), std::ref(token[0]));
-        S::work(std::ref(kv1), std::ref(token[1]));
-        t.join();
-
-        std::vector<std::pair<char*, std::size_t>> tuple_list; // NOLINT
-        constexpr std::size_t v_index = 0;
-        for (std::size_t i = 0; i < ary_size; ++i) {
-            std::string k(i, '\0');
-            scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
-            for (std::size_t j = 0; j < i + 1; ++j) {
-                std::string v(std::to_string(j));
-                ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
-            }
+        std::vector<std::thread> thv;
+        thv.reserve(th_nm);
+        for (std::size_t i = 0; i < th_nm; ++i) {
+            thv.emplace_back(S::work, i, th_nm);
         }
-        ASSERT_EQ(leave(token[0]), status::OK);
-        ASSERT_EQ(leave(token[1]), status::OK);
-        fin();
+        for (auto&& th : thv) { th.join(); }
+        thv.clear();
+
+        std::vector<std::pair<char*, std::size_t>> tuple_list;// NOLINT
+        scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list);
+        for (std::size_t j = 0; j < ary_size; ++j) {
+            std::string v(std::to_string(j));
+            constexpr std::size_t v_index = 0;
+            ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
+        }
+        destroy();
     }
 }
 
-}
+}// namespace yakushima::testing

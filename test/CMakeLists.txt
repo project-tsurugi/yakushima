@@ -14,6 +14,7 @@
 file(GLOB TEST_SOURCES
         "*.cpp"
         "multi_thread/*.cpp"
+        "multi_thread/put/*.cpp"
         "multi_thread/put_delete/*.cpp"
         "multi_thread/put_delete_scan/*.cpp"
         "multi_thread/put_delete_get/*.cpp"
