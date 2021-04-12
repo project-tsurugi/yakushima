@@ -1,5 +1,5 @@
 /**
- * @file multi_thread_put_delete_get_test.cpp
+ * @file multi_thread_put_delete_scan_one_interior_test.cpp
  */
 
 #include <algorithm>
@@ -15,13 +15,9 @@ using namespace yakushima;
 
 namespace yakushima::testing {
 
-std::string test_storage_name{"1"};// NOLINT
-
-class mtpdgt : public ::testing::Test {
-protected:
+class mtpdst : public ::testing::Test {
     void SetUp() override {
         init();
-        create_storage(test_storage_name);
     }
 
     void TearDown() override {
@@ -29,17 +25,19 @@ protected:
     }
 };
 
-TEST_F(mtpdgt, many_layer_many_interior_many_border) {// NOLINT
+std::string test_storage_name{"1"};// NOLINT
+
+TEST_F(mtpdst, one_interior) {// NOLINT
     /**
-     * multi-layer put-delete-get test.
+     * concurrent put/delete/scan in the state between none to split of interior, which is using shuffled data.
      */
-    constexpr std::size_t ary_size = interior_node::child_length * base_node::key_slice_length * 10;
+    constexpr std::size_t ary_size = interior_node::child_length * base_node::key_slice_length / 2;
     constexpr std::size_t th_nm{ary_size / 20};
 
 #ifndef NDEBUG
-    for (size_t h = 0; h < 1; ++h) {
+    for (std::size_t h = 0; h < 1; ++h) {
 #else
-    for (size_t h = 0; h < 20; ++h) {
+    for (std::size_t h = 0; h < 20; ++h) {
 #endif
         create_storage(test_storage_name);
 
@@ -47,11 +45,12 @@ TEST_F(mtpdgt, many_layer_many_interior_many_border) {// NOLINT
             static void work(std::size_t th_id) {
                 std::vector<std::pair<std::string, std::string>> kv;
                 kv.reserve(ary_size / th_nm);
+                // data generation
                 for (std::size_t i = (ary_size / th_nm) * th_id; i < (th_id != th_nm - 1 ? (ary_size / th_nm) * (th_id + 1) : ary_size); ++i) {
                     if (i <= INT8_MAX) {
                         kv.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
                     } else {
-                        kv.emplace_back(std::make_pair(std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i % INT8_MAX), std::to_string(i)));
+                        kv.emplace_back(std::make_pair(std::string(i / INT8_MAX, static_cast<char>(INT8_MAX)) + std::string(1, i - INT8_MAX), std::to_string(i)));
                     }
                 }
 
@@ -60,33 +59,51 @@ TEST_F(mtpdgt, many_layer_many_interior_many_border) {// NOLINT
                 Token token{};
                 enter(token);
 
-#ifndef NDEBUG
-                for (std::size_t j = 0; j < 1; ++j) {
-#else
                 for (std::size_t j = 0; j < 10; ++j) {
-#endif
                     std::shuffle(kv.begin(), kv.end(), engine);
+
                     for (auto& i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
+                        status ret = put(test_storage_name, k, v.data(), v.size());
+                        if (ret != status::OK) {
+                            ASSERT_EQ(ret, status::OK);
+                            std::abort();
+                        }
                     }
-                    for (auto& i : kv) {
-                        std::string k(std::get<0>(i));
-                        std::string v(std::get<1>(i));
-                        std::pair<char*, std::size_t> ret = get<char>(test_storage_name, k);
-                        ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
+                    std::vector<std::pair<char*, std::size_t>> tuple_list;// NOLINT
+                    ASSERT_EQ(status::OK, scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list));
+                    ASSERT_EQ(tuple_list.size() >= kv.size(), true);
+                    std::size_t check_ctr{0};
+                    for (auto&& elem : tuple_list) {
+                        if (kv.size() == check_ctr) break;
+                        for (auto&& elem2 : kv) {
+                            if (std::get<1>(elem2).size() == std::get<1>(elem) &&
+                                memcmp(std::get<1>(elem2).data(), std::get<0>(elem), std::get<1>(elem)) == 0) {
+                                ++check_ctr;
+                                break;
+                            }
+                        }
                     }
+                    ASSERT_EQ(check_ctr, kv.size());
                     for (auto& i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        ASSERT_EQ(remove(token, test_storage_name, k), status::OK);
+                        status ret = remove(token, test_storage_name, k);
+                        if (ret != status::OK) {
+                            ASSERT_EQ(ret, status::OK);
+                            std::abort();
+                        }
                     }
                 }
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
+                    status ret = put(test_storage_name, k, v.data(), v.size());
+                    if (ret != status::OK) {
+                        ASSERT_EQ(ret, status::OK);
+                        std::abort();
+                    }
                 }
 
                 leave(token);
@@ -107,9 +124,9 @@ TEST_F(mtpdgt, many_layer_many_interior_many_border) {// NOLINT
                 if (i <= INT8_MAX) {
                     k = std::string(1, i);
                 } else {
-                    k = std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i % INT8_MAX);
+                    k = std::string(i / INT8_MAX, static_cast<char>(INT8_MAX)) + std::string(1, i - INT8_MAX);
                 }
-                std::vector<std::pair<char*, std::size_t>> tuple_list;
+                std::vector<std::pair<char*, std::size_t>> tuple_list;// NOLINT
                 scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
                 if (tuple_list.size() != i + 1) {
                     scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);

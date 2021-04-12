@@ -10,8 +10,8 @@
 #include <vector>
 
 #include "base_node.h"
-#include "epoch.h"
 #include "cpu.h"
+#include "epoch.h"
 
 namespace yakushima {
 
@@ -19,7 +19,7 @@ class gc_container {
 public:
     class alignas(CACHE_LINE_SIZE) node_container {
     public:
-        std::vector<std::pair<Epoch, base_node*>> &get_body() {
+        std::vector<std::pair<Epoch, base_node*>>& get_body() {
             return body_;
         }
 
@@ -29,7 +29,7 @@ public:
 
     class alignas(CACHE_LINE_SIZE) value_container {
     public:
-        std::vector<std::tuple<Epoch, void*, std::size_t, std::align_val_t>> &get_body() {
+        std::vector<std::tuple<Epoch, void*, std::size_t, std::align_val_t>>& get_body() {
             return body_;
         }
 
@@ -41,7 +41,7 @@ public:
         try {
             set_node_container(&kGarbageNodes.at(index));
             set_value_container(&kGarbageValues.at(index));
-        } catch (std::out_of_range &e) {
+        } catch (std::out_of_range& e) {
             std::cout << __FILE__ << " : " << __LINE__ << std::endl;
         } catch (...) {
             std::cout << __FILE__ << " : " << __LINE__ << std::endl;
@@ -67,14 +67,14 @@ public:
         struct S {
             static void parallel_worker(const std::uint64_t left_edge, const std::uint64_t right_edge) {
                 for (std::size_t i = left_edge; i < right_edge; ++i) {
-                    auto &ncontainer = kGarbageNodes.at(i);
-                    for (auto &&elem : ncontainer.get_body()) {
-                        delete std::get<gc_target_index>(elem); // NOLINT
+                    auto& ncontainer = kGarbageNodes.at(i);
+                    for (auto&& elem : ncontainer.get_body()) {
+                        delete std::get<gc_target_index>(elem);// NOLINT
                     }
                     ncontainer.get_body().clear();
 
-                    auto &vcontainer = kGarbageValues.at(i);
-                    for (auto &&elem : vcontainer.get_body()) {
+                    auto& vcontainer = kGarbageValues.at(i);
+                    for (auto&& elem : vcontainer.get_body()) {
                         ::operator delete(std::get<gc_target_index>(elem), std::get<gc_target_size_index>(elem),
                                           std::get<gc_target_align_index>(elem));
                     }
@@ -85,21 +85,13 @@ public:
         std::vector<std::thread> thv;
         for (std::size_t i = 0; i < std::thread::hardware_concurrency(); ++i) {
             if (std::thread::hardware_concurrency() != 1) {
-                if (i != std::thread::hardware_concurrency() - 1) {
-                    thv.emplace_back(S::parallel_worker,
-                                     YAKUSHIMA_MAX_PARALLEL_SESSIONS / std::thread::hardware_concurrency() * i,
-                                     YAKUSHIMA_MAX_PARALLEL_SESSIONS / std::thread::hardware_concurrency() * (i + 1));
-                } else {
-                    thv.emplace_back(S::parallel_worker,
-                                     YAKUSHIMA_MAX_PARALLEL_SESSIONS / std::thread::hardware_concurrency() * i,
-                                     YAKUSHIMA_MAX_PARALLEL_SESSIONS);
-                }
+                thv.emplace_back(S::parallel_worker, YAKUSHIMA_MAX_PARALLEL_SESSIONS / std::thread::hardware_concurrency() * i, i != std::thread::hardware_concurrency() - 1 ? YAKUSHIMA_MAX_PARALLEL_SESSIONS / std::thread::hardware_concurrency() * (i + 1) : YAKUSHIMA_MAX_PARALLEL_SESSIONS);
             } else {
                 thv.emplace_back(S::parallel_worker, 0, YAKUSHIMA_MAX_PARALLEL_SESSIONS);
             }
         }
 
-        for (auto &th : thv) {
+        for (auto& th : thv) {
             th.join();
         }
     }
@@ -124,11 +116,11 @@ public:
     void gc_node() {
         Epoch gc_epoch = get_gc_epoch();
         std::uint64_t g_ctr{0};
-        for (auto &&itr : node_container_->get_body()) {
+        for (auto&& itr : node_container_->get_body()) {
             if (std::get<gc_epoch_index>(itr) >= gc_epoch) {
                 break;
             }
-            delete std::get<gc_target_index>(itr); // NOLINT
+            delete std::get<gc_target_index>(itr);// NOLINT
             ++g_ctr;
         }
         if (g_ctr > 0) {
@@ -140,7 +132,7 @@ public:
     void gc_value() {
         Epoch gc_epoch = get_gc_epoch();
         std::uint64_t g_ctr{0};
-        for (auto &&itr : value_container_->get_body()) {
+        for (auto&& itr : value_container_->get_body()) {
             if (std::get<gc_epoch_index>(itr) >= gc_epoch) {
                 break;
             }
@@ -185,13 +177,13 @@ public:
     static constexpr std::size_t gc_target_index = 1;
     static constexpr std::size_t gc_target_size_index = 2;
     static constexpr std::size_t gc_target_align_index = 3;
-    static inline std::array<node_container, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kGarbageNodes; // NOLINT
-    static inline std::array<value_container, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kGarbageValues; // NOLINT
-    alignas(CACHE_LINE_SIZE) static inline std::atomic<Epoch> kGCEpoch; // NOLINT
+    static inline std::array<node_container, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kGarbageNodes;  // NOLINT
+    static inline std::array<value_container, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kGarbageValues;// NOLINT
+    alignas(CACHE_LINE_SIZE) static inline std::atomic<Epoch> kGCEpoch;                       // NOLINT
 
 private:
     node_container* node_container_{nullptr};
     value_container* value_container_{nullptr};
 };
 
-} // namespace yakushima
+}// namespace yakushima

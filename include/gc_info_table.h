@@ -16,8 +16,8 @@ public:
      * @return status::OK success.
      * @return status::WARN_MAX_SESSIONS The maximum number of sessions is already up and running.
      */
-    static status assign_gc_info(Token &token) {
-        for (auto &&elem : kThreadInfoTable) {
+    static status assign_gc_info(Token& token) {
+        for (auto&& elem : kThreadInfoTable) {
             if (elem.gain_the_right()) {
                 elem.lock_epoch();
                 elem.set_begin_epoch(epoch_management::get_epoch());
@@ -32,7 +32,7 @@ public:
      * @brief Get reference of kThreadInfoTable.
      * @return the reference of kThreadInfoTable.
      */
-    static std::array<gc_info, YAKUSHIMA_MAX_PARALLEL_SESSIONS> &get_thread_info_table() {
+    static std::array<gc_info, YAKUSHIMA_MAX_PARALLEL_SESSIONS>& get_thread_info_table() {
         return kThreadInfoTable;
     }
 
@@ -42,7 +42,7 @@ public:
      * @return void
      */
     static void init() {
-        for (auto itr = kThreadInfoTable.begin(); itr != kThreadInfoTable.end(); ++itr) { // NOLINT
+        for (auto itr = kThreadInfoTable.begin(); itr != kThreadInfoTable.end(); ++itr) {// NOLINT
             itr->set_begin_epoch(0);
             itr->set_gc_container(static_cast<size_t>(std::distance(kThreadInfoTable.begin(), itr)));
             itr->set_running(false);
@@ -66,23 +66,19 @@ public:
      */
     template<class interior_node, class border_node>
     static status leave_gc_info(Token token) {
-        for (auto &&elem : kThreadInfoTable) {
-            if (token == static_cast<void*>(&(elem))) {
-                elem.gc<interior_node, border_node>();
-                elem.set_running(false);
-                elem.set_begin_epoch(0);
-                elem.unlock_epoch();
-                return status::OK;
-            }
-        }
-        return status::WARN_INVALID_TOKEN;
+        gc_info* target = static_cast<gc_info*>(token);
+        target->gc<interior_node, border_node>();
+        target->set_running(false);
+        target->set_begin_epoch(0);
+        target->unlock_epoch();
+        return status::OK;
     }
 
 private:
     /**
      * @brief Session information used by garbage collection.
      */
-    static inline std::array<gc_info, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kThreadInfoTable; // NOLINT
+    static inline std::array<gc_info, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kThreadInfoTable;// NOLINT
 };
 
-} // namespace yakushima
+}// namespace yakushima

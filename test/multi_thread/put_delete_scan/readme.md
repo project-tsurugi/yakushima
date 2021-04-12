@@ -8,6 +8,10 @@
 - multi_thread_put_delete_scan_one_interior_two_border_test.cpp
     - Perform put / delete / scan operations in parallel. The state of the tree can range from nothing to one interior
       node and two border nodes.
+- multi_thread_put_delete_scan_one_interior_test.cpp
+    - Perform put / delete / scan operations in parallel. The state of the tree can range from nothing to one interior node and many border nodes.
+- multi_thread_put_delete_scan_many_interior_test.cpp
+    - Perform put / delete / scan operations in parallel. The state of the tree can range from nothing to many interior nodes.
 - multi_thread_put_delete_scan_test.cpp
     - Others.
 
