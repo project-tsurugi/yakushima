@@ -29,48 +29,36 @@ protected:
     }
 };
 
-TEST_F(mtpdgt, many_interior_many_border) {// NOLINT
+TEST_F(mtpdgt, many_interior) {// NOLINT
     /**
      * concurrent put/delete/get in the state between none to many split of interior.
      */
 
     constexpr std::size_t ary_size = interior_node::child_length * base_node::key_slice_length * 1.4;
-    std::vector<std::pair<std::string, std::string>> kv1;
-    std::vector<std::pair<std::string, std::string>> kv2;
-    for (std::size_t i = 0; i < ary_size / 2; ++i) {
-        if (i <= INT8_MAX) {
-            kv1.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
-        } else {
-            kv1.emplace_back(
-                    std::make_pair(std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX),
-                                   std::to_string(i)));
-        }
-    }
-    for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
-        if (i <= INT8_MAX) {
-            kv2.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
-        } else {
-            kv2.emplace_back(
-                    std::make_pair(std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX),
-                                   std::to_string(i)));
-        }
-    }
+    constexpr std::size_t th_nm{ary_size / 20};
 
 #ifndef NDEBUG
     for (std::size_t h = 0; h < 1; ++h) {
 #else
-    for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 10; ++h) {
 #endif
         create_storage(test_storage_name);
-        std::array<Token, 2> token{};
-        ASSERT_EQ(enter(token[0]), status::OK);
-        ASSERT_EQ(enter(token[1]), status::OK);
-
-        std::reverse(kv1.begin(), kv1.end());
-        std::reverse(kv2.begin(), kv2.end());
 
         struct S {
-            static void work(std::vector<std::pair<std::string, std::string>>& kv, Token& token) {
+            static void work(std::size_t th_id) {
+                std::vector<std::pair<std::string, std::string>> kv;
+                kv.reserve(ary_size / th_nm);
+                // data generation
+                for (std::size_t i = (ary_size / th_nm) * th_id; i < (th_id != th_nm - 1 ? (ary_size / th_nm) * (th_id + 1) : ary_size); ++i) {
+                    if (i <= INT8_MAX) {
+                        kv.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
+                    } else {
+                        kv.emplace_back(std::make_pair(std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i % INT8_MAX), std::to_string(i)));
+                    }
+                }
+
+                Token token{};
+                enter(token);
 #ifndef NDEBUG
                 for (std::size_t j = 0; j < 1; ++j) {
 #else
@@ -102,12 +90,18 @@ TEST_F(mtpdgt, many_interior_many_border) {// NOLINT
                     std::string v(std::get<1>(i));
                     ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
                 }
+
+                leave(token);
             }
         };
 
-        std::thread t(S::work, std::ref(kv2), std::ref(token[0]));
-        S::work(std::ref(kv1), std::ref(token[1]));
-        t.join();
+        std::vector<std::thread> thv;
+        thv.reserve(th_nm);
+        for (std::size_t i = 0; i < th_nm; ++i) {
+            thv.emplace_back(S::work, i);
+        }
+        for (auto&& th : thv) { th.join(); }
+        thv.clear();
 
         struct parallel_verify {
             static void work(std::size_t i) {
@@ -115,7 +109,7 @@ TEST_F(mtpdgt, many_interior_many_border) {// NOLINT
                 if (i <= INT8_MAX) {
                     k = std::string(1, i);
                 } else {
-                    k = std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX);
+                    k = std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i % INT8_MAX);
                 }
                 std::vector<std::pair<char*, std::size_t>> tuple_list;
                 scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
@@ -131,48 +125,23 @@ TEST_F(mtpdgt, many_interior_many_border) {// NOLINT
             }
         };
 
-        std::vector<std::thread> thv;
         thv.reserve(ary_size);
         for (std::size_t i = 0; i < ary_size; ++i) {
             thv.emplace_back(parallel_verify::work, i);
         }
         for (auto&& th : thv) { th.join(); }
 
-        ASSERT_EQ(leave(token[0]), status::OK);
-        ASSERT_EQ(leave(token[1]), status::OK);
         destroy();
     }
 }
 
-TEST_F(mtpdgt, many_interior_many_border_shuffle) {// NOLINT
+TEST_F(mtpdgt, many_interior_shuffle) {// NOLINT
     /**
      * concurrent put/delete/get in the state between none to many split of interior with shuffle.
      */
 
     constexpr std::size_t ary_size = interior_node::child_length * base_node::key_slice_length * 1.4;
-    std::vector<std::pair<std::string, std::string>> kv1;
-    std::vector<std::pair<std::string, std::string>> kv2;
-    for (std::size_t i = 0; i < ary_size / 2; ++i) {
-        if (i <= INT8_MAX) {
-            kv1.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
-        } else {
-            kv1.emplace_back(
-                    std::make_pair(std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX),
-                                   std::to_string(i)));
-        }
-    }
-    for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
-        if (i <= INT8_MAX) {
-            kv2.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
-        } else {
-            kv2.emplace_back(
-                    std::make_pair(std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX),
-                                   std::to_string(i)));
-        }
-    }
-
-    std::random_device seed_gen;
-    std::mt19937 engine(seed_gen());
+    constexpr std::size_t th_nm{ary_size / 20};
 
 #ifndef NDEBUG
     for (size_t h = 0; h < 1; ++h) {
@@ -180,20 +149,32 @@ TEST_F(mtpdgt, many_interior_many_border_shuffle) {// NOLINT
     for (size_t h = 0; h < 100; ++h) {
 #endif
         create_storage(test_storage_name);
-        std::array<Token, 2> token{};
-        ASSERT_EQ(enter(token[0]), status::OK);
-        ASSERT_EQ(enter(token[1]), status::OK);
-
-        std::shuffle(kv1.begin(), kv1.end(), engine);
-        std::shuffle(kv2.begin(), kv2.end(), engine);
 
         struct S {
-            static void work(std::vector<std::pair<std::string, std::string>>& kv, Token& token) {
+            static void work(std::size_t th_id) {
+                std::vector<std::pair<std::string, std::string>> kv;
+                kv.reserve(ary_size / th_nm);
+                // data generation
+                for (std::size_t i = (ary_size / th_nm) * th_id; i < (th_id != th_nm - 1 ? (ary_size / th_nm) * (th_id + 1) : ary_size); ++i) {
+                    if (i <= INT8_MAX) {
+                        kv.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
+                    } else {
+                        kv.emplace_back(std::make_pair(std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i % INT8_MAX), std::to_string(i)));
+                    }
+                }
+
+                std::random_device seed_gen;
+                std::mt19937 engine(seed_gen());
+                Token token{};
+                enter(token);
+
 #ifndef NDEBUG
                 for (std::size_t j = 0; j < 1; ++j) {
 #else
                 for (std::size_t j = 0; j < 10; ++j) {
 #endif
+                    std::shuffle(kv.begin(), kv.end(), engine);
+
                     for (auto& i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
@@ -216,12 +197,18 @@ TEST_F(mtpdgt, many_interior_many_border_shuffle) {// NOLINT
                     std::string v(std::get<1>(i));
                     ASSERT_EQ(put(test_storage_name, std::string_view(k), v.data(), v.size()), status::OK);
                 }
+
+                leave(token);
             }
         };
 
-        std::thread t(S::work, std::ref(kv2), std::ref(token[0]));
-        S::work(std::ref(kv1), std::ref(token[1]));
-        t.join();
+        std::vector<std::thread> thv;
+        thv.reserve(th_nm);
+        for (std::size_t i = 0; i < th_nm; ++i) {
+            thv.emplace_back(S::work, i);
+        }
+        for (auto&& th : thv) { th.join(); }
+        thv.clear();
 
         struct parallel_verify {
             static void work(std::size_t i) {
@@ -229,7 +216,7 @@ TEST_F(mtpdgt, many_interior_many_border_shuffle) {// NOLINT
                 if (i <= INT8_MAX) {
                     k = std::string(1, i);
                 } else {
-                    k = std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i - INT8_MAX);
+                    k = std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i % INT8_MAX);
                 }
                 std::vector<std::pair<char*, std::size_t>> tuple_list;
                 scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
@@ -244,15 +231,13 @@ TEST_F(mtpdgt, many_interior_many_border_shuffle) {// NOLINT
                 }
             }
         };
-        std::vector<std::thread> thv;
+
         thv.reserve(ary_size);
         for (std::size_t i = 0; i < ary_size; ++i) {
             thv.emplace_back(parallel_verify::work, i);
         }
         for (auto&& th : thv) { th.join(); }
 
-        ASSERT_EQ(leave(token[0]), status::OK);
-        ASSERT_EQ(leave(token[1]), status::OK);
         destroy();
     }
 }
