@@ -32,7 +32,13 @@ TEST_F(mtpdst, many_layer) {// NOLINT
      * multi-layer put-delete-scan test.
      */
     constexpr std::size_t ary_size = interior_node::child_length * base_node::key_slice_length * 10;
-    auto th_nm{std::thread::hardware_concurrency()};
+    std::size_t th_nm{};
+    if (ary_size > std::thread::hardware_concurrency()) {
+        th_nm = std::thread::hardware_concurrency();
+    } else {
+        th_nm = ary_size;
+    }
+
 
 #ifndef NDEBUG
     for (size_t h = 0; h < 1; ++h) {

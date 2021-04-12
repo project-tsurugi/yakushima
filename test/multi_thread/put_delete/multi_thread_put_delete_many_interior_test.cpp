@@ -27,12 +27,12 @@ class mtpdt : public ::testing::Test {
 
 std::string test_storage_name{"1"}; // NOLINT
 
-TEST_F(mtpdt, concurrent_put_delete_between_none_and_many_split_of_interior_with_shuffle_in_multi_layer) { // NOLINT
+TEST_F(mtpdt, concurrent_put_delete_between_none_and_many_split_of_interior) { // NOLINT
     /**
-     * multi-layer put-delete test.
+     * concurrent put/delete in the state between none to many split of interior.
      */
 
-    constexpr std::size_t ary_size = interior_node::child_length * base_node::key_slice_length * 10;
+    constexpr std::size_t ary_size = interior_node::child_length * base_node::key_slice_length * 1.4;
     std::vector<std::pair<std::string, std::string>> kv1; // NOLINT
     std::vector<std::pair<std::string, std::string>> kv2; // NOLINT
     for (std::size_t i = 0; i < ary_size / 2; ++i) {
@@ -54,57 +54,37 @@ TEST_F(mtpdt, concurrent_put_delete_between_none_and_many_split_of_interior_with
         }
     }
 
-    std::random_device seed_gen{};
-    std::mt19937 engine(seed_gen());
-
 #ifndef NDEBUG
-    for (size_t h = 0; h < 1; ++h) {
+    for (std::size_t h = 0; h < 1; ++h) {
 #else
-        for (size_t h = 0; h < 20; ++h) {
+        for (std::size_t h = 0; h < 100; ++h) {
 #endif
         create_storage(test_storage_name);
-        std::atomic<base_node*>* target_storage{};
-        find_storage(test_storage_name, &target_storage);
-        ASSERT_EQ(target_storage->load(std::memory_order_acquire), nullptr);
         std::array<Token, 2> token{};
         ASSERT_EQ(enter(token[0]), status::OK);
         ASSERT_EQ(enter(token[1]), status::OK);
 
-        std::shuffle(kv1.begin(), kv1.end(), engine);
-        std::shuffle(kv2.begin(), kv2.end(), engine);
+        std::reverse(kv1.begin(), kv1.end());
+        std::reverse(kv2.begin(), kv2.end());
 
         struct S {
             static void work(std::vector<std::pair<std::string, std::string>> &kv, Token &token) {
                 for (std::size_t j = 0; j < 10; ++j) {
                     for (auto &i : kv) {
-                        std::string v(std::get<1>(i));
                         std::string k(std::get<0>(i));
-                        status ret = put(test_storage_name, k, v.data(), v.size());
-                        if (status::OK != ret) {
-                            ret = put(test_storage_name, k, v.data(), v.size());
-                            ASSERT_EQ(status::OK, ret);
-                            std::abort();
-                        }
+                        std::string v(std::get<1>(i));
+                        ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
                     }
                     for (auto &i : kv) {
-                        std::string v(std::get<1>(i));
                         std::string k(std::get<0>(i));
-                        status ret = remove(token, test_storage_name, k);
-                        if (status::OK != ret) {
-                            ret = remove(token, test_storage_name, k);
-                            ASSERT_EQ(status::OK, ret);
-                            std::abort();
-                        }
+                        std::string v(std::get<1>(i));
+                        ASSERT_EQ(remove(token, test_storage_name, k), status::OK);
                     }
                 }
                 for (auto &i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(test_storage_name, k, v.data(), v.size());
-                    if (status::OK != ret) {
-                        ASSERT_EQ(status::OK, ret);
-                        std::abort();
-                    }
+                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
                 }
             }
         };
@@ -115,7 +95,7 @@ TEST_F(mtpdt, concurrent_put_delete_between_none_and_many_split_of_interior_with
 
         std::vector<std::pair<char*, std::size_t>> tuple_list; // NOLINT
         constexpr std::size_t v_index = 0;
-        for (std::size_t i = 0; i < ary_size / 100; ++i) {
+        for (std::size_t i = 0; i < ary_size; ++i) {
             std::string k;
             if (i <= INT8_MAX) {
                 k = std::string(1, i);
