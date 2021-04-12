@@ -66,7 +66,7 @@ public:
      */
     template<class interior_node, class border_node>
     static status leave_gc_info(Token token) {
-        gc_info* target = static_cast<gc_info*>(token);
+        auto target = static_cast<gc_info*>(token);
         target->gc<interior_node, border_node>();
         target->set_running(false);
         target->set_begin_epoch(0);
