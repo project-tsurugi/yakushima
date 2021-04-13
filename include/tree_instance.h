@@ -6,16 +6,21 @@
 namespace yakushima {
 
 class tree_instance {
-    public:
+public:
+    bool cas_root_ptr(base_node** expected, base_node** desired) {
+        return weakCompareExchange(&root_, expected, desired);
+    }
+
     base_node* load_root_ptr() {
         return loadAcquireN(root_);
     }
 
-    bool cas_root_ptr(base_node** expected, base_node** desired) {
-        return weakCompareExchange(&root_, expected, desired);
+    void store_root_ptr(base_node* new_root) {
+        return storeReleaseN(root_, new_root);
     }
-    private:
+
+private:
     base_node* root_{nullptr};
 };
 
-}
+}// namespace yakushima

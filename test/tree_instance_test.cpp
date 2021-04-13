@@ -9,6 +9,7 @@
 #include "border_node.h"
 #include "clock.h"
 #include "tree_instance.h"
+#include "kvs.h"
 
 using namespace yakushima;
 
@@ -23,7 +24,11 @@ TEST_F(ti, basic) { // NOLINT
     border_node a, b;
     base_node* bn_null{nullptr};
     base_node* bn_a_ptr{&a};
+    base_node* bn_b_ptr{&b};
     ASSERT_EQ(true, tin.cas_root_ptr(&bn_null, &bn_a_ptr));
+    ASSERT_EQ(tin.load_root_ptr(), bn_a_ptr);
+    tin.store_root_ptr(bn_b_ptr);
+    ASSERT_EQ(tin.load_root_ptr(), bn_b_ptr);
     std::atomic<std::size_t> meet{0};
     struct S {
         static void work(tree_instance* tin, base_node* own, base_node* against, std::atomic<std::size_t>* meet) {
@@ -50,4 +55,15 @@ TEST_F(ti, basic) { // NOLINT
     other.join();
 }
 
+TEST_F(ti, yakushima_in_yakushima) {
+    init();
+    std::string storage_name{"1"};
+    std::string k{"k"};
+    create_storage(storage_name);
+    tree_instance tin;
+    put(storage_name, k, &tin);
+    std::pair<tree_instance*, std::size_t> ret = get<tree_instance>(storage_name, k);
+    ASSERT_EQ(ret.first->load_root_ptr(), tin.load_root_ptr());
+    fin();
+}
 }  // namespace yakushima::testing
