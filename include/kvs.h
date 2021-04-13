@@ -86,11 +86,11 @@ template<class ValueType>
  * This is because sizeof for a type represents a single object size.
  * @param[in] key_view The key_view of key-value.
  * @param[in] value The pointer to given value.
- * @param[out] created_value_ptr The pointer to created value in yakushima.
- * @param[in] arg_value_length The length of value object.
- * @param[in] value_align The alignment information of value object.
- * @param[out] inserted_node_version_ptr The pointer to version of the inserted node. It may be used to find out
- * difference of the version between some operations.
+ * @param[out] created_value_ptr The pointer to created value in yakushima. Default is @a nullptr.
+ * @param[in] arg_value_length The length of value object. Default is @a sizeof(ValueType).
+ * @param[in] value_align The alignment information of value object. Default is @a static_cast<value_align_type>(alignof(ValueType)).
+ * @param[out] inserted_node_version_ptr The pointer to version of the inserted node. It may be used to find out 
+ * difference of the version between some operations. Default is @a nullptr.
  * @return status::OK success.
  * @return status::WARN_UNIQUE_RESTRICTION The key-value whose key is same to given key already exists.
  */
