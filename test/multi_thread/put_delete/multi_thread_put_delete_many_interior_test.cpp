@@ -62,7 +62,11 @@ TEST_F(mtpdt, many_interior) {// NOLINT
 
                 Token token{};
                 enter(token);
+#ifndef NDEBUG
+                for (std::size_t j = 0; j < 1; ++j) {
+#else
                 for (std::size_t j = 0; j < 10; ++j) {
+#endif
                     for (auto& i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));

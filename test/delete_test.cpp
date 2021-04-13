@@ -75,9 +75,7 @@ TEST_F(dt, test2) { // NOLINT
 }
 
 TEST_F(dt, test3) { // NOLINT
-    fin();
     for (std::size_t h = 0; h < 1; ++h) {
-        init();
         create_storage(test_storage_name);
         std::atomic<base_node*>* target_storage{};
         find_storage(test_storage_name, &target_storage);
@@ -106,9 +104,8 @@ TEST_F(dt, test3) { // NOLINT
         }
         ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
         ASSERT_EQ(leave(token), status::OK);
-        fin();
+        destroy();
     }
-    init();
 }
 
 TEST_F(dt, test4) { // NOLINT
@@ -139,9 +136,7 @@ TEST_F(dt, test4) { // NOLINT
 }
 
 TEST_F(dt, test5) { // NOLINT
-    fin();
     for (std::size_t h = 0; h < 1; ++h) {
-        init();
         create_storage(test_storage_name);
         std::atomic<base_node*>* target_storage{};
         find_storage(test_storage_name, &target_storage);
@@ -165,9 +160,8 @@ TEST_F(dt, test5) { // NOLINT
         }
         ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
         ASSERT_EQ(leave(token), status::OK);
-        fin();
+        destroy();
     }
-    init();
 }
 
 TEST_F(dt, test6) { // NOLINT
@@ -199,9 +193,7 @@ TEST_F(dt, test6) { // NOLINT
 }
 
 TEST_F(dt, test7) { // NOLINT
-    fin();
     for (std::size_t h = 0; h < 1; ++h) {
-        init();
         create_storage(test_storage_name);
         std::atomic<base_node*>* target_storage{};
         find_storage(test_storage_name, &target_storage);
@@ -232,9 +224,8 @@ TEST_F(dt, test7) { // NOLINT
         }
         ASSERT_EQ(target_storage->load(std::memory_order_acquire), nullptr);
         ASSERT_EQ(leave(token), status::OK);
-        fin();
+        destroy();
     }
-    init();
 }
 
 TEST_F(dt, test8) { // NOLINT
@@ -360,9 +351,7 @@ TEST_F(dt, test8) { // NOLINT
 }
 
 TEST_F(dt, test9) { // NOLINT
-    fin();
     for (std::size_t h = 0; h < 1; ++h) {
-        init();
         create_storage(test_storage_name);
         std::atomic<base_node*>* target_storage{};
         find_storage(test_storage_name, &target_storage);
@@ -387,9 +376,8 @@ TEST_F(dt, test9) { // NOLINT
 
         ASSERT_EQ(target_storage->load(std::memory_order_acquire), nullptr);
         ASSERT_EQ(leave(token), status::OK);
-        fin();
+        destroy();
     }
-    init();
 }
 
 }  // namespace yakushima::testing

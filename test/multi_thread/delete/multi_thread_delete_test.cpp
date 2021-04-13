@@ -48,7 +48,7 @@ TEST_F(mtdt, one_border) {// NOLINT
         create_storage(test_storage_name);
 
         struct S {
-            static void work(std::size_t th_id, std::size_t max_thread) {
+            static void work(std::size_t th_id, std::size_t max_thread, std::atomic<std::size_t>* meet) {
                 std::vector<std::pair<std::string, std::string>> kv;
                 kv.reserve(ary_size / max_thread);
                 // data generation
@@ -69,6 +69,9 @@ TEST_F(mtdt, one_border) {// NOLINT
                     }
                 }
 
+                meet->fetch_add(1);
+                while (meet->load(std::memory_order_acquire) != max_thread) _mm_pause();
+
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
@@ -84,8 +87,9 @@ TEST_F(mtdt, one_border) {// NOLINT
 
         std::vector<std::thread> thv;
         thv.reserve(th_nm);
+        std::atomic<std::size_t> meet{0};
         for (std::size_t i = 0; i < th_nm; ++i) {
-            thv.emplace_back(S::work, i, th_nm);
+            thv.emplace_back(S::work, i, th_nm, &meet);
         }
         for (auto&& th : thv) { th.join(); }
         thv.clear();
@@ -117,7 +121,7 @@ TEST_F(mtdt, one_border_shuffle) {// NOLINT
         create_storage(test_storage_name);
 
         struct S {
-            static void work(std::size_t th_id, std::size_t max_thread) {
+            static void work(std::size_t th_id, std::size_t max_thread, std::atomic<std::size_t>* meet) {
                 std::vector<std::pair<std::string, std::string>> kv;
                 kv.reserve(ary_size / max_thread);
                 // data generation
@@ -142,6 +146,9 @@ TEST_F(mtdt, one_border_shuffle) {// NOLINT
                     }
                 }
 
+                meet->fetch_add(1);
+                while (meet->load(std::memory_order_acquire) != max_thread) _mm_pause();
+
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
@@ -157,8 +164,9 @@ TEST_F(mtdt, one_border_shuffle) {// NOLINT
 
         std::vector<std::thread> thv;
         thv.reserve(th_nm);
+        std::atomic<std::size_t> meet{0};
         for (std::size_t i = 0; i < th_nm; ++i) {
-            thv.emplace_back(S::work, i, th_nm);
+            thv.emplace_back(S::work, i, th_nm, &meet);
         }
         for (auto&& th : thv) { th.join(); }
         thv.clear();
@@ -534,146 +542,6 @@ TEST_F(mtdt, test8) {// NOLINT
         kv2.emplace_back(std::string(1, i), std::to_string(i));
     }
 
-    std::random_device seed_gen;
-    std::mt19937 engine(seed_gen());
-
-#ifndef NDEBUG
-    for (std::size_t h = 0; h < 1; ++h) {
-#else
-    for (std::size_t h = 0; h < 30; ++h) {
-#endif
-        create_storage(test_storage_name);
-        std::array<Token, 2> token{};
-        ASSERT_EQ(enter(token.at(0)), status::OK);
-        ASSERT_EQ(enter(token.at(1)), status::OK);
-
-        std::shuffle(kv1.begin(), kv1.end(), engine);
-        std::shuffle(kv2.begin(), kv2.end(), engine);
-
-        struct S {
-            static void put_work(std::vector<std::tuple<std::string, std::string>>& kv) {
-                for (auto& i : kv) {
-                    std::string k(std::get<0>(i));
-                    std::string v(std::get<1>(i));
-                    status ret = put(test_storage_name, k, v.data(), v.size());
-                    if (ret != status::OK) {
-                        EXPECT_EQ(status::OK, ret);// output log
-                        std::abort();
-                    }
-                }
-            }
-
-            static void remove_work(Token& token, std::vector<std::tuple<std::string, std::string>>& kv) {
-                for (auto& i : kv) {
-                    std::string k(std::get<0>(i));
-                    std::string v(std::get<1>(i));
-                    status ret = remove(token, test_storage_name, k);
-                    if (ret != status::OK) {
-                        EXPECT_EQ(status::OK, ret);// output log
-                        std::abort();
-                    }
-                }
-            }
-        };
-
-        std::thread t(S::put_work, std::ref(kv1));
-        S::put_work(std::ref(kv2));
-        t.join();
-
-        t = std::thread(S::remove_work, std::ref(token.at(0)), std::ref(kv1));
-        S::remove_work(std::ref(token.at(1)), std::ref(kv2));
-        t.join();
-
-        ASSERT_EQ(leave(token.at(0)), status::OK);
-        ASSERT_EQ(leave(token.at(1)), status::OK);
-        destroy();
-    }
-}
-
-TEST_F(mtdt, test9) {// NOLINT
-    /**
-     * Initial state : multi threads put until first split of interior.
-     * Concurrent remove against initial state.
-     */
-
-    std::size_t ary_size = 241;
-    std::vector<std::tuple<std::string, std::string>> kv1{};// NOLINT
-    std::vector<std::tuple<std::string, std::string>> kv2{};// NOLINT
-    for (std::size_t i = 0; i < ary_size / 2; ++i) {
-        kv1.emplace_back(std::string(1, i), std::to_string(i));
-    }
-    for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
-        kv2.emplace_back(std::string(1, i), std::to_string(i));
-    }
-
-#ifndef NDEBUG
-    for (std::size_t h = 0; h < 1; ++h) {
-#else
-    for (std::size_t h = 0; h < 30; ++h) {
-#endif
-        create_storage(test_storage_name);
-        std::array<Token, 2> token{};
-        ASSERT_EQ(enter(token.at(0)), status::OK);
-        ASSERT_EQ(enter(token.at(1)), status::OK);
-
-        std::reverse(kv1.begin(), kv1.end());
-        std::reverse(kv2.begin(), kv2.end());
-
-        struct S {
-            static void put_work(std::vector<std::tuple<std::string, std::string>>& kv) {
-                for (auto& i : kv) {
-                    std::string k(std::get<0>(i));
-                    std::string v(std::get<1>(i));
-                    status ret = put(test_storage_name, k, v.data(), v.size());
-                    if (ret != status::OK) {
-                        EXPECT_EQ(status::OK, ret);// output log
-                        std::abort();
-                    }
-                }
-            }
-
-            static void remove_work(Token& token, std::vector<std::tuple<std::string, std::string>>& kv) {
-                for (auto& i : kv) {
-                    std::string k(std::get<0>(i));
-                    std::string v(std::get<1>(i));
-                    status ret = remove(token, test_storage_name, k);
-                    if (ret != status::OK) {
-                        EXPECT_EQ(status::OK, ret);// output log
-                        std::abort();
-                    }
-                }
-            }
-        };
-
-        std::thread t(S::put_work, std::ref(kv1));
-        S::put_work(std::ref(kv2));
-        t.join();
-
-        t = std::thread(S::remove_work, std::ref(token.at(0)), std::ref(kv1));
-        S::remove_work(std::ref(token.at(1)), std::ref(kv2));
-        t.join();
-
-        ASSERT_EQ(leave(token.at(0)), status::OK);
-        ASSERT_EQ(leave(token.at(1)), status::OK);
-        destroy();
-    }
-}
-
-TEST_F(mtdt, test10) {// NOLINT
-    /**
-     * Initial state : multi threads put until first split of interior, which is using shuffled data.
-     * Concurrent remove against initial state.
-     */
-
-    std::size_t ary_size = 241;
-    std::vector<std::tuple<std::string, std::string>> kv1{};// NOLINT
-    std::vector<std::tuple<std::string, std::string>> kv2{};// NOLINT
-    for (std::size_t i = 0; i < ary_size / 2; ++i) {
-        kv1.emplace_back(std::string(1, i), std::to_string(i));
-    }
-    for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
-        kv2.emplace_back(std::string(1, i), std::to_string(i));
-    }
     std::random_device seed_gen;
     std::mt19937 engine(seed_gen());
 
