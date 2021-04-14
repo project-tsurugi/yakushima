@@ -25,7 +25,7 @@ static T loadAcquireN(T& ref) {                    // NOLINT
 
 template<class type>
 void loadAcquire(type* ptr, type* ret) {
-    __atomic_load(ptr, ret, __ATOMIC_ACQUIRE);
+    __atomic_load(ptr, ret, __ATOMIC_ACQUIRE); // NOLINT
 }
 
 /**
@@ -46,7 +46,7 @@ static void storeReleaseN(T& ptr, T2 val) {
 
 template<class type>
 void storeRelease(type* ptr, type* val) {
-    __atomic_store(ptr, val, __ATOMIC_RELEASE);
+    __atomic_store(ptr, val, __ATOMIC_RELEASE); // NOLINT
 }
 
 /**
@@ -58,7 +58,7 @@ bool weakCompareExchange(type* ptr, type* expected, type* desired) {
    * Built-in Function: bool __atomic_compare_exchange_n
    * (type *ptr, type *expected, type desired, bool weak, int success_memorder, int failure_memorder)
    */
-    return __atomic_compare_exchange_n(ptr, expected, *desired, true,
+    return __atomic_compare_exchange_n(ptr, expected, *desired, true, // NOLINT
                                      __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE);
 }
 
