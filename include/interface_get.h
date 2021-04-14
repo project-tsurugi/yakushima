@@ -8,17 +8,14 @@
 #include "link_or_value.h"
 #include "kvs.h"
 #include "storage_impl.h"
+#include "tree_instance.h"
 
 namespace yakushima {
 
 template<class ValueType>
-[[maybe_unused]] static std::pair<ValueType*, std::size_t> get(std::string_view storage_name, std::string_view key_view) {
-    std::atomic<base_node*>* root_atomic{};
-    if (status::OK != storage::find_storage(storage_name, &root_atomic)) {
-        return std::make_pair(nullptr, 0);
-    }
+[[maybe_unused]] static std::pair<ValueType*, std::size_t> get(tree_instance* ti, std::string_view key_view) {
 retry_from_root:
-    base_node* root = root_atomic->load(std::memory_order_acquire);
+    base_node* root = ti->load_root_ptr();
     std::string_view traverse_key_view{key_view};
 retry_find_border:
     /**
@@ -93,6 +90,15 @@ retry_fetch_lv:
     }
     traverse_key_view.remove_prefix(sizeof(key_slice_type));
     goto retry_find_border; // NOLINT
+}
+
+template<class ValueType>
+[[maybe_unused]] static std::pair<ValueType*, std::size_t> get(std::string_view storage_name, std::string_view key_view) {
+    tree_instance* ti{};
+    if (status::OK != storage::find_storage(storage_name, &ti)) {
+        return std::make_pair(nullptr, 0);
+    }
+    return get<ValueType>(ti, key_view);
 }
 
 }

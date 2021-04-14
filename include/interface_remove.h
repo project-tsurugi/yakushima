@@ -1,19 +1,21 @@
 #pragma once
 
+#include <utility>
+
+#include "border_node.h"
 #include "kvs.h"
+#include "storage.h"
 #include "storage_impl.h"
+#include "tree_instance.h"
 
 namespace yakushima {
 
-[[maybe_unused]] static status remove(Token token, std::string_view storage_name, std::string_view key_view) {
-    // check storage
-    std::atomic<base_node*>* target_storage{};
-    if (storage::find_storage(storage_name, &target_storage) != status::OK) {
-        return status::WARN_NOT_EXIST;
-    }
+// begin - forward declaration
+// end - forward declaration
 
+[[maybe_unused]] static status remove(Token token, tree_instance* ti, std::string_view key_view) {
 retry_from_root:
-    base_node* root = target_storage->load(std::memory_order_acquire);
+    base_node* root = ti->load_root_ptr();
     if (root == nullptr) {
         /**
          * root is nullptr
@@ -97,7 +99,7 @@ retry_fetch_lv:
             goto retry_fetch_lv; // NOLINT
         }
 
-        target_border->delete_of<true>(token, target_storage, key_slice, key_slice_length, lock_list);
+        target_border->delete_of<true>(token, ti, key_slice, key_slice_length, lock_list);
         node_version64::unlock(lock_list);
         return status::OK;
     }
@@ -113,6 +115,15 @@ retry_fetch_lv:
     }
     traverse_key_view.remove_prefix(sizeof(key_slice_type));
     goto retry_find_border; // NOLINT
+}
+
+[[maybe_unused]] static status remove(Token token, std::string_view storage_name, std::string_view key_view) {
+    tree_instance* ti{};
+    status ret{storage::find_storage(storage_name, &ti)};
+    if (status::OK != ret) {
+        return ret;
+    }
+    return remove(token, ti, key_view);
 }
 
 }

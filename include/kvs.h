@@ -44,7 +44,7 @@ namespace yakushima {
     return storage::delete_storage(storage_name);
 }
 
-[[maybe_unused]] static status find_storage(std::string_view storage_name, std::atomic<base_node*>** found_storage) {
+[[maybe_unused]] static status find_storage(std::string_view storage_name, tree_instance** found_storage) {
     return storage::find_storage(storage_name, found_storage);
 }
 

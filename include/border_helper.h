@@ -13,6 +13,7 @@
 #include "base_node.h"
 #include "interior_helper.h"
 #include "link_or_value.h"
+#include "tree_instance.h"
 
 namespace yakushima {
 
@@ -21,7 +22,7 @@ namespace yakushima {
  */
 template<class interior_node, class border_node>
 static void
-interior_split(std::atomic<base_node*>* target_storage, interior_node* interior, base_node* child_node, key_slice_type pivot_slice, // NOLINT
+interior_split(tree_instance* ti, interior_node* interior, base_node* child_node, key_slice_type pivot_slice, // NOLINT
                key_length_type pivot_length);
 
 /**
@@ -37,7 +38,7 @@ interior_split(std::atomic<base_node*>* target_storage, interior_node* interior,
  */
 template<class interior_node, class border_node>
 static void
-border_split(std::atomic<base_node*>* target_storage, border_node* border, std::string_view key_view, void* value_ptr, void** created_value_ptr, // NOLINT
+border_split(tree_instance* ti, border_node* border, std::string_view key_view, void* value_ptr, void** created_value_ptr, // NOLINT
              value_length_type value_length, value_align_type value_align, node_version64** inserted_node_version_ptr);
 
 /**
@@ -102,7 +103,7 @@ create_interior_parent_of_border(border_node* const left, border_node* const rig
 
 template<class interior_node, class border_node>
 static void
-insert_lv(std::atomic<base_node*>* target_storage, border_node* const border, std::string_view key_view, void* const value_ptr, void** const created_value_ptr,
+insert_lv(tree_instance* ti, border_node* const border, std::string_view key_view, void* const value_ptr, void** const created_value_ptr,
           const value_length_type arg_value_length, const value_align_type value_align,
           node_version64** inserted_node_version_ptr) {
     border->set_version_inserting_deleting(true);
@@ -111,7 +112,7 @@ insert_lv(std::atomic<base_node*>* target_storage, border_node* const border, st
         /**
          * It needs splitting
          */
-        border_split<interior_node, border_node>(target_storage, border, key_view, value_ptr, created_value_ptr, arg_value_length,
+        border_split<interior_node, border_node>(ti, border, key_view, value_ptr, created_value_ptr, arg_value_length,
                                                  value_align, inserted_node_version_ptr);
     } else {
         /**
@@ -127,7 +128,7 @@ insert_lv(std::atomic<base_node*>* target_storage, border_node* const border, st
 
 template<class interior_node, class border_node>
 static void
-border_split(std::atomic<base_node*>* target_storage, border_node* const border, std::string_view key_view, void* const value_ptr,
+border_split(tree_instance* ti, border_node* const border, std::string_view key_view, void* const value_ptr,
              void** const created_value_ptr, const value_length_type value_length, const value_align_type value_align,
              node_version64** inserted_node_version_ptr) {
     border->set_version_splitting(true);
@@ -246,7 +247,7 @@ border_split(std::atomic<base_node*>* target_storage, border_node* const border,
     base_node* p = border->lock_parent();
     if (p == nullptr) {
 #ifndef NDEBUG
-        if (target_storage->load(std::memory_order_acquire) != border) {
+        if (ti->load_root_ptr() != border) {
             std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
             std::abort();
         }
@@ -260,7 +261,7 @@ border_split(std::atomic<base_node*>* target_storage, border_node* const border,
                                                                      reinterpret_cast<interior_node**>(&p)); // NOLINT
         border->version_unlock();
         new_border->version_unlock();
-        target_storage->store(p, std::memory_order_release);
+        ti->store_root_ptr(p);
         p->version_unlock();
         return;
     }
@@ -312,7 +313,7 @@ border_split(std::atomic<base_node*>* target_storage, border_node* const border,
         /**
          * interior full case, it splits and inserts.
          */
-        interior_split<interior_node, border_node>(target_storage, pi, reinterpret_cast<base_node*>(new_border), // NOLINT
+        interior_split<interior_node, border_node>(ti, pi, reinterpret_cast<base_node*>(new_border), // NOLINT
                                                    std::make_pair(new_border->get_key_slice_at(0),
                                                                   new_border->get_key_length_at(0)));
         return;

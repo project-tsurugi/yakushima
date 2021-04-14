@@ -1,33 +1,51 @@
 #pragma once
 
+#include "interface_get.h"
+#include "interface_put.h"
+#include "interface_remove.h"
 #include "storage.h"
+#include "tree_instance.h"
 
 namespace yakushima {
 
-status storage::create_storage(std::string_view storage_name) { // NOLINT
-    auto elem = storages_.find(std::string{storage_name});
-    if (elem == storages_.end()) {
-        storages_.insert(std::make_pair(storage_name, nullptr));
-        return status::OK;
-    }
-    return status::WARN_EXIST;
+// begin - forward declaration
+[[maybe_unused]] static status enter(Token& token);// NOLINT
+[[maybe_unused]] static status leave(Token token); // NOLINT
+template<class ValueType>
+[[maybe_unused]] static std::pair<ValueType*, std::size_t> get(tree_instance* ti, std::string_view key_view);
+[[maybe_unused]] static status remove(Token token, tree_instance* ti, std::string_view key_view);// NOLINT
+// end - forward declaration
+
+status storage::create_storage(std::string_view storage_name) {// NOLINT
+    Token token{};
+    enter(token);
+    tree_instance new_instance;
+    status ret_st{put(get_storages(), storage_name, &new_instance)};
+    leave(token);
+    return ret_st;
 }
 
-status storage::delete_storage(std::string_view storage_name) { // NOLINT
-    auto ret = storages_.erase(std::string{storage_name});
-    if (ret == 0) {
-        return status::WARN_NOT_EXIST;
-    }
-    return status::OK;
+status storage::delete_storage(std::string_view storage_name) {// NOLINT
+    Token token{};
+    enter(token);
+    status ret_st{remove(token, get_storages(), storage_name)};
+    leave(token);
+    return ret_st;
 }
 
-status storage::find_storage(std::string_view storage_name, std::atomic<base_node*>** found_storage) { // NOLINT
-    auto elem = storages_.find(std::string{storage_name});
-    if (elem == storages_.end()) {
-        return status::WARN_NOT_EXIST;
+status storage::find_storage(std::string_view storage_name, tree_instance** found_storage) {// NOLINT
+    Token token{};
+    enter(token);
+    auto ret = get<tree_instance>(get_storages(), storage_name);
+    status ret_st;
+    if (ret.first == nullptr) {
+        ret_st = status::WARN_NOT_EXIST;
+    } else {
+        *found_storage = ret.first;
+        ret_st = status::OK;
     }
-    *found_storage = &elem->second;
-    return status::OK;
+    leave(token);
+    return ret_st;
 }
 
 }// namespace yakushima

@@ -30,8 +30,8 @@ protected:
 };
 
 TEST_F(dt, test1) { // NOLINT
-    std::atomic<base_node*>* target_storage{};
-    find_storage(test_storage_name, &target_storage);
+    tree_instance* ti{};
+    find_storage(test_storage_name, &ti);
     /**
      * put one key-value
      */
@@ -41,14 +41,14 @@ TEST_F(dt, test1) { // NOLINT
     std::string v("v-a");
     ASSERT_EQ(status::OK, put(test_storage_name, std::string_view(k), v.data(), v.size()));
     ASSERT_EQ(status::OK, remove(token, test_storage_name, std::string_view(k)));
-    ASSERT_EQ(target_storage->load(std::memory_order_acquire), nullptr);
+    ASSERT_EQ(ti->load_root_ptr(), nullptr);
     ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
     ASSERT_EQ(leave(token), status::OK);
 }
 
 TEST_F(dt, test2) { // NOLINT
-    std::atomic<base_node*>* target_storage{};
-    find_storage(test_storage_name, &target_storage);
+    tree_instance* ti{};
+    find_storage(test_storage_name, &ti);
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     constexpr std::size_t ary_size = 9;
@@ -65,7 +65,7 @@ TEST_F(dt, test2) { // NOLINT
     }
     for (std::size_t i = 0; i < ary_size; ++i) {
         ASSERT_EQ(status::OK, remove(token, test_storage_name, k.at(i)));
-        auto* br = dynamic_cast<border_node*>(target_storage->load(std::memory_order_acquire));
+        auto* br = dynamic_cast<border_node*>(ti->load_root_ptr());
         if (i != ary_size - 1) {
             ASSERT_EQ(br->get_permutation_cnk(), ary_size - i - 1);
         }
@@ -77,8 +77,8 @@ TEST_F(dt, test2) { // NOLINT
 TEST_F(dt, test3) { // NOLINT
     for (std::size_t h = 0; h < 1; ++h) {
         create_storage(test_storage_name);
-        std::atomic<base_node*>* target_storage{};
-        find_storage(test_storage_name, &target_storage);
+        tree_instance* ti{};
+        find_storage(test_storage_name, &ti);
         Token token{};
         ASSERT_EQ(enter(token), status::OK);
         constexpr std::size_t ary_size = 9;
@@ -97,7 +97,7 @@ TEST_F(dt, test3) { // NOLINT
 
         for (std::size_t i = 0; i < ary_size; ++i) {
             ASSERT_EQ(status::OK, remove(token, test_storage_name, std::get<0>(kv.at(i))));
-            auto* br = dynamic_cast<border_node*>(target_storage->load(std::memory_order_acquire));
+            auto* br = dynamic_cast<border_node*>(ti->load_root_ptr());
             if (i != ary_size - 1) {
                 ASSERT_EQ(br->get_permutation_cnk(), ary_size - i - 1);
             }
@@ -109,8 +109,8 @@ TEST_F(dt, test3) { // NOLINT
 }
 
 TEST_F(dt, test4) { // NOLINT
-    std::atomic<base_node*>* target_storage{};
-    find_storage(test_storage_name, &target_storage);
+    tree_instance* ti{};
+    find_storage(test_storage_name, &ti);
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     constexpr std::size_t ary_size = 10;
@@ -123,7 +123,7 @@ TEST_F(dt, test4) { // NOLINT
     }
     for (std::size_t i = 0; i < ary_size; ++i) {
         ASSERT_EQ(status::OK, remove(token, test_storage_name, k.at(i)));
-        auto* bn = dynamic_cast<border_node*>(target_storage->load(std::memory_order_acquire));
+        auto* bn = dynamic_cast<border_node*>(ti->load_root_ptr());
         /**
          * here, tree has two layer constituted by two border node.
          */
@@ -138,8 +138,8 @@ TEST_F(dt, test4) { // NOLINT
 TEST_F(dt, test5) { // NOLINT
     for (std::size_t h = 0; h < 1; ++h) {
         create_storage(test_storage_name);
-        std::atomic<base_node*>* target_storage{};
-        find_storage(test_storage_name, &target_storage);
+        tree_instance* ti{};
+        find_storage(test_storage_name, &ti);
         Token token{};
         ASSERT_EQ(enter(token), status::OK);
         constexpr std::size_t ary_size = 10;
@@ -165,8 +165,8 @@ TEST_F(dt, test5) { // NOLINT
 }
 
 TEST_F(dt, test6) { // NOLINT
-    std::atomic<base_node*>* target_storage{};
-    find_storage(test_storage_name, &target_storage);
+    tree_instance* ti{};
+    find_storage(test_storage_name, &ti);
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     constexpr std::size_t ary_size = base_node::key_slice_length + 1;
@@ -184,19 +184,19 @@ TEST_F(dt, test6) { // NOLINT
     for (std::size_t i = 0; i < lb_n; ++i) {
         ASSERT_EQ(status::OK, remove(token, test_storage_name, k.at(i)));
     }
-    ASSERT_EQ(target_storage->load(std::memory_order_acquire)->get_version_border(), true);
+    ASSERT_EQ(ti->load_root_ptr()->get_version_border(), true);
     for (std::size_t i = lb_n; i < ary_size; ++i) {
         ASSERT_EQ(status::OK, remove(token, test_storage_name, k.at(i)));
     }
-    ASSERT_EQ(target_storage->load(std::memory_order_acquire), nullptr);
+    ASSERT_EQ(ti->load_root_ptr(), nullptr);
     ASSERT_EQ(leave(token), status::OK);
 }
 
 TEST_F(dt, test7) { // NOLINT
     for (std::size_t h = 0; h < 1; ++h) {
         create_storage(test_storage_name);
-        std::atomic<base_node*>* target_storage{};
-        find_storage(test_storage_name, &target_storage);
+        tree_instance* ti{};
+        find_storage(test_storage_name, &ti);
         Token token{};
         ASSERT_EQ(enter(token), status::OK);
         constexpr std::size_t ary_size = base_node::key_slice_length + 1;
@@ -218,19 +218,19 @@ TEST_F(dt, test7) { // NOLINT
         for (std::size_t i = 0; i < lb_n; ++i) {
             ASSERT_EQ(status::OK, remove(token, test_storage_name, std::get<0>(kv.at(i))));
         }
-        ASSERT_EQ(target_storage->load(std::memory_order_acquire)->get_version_border(), true);
+        ASSERT_EQ(ti->load_root_ptr()->get_version_border(), true);
         for (std::size_t i = lb_n; i < ary_size; ++i) {
             ASSERT_EQ(status::OK, remove(token, test_storage_name, std::get<0>(kv.at(i))));
         }
-        ASSERT_EQ(target_storage->load(std::memory_order_acquire), nullptr);
+        ASSERT_EQ(ti->load_root_ptr(), nullptr);
         ASSERT_EQ(leave(token), status::OK);
         destroy();
     }
 }
 
 TEST_F(dt, test8) { // NOLINT
-    std::atomic<base_node*>* target_storage{};
-    find_storage(test_storage_name, &target_storage);
+    tree_instance* ti{};
+    find_storage(test_storage_name, &ti);
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     /**
@@ -253,36 +253,36 @@ TEST_F(dt, test8) { // NOLINT
             /**
              * root is full-border.
              */
-            auto* n = target_storage->load(std::memory_order_acquire);
+            auto* n = ti->load_root_ptr();
             ASSERT_EQ(typeid(*n), typeid(border_node)); // NOLINT
         } else if (i == base_node::key_slice_length) {
             /**
              * split and insert.
              */
-            auto* n = target_storage->load(std::memory_order_acquire);
+            auto* n = ti->load_root_ptr();
             ASSERT_EQ(typeid(*n), typeid(interior_node)); // NOLINT
-            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(target_storage->load(std::memory_order_acquire))->get_child_at(
+            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(
                     0))->get_permutation_cnk(), 8);
-            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(target_storage->load(std::memory_order_acquire))->get_child_at(
+            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(
                     1))->get_permutation_cnk(), 8);
         } else if (i == base_node::key_slice_length + (base_node::key_slice_length / 2)) {
             /**
              * root is interior, root has 2 children, child[0] of root has 8 keys and child[1] of root has 15 keys.
              */
-            ASSERT_EQ(dynamic_cast<interior_node*>(target_storage->load(std::memory_order_acquire))->get_n_keys(), 1);
-            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(target_storage->load(std::memory_order_acquire))->get_child_at(
+            ASSERT_EQ(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_n_keys(), 1);
+            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(
                     0))->get_permutation_cnk(), 8);
-            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(target_storage->load(std::memory_order_acquire))->get_child_at(
+            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(
                     1))->get_permutation_cnk(), 15);
         } else if (i == base_node::key_slice_length + (base_node::key_slice_length / 2) + 1) {
             /**
              * root is interior, root has 3 children, child[0-2] of root has 8 keys.
              */
-            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(target_storage->load(std::memory_order_acquire))->get_child_at(
+            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(
                     0))->get_permutation_cnk(), 8);
-            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(target_storage->load(std::memory_order_acquire))->get_child_at(
+            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(
                     1))->get_permutation_cnk(), 8);
-            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(target_storage->load(std::memory_order_acquire))->get_child_at(
+            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(
                     2))->get_permutation_cnk(), 8);
         } else if ((i > base_node::key_slice_length + (base_node::key_slice_length / 2) + 1) &&
                    (i < base_node::key_slice_length +
@@ -292,17 +292,17 @@ TEST_F(dt, test8) { // NOLINT
              * When it puts (base_node::key_slice_length / 2) keys, the root interior node has (i-base_node::key_slice
              * _length) / (base_node::key_slice_length / 2);
              */
-            ASSERT_EQ(dynamic_cast<interior_node*>(target_storage->load(std::memory_order_acquire))->get_n_keys(),
+            ASSERT_EQ(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_n_keys(),
                       (i - base_node::key_slice_length) / (base_node::key_slice_length / 2 + 1) + 1);
 
         } else if (i == base_node::key_slice_length +
                         ((base_node::key_slice_length / 2 + 1)) * (base_node::key_slice_length - 1)) {
-            ASSERT_EQ(dynamic_cast<interior_node*>(target_storage->load(std::memory_order_acquire))->get_n_keys(),
+            ASSERT_EQ(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_n_keys(),
                       base_node::key_slice_length);
         }
     }
 
-    auto* in = dynamic_cast<interior_node*>(target_storage->load(std::memory_order_acquire));
+    auto* in = dynamic_cast<interior_node*>(ti->load_root_ptr());
     /**
      * root is interior.
      */
@@ -329,32 +329,32 @@ TEST_F(dt, test8) { // NOLINT
     constexpr std::size_t n_in_bn = base_node::key_slice_length / 2 + 1;
 
     ASSERT_EQ(n_in_bn - 1,
-              dynamic_cast<interior_node*>(dynamic_cast<interior_node*>(target_storage->load(std::memory_order_acquire))->get_child_at(
+              dynamic_cast<interior_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(
                       0))->get_n_keys());
     for (std::size_t i = 0; i < n_in_bn; ++i) {
         ASSERT_EQ(status::OK, remove(token, test_storage_name, k.at(i)));
     }
     ASSERT_EQ(n_in_bn - 2,
-              dynamic_cast<interior_node*>(dynamic_cast<interior_node*>(target_storage->load(std::memory_order_acquire))->get_child_at(
+              dynamic_cast<interior_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(
                       0))->get_n_keys());
     constexpr std::size_t to_sb = (n_in_bn - 2) * n_in_bn;
     for (std::size_t i = n_in_bn; i < n_in_bn + to_sb; ++i) {
         ASSERT_EQ(status::OK, remove(token, test_storage_name, k.at(i)));
     }
-    ASSERT_EQ(1, dynamic_cast<interior_node*>(dynamic_cast<interior_node*>(target_storage->load(std::memory_order_acquire)))->get_n_keys());
+    ASSERT_EQ(1, dynamic_cast<interior_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr()))->get_n_keys());
     for (std::size_t i = n_in_bn + to_sb; i < ary_size; ++i) {
         ASSERT_EQ(status::OK, remove(token, test_storage_name, k.at(i)));
     }
 
-    ASSERT_EQ(target_storage->load(std::memory_order_acquire), nullptr);
+    ASSERT_EQ(ti->load_root_ptr(), nullptr);
     ASSERT_EQ(leave(token), status::OK);
 }
 
 TEST_F(dt, test9) { // NOLINT
     for (std::size_t h = 0; h < 1; ++h) {
         create_storage(test_storage_name);
-        std::atomic<base_node*>* target_storage{};
-        find_storage(test_storage_name, &target_storage);
+        tree_instance* ti{};
+        find_storage(test_storage_name, &ti);
         Token token{};
         ASSERT_EQ(enter(token), status::OK);
         constexpr std::size_t ary_size = base_node::key_slice_length * interior_node::child_length + 1;
@@ -374,7 +374,7 @@ TEST_F(dt, test9) { // NOLINT
             ASSERT_EQ(status::OK, remove(token, test_storage_name, std::get<0>(kv.at(i))));
         }
 
-        ASSERT_EQ(target_storage->load(std::memory_order_acquire), nullptr);
+        ASSERT_EQ(ti->load_root_ptr(), nullptr);
         ASSERT_EQ(leave(token), status::OK);
         destroy();
     }

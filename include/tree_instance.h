@@ -11,6 +11,8 @@ public:
         return weakCompareExchange(&root_, expected, desired);
     }
 
+    bool empty() { return load_root_ptr() == nullptr; }
+
     base_node* load_root_ptr() {
         return loadAcquireN(root_);
     }

@@ -30,9 +30,6 @@ TEST_F(st, basic_usage) { // NOLINT
     /**
      * basic usage
      */
-    std::atomic<base_node*>* target_storage{};
-    find_storage(test_storage_name, &target_storage);
-    ASSERT_EQ(target_storage->load(std::memory_order_acquire), nullptr);
     std::string k("k");
     std::string v("v");
     Token token{};

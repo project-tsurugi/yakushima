@@ -2,20 +2,15 @@
 
 #include "kvs.h"
 #include "scan_helper.h"
+#include "tree_instance.h"
 
 namespace yakushima {
 
 template<class ValueType>
 [[maybe_unused]] static status
-scan(std::string_view storage_name, std::string_view l_key, scan_endpoint l_end, std::string_view r_key, scan_endpoint r_end,
+scan(tree_instance* ti, std::string_view l_key, scan_endpoint l_end, std::string_view r_key, scan_endpoint r_end,
      std::vector<std::pair<ValueType*, std::size_t>> &tuple_list,
-     std::vector<std::pair<node_version64_body, node_version64*>>* node_version_vec = nullptr, std::size_t max_size = 0) {
-    // check storage
-    std::atomic<base_node*>* target_storage{};
-    if (storage::find_storage(storage_name, &target_storage) != status::OK) {
-        return status::WARN_NOT_EXIST;
-    }
-
+     std::vector<std::pair<node_version64_body, node_version64*>>* node_version_vec, std::size_t max_size) {
     /**
      * Prohibition : std::string_view{nullptr, non-zero value}.
      */
@@ -44,7 +39,8 @@ scan(std::string_view storage_name, std::string_view l_key, scan_endpoint l_end,
     }
 retry_from_root:
     std::string key_prefix;
-    base_node* root = target_storage->load(std::memory_order_acquire);
+    base_node* root = ti->load_root_ptr();
+
     if (root == nullptr) {
         return status::OK_ROOT_IS_NULL;
     }
@@ -114,6 +110,19 @@ retry_fetch_lv:
             std::abort();
         }
     }
+}
+
+template<class ValueType>
+[[maybe_unused]] static status
+scan(std::string_view storage_name, std::string_view l_key, scan_endpoint l_end, std::string_view r_key, scan_endpoint r_end,
+     std::vector<std::pair<ValueType*, std::size_t>> &tuple_list,
+     std::vector<std::pair<node_version64_body, node_version64*>>* node_version_vec = nullptr, std::size_t max_size = 0) {
+    // check storage
+    tree_instance* ti{};
+    if (storage::find_storage(storage_name, &ti) != status::OK) {
+        return status::WARN_NOT_EXIST;
+    }
+    return scan(ti, l_key, l_end, r_key, r_end, tuple_list,node_version_vec, max_size);
 }
 
 }

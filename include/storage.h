@@ -6,20 +6,24 @@
 #include <string_view>
 
 #include "base_node.h"
+#include "tree_instance.h"
 
 namespace yakushima {
 
 class storage {
 public:
-    static status create_storage(std::string_view storage_name); // NOLINT
+    static status create_storage(std::string_view storage_name);// NOLINT
 
-    static status delete_storage(std::string_view storage_name); // NOLINT
+    static status delete_storage(std::string_view storage_name);// NOLINT
 
-    static status find_storage(std::string_view storage_name, std::atomic<base_node*>** found_storage); // NOLINT
+    static status find_storage(std::string_view storage_name, tree_instance** found_storage);// NOLINT
 
-    static std::map<std::string, std::atomic<base_node*>>& get_storages() { return storages_; }
+    static tree_instance* get_storages() {
+        return &storages_;
+    }
+
 private:
-    static inline std::map<std::string, std::atomic<base_node*>> storages_; // NOLINT
+    static inline tree_instance storages_;// NOLINT
 };
 
 }// namespace yakushima

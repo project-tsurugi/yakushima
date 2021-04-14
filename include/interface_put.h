@@ -4,22 +4,16 @@
 
 #include "border_node.h"
 #include "interior_node.h"
-#include "kvs.h"
+#include "storage.h"
 #include "storage_impl.h"
 
 namespace yakushima {
 
 template<class ValueType>
 [[maybe_unused]] static status
-put(std::string_view storage_name, std::string_view key_view, ValueType* value, std::size_t arg_value_length = sizeof(ValueType),
+put(tree_instance* ti, std::string_view key_view, ValueType* value, std::size_t arg_value_length = sizeof(ValueType),
     ValueType** created_value_ptr = nullptr, value_align_type value_align = static_cast<value_align_type>(alignof(ValueType)),
     node_version64** inserted_node_version_ptr = nullptr) {
-    // check storage
-    std::atomic<base_node*>* target_storage{};
-    if (storage::find_storage(storage_name, &target_storage) != status::OK) {
-        return status::WARN_NOT_EXIST;
-    }
-
     if (inserted_node_version_ptr != nullptr) {
         /**
          * TODO : remove. This sentence is because if it forget to assign to this variable, it will cause segv with a reference to this variable.
@@ -27,25 +21,25 @@ put(std::string_view storage_name, std::string_view key_view, ValueType* value, 
         *inserted_node_version_ptr = nullptr;
     }
 root_nullptr:
-    base_node* expected = target_storage->load(std::memory_order_acquire);
+    base_node* expected = ti->load_root_ptr();
     if (expected == nullptr) {
         /**
          * root is nullptr, so put single border nodes.
          */
-        border_node* new_border = new border_node(); // NOLINT
+        border_node* new_border = new border_node();// NOLINT
         new_border->init_border(key_view, value, created_value_ptr, true, arg_value_length, value_align);
         for (;;) {
             if (inserted_node_version_ptr != nullptr) {
                 *inserted_node_version_ptr = new_border->get_version_ptr();
             }
-            if (target_storage->compare_exchange_weak(expected, new_border,
-                                                            std::memory_order_acq_rel, std::memory_order_acquire)) {
+            base_node* desired{dynamic_cast<base_node*>(new_border)};
+            if (ti->cas_root_ptr(&expected, &desired)) {
                 return status::OK;
             }
             if (expected != nullptr) {
                 // root is not nullptr;
                 new_border->destroy();
-                delete new_border; // NOLINT
+                delete new_border;// NOLINT
                 break;
             }
             // root is nullptr.
@@ -56,8 +50,8 @@ retry_from_root:
      * here, root is not nullptr.
      * Prepare key for traversing tree.
      */
-    base_node* root = target_storage->load(std::memory_order_acquire);
-    if (root == nullptr) goto root_nullptr; // NOLINT
+    base_node* root = ti->load_root_ptr();
+    if (root == nullptr) goto root_nullptr;// NOLINT
 
     std::string_view traverse_key_view{key_view};
 retry_find_border:
@@ -84,7 +78,7 @@ retry_find_border:
          * @a root is the root node of the some layer, but it was deleted.
          * So it must retry from root of the all tree.
          */
-        goto retry_from_root; // NOLINT
+        goto retry_from_root;// NOLINT
     }
     constexpr std::size_t tuple_node_index = 0;
     constexpr std::size_t tuple_v_index = 1;
@@ -102,7 +96,7 @@ retry_fetch_lv:
         /**
          * It may be change the correct border between atomically fetching border node and atomically fetching lv.
          */
-        goto retry_from_root; // NOLINT
+        goto retry_from_root;// NOLINT
     }
     if (lv_ptr == nullptr) {
         target_border->lock();
@@ -115,22 +109,22 @@ retry_fetch_lv:
              * atomically fetching border and lock.
              */
             target_border->version_unlock();
-            goto retry_from_root; // NOLINT
+            goto retry_from_root;// NOLINT
         }
         /**
          * Here, border node is the correct.
          */
-        if (target_border->get_version_vinsert_delete() != v_at_fetch_lv.get_vinsert_delete()) {  // It may exist lv_ptr
+        if (target_border->get_version_vinsert_delete() != v_at_fetch_lv.get_vinsert_delete()) {// It may exist lv_ptr
             /**
              * next_layers may be wrong. However, when it rechecks the next_layers, it can't get the lock down,
              * so it have to try again.
              * TODO : It can scan (its permutation) again and insert into this border node if it don't have the same key.
              */
             target_border->version_unlock();
-            goto retry_fetch_lv; // NOLINT
+            goto retry_fetch_lv;// NOLINT
         }
-        insert_lv<interior_node, border_node>(target_storage, target_border, traverse_key_view, value,
-                                              reinterpret_cast<void**>(created_value_ptr), arg_value_length,  // NOLINT
+        insert_lv<interior_node, border_node>(ti, target_border, traverse_key_view, value,
+                                              reinterpret_cast<void**>(created_value_ptr), arg_value_length,// NOLINT
                                               value_align, inserted_node_version_ptr);
         return status::OK;
     }
@@ -149,12 +143,11 @@ retry_fetch_lv:
          * The key length of lv pointer cannot be smaller than the key slice type.
          * Therefore, it was interrupted by a parallel operation.
          */
-        if (target_border->get_version_deleted()
-            || target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
-            goto retry_from_root; // NOLINT
+        if (target_border->get_version_deleted() || target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
+            goto retry_from_root;// NOLINT
         }
         if (target_border->get_version_vinsert_delete() != v_at_fetch_lv.get_vinsert_delete()) {
-            goto retry_fetch_lv; // NOLINT
+            goto retry_fetch_lv;// NOLINT
         }
     }
     /**
@@ -165,22 +158,34 @@ retry_fetch_lv:
      * check whether border is still correct.
      */
     node_version64_body final_check = target_border->get_stable_version();
-    if (final_check.get_deleted() || // this border was deleted.
-        final_check.get_vsplit() != v_at_fb.get_vsplit()) { // this border may be incorrect.
-        goto retry_from_root; // NOLINT
+    if (final_check.get_deleted() ||                       // this border was deleted.
+        final_check.get_vsplit() != v_at_fb.get_vsplit()) {// this border may be incorrect.
+        goto retry_from_root;                              // NOLINT
     }
     /**
      * check whether fetching lv is still correct.
      */
     if (final_check.get_vinsert_delete() != v_at_fetch_lv.get_vinsert_delete()) {// fetched lv may be deleted
-        goto retry_fetch_lv; // NOLINT
+        goto retry_fetch_lv;                                                     // NOLINT
     }
     /**
      * root was fetched correctly.
      * root = lv; advance key; goto retry_find_border;
      */
     traverse_key_view.remove_prefix(sizeof(key_slice_type));
-    goto retry_find_border; // NOLINT
+    goto retry_find_border;// NOLINT
 }
 
+template<class ValueType>
+[[maybe_unused]] static status
+put(std::string_view storage_name, std::string_view key_view, ValueType* value, std::size_t arg_value_length = sizeof(ValueType),
+    ValueType** created_value_ptr = nullptr, value_align_type value_align = static_cast<value_align_type>(alignof(ValueType)),
+    node_version64** inserted_node_version_ptr = nullptr) {
+    tree_instance* ti{};
+    status ret{storage::find_storage(storage_name, &ti)};
+    if (status::OK != ret) {
+        return ret;
+    }
+    return put(ti, key_view, value, arg_value_length, created_value_ptr, value_align, inserted_node_version_ptr);
 }
+}// namespace yakushima

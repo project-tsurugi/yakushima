@@ -41,9 +41,9 @@ TEST_F(kt, short_key) { // NOLINT
     ASSERT_EQ(status::OK, put(test_storage_name, k, v.data(), v.size(), (char**) nullptr, (value_align_type) sizeof(char), &nvp));
     ASSERT_EQ(nvp->get_vsplit(), 0);
     ASSERT_EQ(nvp->get_vinsert_delete(), 1);
-    std::atomic<base_node*>* target_storage;
-    find_storage(test_storage_name, &target_storage);
-    base_node* root = target_storage->load(std::memory_order_acquire); // this is border node.
+    tree_instance* ti;
+    find_storage(test_storage_name, &ti);
+    base_node* root = ti->load_root_ptr(); // this is border node.
     ASSERT_NE(root, nullptr);
     key_slice_type lvalue_key_slice = root->get_key_slice_at(0);
     ASSERT_EQ(memcmp(&lvalue_key_slice, k.data(), k.size()), 0);
@@ -59,16 +59,16 @@ TEST_F(kt, short_key_long_value) { // NOLINT
     /**
      * put one key-long_value
      */
-    std::atomic<base_node*>* target_storage;
-    find_storage(test_storage_name, &target_storage);
-    ASSERT_EQ(target_storage->load(std::memory_order_acquire), nullptr);
+    tree_instance* ti;
+    find_storage(test_storage_name, &ti);
+    ASSERT_EQ(ti->load_root_ptr(), nullptr);
     std::string k("a");
     std::string v(100, 'a');
     ASSERT_EQ(v.size(), 100);
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     ASSERT_EQ(status::OK, put(test_storage_name, std::string_view(k), v.data(), v.size()));
-    base_node* root = target_storage->load(std::memory_order_acquire); // this is border node.
+    base_node* root = ti->load_root_ptr(); // this is border node.
     ASSERT_NE(root, nullptr);
     key_slice_type lvalue_key_slice = root->get_key_slice_at(0);
     ASSERT_EQ(memcmp(&lvalue_key_slice, k.data(), k.size()), 0);

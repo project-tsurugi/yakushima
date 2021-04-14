@@ -42,15 +42,15 @@ TEST_F(kvs_test, destroy) { // NOLINT
 }
 
 TEST_F(kvs_test, init) { // NOLINT
-    std::atomic<base_node*>* target_storage{};
-    find_storage(test_storage_name, &target_storage);
-    ASSERT_EQ(target_storage->load(std::memory_order_acquire), nullptr);
+    tree_instance* ti{};
+    find_storage(test_storage_name, &ti);
+    ASSERT_EQ(ti->load_root_ptr(), nullptr);
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     std::string k("a");
     std::string v("v-a");
     ASSERT_EQ(status::OK, put(test_storage_name, k, v.data(), v.size()));
-    ASSERT_NE(target_storage->load(std::memory_order_acquire), nullptr);
+    ASSERT_NE(ti->load_root_ptr(), nullptr);
     ASSERT_EQ(leave(token), status::OK);
 }
 
