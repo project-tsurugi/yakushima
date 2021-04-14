@@ -58,10 +58,6 @@ public:
         return gc_container_.get_value_container();
     }
 
-    void lock_epoch() {
-        lock_epoch_.lock();
-    }
-
     void move_node_to_gc_container(base_node* const n) {
         gc_container_.add_node_to_gc_container(begin_epoch_.load(std::memory_order_acquire), n);
     }
@@ -82,24 +78,12 @@ public:
         running_.store(tf, std::memory_order_relaxed);
     }
 
-    bool try_lock_epoch() {
-        return lock_epoch_.try_lock();
-    }
-
-    void unlock_epoch() {
-        lock_epoch_.unlock();
-    }
-
 private:
 
     /**
      * @details This is updated by worker and is read by leader.
      */
     std::atomic<Epoch> begin_epoch_{0};
-    /**
-     * @details This is used for operating begin_epoch_. Coordinating between enter/leave session.
-     */
-    std::mutex lock_epoch_{};
     gc_container gc_container_;
     std::atomic<bool> running_{false};
 };

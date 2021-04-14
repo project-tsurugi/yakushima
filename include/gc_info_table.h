@@ -19,9 +19,8 @@ public:
     static status assign_gc_info(Token& token) {
         for (auto&& elem : kThreadInfoTable) {
             if (elem.gain_the_right()) {
-                elem.lock_epoch();
                 elem.set_begin_epoch(epoch_management::get_epoch());
-                token = static_cast<void*>(&(elem));
+                token = &(elem);
                 return status::OK;
             }
         }
@@ -46,12 +45,6 @@ public:
             itr->set_begin_epoch(0);
             itr->set_gc_container(static_cast<size_t>(std::distance(kThreadInfoTable.begin(), itr)));
             itr->set_running(false);
-            /**
-             * If the fin function is called with the session opened before, it will deadlock in the assign session.
-             * To prevent this, be sure to unlock the lock here.
-             */
-            itr->try_lock_epoch();
-            itr->unlock_epoch();
         }
     }
 
@@ -68,9 +61,8 @@ public:
     static status leave_gc_info(Token token) {
         auto target = static_cast<gc_info*>(token);
         target->gc<interior_node, border_node>();
-        target->set_running(false);
         target->set_begin_epoch(0);
-        target->unlock_epoch();
+        target->set_running(false);
         return status::OK;
     }
 
