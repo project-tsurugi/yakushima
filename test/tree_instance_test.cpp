@@ -21,7 +21,8 @@ class ti : public ::testing::Test {
 TEST_F(ti, basic) { // NOLINT
     tree_instance tin;
     ASSERT_EQ(tin.load_root_ptr(), nullptr);
-    border_node a, b;
+    border_node a{};
+    border_node b{};
     base_node* bn_null{nullptr};
     base_node* bn_a_ptr{&a};
     base_node* bn_b_ptr{&b};
@@ -46,7 +47,7 @@ TEST_F(ti, basic) { // NOLINT
                     sleepMs(1);
                 };
             }
-            printf("own ctr is %zu\n", ctr);
+            printf("own ctr is %zu\n", ctr); // NOLINT
         }
     };
 
@@ -55,7 +56,7 @@ TEST_F(ti, basic) { // NOLINT
     other.join();
 }
 
-TEST_F(ti, yakushima_in_yakushima) {
+TEST_F(ti, yakushima_in_yakushima) { // NOLINT
     init();
     std::string storage_name{"1"};
     std::string k{"k"};
