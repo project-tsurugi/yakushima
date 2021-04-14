@@ -25,7 +25,6 @@ class mtdt : public ::testing::Test {
 };
 
 std::string test_storage_name{"1"};// NOLINT
-std::size_t th_nm{10};
 
 TEST_F(mtdt, 200_key) {// NOLINT
     /**
@@ -33,6 +32,12 @@ TEST_F(mtdt, 200_key) {// NOLINT
      * Concurrent remove 200 key.
      */
     constexpr std::size_t ary_size = 200;
+    std::size_t th_nm{};
+    if (ary_size > std::thread::hardware_concurrency()) {
+        th_nm = std::thread::hardware_concurrency();
+    } else {
+        th_nm = ary_size;
+    }
 
 #ifndef NDEBUG
     for (std::size_t h = 0; h < 1; ++h) {
@@ -51,11 +56,7 @@ TEST_F(mtdt, 200_key) {// NOLINT
                 }
 
                 Token token{nullptr};
-                ASSERT_EQ(status::OK, enter(token));
-
-                while (meet->load(std::memory_order_acquire) < th_id) _mm_pause();
-                std::cout << "th_id : " << th_id << " enter\t" << token << std::endl;
-                meet->fetch_add(1);
+                while (status::OK != enter(token)) _mm_pause();
 
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
@@ -68,7 +69,7 @@ TEST_F(mtdt, 200_key) {// NOLINT
                 }
 
                 meet->fetch_add(1);
-                while (meet->load(std::memory_order_acquire) != max_thread * 2) _mm_pause();
+                while (meet->load(std::memory_order_acquire) != max_thread) _mm_pause();
 
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
@@ -80,11 +81,7 @@ TEST_F(mtdt, 200_key) {// NOLINT
                     }
                 }
 
-                while (meet->load(std::memory_order_acquire) < max_thread * 2 + th_id) _mm_pause();
-                std::cout << "th_id : " << th_id << " leave " << token << std::endl;
                 ASSERT_EQ(status::OK, leave(token));
-                std::cout << "th_id : " << th_id << " leave" << std::endl;
-                meet->fetch_add(1);
             }
         };
 
@@ -108,6 +105,12 @@ TEST_F(mtdt, 200_key_shuffle) {// NOLINT
      * Shuffle data.
      */
     constexpr std::size_t ary_size = 200;
+    std::size_t th_nm{};
+    if (ary_size > std::thread::hardware_concurrency()) {
+        th_nm = std::thread::hardware_concurrency();
+    } else {
+        th_nm = ary_size;
+    }
 
 #ifndef NDEBUG
     for (std::size_t h = 0; h < 1; ++h) {

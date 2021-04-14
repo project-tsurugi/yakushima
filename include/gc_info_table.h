@@ -59,7 +59,9 @@ public:
      */
     template<class interior_node, class border_node>
     static status leave_gc_info(Token token) {
+        std::cout << token << std::endl;
         auto target = static_cast<gc_info*>(token);
+        std::cout << target << std::endl;
         target->gc<interior_node, border_node>();
         target->set_begin_epoch(0);
         target->set_running(false);

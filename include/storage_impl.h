@@ -17,25 +17,20 @@ template<class ValueType>
 // end - forward declaration
 
 status storage::create_storage(std::string_view storage_name) {// NOLINT
-    Token token{};
-    enter(token);
     tree_instance new_instance;
     status ret_st{put(get_storages(), storage_name, &new_instance)};
-    leave(token);
     return ret_st;
 }
 
 status storage::delete_storage(std::string_view storage_name) {// NOLINT
     Token token{};
-    enter(token);
+    while (status::OK != enter(token));
     status ret_st{remove(token, get_storages(), storage_name)};
     leave(token);
     return ret_st;
 }
 
 status storage::find_storage(std::string_view storage_name, tree_instance** found_storage) {// NOLINT
-    Token token{};
-    enter(token);
     auto ret = get<tree_instance>(get_storages(), storage_name);
     status ret_st;
     if (ret.first == nullptr) {
@@ -44,7 +39,6 @@ status storage::find_storage(std::string_view storage_name, tree_instance** foun
         *found_storage = ret.first;
         ret_st = status::OK;
     }
-    leave(token);
     return ret_st;
 }
 
