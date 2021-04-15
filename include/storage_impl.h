@@ -60,7 +60,7 @@ status storage::find_storage(std::string_view storage_name, tree_instance** foun
     return status::OK;
 }
 
-status storage::list_storages(std::vector<tree_instance*>& out) {
+status storage::list_storages(std::vector<tree_instance*>& out) {// NOLINT
     out.clear();
     std::vector<std::pair<tree_instance*, std::size_t>> tuple_list;
     scan(get_storages(), "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list, nullptr, 0);

@@ -21,7 +21,7 @@ class st : public ::testing::Test {
     }
 };
 
-TEST_F(st, simple_create_storage) { // NOLINT
+TEST_F(st, simple_create_storage) {// NOLINT
     std::string st1{"st1"};
     ASSERT_EQ(status::OK, create_storage(st1));
     std::vector<tree_instance*> tuple;
@@ -31,7 +31,7 @@ TEST_F(st, simple_create_storage) { // NOLINT
     ASSERT_EQ(find_storage(st1, &ret_ti), status::OK);
 }
 
-TEST_F(st, simple_delete_storage) { // NOLINT
+TEST_F(st, simple_delete_storage) {// NOLINT
     std::string st1{"st1"};
     ASSERT_EQ(status::OK, create_storage(st1));
     ASSERT_EQ(delete_storage(st1), status::OK);
@@ -42,7 +42,7 @@ TEST_F(st, simple_delete_storage) { // NOLINT
     ASSERT_EQ(find_storage(st1, &ret_ti), status::WARN_NOT_EXIST);
 }
 
-TEST_F(st, simple_find_storage) { // NOLINT
+TEST_F(st, simple_find_storage) {// NOLINT
     std::string st1{"st1"};
     std::string st2{"st2"};
     ASSERT_EQ(status::OK, create_storage(st1));
@@ -51,7 +51,7 @@ TEST_F(st, simple_find_storage) { // NOLINT
     ASSERT_EQ(find_storage(st2, &ret_ti), status::WARN_NOT_EXIST);
 }
 
-TEST_F(st, simple_list_storage) { // NOLINT
+TEST_F(st, simple_list_storage) {// NOLINT
     std::string st1{"st1"};
     std::string st2{"st2"};
     std::vector<tree_instance*> tuple;
@@ -73,4 +73,4 @@ TEST_F(st, simple_list_storage) { // NOLINT
     ASSERT_EQ(tuple.size(), 1);
 }
 
-}  // namespace yakushima::testing
+}// namespace yakushima::testing
