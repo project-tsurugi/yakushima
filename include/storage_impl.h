@@ -67,6 +67,7 @@ status storage::list_storages(std::vector<tree_instance*>& out) {// NOLINT
     if (tuple_list.empty()) {
         return status::WARN_NOT_EXIST;
     }
+    out.reserve(tuple_list.size());
     for (auto&& elem : tuple_list) {
         out.emplace_back(elem.first);
     }
