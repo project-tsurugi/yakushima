@@ -14,6 +14,10 @@ namespace yakushima {
 template<class ValueType>
 [[maybe_unused]] static std::pair<ValueType*, std::size_t> get(tree_instance* ti, std::string_view key_view);
 [[maybe_unused]] static status remove(Token token, tree_instance* ti, std::string_view key_view);// NOLINT
+template<class ValueType>
+[[maybe_unused]] static status scan(tree_instance* ti, std::string_view l_key, scan_endpoint l_end,
+                                    std::string_view r_key, scan_endpoint r_end, std::vector<std::pair<ValueType*, std::size_t>>& tuple_list,
+                                    std::vector<std::pair<node_version64_body, node_version64*>>* node_version_vec, std::size_t max_size);
 // end - forward declaration
 
 status storage::create_storage(std::string_view storage_name) {// NOLINT
@@ -52,6 +56,19 @@ status storage::find_storage(std::string_view storage_name, tree_instance** foun
     *found_storage = ret.first;
     if (ret.first == nullptr) {
         return status::WARN_NOT_EXIST;
+    }
+    return status::OK;
+}
+
+status storage::list_storages(std::vector<tree_instance*>& out) {
+    out.clear();
+    std::vector<std::pair<tree_instance*, std::size_t>> tuple_list;
+    scan(get_storages(), "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list, nullptr, 0);
+    if (tuple_list.empty()) {
+        return status::WARN_NOT_EXIST;
+    }
+    for (auto&& elem : tuple_list) {
+        out.emplace_back(elem.first);
     }
     return status::OK;
 }

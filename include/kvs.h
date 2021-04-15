@@ -41,7 +41,7 @@ namespace yakushima {
  * @param [in] storage_name 
  * @attention Do not treat DDL operations in parallel with DML operations. 
  * create_storage / delete_storage can be processed in parallel. 
- * At least one of these and find_storage cannot work in parallel.
+ * At least one of these and find_storage / list_storage cannot work in parallel.
  * @return Same to put function.
  */
 [[maybe_unused]] static status create_storage(std::string_view storage_name) {
@@ -53,7 +53,7 @@ namespace yakushima {
  * @param [in] storage_name 
  * @attention Do not treat DDL operations in parallel with DML operations. 
  * create_storage / delete_storage can be processed in parallel. 
- * At least one of these and find_storage cannot work in parallel.
+ * At least one of these and find_storage / list_storage cannot work in parallel.
  * @return status::OK if successful.
  * @return status::WARN_CONCURRENT_OPERATIONS if it can find the storage, 
  * but This function failed because it was preceded by concurrent delete_storage. 
@@ -71,12 +71,25 @@ namespace yakushima {
  * @param [out] found_storage output parameter to pass tree_instance information.
  * @attention Do not treat DDL operations in parallel with DML operations. 
  * create_storage / delete_storage can be processed in parallel. 
- * At least one of these and find_storage cannot work in parallel.
+ * At least one of these and find_storage / list_storage cannot work in parallel.
  * @return status::OK if existence.
  * @return status::WARN_NOT_EXIST if not existence.
  */
 [[maybe_unused]] static status find_storage(std::string_view storage_name, tree_instance** found_storage) {
     return storage::find_storage(storage_name, found_storage);
+}
+
+/**
+ * @brief List existing storage
+ * @param [out] out output parameter to pass list of existing storage.
+ * @attention Do not treat DDL operations in parallel with DML opeartions.
+ * create_storage / delete_storage can be processed in parallel.
+ * At least one of these and find_storage / list_storage cannot work in parallel.
+ * @return status::OK if it found.
+ * @return status::WARN_NOT_EXIST if it found no storage.
+ */
+[[maybe_unused]] static status list_storages(std::vector<tree_instance*>& out) {
+    return storage::list_storages(out);
 }
 
 /**

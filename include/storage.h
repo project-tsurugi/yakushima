@@ -2,6 +2,7 @@
 
 #include <mutex>
 #include <string_view>
+#include <vector>
 
 #include "base_node.h"
 #include "tree_instance.h"
@@ -18,8 +19,10 @@ public:
 
     static tree_instance* get_storages() { return &storages_; }
 
+    static status list_storages(std::vector<tree_instance*>& out);// NOLINT
+
 private:
-    static inline tree_instance storages_;       // NOLINT
+    static inline tree_instance storages_;// NOLINT
 };
 
 }// namespace yakushima

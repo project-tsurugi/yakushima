@@ -16,6 +16,9 @@ template<class ValueType>
 [[maybe_unused]] static std::pair<ValueType*, std::size_t> get(tree_instance* ti, std::string_view key_view) {
 retry_from_root:
     base_node* root = ti->load_root_ptr();
+    if (root == nullptr) {
+        return std::make_pair(nullptr, 0);
+    }
     std::string_view traverse_key_view{key_view};
 retry_find_border:
     /**
