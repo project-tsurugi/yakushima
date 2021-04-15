@@ -36,14 +36,45 @@ namespace yakushima {
  */
 [[maybe_unused]] static status destroy(); // NOLINT
 
+/**
+ * @brief Create storage
+ * @param [in] storage_name 
+ * @attention Do not treat DDL operations in parallel with DML operations. 
+ * create_storage / delete_storage can be processed in parallel. 
+ * At least one of these and find_storage cannot work in parallel.
+ * @return Same to put function.
+ */
 [[maybe_unused]] static status create_storage(std::string_view storage_name) {
     return storage::create_storage(storage_name);
 }
 
+/**
+ * @brief Delete existing storage and values under the storage
+ * @param [in] storage_name 
+ * @attention Do not treat DDL operations in parallel with DML operations. 
+ * create_storage / delete_storage can be processed in parallel. 
+ * At least one of these and find_storage cannot work in parallel.
+ * @return status::OK if successful.
+ * @return status::WARN_CONCURRENT_OPERATIONS if it can find the storage, 
+ * but This function failed because it was preceded by concurrent delete_storage. 
+ * After this, if create_storage is executed with the same storage name, the storage exists, 
+ * and if it is not executed, the storage should not exist.
+ * @return status::WARN_NOT_EXIST if the storage was not found.
+ */
 [[maybe_unused]] static status delete_storage(std::string_view storage_name) {
     return storage::delete_storage(storage_name);
 }
 
+/**
+ * @brief Find existing storage
+ * @param [in] storage_name 
+ * @param [out] found_storage output parameter to pass tree_instance information.
+ * @attention Do not treat DDL operations in parallel with DML operations. 
+ * create_storage / delete_storage can be processed in parallel. 
+ * At least one of these and find_storage cannot work in parallel.
+ * @return status::OK if existence.
+ * @return status::WARN_NOT_EXIST if not existence.
+ */
 [[maybe_unused]] static status find_storage(std::string_view storage_name, tree_instance** found_storage) {
     return storage::find_storage(storage_name, found_storage);
 }

@@ -4,13 +4,7 @@
 
 #pragma once
 
-#include <algorithm>
-#include <array>
 #include <atomic>
-#include <chrono>
-#include <iterator>
-#include <mutex>
-#include <thread>
 
 #include "clock.h"
 #include "cpu.h"

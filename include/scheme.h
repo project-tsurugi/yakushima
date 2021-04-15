@@ -30,6 +30,7 @@ enum class status : std::int32_t {
      * @brief Warning of mistaking usage.
      */
     WARN_BAD_USAGE,
+    WARN_CONCURRENT_OPERATIONS,
     WARN_EXIST,
     WARN_NOT_EXIST,
     /**
@@ -98,6 +99,8 @@ inline constexpr std::string_view to_string_view(const status value) noexcept {
     switch (value) {
         case status::WARN_BAD_USAGE:
             return "WARN_BAD_USAGE"sv;
+        case status::WARN_CONCURRENT_OPERATIONS:
+            return "WARN_CONCURRENT_OPERATIONS"sv;
         case status::WARN_EXIST:
             return "WARN_EXIST"sv;
         case status::WARN_NOT_EXIST:

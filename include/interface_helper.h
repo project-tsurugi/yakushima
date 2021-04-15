@@ -12,7 +12,6 @@ namespace yakushima {
 }
 
 [[maybe_unused]] static status leave(Token token) {
-    std::cout << token << std::endl;
     return gc_info_table::leave_gc_info<interior_node, border_node>(token);
 }
 
