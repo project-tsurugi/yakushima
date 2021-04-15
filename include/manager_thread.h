@@ -27,6 +27,12 @@ public:
                 }
                 if (verify) break;
                 sleepMs(1);
+                /**
+                 * Suppose the user misuses and calls fin () without leave (token). 
+                 * When the calculation process in this loop is executed, 
+                 * there is no way to escape from the loop, so the following line is required.
+                 */
+                if (kEpochThreadEnd.load(std::memory_order_acquire)) break;
             }
             epoch_management::epoch_inc();
 

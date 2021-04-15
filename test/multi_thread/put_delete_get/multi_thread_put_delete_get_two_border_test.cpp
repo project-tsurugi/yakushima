@@ -86,6 +86,8 @@ TEST_F(mtpdgt, two_border_null_key) {// NOLINT
                     std::string v(std::get<1>(i));
                     ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
                 }
+
+                leave(token);
             }
         };
 
@@ -169,6 +171,8 @@ TEST_F(mtpdgt, two_border_null_key_shuffle) {// NOLINT
                     std::string v(std::get<1>(i));
                     ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
                 }
+
+                leave(token);
             }
         };
 

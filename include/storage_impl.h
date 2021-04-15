@@ -37,7 +37,7 @@ status storage::delete_storage(std::string_view storage_name) {// NOLINT
         base_node* tables_root = ret.first->load_root_ptr();
         if (tables_root != nullptr) {
             tables_root->destroy();
-            delete tables_root;
+            delete tables_root;// NOLINT
             ret.first->store_root_ptr(nullptr);
         }
         leave(token);
