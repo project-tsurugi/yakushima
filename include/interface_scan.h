@@ -72,37 +72,20 @@ retry_from_root:
         goto retry_from_root; // NOLINT
     }
     constexpr std::size_t tuple_node_index = 0;
+    constexpr std::size_t tuple_v_index = 1;
     border_node* target_border = std::get<tuple_node_index>(node_and_v);
-retry_fetch_lv:
-    node_version64_body v_at_fetch_lv{};
-    std::size_t lv_pos{0};
-    link_or_value* lv_ptr = target_border->get_lv_of(key_slice, key_slice_length, v_at_fetch_lv, lv_pos);
-    [[maybe_unused]] std::size_t ks{0}; // NOLINT
-    [[maybe_unused]] std::size_t kl{0}; // NOLINT
-    [[maybe_unused]] base_node* next_layer{nullptr}; // NOLINT
-    if (lv_ptr != nullptr) {
-        ks = target_border->get_key_slice_at(lv_pos);
-        kl = target_border->get_key_length_at(lv_pos);
-        next_layer = lv_ptr->get_next_layer();
-    }
-
-    check_status = scan_check_retry<ValueType>(target_border, v_at_fetch_lv);
-    if (check_status == status::OK_RETRY_FROM_ROOT) goto retry_from_root; // NOLINT
-    else if (check_status == status::OK_RETRY_FETCH_LV) goto retry_fetch_lv; // NOLINT
 
     // here, it decides to scan from this nodes.
     for (;;) {
         check_status = scan_border<ValueType>(&target_border, traverse_key_view, l_end, r_key, r_end,
-                                              tuple_list, v_at_fetch_lv, node_version_vec, key_prefix, max_size);
+                                              tuple_list, std::get<tuple_v_index>(node_and_v), node_version_vec, key_prefix, max_size);
         if (check_status == status::OK_SCAN_END) {
             return status::OK;
         }
         if (check_status == status::OK_SCAN_CONTINUE) {
             continue;
         }
-        if (check_status == status::OK_RETRY_FETCH_LV) {
-            goto retry_fetch_lv; // NOLINT
-        } else if (check_status == status::OK_RETRY_FROM_ROOT) {
+        if (check_status == status::OK_RETRY_FROM_ROOT) {
             goto retry_from_root; // NOLINT
         } else {
             // unreachable

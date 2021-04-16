@@ -75,6 +75,7 @@ enum class status : std::int32_t {
      */
     OK_NOT_FOUND,
     OK_RETRY_FETCH_LV,
+    OK_RETRY_AFTER_FB,
     OK_RETRY_FROM_ROOT,
     OK_ROOT_IS_DELETED,
     /**
@@ -125,6 +126,8 @@ inline constexpr std::string_view to_string_view(const status value) noexcept {
             return "OK_NOT_FOUND"sv;
         case status::OK_ROOT_IS_NULL:
             return "OK_ROOT_IS_NULL"sv;
+        case status::OK_RETRY_AFTER_FB:
+            return "OK_RETRY_AFTER_FB"sv;
         case status::OK_RETRY_FETCH_LV:
             return "OK_RETRY_FETCH_LV"sv;
         case status::OK_RETRY_FROM_ROOT:

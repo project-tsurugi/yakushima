@@ -16,38 +16,31 @@ namespace yakushima {
 template<class ValueType>
 static status scan_border(border_node** target, std::string_view l_key, scan_endpoint l_end, std::string_view r_key,
                           scan_endpoint r_end, std::vector<std::pair<ValueType*, std::size_t>> &tuple_list,
-                          node_version64_body &v_at_fetch_lv,
+                          node_version64_body &v_at_fb,
                           std::vector<std::pair<node_version64_body, node_version64*>>* node_version_vec,
                           const std::string &key_prefix, std::size_t max_size);
 
 template<class ValueType>
-status scan_check_retry(border_node* const bn, node_version64_body &v_at_fetch_lv,
+status scan_check_retry(border_node* const bn, node_version64_body &v_at_fb,
                         std::vector<std::pair<ValueType*, std::size_t>> &tuple_list,
                         const std::size_t tuple_pushed_num,
                         std::vector<std::pair<node_version64_body, node_version64*>>* const node_version_vec) {
     node_version64_body check = bn->get_stable_version();
-    if (check != v_at_fetch_lv) {
+    if (check != v_at_fb) {
         if (tuple_pushed_num != 0) {
             tuple_list.erase(tuple_list.end() - tuple_pushed_num, tuple_list.end());
             if (node_version_vec != nullptr) {
                 node_version_vec->erase(node_version_vec->end() - tuple_pushed_num, node_version_vec->end());
             }
         }
-        if (check.get_vsplit() != v_at_fetch_lv.get_vsplit() ||
+        if (check.get_vsplit() != v_at_fb.get_vsplit() ||
             check.get_deleted()) {
             return status::OK_RETRY_FROM_ROOT;
         }
-        v_at_fetch_lv = check;
-        return status::OK_RETRY_FETCH_LV;
+        v_at_fb = check;
+        return status::OK_RETRY_AFTER_FB;
     }
     return status::OK;
-}
-
-template<class ValueType>
-status scan_check_retry(border_node* const bn, node_version64_body &v_at_fetch_lv) {
-    std::vector<std::pair<ValueType*, std::size_t>> tuple_list;
-    std::size_t dummy_ctr(0);
-    return scan_check_retry<ValueType>(bn, v_at_fetch_lv, tuple_list, dummy_ctr, nullptr);
 }
 
 template<class ValueType>
@@ -76,7 +69,7 @@ retry:
     }
     node_and_v = find_border(root, ks, kl, check_status);
     if (check_status == status::WARN_RETRY_FROM_ROOT_OF_ALL) {
-        return status::OK_RETRY_FETCH_LV;
+        return status::OK_RETRY_AFTER_FB;
     }
     border_node* bn(std::get<tuple_node_index>(node_and_v));
     node_version64_body check_v = std::get<tuple_v_index>(node_and_v);
@@ -90,11 +83,11 @@ retry:
         if (check_status == status::OK_SCAN_CONTINUE) {
             continue;
         }
-        if (check_status == status::OK_RETRY_FETCH_LV) {
+        if (check_status == status::OK_RETRY_AFTER_FB) {
             node_version64_body re_check_v = bn->get_stable_version();
             if (check_v.get_vsplit() != re_check_v.get_vsplit() ||
                 re_check_v.get_deleted()) {
-                return status::OK_RETRY_FETCH_LV;
+                return status::OK_RETRY_AFTER_FB;
             }
             if (check_v.get_vinsert_delete() != re_check_v.get_vinsert_delete()) {
                 check_v = re_check_v;
@@ -110,7 +103,7 @@ template<class ValueType>
 static status scan_border(border_node** const target, const std::string_view l_key, const scan_endpoint l_end,
                           const std::string_view r_key, const scan_endpoint r_end,
                           std::vector<std::pair<ValueType*, std::size_t>> &tuple_list,
-                          node_version64_body &v_at_fetch_lv,
+                          node_version64_body &v_at_fb,
                           std::vector<std::pair<node_version64_body, node_version64*>>* const node_version_vec,
                           const std::string &key_prefix, const std::size_t max_size) {
 retry:
@@ -133,11 +126,11 @@ retry:
         base_node* next_layer = lv->get_next_layer();
         node_version64* node_version_ptr = bn->get_version_ptr();
         // This verification may seem verbose, but it can also be considered an early abort.
-        status check_status = scan_check_retry(bn, v_at_fetch_lv, tuple_list, tuple_pushed_num, node_version_vec);
+        status check_status = scan_check_retry(bn, v_at_fb, tuple_list, tuple_pushed_num, node_version_vec);
         if (check_status == status::OK_RETRY_FROM_ROOT) {
             return status::OK_RETRY_FROM_ROOT;
         }
-        if (check_status == status::OK_RETRY_FETCH_LV) {
+        if (check_status == status::OK_RETRY_AFTER_FB) {
             goto retry; // NOLINT
         }
         if (kl > sizeof(key_slice_type)) {
@@ -194,10 +187,10 @@ retry:
                 goto retry; // NOLINT
             }
         } else {
-            auto in_range = [&tuple_list, &vp, &vsize, &node_version_vec, &v_at_fetch_lv, &node_version_ptr, &tuple_pushed_num, max_size]() {
+            auto in_range = [&tuple_list, &vp, &vsize, &node_version_vec, &v_at_fb, &node_version_ptr, &tuple_pushed_num, max_size]() {
                 tuple_list.emplace_back(std::make_pair(reinterpret_cast<ValueType*>(vp), vsize)); // NOLINT
                 if (node_version_vec != nullptr) { // todo add && std::get<1>(node_version_vec.back()) != node_version_ptr
-                    node_version_vec->emplace_back(std::make_pair(v_at_fetch_lv, node_version_ptr));
+                    node_version_vec->emplace_back(std::make_pair(v_at_fb, node_version_ptr));
                 }
                 ++tuple_pushed_num;
                 if (max_size != 0 && tuple_list.size() >= max_size) {
@@ -245,7 +238,7 @@ retry:
         return status::OK_SCAN_END;
     }
     *target = next;
-    v_at_fetch_lv = next->get_stable_version();
+    v_at_fb = next->get_stable_version();
     return status::OK_SCAN_CONTINUE;
 }
 
