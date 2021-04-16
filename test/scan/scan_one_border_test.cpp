@@ -34,13 +34,13 @@ TEST_F(st, scan_against_single_put_null_key_to_one_border) { // NOLINT
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     ASSERT_EQ(status::OK, put(test_storage_name, std::string_view(k), v.data(), v.size()));
-    std::vector<std::pair<char*, std::size_t>> tup_lis{}; // NOLINT
+    std::vector<std::tuple<std::string, char*, std::size_t>> tup_lis{}; // NOLINT
     std::vector<std::pair<node_version64_body, node_version64*>> nv;
     auto verify_exist = [&tup_lis, &nv, &v]() {
         if (tup_lis.size() != 1) return false;
         if (tup_lis.size() != nv.size()) return false;
-        if (std::get<1>(tup_lis.at(0)) != v.size())return false;
-        if (memcmp(std::get<0>(tup_lis.at(0)), v.data(), v.size()) != 0)return false;
+        if (std::get<2>(tup_lis.at(0)) != v.size())return false;
+        if (memcmp(std::get<1>(tup_lis.at(0)), v.data(), v.size()) != 0)return false;
         return true;
     };
     ASSERT_EQ(status::OK, scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tup_lis, &nv));
@@ -63,13 +63,13 @@ TEST_F(st, scan_against_single_put_non_null_key_to_one_border) { // NOLINT
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     ASSERT_EQ(status::OK, put(test_storage_name, std::string_view(k), v.data(), v.size()));
-    std::vector<std::pair<char*, std::size_t>> tup_lis{}; // NOLINT
+    std::vector<std::tuple<std::string, char*, std::size_t>> tup_lis{}; // NOLINT
     std::vector<std::pair<node_version64_body, node_version64*>> nv;
     auto verify_exist = [&tup_lis, &nv, &v]() {
         if (tup_lis.size() != 1) return false;
         if (tup_lis.size() != nv.size()) return false;
-        if (std::get<1>(tup_lis.at(0)) != v.size()) return false;
-        if (memcmp(std::get<0>(tup_lis.at(0)), v.data(), v.size()) != 0) return false;
+        if (std::get<2>(tup_lis.at(0)) != v.size()) return false;
+        if (memcmp(std::get<1>(tup_lis.at(0)), v.data(), v.size()) != 0) return false;
         return true;
     };
     auto verify_no_exist = [&tup_lis, &nv]() {
@@ -151,8 +151,8 @@ TEST_F(st, scan_multiple_same_null_char_key_1) { // NOLINT
         ASSERT_EQ(status::OK, put(test_storage_name, std::string_view(k.at(i)), v.at(i).data(), v.at(i).size()));
     }
 
-    std::vector<std::pair<char*, std::size_t>> tuple_list{}; // NOLINT
-    constexpr std::size_t v_index = 0;
+    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{}; // NOLINT
+    constexpr std::size_t v_index = 1;
     for (std::size_t i = 0; i < ary_size; ++i) {
         scan<char>(test_storage_name, "", scan_endpoint::INF, std::string_view(k.at(i)), scan_endpoint::INCLUSIVE, tuple_list);
         for (std::size_t j = 0; j < i + 1; ++j) {

@@ -74,13 +74,13 @@ TEST_F(mtpt, many_interior) {           // NOLINT
         thv.clear();
 
         std::string k(1, ary_size - 1);
-        std::vector<std::pair<char*, std::size_t>> tuple_list{};// NOLINT
+        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{};// NOLINT
         scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
         ASSERT_EQ(tuple_list.size(), ary_size);
 
         for (std::size_t i = 0; i < ary_size; ++i) {
             std::string v(std::to_string(i));
-            constexpr std::size_t v_index = 0;
+            constexpr std::size_t v_index = 1;
             ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(i)), v.data(), v.size()), 0);
         }
 
@@ -139,12 +139,12 @@ TEST_F(mtpt, many_interior_shuffle) {   // NOLINT
         thv.clear();
 
         std::string k(1, ary_size - 1);
-        std::vector<std::pair<char*, std::size_t>> tuple_list{};// NOLINT
+        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{};// NOLINT
         scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
         ASSERT_EQ(tuple_list.size(), ary_size);
         for (std::size_t j = 0; j < ary_size; ++j) {
             std::string v(std::to_string(j));
-            constexpr std::size_t v_index = 0;
+            constexpr std::size_t v_index = 1;
             ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
         }
 

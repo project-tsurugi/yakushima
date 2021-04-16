@@ -36,8 +36,8 @@ TEST_F(st, scan_multiple_same_null_char_key_2) {// NOLINT
         v.at(i) = std::to_string(i);
         ASSERT_EQ(status::OK, put(test_storage_name, std::string_view(k.at(i)), v.at(i).data(), v.at(i).size()));
     }
-    constexpr std::size_t value_index = 0;
-    std::vector<std::pair<char*, std::size_t>> tuple_list{};// NOLINT
+    constexpr std::size_t value_index = 1;
+    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{};// NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
         std::vector<std::pair<node_version64_body, node_version64*>> nv;
         ASSERT_EQ(status::OK,
@@ -77,8 +77,8 @@ TEST_F(st, scan_against_1_interior_some_border) {// NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
         ASSERT_EQ(status::OK, put(test_storage_name, std::string_view{k.at(i)}, v.at(i).data(), v.at(i).size()));
     }
-    constexpr std::size_t value_index = 0;
-    std::vector<std::pair<char*, std::size_t>> tuple_list{};// NOLINT
+    constexpr std::size_t value_index = 1;
+    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{};// NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
         std::vector<std::pair<node_version64_body, node_version64*>> nv;
         ASSERT_EQ(status::OK,
@@ -116,11 +116,11 @@ TEST_F(st, scan_against_1_interior_2_interior_some_border) {// NOLINT
     }
 
     std::vector<std::pair<node_version64_body, node_version64*>> nv;
-    std::vector<std::pair<char*, std::size_t>> tuple_list{};// NOLINT
+    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{};// NOLINT
     ASSERT_EQ(status::OK,
               scan(test_storage_name, std::string_view(k.at(0)), scan_endpoint::INCLUSIVE, "", scan_endpoint::INF, tuple_list, &nv));
     for (std::size_t j = 0; j < ary_size; ++j) {
-        constexpr std::size_t value_index = 0;
+        constexpr std::size_t value_index = 1;
         ASSERT_EQ(memcmp(std::get<value_index>(tuple_list.at(j)), v.at(j).data(), v.at(j).size()), 0);
     }
     ASSERT_EQ(leave(token), status::OK);
@@ -137,7 +137,7 @@ TEST_F(st, scan_with_prefix_for_2_layers) {// NOLINT
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
-    std::vector<std::pair<char*, std::size_t>> tuple_list{};
+    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{};
     ASSERT_EQ(status::OK, scan(test_storage_name, "", scan_endpoint::INF, end, scan_endpoint::EXCLUSIVE, tuple_list));
     ASSERT_EQ(tuple_list.size(), 1);
     ASSERT_EQ(leave(token), status::OK);
@@ -163,7 +163,7 @@ TEST_F(st, scan_with_prefix_for_2_layers_2) {                                   
     ASSERT_EQ(put(test_storage_name, r3, v.data(), v.size()), status::OK);
     ASSERT_EQ(put(test_storage_name, r4, v.data(), v.size()), status::OK);
     ASSERT_EQ(put(test_storage_name, r5, v.data(), v.size()), status::OK);
-    std::vector<std::pair<char*, std::size_t>> tuple_list{};
+    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{};
     ASSERT_EQ(status::OK, scan(test_storage_name, be, scan_endpoint::INCLUSIVE, en, scan_endpoint::EXCLUSIVE, tuple_list));
     ASSERT_EQ(tuple_list.size(), 1);
     ASSERT_EQ(leave(token), status::OK);
@@ -197,7 +197,7 @@ TEST_F(st, scan_with_same_prefix_25char_26diff_27to33same_34diff) {// NOLINT
     ASSERT_EQ(put(test_storage_name, r4, v.data(), v.size()), status::OK);
     ASSERT_EQ(put(test_storage_name, r5, v.data(), v.size()), status::OK);
     ASSERT_EQ(put(test_storage_name, r6, v.data(), v.size()), status::OK);
-    std::vector<std::pair<char*, std::size_t>> tuple_list{};
+    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{};
     ASSERT_EQ(status::OK, scan(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list));
     ASSERT_EQ(tuple_list.size(), 6);
     ASSERT_EQ(status::OK, scan(test_storage_name, r1, scan_endpoint::INCLUSIVE, "", scan_endpoint::INF, tuple_list));

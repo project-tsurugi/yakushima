@@ -19,7 +19,7 @@ public:
 
     static tree_instance* get_storages() { return &storages_; }
 
-    static status list_storages(std::vector<tree_instance*>& out);// NOLINT
+    static status list_storages(std::vector<std::pair<std::string, tree_instance*>>& out);// NOLINT
 
 private:
     static inline tree_instance storages_;// NOLINT

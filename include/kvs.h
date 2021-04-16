@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <tuple>
+
 #include "base_node.h"
 #include "interface_get.h"
 #include "interface_helper.h"
@@ -88,7 +90,7 @@ namespace yakushima {
  * @return status::OK if it found.
  * @return status::WARN_NOT_EXIST if it found no storage.
  */
-[[maybe_unused]] static status list_storages(std::vector<tree_instance*>& out) {
+[[maybe_unused]] static status list_storages(std::vector<std::pair<std::string, tree_instance*>>& out) {
     return storage::list_storages(out);
 }
 
@@ -166,7 +168,7 @@ put(std::string_view storage_name, std::string_view key_view, ValueType* value, 
  * @param[in] r_end If this argument is scan_endpoint :: EXCLUSIVE, the interval does not include the endpoint.
  * If this argument is scan_endpoint :: INCLUSIVE, the interval contains the endpoint.
  * If this is scan_endpoint :: INF, there is no limit on the interval in right direction. And ignore @a r_key.
- * @param[out] tuple_list A set with a pointer to value and size as a result of this function.
+ * @param[out] tuple_list A set with a key, a pointer to value, and size of value as a result of this function.
  * @param[out] node_version_vec Default is nullptr. The set of node_version for transaction processing (protection of phantom problems).
  * If you don't use yakushima for transaction processing, you don't have to use this argument. 
  * If you want high performance and don't have to use this argument, you should specify nullptr.
@@ -182,7 +184,7 @@ put(std::string_view storage_name, std::string_view key_view, ValueType* value, 
 template<class ValueType>
 [[maybe_unused]] static status
 scan(std::string_view storage_name, std::string_view l_key, scan_endpoint l_end, std::string_view r_key, scan_endpoint r_end, // NOLINT
-     std::vector<std::pair<ValueType*, std::size_t>> &tuple_list,
+     std::vector<std::tuple<std::string, ValueType*, std::size_t>> &tuple_list,
      std::vector<std::pair<node_version64_body, node_version64*>>* node_version_vec, std::size_t max_size);
 
 } // namespace yakushima

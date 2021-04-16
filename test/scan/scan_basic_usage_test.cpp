@@ -35,13 +35,13 @@ TEST_F(st, basic_usage) { // NOLINT
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     ASSERT_EQ(status::OK, put(test_storage_name, std::string_view(k), v.data(), v.size()));
-    std::vector<std::pair<char*, std::size_t>> tup_lis{}; // NOLINT
+    std::vector<std::tuple<std::string, char*, std::size_t>> tup_lis{}; // NOLINT
     std::vector<std::pair<node_version64_body, node_version64*>> nv;
     auto verify = [&tup_lis, &nv, &v]() {
         if (tup_lis.size() != 1) return false;
         if (tup_lis.size() != nv.size()) return false;
-        if (std::get<1>(tup_lis.at(0)) != v.size()) return false;
-        if (memcmp(std::get<0>(tup_lis.at(0)), v.data(), v.size()) != 0) return false;
+        if (std::get<2>(tup_lis.at(0)) != v.size()) return false;
+        if (memcmp(std::get<1>(tup_lis.at(0)), v.data(), v.size()) != 0) return false;
         return true;
     };
     auto verify_no_exist = [&tup_lis, &nv]() {

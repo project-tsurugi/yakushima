@@ -88,7 +88,7 @@ TEST_F(kt, test4) {// NOLINT
             ASSERT_EQ(memcmp(std::get<value_index>(tuple), std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()), 0);
         }
 
-        std::vector<std::pair<char*, std::size_t>> tuple_list;// NOLINT
+        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list;// NOLINT
         for (std::size_t i = 1; i < ary_size; ++i) {
             std::string k(i, '\0');
             ASSERT_EQ(status::OK,
@@ -96,7 +96,7 @@ TEST_F(kt, test4) {// NOLINT
             ASSERT_EQ(tuple_list.size(), i + 1);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
-                ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(j)), v.data(), v.size()), 0);
+                ASSERT_EQ(memcmp(std::get<1>(tuple_list.at(j)), v.data(), v.size()), 0);
             }
         }
 
@@ -107,7 +107,7 @@ TEST_F(kt, test4) {// NOLINT
             ASSERT_EQ(tuple_list.size(), ary_size - i);
             for (std::size_t j = i; j < ary_size; ++j) {
                 std::string v(std::to_string(j));
-                ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(j)), v.data(), v.size()), 0);
+                ASSERT_EQ(memcmp(std::get<1>(tuple_list.at(j)), v.data(), v.size()), 0);
             }
         }
 
@@ -187,14 +187,14 @@ TEST_F(kt, test6) {// NOLINT
             ASSERT_EQ(memcmp(std::get<value_index>(tuple), std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()), 0);
         }
 
-        std::vector<std::pair<char*, std::size_t>> tuple_list;// NOLINT
+        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list;// NOLINT
         for (std::size_t i = 1; i < ary_size; ++i) {
             std::string k(i, 'a');
             ASSERT_EQ(status::OK, scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list));
             ASSERT_EQ(tuple_list.size(), i + 1);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
-                ASSERT_EQ(memcmp(std::get<0>(tuple_list.at(j)), v.data(), v.size()), 0);
+                ASSERT_EQ(memcmp(std::get<1>(tuple_list.at(j)), v.data(), v.size()), 0);
             }
         }
         ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
@@ -387,14 +387,14 @@ TEST_F(kt, test10) {// NOLINT
 
         std::sort(kv.begin(), kv.end());
         for (std::size_t i = 0; i <= putctr; ++i) {
-            std::vector<std::pair<char*, std::size_t>> tuple_list;// NOLINT
+            std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list;// NOLINT
             scan<char>(test_storage_name, "", scan_endpoint::INF, std::get<0>(kv[i]), scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
                 ASSERT_EQ(tuple_list.size(), i + 1);
             }
             for (std::size_t j = 0; j < i + 1; ++j) {
                 ASSERT_EQ(
-                        memcmp(std::get<0>(tuple_list.at(j)), std::get<1>(kv[i]).data(), std::get<1>(tuple_list.at(j))),
+                        memcmp(std::get<1>(tuple_list.at(j)), std::get<1>(kv[i]).data(), std::get<2>(tuple_list.at(j))),
                         0);
             }
         }
@@ -427,7 +427,7 @@ TEST_F(kt, test12) {// NOLINT
     ASSERT_EQ(status::OK, put(test_storage_name, k2, v.data(), v.size()));
     ASSERT_EQ(status::OK, put(test_storage_name, k3, v.data(), v.size()));
     ASSERT_EQ(status::OK, put(test_storage_name, k4, v.data(), v.size()));
-    std::vector<std::pair<char*, std::size_t>> tuple_list;
+    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list;
     scan<char>(test_storage_name, k, scan_endpoint::EXCLUSIVE, k4, scan_endpoint::EXCLUSIVE, tuple_list);
     ASSERT_EQ(tuple_list.size(), 2);
 }

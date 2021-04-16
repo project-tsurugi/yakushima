@@ -29,7 +29,7 @@ TEST_F(st, one_border) { // NOLINT
     std::string k3("3");
     std::string v("v");
     Token token{};
-    std::vector<std::pair<char*, std::size_t>> tuple_list{}; // NOLINT
+    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{}; // NOLINT
     ASSERT_EQ(enter(token), status::OK);
     ASSERT_EQ(status::OK, put(test_storage_name, std::string_view(k1), v.data(), v.size()));
     ASSERT_EQ(status::OK, put(test_storage_name, std::string_view(k2), v.data(), v.size()));
