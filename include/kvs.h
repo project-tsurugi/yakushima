@@ -70,14 +70,15 @@ namespace yakushima {
 /**
  * @brief Find existing storage
  * @param [in] storage_name 
- * @param [out] found_storage output parameter to pass tree_instance information.
+ * @param [out] found_storage output parameter to pass tree_instance information. If this is nullptr (by default argument), 
+ * this function simply note the existence of target.
  * @attention Do not treat DDL operations in parallel with DML operations. 
  * create_storage / delete_storage can be processed in parallel. 
  * At least one of these and find_storage / list_storage cannot work in parallel.
  * @return status::OK if existence.
  * @return status::WARN_NOT_EXIST if not existence.
  */
-[[maybe_unused]] static status find_storage(std::string_view storage_name, tree_instance** found_storage) {
+[[maybe_unused]] static status find_storage(std::string_view storage_name, tree_instance** found_storage = nullptr) {
     return storage::find_storage(storage_name, found_storage);
 }
 
