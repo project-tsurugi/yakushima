@@ -10,8 +10,9 @@
 
 #include "atomic_wrapper.h"
 #include "base_node.h"
+#include "garbage_collection.h"
 #include "interior_helper.h"
-#include "gc_info.h"
+#include "thread_info.h"
 #include "tree_instance.h"
 
 namespace yakushima {
@@ -26,7 +27,7 @@ public:
     using n_keys_body_type = std::uint8_t;
     using n_keys_type = std::atomic<n_keys_body_type>;
 
-    ~interior_node() override {}; // NOLINT
+    ~interior_node() override{}; // NOLINT
 
     /**
      * @pre There is a child which is the same to @a child.
@@ -68,9 +69,9 @@ public:
                         get_child_at(!i)->set_parent(pn);
                         pn->version_unlock();
                     }
-                    reinterpret_cast<gc_info*>(token)->move_node_to_gc_container(this); // NOLINT
+                    garbage_collection::push_node_container(std::tuple{reinterpret_cast<thread_info*>(token)->get_begin_epoch(), this}); // NOLINT
                     set_version_deleted(true);
-                } else { // n_key > 1
+                } else {          // n_key > 1
                     if (i == 0) { // leftmost points
                         shift_left_base_member(1, 1);
                         shift_left_children(1, 1);
@@ -96,7 +97,7 @@ public:
 #endif
     }
 
-/**
+    /**
  * @brief release all heap objects and clean up.
  * @pre This function is called by single thread.
  */
@@ -108,7 +109,7 @@ public:
         return status::OK_DESTROY_INTERIOR;
     }
 
-/**
+    /**
  * @details display function for analysis and debug.
  */
     void display() override {
@@ -174,7 +175,7 @@ public:
         set_n_keys(0);
     }
 
-/**
+    /**
  * @pre It already acquired lock of this node.
  * @pre This interior node is not full.
  * @details insert @a child and fix @a children.
@@ -240,7 +241,7 @@ public:
         n_keys_.store(new_n_key, std::memory_order_release);
     }
 
-/**
+    /**
  * @pre It already acquired lock of this node.
  * @param start_pos
  * @param shift_size
@@ -251,7 +252,7 @@ public:
         }
     }
 
-/**
+    /**
  * @pre It already acquired lock of this node.
  * It is not full-interior node.
  * @param start_pos
@@ -282,20 +283,21 @@ public:
         /**
          * unreachable point.
          */
-        std::cerr << __FILE__ << " : " << __LINE__ << " : " << "fatal error" << std::endl;
+        std::cerr << __FILE__ << " : " << __LINE__ << " : "
+                  << "fatal error" << std::endl;
         std::abort();
     }
 
 private:
-/**
+    /**
  * first member of base_node is aligned along with cache line size.
  */
 
-/**
+    /**
  * @attention This variable is read/written concurrently.
  */
     std::array<base_node*, child_length> children{};
-/**
+    /**
  * @attention This variable is read/written concurrently.
  */
     n_keys_type n_keys_{};

@@ -23,6 +23,7 @@ add_executable(yakushima_bench
 target_link_libraries(yakushima_bench
         PRIVATE Threads::Threads
         PRIVATE gflags::gflags
+        PRIVATE tbb
         )
 if (PERFORMANCE_TOOLS)
     target_link_libraries(yakushima_bench

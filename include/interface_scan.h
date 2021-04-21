@@ -1,3 +1,7 @@
+/**
+ * @file interface_scan.h
+ */
+
 #pragma once
 
 #include "kvs.h"

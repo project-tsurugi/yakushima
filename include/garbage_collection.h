@@ -10,53 +10,14 @@
 #include <vector>
 
 #include "base_node.h"
+#include "concurrent_queue.h"
 #include "cpu.h"
 #include "epoch.h"
 
 namespace yakushima {
 
-class gc_container {
+class garbage_collection {
 public:
-    class alignas(CACHE_LINE_SIZE) node_container {
-    public:
-        std::vector<std::pair<Epoch, base_node*>>& get_body() {
-            return body_;
-        }
-
-    private:
-        std::vector<std::pair<Epoch, base_node*>> body_;
-    };
-
-    class alignas(CACHE_LINE_SIZE) value_container {
-    public:
-        std::vector<std::tuple<Epoch, void*, std::size_t, std::align_val_t>>& get_body() {
-            return body_;
-        }
-
-    private:
-        std::vector<std::tuple<Epoch, void*, std::size_t, std::align_val_t>> body_;
-    };
-
-    void set(const std::size_t index) {
-        try {
-            set_node_container(&kGarbageNodes.at(index));
-            set_value_container(&kGarbageValues.at(index));
-        } catch (std::out_of_range& e) {
-            std::cout << __FILE__ << " : " << __LINE__ << std::endl;
-        } catch (...) {
-            std::cout << __FILE__ << " : " << __LINE__ << std::endl;
-        }
-    }
-
-    void add_node_to_gc_container(const Epoch gc_epoch, base_node* const n) {
-        node_container_->get_body().emplace_back(std::make_pair(gc_epoch, n));
-    }
-
-    void add_value_to_gc_container(const Epoch gc_epoch, void* const vp, const std::size_t size,
-                                   const std::align_val_t alignment) {
-        value_container_->get_body().emplace_back(std::make_tuple(gc_epoch, vp, size, alignment));
-    }
-
     /**
      * @tparam interior_node
      * @tparam border_node
@@ -64,35 +25,30 @@ public:
      */
     template<class interior_node, class border_node>
     static void fin() {
-        struct S {
-            static void parallel_worker(const std::uint64_t left_edge, const std::uint64_t right_edge) {
-                for (std::size_t i = left_edge; i < right_edge; ++i) {
-                    auto& ncontainer = kGarbageNodes.at(i);
-                    for (auto&& elem : ncontainer.get_body()) {
-                        delete std::get<gc_target_index>(elem);// NOLINT
-                    }
-                    ncontainer.get_body().clear();
-
-                    auto& vcontainer = kGarbageValues.at(i);
-                    for (auto&& elem : vcontainer.get_body()) {
-                        ::operator delete(std::get<gc_target_index>(elem), std::get<gc_target_size_index>(elem),
-                                          std::get<gc_target_align_index>(elem));
-                    }
-                    vcontainer.get_body().clear();
-                }
-            }
-        };
-        std::vector<std::thread> thv;
-        for (std::size_t i = 0; i < std::thread::hardware_concurrency(); ++i) {
-            if (std::thread::hardware_concurrency() != 1) {
-                thv.emplace_back(S::parallel_worker, YAKUSHIMA_MAX_PARALLEL_SESSIONS / std::thread::hardware_concurrency() * i, i != std::thread::hardware_concurrency() - 1 ? YAKUSHIMA_MAX_PARALLEL_SESSIONS / std::thread::hardware_concurrency() * (i + 1) : YAKUSHIMA_MAX_PARALLEL_SESSIONS);
-            } else {
-                thv.emplace_back(S::parallel_worker, 0, YAKUSHIMA_MAX_PARALLEL_SESSIONS);
-            }
+        // for cache
+        if (std::get<gc_target_index>(cache_node_container_) != nullptr) {
+            delete std::get<gc_target_index>(cache_node_container_); // NOLINT
+            std::get<gc_target_index>(cache_node_container_) = nullptr;
         }
 
-        for (auto& th : thv) {
-            th.join();
+        while (!node_container_.empty()) {
+            std::tuple<Epoch, base_node*> elem;
+            while (!node_container_.try_pop(elem)) continue;
+            delete std::get<gc_target_index>(elem); // NOLINT
+        }
+
+        // for cache
+        if (std::get<gc_target_index>(cache_value_container_) != nullptr) {
+            ::operator delete(std::get<gc_target_index>(cache_value_container_), std::get<gc_target_size_index>(cache_value_container_),
+                              std::get<gc_target_align_index>(cache_value_container_));
+            std::get<gc_target_index>(cache_value_container_) = nullptr;
+        }
+
+        while (!value_container_.empty()) {
+            std::tuple<Epoch, void*, std::size_t, std::align_val_t> elem;
+            while (!value_container_.try_pop(elem)) continue;
+            ::operator delete(std::get<gc_target_index>(elem), std::get<gc_target_size_index>(elem),
+                              std::get<gc_target_align_index>(elem));
         }
     }
 
@@ -102,7 +58,7 @@ public:
      * @attention Use a template class so that the dependency does not cycle.
      */
     template<class interior_node, class border_node>
-    void gc() {
+    static void gc() {
         gc_node<interior_node, border_node>();
         gc_value();
     }
@@ -113,35 +69,49 @@ public:
      * @attention Use a template class so that the dependency does not cycle.
      */
     template<class interior_node, class border_node>
-    void gc_node() {
+    static void gc_node() {
         Epoch gc_epoch = get_gc_epoch();
-        std::uint64_t g_ctr{0};
-        for (auto&& itr : node_container_->get_body()) {
-            if (std::get<gc_epoch_index>(itr) >= gc_epoch) {
-                break;
+
+        // for cache
+        if (std::get<gc_target_index>(cache_node_container_) != nullptr) {
+            if (std::get<gc_epoch_index>(cache_node_container_) >= gc_epoch) {
+                return;
             }
-            delete std::get<gc_target_index>(itr);// NOLINT
-            ++g_ctr;
+            delete std::get<gc_target_index>(cache_node_container_); // NOLINT
+            std::get<gc_target_index>(cache_node_container_) = nullptr;
         }
-        if (g_ctr > 0) {
-            node_container_->get_body().erase(node_container_->get_body().begin(),
-                                              node_container_->get_body().begin() + g_ctr);
+
+        while (!node_container_.empty()) {
+            std::tuple<Epoch, base_node*> elem;
+            while (!node_container_.try_pop(elem)) continue;
+            if (std::get<gc_epoch_index>(elem) >= gc_epoch) {
+                cache_node_container_ = elem;
+                return;
+            }
+            delete std::get<gc_target_index>(elem); // NOLINT
         }
     }
 
-    void gc_value() {
+    static void gc_value() {
         Epoch gc_epoch = get_gc_epoch();
-        std::uint64_t g_ctr{0};
-        for (auto&& itr : value_container_->get_body()) {
-            if (std::get<gc_epoch_index>(itr) >= gc_epoch) {
-                break;
+
+        if (std::get<gc_target_index>(cache_value_container_) != nullptr) {
+            if (std::get<gc_epoch_index>(cache_value_container_) >= gc_epoch) {
+                return;
             }
-            ::operator delete(std::get<gc_target_index>(itr));
-            ++g_ctr;
+            ::operator delete(std::get<gc_target_index>(cache_value_container_));
+            std::get<gc_target_index>(cache_value_container_) = nullptr;
         }
-        if (g_ctr > 0) {
-            value_container_->get_body().erase(value_container_->get_body().begin(),
-                                               value_container_->get_body().begin() + g_ctr);
+
+        while (!value_container_.empty()) {
+            std::tuple<Epoch, void*, std::size_t, std::align_val_t> elem;
+            while (!value_container_.try_pop(elem)) continue;
+            if (std::get<gc_epoch_index>(elem) >= gc_epoch) {
+                cache_value_container_ = elem;
+                return;
+            }
+            ::operator delete(std::get<gc_target_index>(elem), std::get<gc_target_size_index>(elem),
+                              std::get<gc_target_align_index>(elem));
         }
     }
 
@@ -149,41 +119,32 @@ public:
         set_gc_epoch(0);
     }
 
-    static void set_gc_epoch(const Epoch epoch) {
-        kGCEpoch.store(epoch, std::memory_order_release);
-    }
-
-    void set_node_container(node_container* const container) {
-        node_container_ = container;
-    }
-
-    void set_value_container(value_container* const container) {
-        value_container_ = container;
-    }
-
     static Epoch get_gc_epoch() {
-        return kGCEpoch.load(std::memory_order_acquire);
+        return gc_epoch_.load(std::memory_order_acquire);
     }
 
-    [[nodiscard]] node_container* get_node_container() const {
-        return node_container_;
+    static void push_node_container(std::tuple<Epoch, base_node*> elem) {
+        node_container_.push(elem);
     }
 
-    [[nodiscard]] value_container* get_value_container() const {
-        return value_container_;
+    static void push_value_container(std::tuple<Epoch, void*, std::size_t, std::align_val_t> elem) {
+        value_container_.push(elem);
     }
 
+    static void set_gc_epoch(const Epoch epoch) {
+        gc_epoch_.store(epoch, std::memory_order_release);
+    }
+
+private:
     static constexpr std::size_t gc_epoch_index = 0;
     static constexpr std::size_t gc_target_index = 1;
     static constexpr std::size_t gc_target_size_index = 2;
     static constexpr std::size_t gc_target_align_index = 3;
-    static inline std::array<node_container, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kGarbageNodes;  // NOLINT
-    static inline std::array<value_container, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kGarbageValues;// NOLINT
-    alignas(CACHE_LINE_SIZE) static inline std::atomic<Epoch> kGCEpoch;                       // NOLINT
-
-private:
-    node_container* node_container_{nullptr};
-    value_container* value_container_{nullptr};
+    alignas(CACHE_LINE_SIZE) static inline std::atomic<Epoch> gc_epoch_{0};                                                                        // NOLINT
+    static inline std::tuple<Epoch, base_node*> cache_node_container_{0, nullptr};                                                                 // NOLINT
+    static inline concurrent_queue<std::tuple<Epoch, base_node*>> node_container_;                                                                 // NOLINT
+    static inline std::tuple<Epoch, void*, std::size_t, std::align_val_t> cache_value_container_{0, nullptr, 0, static_cast<std::align_val_t>(0)}; // NOLINT
+    static inline concurrent_queue<std::tuple<Epoch, void*, std::size_t, std::align_val_t>> value_container_;                                      // NOLINT
 };
 
-}// namespace yakushima
+} // namespace yakushima

@@ -8,11 +8,11 @@
 namespace yakushima {
 
 [[maybe_unused]] static status enter(Token& token) {
-    return gc_info_table::assign_gc_info(token);
+    return thread_info_table::assign_thread_info(token);
 }
 
 [[maybe_unused]] static status leave(Token token) {
-    return gc_info_table::leave_gc_info<interior_node, border_node>(token);
+    return thread_info_table::leave_thread_info<interior_node, border_node>(token);
 }
 
 [[maybe_unused]] static status destroy() {
@@ -41,15 +41,18 @@ namespace yakushima {
     /**
      * initialize thread information table (kThreadInfoTable)
      */
-    gc_info_table::init();
+    thread_info_table::init();
     epoch_manager::invoke_epoch_thread();
+    epoch_manager::invoke_gc_thread();
 }
 
 [[maybe_unused]] static void fin() {
     destroy();
     epoch_manager::set_epoch_thread_end();
+    epoch_manager::set_gc_thread_end();
     epoch_manager::join_epoch_thread();
-    gc_container::fin<interior_node, border_node>();
+    epoch_manager::join_gc_thread();
+    garbage_collection::fin<interior_node, border_node>();
 }
 
 }// namespace yakushima

@@ -10,10 +10,11 @@
 #include <iostream>
 
 #include "atomic_wrapper.h"
+#include "garbage_collection.h"
 #include "interior_node.h"
 #include "link_or_value.h"
 #include "permutation.h"
-#include "gc_info.h"
+#include "thread_info.h"
 
 namespace yakushima {
 
@@ -22,7 +23,6 @@ using std::endl;
 
 class alignas(CACHE_LINE_SIZE) border_node final : public base_node { // NOLINT
 public:
-
     ~border_node() override {} // NOLINT
 
     /**
@@ -32,10 +32,9 @@ public:
      * @param[in] target_is_value
      */
     void delete_at(Token token, const std::size_t pos, const bool target_is_value) {
-        gc_info* ti = reinterpret_cast<gc_info*>(token); // NOLINT
+        auto* ti = reinterpret_cast<thread_info*>(token); // NOLINT
         if (target_is_value) {
-            ti->move_value_to_gc_container(lv_.at(pos).get_v_or_vp_(), lv_.at(pos).get_value_length(),
-                                           lv_.at(pos).get_value_align());
+            garbage_collection::push_value_container({ti->get_begin_epoch(), lv_.at(pos).get_v_or_vp_(), lv_.at(pos).get_value_length(), lv_.at(pos).get_value_align()});
         }
         lv_.at(pos).init_lv();
 
@@ -59,11 +58,11 @@ public:
      * @param[in] token
      * @param[in] child
      */
-    void delete_of(Token token, tree_instance* ti, base_node* const child, std::vector<node_version64*> &lock_list) {
+    void delete_of(Token token, tree_instance* ti, base_node* const child, std::vector<node_version64*>& lock_list) {
         std::size_t cnk = get_permutation_cnk();
         for (std::size_t i = 0; i < cnk; ++i) {
             if (child == lv_.at(i).get_next_layer()) {
-                delete_of < false > (token, ti, get_key_slice_at(i), get_key_length_at(i), lock_list); // NOLINT
+                delete_of<false>(token, ti, get_key_slice_at(i), get_key_length_at(i), lock_list); // NOLINT
                 return;
             }
         }
@@ -95,7 +94,7 @@ public:
      */
     template<bool target_is_value>
     void delete_of(Token token, tree_instance* ti, const key_slice_type key_slice, const key_length_type key_slice_length,
-                   std::vector<node_version64*> &lock_list) {
+                   std::vector<node_version64*>& lock_list) {
         set_version_inserting_deleting(true);
         /**
          * find position.
@@ -105,14 +104,15 @@ public:
             if ((key_slice_length == 0 && get_key_length_at(i) == 0) ||
                 (key_slice_length == get_key_length_at(i) && memcmp(&key_slice, &get_key_slice_ref().at(i),
                                                                     key_slice_length <= sizeof(key_slice_type)
-                                                                    ? key_slice_length : sizeof(key_slice_type)) ==
-                                                             0)) {
+                                                                            ? key_slice_length
+                                                                            : sizeof(key_slice_type)) ==
+                                                                     0)) {
                 delete_at(token, i, target_is_value);
                 if (cnk == 1) { // attention : this cnk is before delete_at;
-                    /**
+                                /**
                      * After this delete operation, this border node is empty.
                      */
-retry_prev_lock:
+                retry_prev_lock:
                     border_node* prev = get_prev();
                     if (prev != nullptr) {
                         prev->lock();
@@ -145,7 +145,7 @@ retry_prev_lock:
                         pn->version_unlock();
                     }
                     set_version_deleted(true);
-                    reinterpret_cast<gc_info*>(token)->move_node_to_gc_container(this); // NOLINT
+                    garbage_collection::push_node_container({reinterpret_cast<thread_info*>(token)->get_begin_epoch(), this}); // NOLINT
                 }
                 return;
             }
@@ -176,7 +176,7 @@ retry_prev_lock:
     * @attention layers are stored in ascending order.
     * @return
     */
-    [[maybe_unused]]void get_all_next_layer(std::vector<base_node*> &next_layers) {
+    [[maybe_unused]] void get_all_next_layer(std::vector<base_node*>& next_layers) {
         next_layers.clear();
         std::size_t cnk = permutation_.get_cnk();
         for (std::size_t i = 0; i < cnk; ++i) {
@@ -188,7 +188,7 @@ retry_prev_lock:
         }
     }
 
-    [[maybe_unused]] [[nodiscard]] std::array<link_or_value, key_slice_length> &get_lv() {
+    [[maybe_unused]] [[nodiscard]] std::array<link_or_value, key_slice_length>& get_lv() {
         return lv_;
     }
 
@@ -207,7 +207,8 @@ retry_prev_lock:
         /**
          * unreachable point.
          */
-        std::cerr << __FILE__ << " : " << __LINE__ << " : " << "fatal error." << std::endl;
+        std::cerr << __FILE__ << " : " << __LINE__ << " : "
+                  << "fatal error." << std::endl;
         std::abort();
     }
 
@@ -225,7 +226,7 @@ retry_prev_lock:
      * @return
      */
     [[nodiscard]] link_or_value* get_lv_of(const key_slice_type key_slice, const key_length_type key_length,
-                                           node_version64_body &stable_v, std::size_t &lv_pos) {
+                                           node_version64_body& stable_v, std::size_t& lv_pos) {
         node_version64_body v = get_stable_version();
         for (;;) {
             /**
@@ -265,7 +266,7 @@ retry_prev_lock:
         return loadAcquireN(next_);
     }
 
-    permutation &get_permutation() {
+    permutation& get_permutation() {
         return permutation_;
     }
 
@@ -447,4 +448,3 @@ private:
     border_node* next_{nullptr};
 };
 } // namespace yakushima
-

@@ -6,7 +6,7 @@
 #pragma once
 
 #include "border_helper.h"
-#include "gc_info_table.h"
+#include "thread_info_table.h"
 #include "tree_instance.h"
 
 namespace yakushima {

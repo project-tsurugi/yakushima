@@ -13,18 +13,18 @@ using Epoch = std::uint64_t;
 class epoch_management {
 public:
     static void epoch_inc() {
-        kEpoch.fetch_add(1);
+        epoch_.fetch_add(1);
     }
 
     static Epoch get_epoch() {
-        return kEpoch.load(std::memory_order_acquire);
+        return epoch_.load(std::memory_order_acquire);
     }
 
 private:
 /**
  * @todo consider wrap around. Wrap around after 23,397,696,694 days.
  */
-    static inline std::atomic<Epoch> kEpoch{1}; // NOLINT
+    static inline std::atomic<Epoch> epoch_{1}; // NOLINT
 };
 
 } // namespace yakushima

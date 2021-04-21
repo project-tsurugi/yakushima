@@ -1,14 +1,14 @@
 /**
- * @file gc_info_table.h
+ * @file thread_info_table.h
  */
 
 #pragma once
 
-#include "gc_info.h"
+#include "thread_info.h"
 
 namespace yakushima {
 
-class gc_info_table {
+class thread_info_table {
 public:
     /**
      * @brief Allocates a free session.
@@ -16,8 +16,8 @@ public:
      * @return status::OK success.
      * @return status::WARN_MAX_SESSIONS The maximum number of sessions is already up and running.
      */
-    static status assign_gc_info(Token& token) {
-        for (auto&& elem : kThreadInfoTable) {
+    static status assign_thread_info(Token& token) {
+        for (auto&& elem : thread_info_table_) {
             if (elem.gain_the_right()) {
                 elem.set_begin_epoch(epoch_management::get_epoch());
                 token = &(elem);
@@ -28,22 +28,21 @@ public:
     }
 
     /**
-     * @brief Get reference of kThreadInfoTable.
-     * @return the reference of kThreadInfoTable.
+     * @brief Get reference of thread_info_table_.
+     * @return the reference of thread_info_table_.
      */
-    static std::array<gc_info, YAKUSHIMA_MAX_PARALLEL_SESSIONS>& get_thread_info_table() {
-        return kThreadInfoTable;
+    static std::array<thread_info, YAKUSHIMA_MAX_PARALLEL_SESSIONS>& get_thread_info_table() {
+        return thread_info_table_;
     }
 
     /**
-     * @brief initialize kThreadInfoTable.
+     * @brief initialize thread_info_table_.
      * @pre global epoch is not yet functional because it assigns 0 to begin_epoch as the initial value.
      * @return void
      */
     static void init() {
-        for (auto itr = kThreadInfoTable.begin(); itr != kThreadInfoTable.end(); ++itr) {// NOLINT
+        for (auto itr = thread_info_table_.begin(); itr != thread_info_table_.end(); ++itr) {// NOLINT
             itr->set_begin_epoch(0);
-            itr->set_gc_container(static_cast<size_t>(std::distance(kThreadInfoTable.begin(), itr)));
             itr->set_running(false);
         }
     }
@@ -58,9 +57,8 @@ public:
      * @return status::WARN_INVALID_TOKEN The @a token of the argument was invalid.
      */
     template<class interior_node, class border_node>
-    static status leave_gc_info(Token token) {
-        auto target = static_cast<gc_info*>(token);
-        target->gc<interior_node, border_node>();
+    static status leave_thread_info(Token token) {
+        auto target = static_cast<thread_info*>(token);
         target->set_begin_epoch(0);
         target->set_running(false);
         return status::OK;
@@ -70,7 +68,7 @@ private:
     /**
      * @brief Session information used by garbage collection.
      */
-    static inline std::array<gc_info, YAKUSHIMA_MAX_PARALLEL_SESSIONS> kThreadInfoTable;// NOLINT
+    static inline std::array<thread_info, YAKUSHIMA_MAX_PARALLEL_SESSIONS> thread_info_table_;// NOLINT
 };
 
 }// namespace yakushima

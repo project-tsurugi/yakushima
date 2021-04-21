@@ -71,7 +71,10 @@ function(register_tests)
       else ()
         target_link_libraries(${test_name} PRIVATE gtest_main)
       endif ()
-      target_link_libraries(${test_name} PRIVATE Threads::Threads)
+      target_link_libraries(${test_name} 
+              PRIVATE Threads::Threads
+              PRIVATE tbb
+              )
 
       set_compile_options(${test_name})
 
