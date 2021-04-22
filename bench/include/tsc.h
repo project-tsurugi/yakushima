@@ -8,10 +8,10 @@ namespace yakushima {
     uint64_t rax{};
     uint64_t rdx{};
 
-    asm volatile("cpuid" ::
-                         : "rax", "rbx", "rcx", "rdx"); // NOLINT
-    asm volatile("rdtsc"
-                 : "=a"(rax), "=d"(rdx)); // NOLINT
+    asm volatile("cpuid" :: // NOLINT
+                 : "rax", "rbx", "rcx", "rdx");
+    asm volatile("rdtsc" // NOLINT
+                 : "=a"(rax), "=d"(rdx));
 
     return rdx << 32U | rax;
 }
@@ -21,8 +21,8 @@ namespace yakushima {
     uint64_t rdx{};
     uint64_t aux{};
 
-    asm volatile("rdtscp"
-                 : "=a"(rax), "=d"(rdx), "=c"(aux)::); // NOLINT
+    asm volatile("rdtscp" // NOLINT
+                 : "=a"(rax), "=d"(rdx), "=c"(aux)::);
 
     return rdx << 32U | rax;
 }
