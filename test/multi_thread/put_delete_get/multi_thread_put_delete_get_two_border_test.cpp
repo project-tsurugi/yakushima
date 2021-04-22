@@ -25,9 +25,9 @@ class mtpdgt : public ::testing::Test {
     }
 };
 
-std::string test_storage_name{"1"};// NOLINT
+std::string test_storage_name{"1"}; // NOLINT
 
-TEST_F(mtpdgt, two_border_null_key) {// NOLINT
+TEST_F(mtpdgt, two_border_null_key) { // NOLINT
     /**
      * multiple put/delete/get same null char key whose length is different each other against multiple border,
      * which is across some layer.
@@ -99,7 +99,7 @@ TEST_F(mtpdgt, two_border_null_key) {// NOLINT
         for (auto&& th : thv) { th.join(); }
         thv.clear();
 
-        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list;// NOLINT
+        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list; // NOLINT
         scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list);
         for (std::size_t j = 0; j < ary_size; ++j) {
             std::string v(std::to_string(j));
@@ -110,7 +110,7 @@ TEST_F(mtpdgt, two_border_null_key) {// NOLINT
     }
 }
 
-TEST_F(mtpdgt, two_border_null_key_shuffle) {// NOLINT
+TEST_F(mtpdgt, two_border_null_key_shuffle) { // NOLINT
     /**
      * test3 variant which is the test using shuffle order data.
      */
@@ -184,7 +184,7 @@ TEST_F(mtpdgt, two_border_null_key_shuffle) {// NOLINT
         for (auto&& th : thv) { th.join(); }
         thv.clear();
 
-        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list;// NOLINT
+        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list; // NOLINT
         scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list);
         for (std::size_t j = 0; j < ary_size; ++j) {
             std::string v(std::to_string(j));
@@ -195,4 +195,4 @@ TEST_F(mtpdgt, two_border_null_key_shuffle) {// NOLINT
     }
 }
 
-}// namespace yakushima::testing
+} // namespace yakushima::testing

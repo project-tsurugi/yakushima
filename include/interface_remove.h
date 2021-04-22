@@ -74,12 +74,12 @@ retry_fetch_lv:
 
     if (lv_ptr == nullptr) {
         node_version64_body final_check = target_border->get_version();
-        if (final_check.get_deleted() || // the border was deleted.
-            final_check.get_vsplit() != v_at_fb.get_vsplit()) { // the border may be incorrect.
-            goto retry_from_root; // NOLINT
-        } // here border is correct.
+        if (final_check.get_deleted() ||                                              // the border was deleted.
+            final_check.get_vsplit() != v_at_fb.get_vsplit()) {                       // the border may be incorrect.
+            goto retry_from_root;                                                     // NOLINT
+        }                                                                             // here border is correct.
         if (final_check.get_vinsert_delete() != v_at_fetch_lv.get_vinsert_delete()) { // the lv may be inserted/deleted.
-            goto retry_fetch_lv; // NOLINT
+            goto retry_fetch_lv;                                                      // NOLINT
         }
 
         return status::OK_NOT_FOUND;
@@ -93,11 +93,11 @@ retry_fetch_lv:
         std::vector<node_version64*> lock_list;
         lock_list.emplace_back(target_border->get_version_ptr());
         node_version64_body final_check = target_border->get_version();
-        if (final_check.get_deleted() || // the border was deleted.
+        if (final_check.get_deleted() ||                        // the border was deleted.
             final_check.get_vsplit() != v_at_fb.get_vsplit()) { // the border may be incorrect.
             node_version64::unlock(lock_list);
-            goto retry_from_root; // NOLINT
-        } // here border is correct.
+            goto retry_from_root;                                                     // NOLINT
+        }                                                                             // here border is correct.
         if (final_check.get_vinsert_delete() != v_at_fetch_lv.get_vinsert_delete()) { // the lv may be inserted/deleted.
             node_version64::unlock(lock_list);
             goto retry_fetch_lv; // NOLINT
@@ -110,12 +110,12 @@ retry_fetch_lv:
 
     root = lv_ptr->get_next_layer();
     node_version64_body final_check = target_border->get_stable_version();
-    if (final_check.get_deleted() || // this border was deleted.
+    if (final_check.get_deleted() ||                        // this border was deleted.
         final_check.get_vsplit() != v_at_fb.get_vsplit()) { // this border is incorrect.
-        goto retry_from_root; // NOLINT
+        goto retry_from_root;                               // NOLINT
     }
     if (final_check.get_vinsert_delete() != v_at_fetch_lv.get_vinsert_delete()) { // fetched lv may be deleted.
-        goto retry_fetch_lv; // NOLINT
+        goto retry_fetch_lv;                                                      // NOLINT
     }
     traverse_key_view.remove_prefix(sizeof(key_slice_type));
     goto retry_find_border; // NOLINT
@@ -130,4 +130,4 @@ retry_fetch_lv:
     return remove(token, ti, key_view);
 }
 
-}
+} // namespace yakushima

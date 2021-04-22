@@ -28,4 +28,4 @@ TEST_F(lvtest, display) { // NOLINT
     //lv.display();
 }
 
-}  // namespace yakushima::testing
+} // namespace yakushima::testing

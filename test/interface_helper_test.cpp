@@ -32,7 +32,7 @@ TEST_F(interface_helper_test, destroy) { // NOLINT
     std::array<std::string, 50> k{}; // NOLINT
     std::string v("value");
     std::size_t ctr{1};
-    for (auto &&itr : k) {
+    for (auto&& itr : k) {
         itr = std::string(1, ctr); // NOLINT
         ++ctr;
         ASSERT_EQ(status::OK, put(test_storage_name, itr, v.data(), v.size()));
@@ -54,4 +54,4 @@ TEST_F(interface_helper_test, init) { // NOLINT
     ASSERT_EQ(leave(token), status::OK);
 }
 
-}  // namespace yakushima::testing
+} // namespace yakushima::testing

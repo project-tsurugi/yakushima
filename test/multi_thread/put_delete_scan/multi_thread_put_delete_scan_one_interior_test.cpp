@@ -25,9 +25,9 @@ class mtpdst : public ::testing::Test {
     }
 };
 
-std::string test_storage_name{"1"};// NOLINT
+std::string test_storage_name{"1"}; // NOLINT
 
-TEST_F(mtpdst, one_interior) {// NOLINT
+TEST_F(mtpdst, one_interior) { // NOLINT
     /**
      * concurrent put/delete/scan in the state between none to split of interior, which is using shuffled data.
      */
@@ -76,7 +76,7 @@ TEST_F(mtpdst, one_interior) {// NOLINT
                             std::abort();
                         }
                     }
-                    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list;// NOLINT
+                    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list; // NOLINT
                     ASSERT_EQ(status::OK, scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list));
                     ASSERT_EQ(tuple_list.size() >= kv.size(), true);
                     std::size_t check_ctr{0};
@@ -123,7 +123,7 @@ TEST_F(mtpdst, one_interior) {// NOLINT
         for (auto&& th : thv) { th.join(); }
         thv.clear();
 
-        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list;// NOLINT
+        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list; // NOLINT
         scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list);
         ASSERT_EQ(tuple_list.size(), ary_size);
         for (std::size_t j = 0; j < ary_size; ++j) {
@@ -136,4 +136,4 @@ TEST_F(mtpdst, one_interior) {// NOLINT
     }
 }
 
-}// namespace yakushima::testing
+} // namespace yakushima::testing

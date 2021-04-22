@@ -103,7 +103,7 @@ namespace yakushima {
  * @return status::OK success.
  * @return status::WARN_MAX_SESSIONS The maximum number of sessions is already up and running.
  */
-[[maybe_unused]] static status enter(Token &token); // NOLINT
+[[maybe_unused]] static status enter(Token& token); // NOLINT
 
 /**
  * @details It declares that the session ends. Values read during the session may be invalidated from now on.
@@ -185,7 +185,7 @@ put(std::string_view storage_name, std::string_view key_view, ValueType* value, 
 template<class ValueType>
 [[maybe_unused]] static status
 scan(std::string_view storage_name, std::string_view l_key, scan_endpoint l_end, std::string_view r_key, scan_endpoint r_end, // NOLINT
-     std::vector<std::tuple<std::string, ValueType*, std::size_t>> &tuple_list,
+     std::vector<std::tuple<std::string, ValueType*, std::size_t>>& tuple_list,
      std::vector<std::pair<node_version64_body, node_version64*>>* node_version_vec, std::size_t max_size);
 
 } // namespace yakushima

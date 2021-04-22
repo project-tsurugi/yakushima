@@ -38,7 +38,7 @@ TEST_F(bnt, typeSize) { // NOLINT
 TEST_F(bnt, function) { // NOLINT
     border_node bn;
     struct S {
-        static void init(border_node &bn) {
+        static void init(border_node& bn) {
             for (std::size_t i = 0; i < base_node::key_slice_length; ++i) {
                 bn.set_key(i, i, static_cast<key_length_type>(i));
             }
@@ -59,4 +59,4 @@ TEST_F(bnt, function) { // NOLINT
         }
     }
 }
-}  // namespace yakushima::testing
+} // namespace yakushima::testing

@@ -39,5 +39,4 @@ TEST_F(bnt, shift_left_border_member) { // NOLINT
         ASSERT_EQ(lv2.get_value_length() + 1, bn.get_lv_at(0)->get_value_length());
     }
 }
-} // namespace yakushima
-
+} // namespace yakushima::testing

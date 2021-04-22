@@ -30,25 +30,18 @@ public:
 
     node_version64_body() = default;
 
-    node_version64_body(const node_version64_body &) = default;
+    node_version64_body(const node_version64_body&) = default;
 
-    node_version64_body(node_version64_body &&) = default;
+    node_version64_body(node_version64_body&&) = default;
 
-    node_version64_body &operator=(const node_version64_body &) = default;
+    node_version64_body& operator=(const node_version64_body&) = default;
 
-    node_version64_body &operator=(node_version64_body &&) = default;
+    node_version64_body& operator=(node_version64_body&&) = default;
 
     ~node_version64_body() = default;
 
-    bool operator==(const node_version64_body &rhs) const {
-        return get_locked() == rhs.get_locked()
-               && get_inserting_deleting() == rhs.get_inserting_deleting()
-               && get_splitting() == rhs.get_splitting()
-               && get_deleted() == rhs.get_deleted()
-               && get_root() == rhs.get_root()
-               && get_border() == rhs.get_border()
-               && get_vinsert_delete() == rhs.get_vinsert_delete()
-               && get_vsplit() == rhs.get_vsplit();
+    bool operator==(const node_version64_body& rhs) const {
+        return get_locked() == rhs.get_locked() && get_inserting_deleting() == rhs.get_inserting_deleting() && get_splitting() == rhs.get_splitting() && get_deleted() == rhs.get_deleted() && get_root() == rhs.get_root() && get_border() == rhs.get_border() && get_vinsert_delete() == rhs.get_vinsert_delete() && get_vsplit() == rhs.get_vsplit();
     }
 
     /**
@@ -66,7 +59,7 @@ public:
         std::cout << "vsplit: " << get_vsplit() << std::endl;
     }
 
-    bool operator!=(const node_version64_body &rhs) const {
+    bool operator!=(const node_version64_body& rhs) const {
         return !(*this == rhs);
     }
 
@@ -160,38 +153,38 @@ private:
      * Therefore, add notion of delete field.
      * @details It is a counter incremented after inserting_deleting/deleting.
      */
-    vinsert_delete_type vinsert_delete: 29;
+    vinsert_delete_type vinsert_delete : 29;
     /**
      * @details It is claimed by update or insert.
      */
-    bool locked: 1;
+    bool locked : 1;
     /**
      * @details It is a dirty bit set during inserting_deleting.
      */
-    bool inserting_deleting: 1;
+    bool inserting_deleting : 1;
     /**
      * @details It is a dirty bit set during splitting.
      * If this flag is set, vsplit is incremented when the lock is unlocked.
      * The function find_lowest_key takes the value from the node when this flag is up. Read. When we raise this flag,
      * we guarantee that no problems will occur with it.
      */
-    bool splitting: 1;
+    bool splitting : 1;
     /**
      * @details It is a counter incremented after splitting.
      */
-    vsplit_type vsplit: 29;
+    vsplit_type vsplit : 29;
     /**
      * @details It is a delete bit set after delete.
      */
-    bool deleted: 1;
+    bool deleted : 1;
     /**
      * @details It tells whether the node is the root of some B+-tree.
      */
-    bool root: 1;
+    bool root : 1;
     /**
      * @details It tells whether the node is interior or border.
      */
-    bool border: 1;
+    bool border : 1;
 };
 
 /**
@@ -389,8 +382,8 @@ public:
         }
     }
 
-    static void unlock(std::vector<node_version64*> &lock_list) {
-        for (auto &&l : lock_list) {
+    static void unlock(std::vector<node_version64*>& lock_list) {
+        for (auto&& l : lock_list) {
             l->unlock();
         }
     }

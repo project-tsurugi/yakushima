@@ -23,7 +23,7 @@ class st : public ::testing::Test {
     }
 };
 
-TEST_F(st, simple_create_storage) {// NOLINT
+TEST_F(st, simple_create_storage) { // NOLINT
     std::string st1{"st1"};
     ASSERT_EQ(status::OK, create_storage(st1));
     std::vector<std::pair<std::string, tree_instance*>> tuple;
@@ -33,7 +33,7 @@ TEST_F(st, simple_create_storage) {// NOLINT
     ASSERT_EQ(find_storage(st1, &ret_ti), status::OK);
 }
 
-TEST_F(st, simple_delete_storage) {// NOLINT
+TEST_F(st, simple_delete_storage) { // NOLINT
     std::string st1{"st1"};
     ASSERT_EQ(status::OK, create_storage(st1));
     ASSERT_EQ(delete_storage(st1), status::OK);
@@ -44,7 +44,7 @@ TEST_F(st, simple_delete_storage) {// NOLINT
     ASSERT_EQ(find_storage(st1, &ret_ti), status::WARN_NOT_EXIST);
 }
 
-TEST_F(st, simple_find_storage) {// NOLINT
+TEST_F(st, simple_find_storage) { // NOLINT
     std::string st1{"st1"};
     std::string st2{"st2"};
     ASSERT_EQ(status::OK, create_storage(st1));
@@ -54,7 +54,7 @@ TEST_F(st, simple_find_storage) {// NOLINT
     ASSERT_EQ(find_storage(st2, &ret_ti), status::WARN_NOT_EXIST);
 }
 
-TEST_F(st, simple_list_storage) {// NOLINT
+TEST_F(st, simple_list_storage) { // NOLINT
     std::string st1{"st1"};
     std::string st2{"st2"};
     std::vector<std::pair<std::string, tree_instance*>> tuple;
@@ -76,7 +76,7 @@ TEST_F(st, simple_list_storage) {// NOLINT
     ASSERT_EQ(tuple.size(), 1);
 }
 
-TEST_F(st, simple_operate_some_storage) {// NOLINT
+TEST_F(st, simple_operate_some_storage) { // NOLINT
     std::string st1{"st1"};
     std::string st2{"st2"};
     std::string k1{"k1"};
@@ -97,7 +97,7 @@ TEST_F(st, simple_operate_some_storage) {// NOLINT
     ASSERT_EQ(put(st2, k5, v.data(), v.size()), status::OK);
     ASSERT_EQ(put(st2, k6, v.data(), v.size()), status::OK);
     std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list;
-    constexpr std::size_t  key_index{0};
+    constexpr std::size_t key_index{0};
     ASSERT_EQ(status::OK, scan(st1, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list));
     ASSERT_EQ(tuple_list.size(), 3);
     ASSERT_EQ(memcmp(std::get<key_index>(tuple_list.at(0)).data(), k1.data(), k1.size()), 0);
@@ -111,4 +111,4 @@ TEST_F(st, simple_operate_some_storage) {// NOLINT
     ASSERT_EQ(status::OK, leave(token));
 }
 
-}// namespace yakushima::testing
+} // namespace yakushima::testing

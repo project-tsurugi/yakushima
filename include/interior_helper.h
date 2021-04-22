@@ -57,8 +57,7 @@ create_interior_parent_of_interior(interior_node* const left, interior_node* con
  */
 template<class interior_node, class border_node>
 static void
-interior_split(tree_instance* ti, interior_node* const interior, base_node* const child_node, const std::pair<key_slice_type,
-        key_length_type> inserting_key) {
+interior_split(tree_instance* ti, interior_node* const interior, base_node* const child_node, const std::pair<key_slice_type, key_length_type> inserting_key) {
     interior->set_version_splitting(true);
     interior_node* new_interior = new interior_node(); // NOLINT
     new_interior->init_interior();

@@ -8,8 +8,8 @@
 
 #include "border_node.h"
 #include "clock.h"
-#include "tree_instance.h"
 #include "kvs.h"
+#include "tree_instance.h"
 
 using namespace yakushima;
 
@@ -67,4 +67,4 @@ TEST_F(ti, yakushima_in_yakushima) { // NOLINT
     ASSERT_EQ(ret.first->load_root_ptr(), tin.load_root_ptr());
     fin();
 }
-}  // namespace yakushima::testing
+} // namespace yakushima::testing

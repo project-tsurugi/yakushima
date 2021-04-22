@@ -22,4 +22,4 @@ TEST_F(ct, checkClockSpan) { // NOLINT
     // ASSERT_EQ(check_clock_span(stop, start, 15), false);
 }
 
-}  // namespace yakushima::testing
+} // namespace yakushima::testing

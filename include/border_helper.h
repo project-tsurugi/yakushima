@@ -187,7 +187,7 @@ border_split(tree_instance* ti, border_node* const border, std::string_view key_
      */
     std::sort(shift_pos.begin(), shift_pos.end());
     std::size_t shifted_ctr(0);
-    for (std::size_t &shift_po : shift_pos) {
+    for (std::size_t& shift_po : shift_pos) {
         border->shift_left_base_member(shift_po + 1 - shifted_ctr, 1);
         border->shift_left_border_member(shift_po + 1 - shifted_ctr, 1);
         ++shifted_ctr;
@@ -222,9 +222,10 @@ border_split(tree_instance* ti, border_node* const border, std::string_view key_
     }
     int ret_memcmp{memcmp(&key_slice, &new_border->get_key_slice_ref().at(0),
                           (key_length > sizeof(key_slice_type) &&
-                           new_border->get_key_length_at(0) > sizeof(key_slice_type)) ?
-                          sizeof(key_slice_type) : key_length < new_border->get_key_length_at(0) ?
-                                                   key_length : new_border->get_key_length_at(0))};
+                           new_border->get_key_length_at(0) > sizeof(key_slice_type))
+                                  ? sizeof(key_slice_type)
+                          : key_length < new_border->get_key_length_at(0) ? key_length
+                                                                          : new_border->get_key_length_at(0))};
     if (key_length == 0 || ret_memcmp < 0 || (ret_memcmp == 0 && key_length < new_border->get_key_length_at(0))) {
         /**
          * insert to lower border node.

@@ -24,9 +24,9 @@ class mtpt : public ::testing::Test {
     }
 };
 
-std::string test_storage_name{"1"};// NOLINT
+std::string test_storage_name{"1"}; // NOLINT
 
-TEST_F(mtpt, multi_layer_two_border) {// NOLINT
+TEST_F(mtpt, multi_layer_two_border) { // NOLINT
 
     constexpr std::size_t ary_size = 15;
     std::size_t th_nm{};
@@ -71,7 +71,7 @@ TEST_F(mtpt, multi_layer_two_border) {// NOLINT
         for (auto&& th : thv) { th.join(); }
         thv.clear();
 
-        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{};// NOLINT
+        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{}; // NOLINT
         scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list);
         for (std::size_t j = 0; j < ary_size; ++j) {
             std::string v(std::to_string(j));
@@ -83,7 +83,7 @@ TEST_F(mtpt, multi_layer_two_border) {// NOLINT
     }
 }
 
-TEST_F(mtpt, multi_layer_two_border_shuffle) {// NOLINT
+TEST_F(mtpt, multi_layer_two_border_shuffle) { // NOLINT
 
     constexpr std::size_t ary_size = 15;
     std::size_t th_nm{};
@@ -134,7 +134,7 @@ TEST_F(mtpt, multi_layer_two_border_shuffle) {// NOLINT
         for (auto&& th : thv) { th.join(); }
         thv.clear();
 
-        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{};// NOLINT
+        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{}; // NOLINT
         scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list);
         for (std::size_t j = 0; j < ary_size; ++j) {
             std::string v(std::to_string(j));
@@ -146,4 +146,4 @@ TEST_F(mtpt, multi_layer_two_border_shuffle) {// NOLINT
     }
 }
 
-}// namespace yakushima::testing
+} // namespace yakushima::testing

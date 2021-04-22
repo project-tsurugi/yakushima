@@ -201,8 +201,7 @@ void put_worker(const size_t thid, char& ready, const bool& start, const bool& q
     performance_tools::get_watch().set_point(0, thid);
 #endif
     for (std::uint64_t i = left_edge; i < right_edge; ++i) {
-        void* p = (&i);
-        std::string key{static_cast<char*>(p), sizeof(std::uint64_t)};
+        std::string key{reinterpret_cast<char*>(&i), sizeof(std::uint64_t)}; // NOLINT
         try {
             put(bench_storage, std::string_view(key), value.data(), value.size());
         } catch (std::bad_alloc&) {

@@ -25,9 +25,9 @@ class mtpdgt : public ::testing::Test {
     }
 };
 
-std::string test_storage_name{"1"};// NOLINT
+std::string test_storage_name{"1"}; // NOLINT
 
-TEST_F(mtpdgt, one_interior_two_border) {// NOLINT
+TEST_F(mtpdgt, one_interior_two_border) { // NOLINT
     /**
      * The number of puts that can be split only once and the deletes are repeated in multiple threads.
      */
@@ -112,7 +112,7 @@ TEST_F(mtpdgt, one_interior_two_border) {// NOLINT
     }
 }
 
-TEST_F(mtpdgt, one_interior_two_border_shuffle) {// NOLINT
+TEST_F(mtpdgt, one_interior_two_border_shuffle) { // NOLINT
     /**
      * The number of puts that can be split only once and the deletes are repeated in multiple threads.
      * Use shuffled data.
@@ -201,4 +201,4 @@ TEST_F(mtpdgt, one_interior_two_border_shuffle) {// NOLINT
     }
 }
 
-}// namespace yakushima::testing
+} // namespace yakushima::testing

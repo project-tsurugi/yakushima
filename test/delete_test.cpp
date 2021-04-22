@@ -261,32 +261,25 @@ TEST_F(dt, two_interi) { // NOLINT
              */
             auto* n = ti->load_root_ptr();
             ASSERT_EQ(typeid(*n), typeid(interior_node)); // NOLINT
-            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(
-                    0))->get_permutation_cnk(), 8);
-            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(
-                    1))->get_permutation_cnk(), 8);
+            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(0))->get_permutation_cnk(), 8);
+            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(1))->get_permutation_cnk(), 8);
         } else if (i == base_node::key_slice_length + (base_node::key_slice_length / 2)) {
             /**
              * root is interior, root has 2 children, child[0] of root has 8 keys and child[1] of root has 15 keys.
              */
             ASSERT_EQ(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_n_keys(), 1);
-            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(
-                    0))->get_permutation_cnk(), 8);
-            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(
-                    1))->get_permutation_cnk(), 15);
+            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(0))->get_permutation_cnk(), 8);
+            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(1))->get_permutation_cnk(), 15);
         } else if (i == base_node::key_slice_length + (base_node::key_slice_length / 2) + 1) {
             /**
              * root is interior, root has 3 children, child[0-2] of root has 8 keys.
              */
-            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(
-                    0))->get_permutation_cnk(), 8);
-            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(
-                    1))->get_permutation_cnk(), 8);
-            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(
-                    2))->get_permutation_cnk(), 8);
+            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(0))->get_permutation_cnk(), 8);
+            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(1))->get_permutation_cnk(), 8);
+            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(2))->get_permutation_cnk(), 8);
         } else if ((i > base_node::key_slice_length + (base_node::key_slice_length / 2) + 1) &&
                    (i < base_node::key_slice_length +
-                        (base_node::key_slice_length / 2 + 1) * (base_node::key_slice_length - 1)) &&
+                                (base_node::key_slice_length / 2 + 1) * (base_node::key_slice_length - 1)) &&
                    (i - base_node::key_slice_length) % ((base_node::key_slice_length / 2 + 1)) == 0) {
             /**
              * When it puts (base_node::key_slice_length / 2) keys, the root interior node has (i-base_node::key_slice
@@ -296,7 +289,7 @@ TEST_F(dt, two_interi) { // NOLINT
                       (i - base_node::key_slice_length) / (base_node::key_slice_length / 2 + 1) + 1);
 
         } else if (i == base_node::key_slice_length +
-                        ((base_node::key_slice_length / 2 + 1)) * (base_node::key_slice_length - 1)) {
+                                ((base_node::key_slice_length / 2 + 1)) * (base_node::key_slice_length - 1)) {
             ASSERT_EQ(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_n_keys(),
                       base_node::key_slice_length);
         }
@@ -329,14 +322,12 @@ TEST_F(dt, two_interi) { // NOLINT
     constexpr std::size_t n_in_bn = base_node::key_slice_length / 2 + 1;
 
     ASSERT_EQ(n_in_bn - 1,
-              dynamic_cast<interior_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(
-                      0))->get_n_keys());
+              dynamic_cast<interior_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(0))->get_n_keys());
     for (std::size_t i = 0; i < n_in_bn; ++i) {
         ASSERT_EQ(status::OK, remove(token, test_storage_name, k.at(i)));
     }
     ASSERT_EQ(n_in_bn - 2,
-              dynamic_cast<interior_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(
-                      0))->get_n_keys());
+              dynamic_cast<interior_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(0))->get_n_keys());
     constexpr std::size_t to_sb = (n_in_bn - 2) * n_in_bn;
     for (std::size_t i = n_in_bn; i < n_in_bn + to_sb; ++i) {
         ASSERT_EQ(status::OK, remove(token, test_storage_name, k.at(i)));
@@ -380,4 +371,4 @@ TEST_F(dt, many) { // NOLINT
     }
 }
 
-}  // namespace yakushima::testing
+} // namespace yakushima::testing

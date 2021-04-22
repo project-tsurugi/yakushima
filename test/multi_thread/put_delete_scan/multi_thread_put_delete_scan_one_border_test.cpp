@@ -24,9 +24,9 @@ class mtpdst : public ::testing::Test {
     }
 };
 
-std::string test_storage_name{"1"};// NOLINT
+std::string test_storage_name{"1"}; // NOLINT
 
-TEST_F(mtpdst, one_border) {// NOLINT
+TEST_F(mtpdst, one_border) { // NOLINT
     /**
      * concurrent put/delete/scan same null char key slices and different key length to single border
      * by multi threads.
@@ -68,7 +68,7 @@ TEST_F(mtpdst, one_border) {// NOLINT
                             std::abort();
                         }
                     }
-                    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list;// NOLINT
+                    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list; // NOLINT
                     std::string_view left{};
                     std::string_view right{};
                     if (std::get<0>(kv.front()).size() > std::get<0>(kv.back()).size()) {
@@ -125,7 +125,7 @@ TEST_F(mtpdst, one_border) {// NOLINT
         for (auto&& th : thv) { th.join(); }
         thv.clear();
 
-        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list;// NOLINT
+        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list; // NOLINT
         scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list);
         for (std::size_t j = 0; j < ary_size; ++j) {
             std::string v(std::to_string(j));
@@ -136,7 +136,7 @@ TEST_F(mtpdst, one_border) {// NOLINT
     }
 }
 
-TEST_F(mtpdst, one_border_shuffle) {// NOLINT
+TEST_F(mtpdst, one_border_shuffle) { // NOLINT
     /**
      * test1 variant which is the test using shuffle order data.
      */
@@ -180,7 +180,7 @@ TEST_F(mtpdst, one_border_shuffle) {// NOLINT
                             std::abort();
                         }
                     }
-                    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list;// NOLINT
+                    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list; // NOLINT
                     std::string_view left{};
                     std::string_view right{};
                     if (std::get<0>(kv.front()).size() > std::get<0>(kv.back()).size()) {
@@ -237,7 +237,7 @@ TEST_F(mtpdst, one_border_shuffle) {// NOLINT
         for (auto&& th : thv) { th.join(); }
         thv.clear();
 
-        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list;// NOLINT
+        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list; // NOLINT
         scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list);
         for (std::size_t j = 0; j < ary_size; ++j) {
             std::string v(std::to_string(j));
@@ -248,4 +248,4 @@ TEST_F(mtpdst, one_border_shuffle) {// NOLINT
     }
 }
 
-}// namespace yakushima::testing
+} // namespace yakushima::testing

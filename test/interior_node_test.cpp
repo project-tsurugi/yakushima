@@ -25,4 +25,4 @@ TEST_F(intest, display) { // NOLINT
     ASSERT_EQ(true, true);
     //in.display();
 }
-}  // namespace yakushima::testing
+} // namespace yakushima::testing

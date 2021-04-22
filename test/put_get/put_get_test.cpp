@@ -15,7 +15,7 @@ using namespace yakushima;
 
 namespace yakushima::testing {
 
-std::string test_storage_name{"1"};// NOLINT
+std::string test_storage_name{"1"}; // NOLINT
 
 class kt : public ::testing::Test {
 protected:
@@ -29,14 +29,14 @@ protected:
     }
 };
 
-TEST_F(kt, test3) {// NOLINT
+TEST_F(kt, test3) { // NOLINT
     tree_instance* ti{};
     find_storage(test_storage_name, &ti);
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     constexpr std::size_t ary_size = 8;
-    std::array<std::string, ary_size> k;// NOLINT
-    std::array<std::string, ary_size> v;// NOLINT
+    std::array<std::string, ary_size> k; // NOLINT
+    std::array<std::string, ary_size> v; // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
         k.at(i).assign(i, '\0');
         v.at(i) = std::to_string(i);
@@ -62,13 +62,13 @@ TEST_F(kt, test3) {// NOLINT
     ASSERT_EQ(leave(token), status::OK);
 }
 
-TEST_F(kt, test4) {// NOLINT
+TEST_F(kt, test4) { // NOLINT
     for (std::size_t h = 0; h < 1; ++h) {
         create_storage(test_storage_name);
         Token token{};
         ASSERT_EQ(enter(token), status::OK);
         constexpr std::size_t ary_size = 8;
-        std::vector<std::pair<std::string, std::string>> kv;// NOLINT
+        std::vector<std::pair<std::string, std::string>> kv; // NOLINT
         for (std::size_t i = 0; i < ary_size; ++i) {
             kv.emplace_back(std::make_pair(std::string(i, '\0'), std::to_string(i)));
         }
@@ -88,7 +88,7 @@ TEST_F(kt, test4) {// NOLINT
             ASSERT_EQ(memcmp(std::get<value_index>(tuple), std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()), 0);
         }
 
-        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list;// NOLINT
+        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list; // NOLINT
         for (std::size_t i = 1; i < ary_size; ++i) {
             std::string k(i, '\0');
             ASSERT_EQ(status::OK,
@@ -116,14 +116,14 @@ TEST_F(kt, test4) {// NOLINT
     }
 }
 
-TEST_F(kt, test5) {// NOLINT
+TEST_F(kt, test5) { // NOLINT
     tree_instance* ti{};
     find_storage(test_storage_name, &ti);
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     constexpr std::size_t ary_size = 15;
-    std::array<std::string, ary_size> k;// NOLINT
-    std::array<std::string, ary_size> v;// NOLINT
+    std::array<std::string, ary_size> k; // NOLINT
+    std::array<std::string, ary_size> v; // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
         k.at(i).assign(i, '\0');
         v.at(i) = std::to_string(i);
@@ -155,18 +155,18 @@ TEST_F(kt, test5) {// NOLINT
      */
     auto* br = dynamic_cast<border_node*>(ti->load_root_ptr());
     auto* n = br->get_lv_at(9)->get_next_layer();
-    ASSERT_EQ(typeid(*n), typeid(border_node));// NOLINT
+    ASSERT_EQ(typeid(*n), typeid(border_node)); // NOLINT
     ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
     ASSERT_EQ(leave(token), status::OK);
 }
 
-TEST_F(kt, test6) {// NOLINT
+TEST_F(kt, test6) { // NOLINT
     for (std::size_t h = 0; h < 1; ++h) {
         create_storage(test_storage_name);
         Token token{};
         ASSERT_EQ(enter(token), status::OK);
         constexpr std::size_t ary_size = 15;
-        std::vector<std::pair<std::string, std::string>> kv;// NOLINT
+        std::vector<std::pair<std::string, std::string>> kv; // NOLINT
         for (std::size_t i = 0; i < ary_size; ++i) {
             kv.emplace_back(std::make_pair(std::string(i, 'a'), std::to_string(i)));
         }
@@ -187,7 +187,7 @@ TEST_F(kt, test6) {// NOLINT
             ASSERT_EQ(memcmp(std::get<value_index>(tuple), std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()), 0);
         }
 
-        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list;// NOLINT
+        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list; // NOLINT
         for (std::size_t i = 1; i < ary_size; ++i) {
             std::string k(i, 'a');
             ASSERT_EQ(status::OK, scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list));
@@ -203,7 +203,7 @@ TEST_F(kt, test6) {// NOLINT
     }
 }
 
-TEST_F(kt, test7) {// NOLINT
+TEST_F(kt, test7) { // NOLINT
     tree_instance* ti{};
     find_storage(test_storage_name, &ti);
     Token token{};
@@ -220,7 +220,7 @@ TEST_F(kt, test7) {// NOLINT
     }
     auto* in = dynamic_cast<interior_node*>(ti->load_root_ptr());
     auto* n = ti->load_root_ptr();
-    ASSERT_EQ(typeid(*n), typeid(interior_node));// NOLINT
+    ASSERT_EQ(typeid(*n), typeid(interior_node)); // NOLINT
     auto* bn = dynamic_cast<border_node*>(in->get_child_at(0));
     ASSERT_EQ(bn->get_permutation_cnk(), 8);
     bn = dynamic_cast<border_node*>(in->get_child_at(1));
@@ -230,7 +230,7 @@ TEST_F(kt, test7) {// NOLINT
     ASSERT_EQ(leave(token), status::OK);
 }
 
-TEST_F(kt, test8) {// NOLINT
+TEST_F(kt, test8) { // NOLINT
     for (std::size_t h = 0; h < 1; ++h) {
         create_storage(test_storage_name);
         tree_instance* ti{};
@@ -238,7 +238,7 @@ TEST_F(kt, test8) {// NOLINT
         Token token{};
         ASSERT_EQ(enter(token), status::OK);
         constexpr std::size_t ary_size = base_node::key_slice_length + 1;
-        std::vector<std::pair<std::string, std::string>> kv;// NOLINT
+        std::vector<std::pair<std::string, std::string>> kv; // NOLINT
         for (std::size_t i = 0; i < ary_size; ++i) {
             kv.emplace_back(std::make_pair(std::string(1, 'a' + i), std::string(1, 'a' + i)));
         }
@@ -251,14 +251,14 @@ TEST_F(kt, test8) {// NOLINT
                       put(test_storage_name, std::get<0>(kv[i]), std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()));
         }
         auto* n = ti->load_root_ptr();
-        ASSERT_EQ(typeid(*n), typeid(interior_node));// NOLINT
+        ASSERT_EQ(typeid(*n), typeid(interior_node)); // NOLINT
         ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
         ASSERT_EQ(leave(token), status::OK);
         destroy();
     }
 }
 
-TEST_F(kt, test9) {// NOLINT
+TEST_F(kt, test9) { // NOLINT
     tree_instance* ti{};
     find_storage(test_storage_name, &ti);
     Token token{};
@@ -271,8 +271,8 @@ TEST_F(kt, test9) {// NOLINT
     constexpr std::size_t ary_size =
             base_node::key_slice_length + 1 + (base_node::key_slice_length / 2 + 1) * (interior_node::child_length - 1);
 
-    std::array<std::string, ary_size> k;// NOLINT
-    std::array<std::string, ary_size> v;// NOLINT
+    std::array<std::string, ary_size> k; // NOLINT
+    std::array<std::string, ary_size> v; // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
         k.at(i).assign(1, i);
         v.at(i).assign(1, i);
@@ -284,13 +284,13 @@ TEST_F(kt, test9) {// NOLINT
              * root is full-border.
              */
             auto* n = ti->load_root_ptr();
-            ASSERT_EQ(typeid(*n), typeid(border_node));// NOLINT
+            ASSERT_EQ(typeid(*n), typeid(border_node)); // NOLINT
         } else if (i == base_node::key_slice_length) {
             /**
              * split and insert.
              */
             auto* n = ti->load_root_ptr();
-            ASSERT_EQ(typeid(*n), typeid(interior_node));// NOLINT
+            ASSERT_EQ(typeid(*n), typeid(interior_node)); // NOLINT
             ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(0))->get_permutation_cnk(), 8);
             ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(1))->get_permutation_cnk(), 8);
         } else if (i == base_node::key_slice_length + (base_node::key_slice_length / 2)) {
@@ -348,7 +348,7 @@ TEST_F(kt, test9) {// NOLINT
     ASSERT_EQ(leave(token), status::OK);
 }
 
-TEST_F(kt, test10) {// NOLINT
+TEST_F(kt, test10) { // NOLINT
     for (std::size_t h = 0; h < 1; ++h) {
         create_storage(test_storage_name);
         tree_instance* ti{};
@@ -357,7 +357,7 @@ TEST_F(kt, test10) {// NOLINT
         ASSERT_EQ(enter(token), status::OK);
         std::size_t ary_size = base_node::key_slice_length * interior_node::child_length + 1;
 
-        std::vector<std::pair<std::string, std::string>> kv;// NOLINT
+        std::vector<std::pair<std::string, std::string>> kv; // NOLINT
         kv.reserve(ary_size);
         for (std::size_t i = 0; i < ary_size; ++i) {
             kv.emplace_back(std::make_pair(std::string(1, i), std::string(1, i)));
@@ -370,7 +370,7 @@ TEST_F(kt, test10) {// NOLINT
         for (std::size_t i = 0; i < ary_size; ++i) {
             ASSERT_EQ(status::OK,
                       put(test_storage_name, std::get<0>(kv[i]), std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()));
-            if (i > base_node::key_slice_length / 2 * interior_node::child_length) {// about minimum
+            if (i > base_node::key_slice_length / 2 * interior_node::child_length) { // about minimum
                 base_node* bn = ti->load_root_ptr();
                 if (!bn->get_version_border()) {
                     auto* in = dynamic_cast<interior_node*>(bn);
@@ -387,7 +387,7 @@ TEST_F(kt, test10) {// NOLINT
 
         std::sort(kv.begin(), kv.end());
         for (std::size_t i = 0; i <= putctr; ++i) {
-            std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list;// NOLINT
+            std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list; // NOLINT
             scan<char>(test_storage_name, "", scan_endpoint::INF, std::get<0>(kv[i]), scan_endpoint::INCLUSIVE, tuple_list);
             if (tuple_list.size() != i + 1) {
                 ASSERT_EQ(tuple_list.size(), i + 1);
@@ -402,7 +402,7 @@ TEST_F(kt, test10) {// NOLINT
     }
 }
 
-TEST_F(kt, test11) {// NOLINT
+TEST_F(kt, test11) { // NOLINT
     /**
      * test about argument @a created_ptr of put function.
      */
@@ -415,13 +415,13 @@ TEST_F(kt, test11) {// NOLINT
     ASSERT_EQ(memcmp(created_ptr, v.data(), v.size()), 0);
 }
 
-TEST_F(kt, test12) {// NOLINT
+TEST_F(kt, test12) { // NOLINT
     Token token{};
-    std::string k("a");   // NOLINT
-    std::string k2("aa"); // NOLINT
-    std::string k3("aac");// NOLINT
-    std::string k4("b");  // NOLINT
-    std::string v("v");   // NOLINT
+    std::string k("a");    // NOLINT
+    std::string k2("aa");  // NOLINT
+    std::string k3("aac"); // NOLINT
+    std::string k4("b");   // NOLINT
+    std::string v("v");    // NOLINT
     ASSERT_EQ(status::OK, enter(token));
     ASSERT_EQ(status::OK, put(test_storage_name, k, v.data(), v.size()));
     ASSERT_EQ(status::OK, put(test_storage_name, k2, v.data(), v.size()));
@@ -431,4 +431,4 @@ TEST_F(kt, test12) {// NOLINT
     scan<char>(test_storage_name, k, scan_endpoint::EXCLUSIVE, k4, scan_endpoint::EXCLUSIVE, tuple_list);
     ASSERT_EQ(tuple_list.size(), 2);
 }
-}// namespace yakushima::testing
+} // namespace yakushima::testing

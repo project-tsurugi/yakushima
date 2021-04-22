@@ -46,7 +46,6 @@ public:
     }
 
 private:
-
     /**
      * @details This is updated by worker and is read by leader. If the value is 0, it is invalid.
      */

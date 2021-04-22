@@ -12,15 +12,15 @@ namespace yakushima {
  */
 template<typename T>
 static T loadRelaxed(T& ptr) {
-    return __atomic_load_n(&ptr, __ATOMIC_RELAXED);// NOLINT
+    return __atomic_load_n(&ptr, __ATOMIC_RELAXED); // NOLINT
 }
 
 /**
  * @brief atomic acquire load.
  */
 template<typename T>
-static T loadAcquireN(T& ref) {                    // NOLINT
-    return __atomic_load_n(&ref, __ATOMIC_ACQUIRE);// NOLINT
+static T loadAcquireN(T& ref) {                     // NOLINT
+    return __atomic_load_n(&ref, __ATOMIC_ACQUIRE); // NOLINT
 }
 
 template<class type>
@@ -33,7 +33,7 @@ void loadAcquire(type* ptr, type* ret) {
  */
 template<typename T, typename T2>
 static void storeRelaxed(T& ptr, T2 val) {
-    __atomic_store_n(&ptr, static_cast<T>(val), __ATOMIC_RELAXED);// NOLINT
+    __atomic_store_n(&ptr, static_cast<T>(val), __ATOMIC_RELAXED); // NOLINT
 }
 
 /**
@@ -41,7 +41,7 @@ static void storeRelaxed(T& ptr, T2 val) {
  */
 template<typename T, typename T2>
 static void storeReleaseN(T& ptr, T2 val) {
-    __atomic_store_n(&ptr, static_cast<T>(val), __ATOMIC_RELEASE);// NOLINT
+    __atomic_store_n(&ptr, static_cast<T>(val), __ATOMIC_RELEASE); // NOLINT
 }
 
 template<class type>
@@ -59,7 +59,7 @@ bool weakCompareExchange(type* ptr, type* expected, type* desired) {
    * (type *ptr, type *expected, type desired, bool weak, int success_memorder, int failure_memorder)
    */
     return __atomic_compare_exchange_n(ptr, expected, *desired, true, // NOLINT
-                                     __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE);
+                                       __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE);
 }
 
-}// namespace yakushima
+} // namespace yakushima

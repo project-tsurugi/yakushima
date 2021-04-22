@@ -15,14 +15,14 @@ namespace yakushima {
 // forward declaration
 template<class ValueType>
 static status scan_border(border_node** target, std::string_view l_key, scan_endpoint l_end, std::string_view r_key,
-                          scan_endpoint r_end, std::vector<std::tuple<std::string, ValueType*, std::size_t>> &tuple_list,
-                          node_version64_body &v_at_fb,
+                          scan_endpoint r_end, std::vector<std::tuple<std::string, ValueType*, std::size_t>>& tuple_list,
+                          node_version64_body& v_at_fb,
                           std::vector<std::tuple<std::string, node_version64_body, node_version64*>>* node_version_vec,
-                          const std::string &key_prefix, std::size_t max_size);
+                          const std::string& key_prefix, std::size_t max_size);
 
 template<class ValueType>
-status scan_check_retry(border_node* const bn, node_version64_body &v_at_fb,
-                        std::vector<std::tuple<std::string, ValueType*, std::size_t>> &tuple_list,
+status scan_check_retry(border_node* const bn, node_version64_body& v_at_fb,
+                        std::vector<std::tuple<std::string, ValueType*, std::size_t>>& tuple_list,
                         const std::size_t tuple_pushed_num,
                         std::vector<std::pair<node_version64_body, node_version64*>>* const node_version_vec) {
     node_version64_body check = bn->get_stable_version();
@@ -46,9 +46,9 @@ status scan_check_retry(border_node* const bn, node_version64_body &v_at_fb,
 template<class ValueType>
 static status
 scan(base_node* const root, const std::string_view l_key, const scan_endpoint l_end, const std::string_view r_key,
-     const scan_endpoint r_end, std::vector<std::tuple<std::string, ValueType*, std::size_t>> &tuple_list,
+     const scan_endpoint r_end, std::vector<std::tuple<std::string, ValueType*, std::size_t>>& tuple_list,
      std::vector<std::pair<node_version64_body, node_version64*>>* const node_version_vec,
-     const std::string &key_prefix, const std::size_t max_size) {
+     const std::string& key_prefix, const std::size_t max_size) {
 retry:
     if (root->get_version_deleted() || !root->get_version_root()) {
         return status::OK_RETRY_FROM_ROOT;
@@ -102,10 +102,10 @@ retry:
 template<class ValueType>
 static status scan_border(border_node** const target, const std::string_view l_key, const scan_endpoint l_end,
                           const std::string_view r_key, const scan_endpoint r_end,
-                          std::vector<std::tuple<std::string, ValueType*, std::size_t>> &tuple_list,
-                          node_version64_body &v_at_fb,
+                          std::vector<std::tuple<std::string, ValueType*, std::size_t>>& tuple_list,
+                          node_version64_body& v_at_fb,
                           std::vector<std::pair<node_version64_body, node_version64*>>* const node_version_vec,
-                          const std::string &key_prefix, const std::size_t max_size) {
+                          const std::string& key_prefix, const std::size_t max_size) {
 retry:
     std::size_t tuple_pushed_num{0};
     border_node* bn = *target;
@@ -188,7 +188,7 @@ retry:
         } else {
             auto in_range = [&full_key, &tuple_list, &vp, &vsize, &node_version_vec, &v_at_fb, &node_version_ptr, &tuple_pushed_num, max_size]() {
                 tuple_list.emplace_back(std::make_tuple(full_key, reinterpret_cast<ValueType*>(vp), vsize)); // NOLINT
-                if (node_version_vec != nullptr) { // todo add && std::get<1>(node_version_vec.back()) != node_version_ptr
+                if (node_version_vec != nullptr) {                                                           // todo add && std::get<1>(node_version_vec.back()) != node_version_ptr
                     node_version_vec->emplace_back(std::make_pair(v_at_fb, node_version_ptr));
                 }
                 ++tuple_pushed_num;

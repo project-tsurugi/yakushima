@@ -33,10 +33,10 @@ TEST_F(garbage_collection, gc) { // NOLINT
     std::array<Token, th_num> token{};
     constexpr std::size_t array_size = 40;
     struct S {
-        static void work(std::array<std::tuple<std::string, std::string>, array_size> &kv, Token &token) {
+        static void work(std::array<std::tuple<std::string, std::string>, array_size>& kv, Token& token) {
             for (std::size_t j = 0; j < 10; ++j) {
                 enter(token);
-                for (auto &i : kv) {
+                for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
                     status ret = put(test_storage_name, k, v.data(), v.size());
@@ -45,7 +45,7 @@ TEST_F(garbage_collection, gc) { // NOLINT
                         std::abort();
                     }
                 }
-                for (auto &i : kv) {
+                for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
                     status ret = remove(token, test_storage_name, k);
@@ -76,4 +76,4 @@ TEST_F(garbage_collection, gc) { // NOLINT
     }
 }
 
-}  // namespace yakushima::testing
+} // namespace yakushima::testing

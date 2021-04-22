@@ -17,13 +17,13 @@ class link_or_value {
 public:
     link_or_value() = default;
 
-    link_or_value(const link_or_value &) = default;
+    link_or_value(const link_or_value&) = default;
 
-    link_or_value(link_or_value &&) = default;
+    link_or_value(link_or_value&&) = default;
 
-    link_or_value &operator=(const link_or_value &) = default;
+    link_or_value& operator=(const link_or_value&) = default;
 
-    link_or_value &operator=(link_or_value &&) = default;
+    link_or_value& operator=(link_or_value&&) = default;
 
     ~link_or_value() = default;
 
@@ -141,7 +141,7 @@ public:
             }
             memcpy(get_v_or_vp_(), vptr, arg_value_size);
             set_need_delete_value(true);
-        } catch (std::bad_alloc &e) {
+        } catch (std::bad_alloc& e) {
             std::cout << e.what() << std::endl;
             std::cerr << __FILE__ << ": " << __LINE__ << std::endl;
             std::abort();

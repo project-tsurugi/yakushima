@@ -39,8 +39,8 @@ TEST_F(st, scan_against_single_put_null_key_to_one_border) { // NOLINT
     auto verify_exist = [&tup_lis, &nv, &v]() {
         if (tup_lis.size() != 1) return false;
         if (tup_lis.size() != nv.size()) return false;
-        if (std::get<2>(tup_lis.at(0)) != v.size())return false;
-        if (memcmp(std::get<1>(tup_lis.at(0)), v.data(), v.size()) != 0)return false;
+        if (std::get<2>(tup_lis.at(0)) != v.size()) return false;
+        if (memcmp(std::get<1>(tup_lis.at(0)), v.data(), v.size()) != 0) return false;
         return true;
     };
     ASSERT_EQ(status::OK, scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tup_lis, &nv));
@@ -172,5 +172,4 @@ TEST_F(st, scan_multiple_same_null_char_key_1) { // NOLINT
     ASSERT_EQ(leave(token), status::OK);
 }
 
-} // namespace yakushima
-
+} // namespace yakushima::testing

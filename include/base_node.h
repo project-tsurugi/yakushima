@@ -25,7 +25,7 @@ public:
 
         key_tuple(key_slice_type slice, key_length_type length) : key_slice_(slice), key_length_(length) {}
 
-        bool operator<(const key_tuple &r) const {
+        bool operator<(const key_tuple& r) const {
             if (key_length_ == 0) {
                 return true;
             }
@@ -42,7 +42,7 @@ public:
             return false;
         }
 
-        bool operator==(const key_tuple &r) const {
+        bool operator==(const key_tuple& r) const {
             return key_slice_ == r.key_slice_ && key_length_ == r.key_length_;
         }
 
@@ -95,7 +95,7 @@ public:
         }
     }
 
-    [[nodiscard]] const std::array<key_length_type, key_slice_length> &get_key_length_ref() const {
+    [[nodiscard]] const std::array<key_length_type, key_slice_length>& get_key_length_ref() const {
         return key_length_;
     }
 
@@ -103,7 +103,7 @@ public:
         return key_length_.at(index);
     }
 
-    [[nodiscard]] const std::array<key_slice_type, key_slice_length> &get_key_slice_ref() const {
+    [[nodiscard]] const std::array<key_slice_type, key_slice_length>& get_key_slice_ref() const {
         return key_slice_;
     }
 

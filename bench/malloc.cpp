@@ -38,14 +38,15 @@
 
 using namespace yakushima;
 
-DEFINE_uint64(alloc_size, 4, "allocation size."); // NOLINT
+DEFINE_uint64(alloc_size, 4, "allocation size.");                // NOLINT
 DEFINE_uint64(duration, 3, "Duration of benchmark in seconds."); // NOLINT
-DEFINE_uint64(thread, 1, "# worker threads."); // NOLINT
+DEFINE_uint64(thread, 1, "# worker threads.");                   // NOLINT
 
 static void check_flags() {
     std::cout << "parameter settings\n"
               << "duration :\t\t" << FLAGS_duration << "\n"
-              << "thread :\t\t" << FLAGS_thread << "\n" << std::endl;
+              << "thread :\t\t" << FLAGS_thread << "\n"
+              << std::endl;
 
     if (FLAGS_thread == 0) {
         std::cerr << "Number of threads must be larger than 0." << std::endl;
@@ -58,20 +59,20 @@ static void check_flags() {
     }
 }
 
-static bool isReady(const std::vector<char> &readys) {
-    for (const char &b : readys) {
+static bool isReady(const std::vector<char>& readys) {
+    for (const char& b : readys) {
         if (loadAcquireN(b) == 0) return false;
     }
     return true;
 }
 
-static void waitForReady(const std::vector<char> &readys) {
+static void waitForReady(const std::vector<char>& readys) {
     while (!isReady(readys)) {
         _mm_pause();
     }
 }
 
-void worker(const size_t thid, char &ready, const bool &start, const bool &quit, std::size_t &res) {
+void worker(const size_t thid, char& ready, const bool& start, const bool& quit, std::size_t& res) {
     // this function can be used in Linux environment only.
 #ifdef YAKUSHIMA_LINUX
     set_thread_affinity(static_cast<int>(thid));
@@ -134,7 +135,7 @@ static void invoke_leader() {
     std::cout << "[end] measurement." << std::endl;
     storeReleaseN(quit, true);
     std::cout << "[start] join worker threads." << std::endl;
-    for (auto &th : thv) th.join();
+    for (auto& th : thv) th.join();
     std::cout << "[end] join worker threads." << std::endl;
 
     std::uint64_t fin_res{0};
@@ -151,7 +152,7 @@ static void invoke_leader() {
 
 int main(int argc, char* argv[]) {
     std::cout << "start yakushima bench." << std::endl;
-    gflags::SetUsageMessage(static_cast<const std::string &>("micro-benchmark for yakushima"));
+    gflags::SetUsageMessage(static_cast<const std::string&>("micro-benchmark for yakushima"));
     gflags::ParseCommandLineFlags(&argc, &argv, true);
     check_flags();
     invoke_leader();

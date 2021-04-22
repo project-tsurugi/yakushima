@@ -23,7 +23,6 @@ class st : public ::testing::Test {
     void TearDown() override {
         fin();
     }
-
 };
 
 TEST_F(st, basic_usage) { // NOLINT
@@ -68,5 +67,4 @@ TEST_F(st, basic_usage) { // NOLINT
     ASSERT_EQ(leave(token), status::OK);
 }
 
-} // namespace yakushima
-
+} // namespace yakushima::testing

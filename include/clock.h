@@ -12,7 +12,7 @@
 namespace yakushima {
 
 [[maybe_unused]] static bool
-check_clock_span(uint64_t &start, uint64_t &stop, uint64_t threshold) {
+check_clock_span(uint64_t& start, uint64_t& stop, uint64_t threshold) {
     if (stop < start) {
         std::cerr << __FILE__ << " : " << __LINE__ << std::endl;
         std::abort();

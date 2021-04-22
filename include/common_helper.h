@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "interior_node.h"
 #include "border_node.h"
+#include "interior_node.h"
 #include "version.h"
 
 namespace yakushima {
@@ -24,7 +24,7 @@ namespace yakushima {
  */
 static std::tuple<border_node*, const node_version64_body>
 find_border(base_node* const root, const key_slice_type key_slice, const key_length_type key_slice_length,
-            status &special_status) {
+            status& special_status) {
 retry:
     base_node* n = root;
     node_version64_body v = n->get_stable_version();
@@ -95,4 +95,3 @@ descend:
 }
 
 } // namespace yakushima
-

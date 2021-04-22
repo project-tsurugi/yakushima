@@ -9,8 +9,8 @@
 #include "base_node.h"
 #include "border_node.h"
 #include "common_helper.h"
-#include "link_or_value.h"
 #include "kvs.h"
+#include "link_or_value.h"
 #include "storage_impl.h"
 #include "tree_instance.h"
 
@@ -76,8 +76,7 @@ retry_fetch_lv:
         void* vp = lv_ptr->get_v_or_vp_();
         std::size_t v_size = lv_ptr->get_value_length();
         node_version64_body final_check = target_border->get_stable_version();
-        if (final_check.get_vsplit() != v_at_fb.get_vsplit()
-            || final_check.get_deleted()) {
+        if (final_check.get_vsplit() != v_at_fb.get_vsplit() || final_check.get_deleted()) {
             goto retry_from_root; // NOLINT
         }
         if (final_check.get_vinsert_delete() != v_at_fetch_lv.get_vinsert_delete()) {
@@ -88,8 +87,7 @@ retry_fetch_lv:
 
     root = lv_ptr->get_next_layer();
     node_version64_body final_check = target_border->get_stable_version();
-    if (final_check.get_vsplit() != v_at_fb.get_vsplit()
-        || final_check.get_deleted()) {
+    if (final_check.get_vsplit() != v_at_fb.get_vsplit() || final_check.get_deleted()) {
         goto retry_from_root; // NOLINT
     }
     if (final_check.get_vinsert_delete() != v_at_fetch_lv.get_vinsert_delete()) {
@@ -108,4 +106,4 @@ template<class ValueType>
     return get<ValueType>(ti, key_view);
 }
 
-}
+} // namespace yakushima

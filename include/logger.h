@@ -21,7 +21,6 @@ static inline void setup_spdlog() {
 #else
     spdlog::set_level(spdlog::level::debug);
 #endif
-
 }
 
-} // namespace shirakami::logger
+} // namespace yakushima::logger

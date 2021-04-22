@@ -45,7 +45,5 @@ TEST_F(st, one_border) { // NOLINT
     ASSERT_EQ(status::OK, scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list, nullptr, 3));
     ASSERT_EQ(tuple_list.size(), 3);
     ASSERT_EQ(leave(token), status::OK);
-
 }
-} // namespace yakushima
-
+} // namespace yakushima::testing

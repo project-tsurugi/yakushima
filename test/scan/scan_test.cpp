@@ -12,7 +12,7 @@ using namespace yakushima;
 
 namespace yakushima::testing {
 
-std::string test_storage_name{"1"};// NOLINT
+std::string test_storage_name{"1"}; // NOLINT
 
 class st : public ::testing::Test {
     void SetUp() override {
@@ -25,7 +25,7 @@ class st : public ::testing::Test {
     }
 };
 
-TEST_F(st, scan_multiple_same_null_char_key_2) {// NOLINT
+TEST_F(st, scan_multiple_same_null_char_key_2) { // NOLINT
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     constexpr std::size_t ary_size = 15;
@@ -37,7 +37,7 @@ TEST_F(st, scan_multiple_same_null_char_key_2) {// NOLINT
         ASSERT_EQ(status::OK, put(test_storage_name, std::string_view(k.at(i)), v.at(i).data(), v.at(i).size()));
     }
     constexpr std::size_t value_index = 1;
-    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{};// NOLINT
+    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{}; // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
         std::vector<std::pair<node_version64_body, node_version64*>> nv;
         ASSERT_EQ(status::OK,
@@ -61,15 +61,15 @@ TEST_F(st, scan_multiple_same_null_char_key_2) {// NOLINT
     ASSERT_EQ(leave(token), status::OK);
 }
 
-TEST_F(st, scan_against_1_interior_some_border) {// NOLINT
+TEST_F(st, scan_against_1_interior_some_border) { // NOLINT
     /**
      * scan against the structure which it has interior node as root, and the interior has some border nodes as children.
      */
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     constexpr std::size_t ary_size = base_node::key_slice_length + 1;
-    std::array<std::string, ary_size> k;// NOLINT
-    std::array<std::string, ary_size> v;// NOLINT
+    std::array<std::string, ary_size> k; // NOLINT
+    std::array<std::string, ary_size> v; // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
         k.at(i).assign(1, static_cast<char>('a' + i));
         v.at(i).assign(1, static_cast<char>('a' + i));
@@ -78,7 +78,7 @@ TEST_F(st, scan_against_1_interior_some_border) {// NOLINT
         ASSERT_EQ(status::OK, put(test_storage_name, std::string_view{k.at(i)}, v.at(i).data(), v.at(i).size()));
     }
     constexpr std::size_t value_index = 1;
-    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{};// NOLINT
+    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{}; // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
         std::vector<std::pair<node_version64_body, node_version64*>> nv;
         ASSERT_EQ(status::OK,
@@ -90,7 +90,7 @@ TEST_F(st, scan_against_1_interior_some_border) {// NOLINT
     ASSERT_EQ(leave(token), status::OK);
 }
 
-TEST_F(st, scan_against_1_interior_2_interior_some_border) {// NOLINT
+TEST_F(st, scan_against_1_interior_2_interior_some_border) { // NOLINT
     /**
      * scan against the structure which it has interior node as root, root has two interior nodes as children,
      * and each of children has some border nodes as children.
@@ -105,8 +105,8 @@ TEST_F(st, scan_against_1_interior_2_interior_some_border) {// NOLINT
     constexpr std::size_t ary_size =
             base_node::key_slice_length + 1 + (base_node::key_slice_length / 2 + 1) * (interior_node::child_length - 1);
 
-    std::array<std::string, ary_size> k;// NOLINT
-    std::array<std::string, ary_size> v;// NOLINT
+    std::array<std::string, ary_size> k; // NOLINT
+    std::array<std::string, ary_size> v; // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
         k.at(i).assign(1, static_cast<char>(i));
         v.at(i).assign(1, static_cast<char>(i));
@@ -116,7 +116,7 @@ TEST_F(st, scan_against_1_interior_2_interior_some_border) {// NOLINT
     }
 
     std::vector<std::pair<node_version64_body, node_version64*>> nv;
-    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{};// NOLINT
+    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{}; // NOLINT
     ASSERT_EQ(status::OK,
               scan(test_storage_name, std::string_view(k.at(0)), scan_endpoint::INCLUSIVE, "", scan_endpoint::INF, tuple_list, &nv));
     for (std::size_t j = 0; j < ary_size; ++j) {
@@ -126,13 +126,13 @@ TEST_F(st, scan_against_1_interior_2_interior_some_border) {// NOLINT
     ASSERT_EQ(leave(token), status::OK);
 }
 
-TEST_F(st, scan_with_prefix_for_2_layers) {// NOLINT
+TEST_F(st, scan_with_prefix_for_2_layers) { // NOLINT
     /**
      * Scan with prefix for 2 layers.
      */
-    std::string k("T6\000\200\000\000\n\200\000\000\001", 11);// NOLINT
-    std::string end("T6\001", 3);                             // NOLINT
-    std::string v("bbb");                                     // NOLINT
+    std::string k("T6\000\200\000\000\n\200\000\000\001", 11); // NOLINT
+    std::string end("T6\001", 3);                              // NOLINT
+    std::string v("bbb");                                      // NOLINT
 
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
@@ -143,19 +143,19 @@ TEST_F(st, scan_with_prefix_for_2_layers) {// NOLINT
     ASSERT_EQ(leave(token), status::OK);
 }
 
-TEST_F(st, scan_with_prefix_for_2_layers_2) {                                                      // NOLINT
-    std::string r1("T200\x00\x80\x00\x00\xc7\x80\x00\x01\x91\x80\x00\x01\x2d\x80\x00\x00\x01", 21);// NOLINT
+TEST_F(st, scan_with_prefix_for_2_layers_2) {                                                       // NOLINT
+    std::string r1("T200\x00\x80\x00\x00\xc7\x80\x00\x01\x91\x80\x00\x01\x2d\x80\x00\x00\x01", 21); // NOLINT
     std::string r2("T200\x00\x80\x00\x00\xc8\x80\x00\x01\x92\x80\x00\x01\x2e\x80\x00\x00\x02",
-                   21);                                            // NOLINT
-    std::string be("T200\x00\x80\x00\x00\xc8\x80\x00\x01\x93", 13);// NOLINT
+                   21);                                             // NOLINT
+    std::string be("T200\x00\x80\x00\x00\xc8\x80\x00\x01\x93", 13); // NOLINT
     std::string r3("T200\x00\x80\x00\x00\xc8\x80\x00\x01\x93\x80\x00\x01\x2f\x80\x00\x00\x03",
-                   21);                                            // NOLINT
-    std::string en("T200\x00\x80\x00\x00\xc8\x80\x00\x01\x94", 13);// NOLINT
+                   21);                                             // NOLINT
+    std::string en("T200\x00\x80\x00\x00\xc8\x80\x00\x01\x94", 13); // NOLINT
     std::string r4("T200\x00\x80\x00\x00\xc8\x80\x00\x01\x94\x80\x00\x01\x30\x80\x00\x00\x04",
-                   21);// NOLINT
+                   21); // NOLINT
     std::string r5("T200\x00\x80\x00\x00\xc9\x80\x00\x01\x95\x80\x00\x01\x31\x80\x00\x00\x05",
-                   21);  // NOLINT
-    std::string v("bbb");// NOLINT
+                   21);   // NOLINT
+    std::string v("bbb"); // NOLINT
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     ASSERT_EQ(put(test_storage_name, r1, v.data(), v.size()), status::OK);
@@ -169,26 +169,26 @@ TEST_F(st, scan_with_prefix_for_2_layers_2) {                                   
     ASSERT_EQ(leave(token), status::OK);
 }
 
-TEST_F(st, scan_with_same_prefix_25char_26diff_27to33same_34diff) {// NOLINT
+TEST_F(st, scan_with_same_prefix_25char_26diff_27to33same_34diff) { // NOLINT
     std::string r1(
-            "CUSTOMER0\x00\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00\x00\x00\x00\x00\x01",// NOLINT
-            34);                                                                                                            // NOLINT
+            "CUSTOMER0\x00\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00\x00\x00\x00\x00\x01", // NOLINT
+            34);                                                                                                             // NOLINT
     std::string r2(
-            "CUSTOMER0\x00\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00\x00\x00\x00\x00\x02",// NOLINT
-            34);                                                                                                            // NOLINT
+            "CUSTOMER0\x00\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00\x00\x00\x00\x00\x02", // NOLINT
+            34);                                                                                                             // NOLINT
     std::string r3(
-            "CUSTOMER0\x00\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00\x00\x00\x00\x00\x03",// NOLINT
-            34);                                                                                                            // NOLINT
+            "CUSTOMER0\x00\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00\x00\x00\x00\x00\x03", // NOLINT
+            34);                                                                                                             // NOLINT
     std::string r4(
-            "CUSTOMER0\x00\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00\x00\x00\x00\x00\x02\x80\x00\x00\x00\x00\x00\x00\x01",// NOLINT
-            34);                                                                                                            // NOLINT
+            "CUSTOMER0\x00\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00\x00\x00\x00\x00\x02\x80\x00\x00\x00\x00\x00\x00\x01", // NOLINT
+            34);                                                                                                             // NOLINT
     std::string r5(
-            "CUSTOMER0\x00\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00\x00\x00\x00\x00\x02\x80\x00\x00\x00\x00\x00\x00\x02",// NOLINT
-            34);                                                                                                            // NOLINT
+            "CUSTOMER0\x00\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00\x00\x00\x00\x00\x02\x80\x00\x00\x00\x00\x00\x00\x02", // NOLINT
+            34);                                                                                                             // NOLINT
     std::string r6(
-            "CUSTOMER0\x00\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00\x00\x00\x00\x00\x02\x80\x00\x00\x00\x00\x00\x00\x03",// NOLINT
-            34);                                                                                                            // NOLINT
-    std::string v("bbb");                                                                                                   // NOLINT
+            "CUSTOMER0\x00\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00\x00\x00\x00\x00\x02\x80\x00\x00\x00\x00\x00\x00\x03", // NOLINT
+            34);                                                                                                             // NOLINT
+    std::string v("bbb");                                                                                                    // NOLINT
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     ASSERT_EQ(put(test_storage_name, r1, v.data(), v.size()), status::OK);
@@ -226,4 +226,4 @@ TEST_F(st, scan_with_same_prefix_25char_26diff_27to33same_34diff) {// NOLINT
     ASSERT_EQ(tuple_list.size(), 0);
 }
 
-}// namespace yakushima::testing
+} // namespace yakushima::testing

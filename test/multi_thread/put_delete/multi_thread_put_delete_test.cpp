@@ -25,9 +25,9 @@ class mtpdt : public ::testing::Test {
     }
 };
 
-std::string test_storage_name{"1"};// NOLINT
+std::string test_storage_name{"1"}; // NOLINT
 
-TEST_F(mtpdt, multi_layer_many_interior_shuffle) {// NOLINT
+TEST_F(mtpdt, multi_layer_many_interior_shuffle) { // NOLINT
     /**
      * multi-layer put-delete test.
      */
@@ -66,27 +66,27 @@ TEST_F(mtpdt, multi_layer_many_interior_shuffle) {// NOLINT
                 Token token{};
                 enter(token);
 
-                    std::shuffle(kv.begin(), kv.end(), engine);
-                    for (auto& i : kv) {
-                        std::string v(std::get<1>(i));
-                        std::string k(std::get<0>(i));
-                        status ret = put(test_storage_name, k, v.data(), v.size());
-                        if (status::OK != ret) {
-                            ret = put(test_storage_name, k, v.data(), v.size());
-                            ASSERT_EQ(status::OK, ret);
-                            std::abort();
-                        }
+                std::shuffle(kv.begin(), kv.end(), engine);
+                for (auto& i : kv) {
+                    std::string v(std::get<1>(i));
+                    std::string k(std::get<0>(i));
+                    status ret = put(test_storage_name, k, v.data(), v.size());
+                    if (status::OK != ret) {
+                        ret = put(test_storage_name, k, v.data(), v.size());
+                        ASSERT_EQ(status::OK, ret);
+                        std::abort();
                     }
-                    for (auto& i : kv) {
-                        std::string v(std::get<1>(i));
-                        std::string k(std::get<0>(i));
-                        status ret = remove(token, test_storage_name, k);
-                        if (status::OK != ret) {
-                            ret = remove(token, test_storage_name, k);
-                            ASSERT_EQ(status::OK, ret);
-                            std::abort();
-                        }
+                }
+                for (auto& i : kv) {
+                    std::string v(std::get<1>(i));
+                    std::string k(std::get<0>(i));
+                    status ret = remove(token, test_storage_name, k);
+                    if (status::OK != ret) {
+                        ret = remove(token, test_storage_name, k);
+                        ASSERT_EQ(status::OK, ret);
+                        std::abort();
                     }
+                }
 
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
@@ -110,7 +110,7 @@ TEST_F(mtpdt, multi_layer_many_interior_shuffle) {// NOLINT
         for (auto&& th : thv) { th.join(); }
         thv.clear();
 
-        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list;// NOLINT
+        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list; // NOLINT
         scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list);
         ASSERT_EQ(tuple_list.size(), ary_size);
         for (std::size_t j = 0; j < ary_size; ++j) {
@@ -123,4 +123,4 @@ TEST_F(mtpdt, multi_layer_many_interior_shuffle) {// NOLINT
     }
 }
 
-}// namespace yakushima::testing
+} // namespace yakushima::testing

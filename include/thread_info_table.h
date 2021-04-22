@@ -41,7 +41,7 @@ public:
      * @return void
      */
     static void init() {
-        for (auto itr = thread_info_table_.begin(); itr != thread_info_table_.end(); ++itr) {// NOLINT
+        for (auto itr = thread_info_table_.begin(); itr != thread_info_table_.end(); ++itr) { // NOLINT
             itr->set_begin_epoch(0);
             itr->set_running(false);
         }
@@ -68,7 +68,7 @@ private:
     /**
      * @brief Session information used by garbage collection.
      */
-    static inline std::array<thread_info, YAKUSHIMA_MAX_PARALLEL_SESSIONS> thread_info_table_;// NOLINT
+    static inline std::array<thread_info, YAKUSHIMA_MAX_PARALLEL_SESSIONS> thread_info_table_; // NOLINT
 };
 
-}// namespace yakushima
+} // namespace yakushima

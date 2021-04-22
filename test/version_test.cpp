@@ -16,9 +16,9 @@ namespace yakushima::testing {
 class vt : public ::testing::Test {
 };
 
-std::string test_storage_name{"1"};// NOLINT
+std::string test_storage_name{"1"}; // NOLINT
 
-TEST_F(vt, test1) {// NOLINT
+TEST_F(vt, test1) { // NOLINT
     node_version64_body b1{};
     node_version64_body b2{};
     b1.init();
@@ -28,7 +28,7 @@ TEST_F(vt, test1) {// NOLINT
     ASSERT_NE(b1, b2);
 }
 
-TEST_F(vt, test2) {// NOLINT
+TEST_F(vt, test2) { // NOLINT
     // single update test.
     {
         node_version64 ver;
@@ -56,7 +56,7 @@ TEST_F(vt, test2) {// NOLINT
     }
 }
 
-TEST_F(vt, test3) {// NOLINT
+TEST_F(vt, test3) { // NOLINT
     node_version64_body vb{};
     vb.init();
     ASSERT_EQ(true, true);
@@ -68,7 +68,7 @@ TEST_F(vt, test3) {// NOLINT
     //v.display();
 }
 
-TEST_F(vt, vinsert_delete) {// NOLINT
+TEST_F(vt, vinsert_delete) { // NOLINT
     init();
     create_storage(test_storage_name);
     tree_instance* ti{};
@@ -77,7 +77,7 @@ TEST_F(vt, vinsert_delete) {// NOLINT
     std::array<std::string, key_length> key{};
     std::string v{"v"};
     for (std::size_t i = 0; i < key_length; ++i) {
-        key.at(i) = std::string{1, static_cast<char>(i)};// NOLINT
+        key.at(i) = std::string{1, static_cast<char>(i)}; // NOLINT
     }
     ASSERT_EQ(status::OK, put(test_storage_name, key.at(0), v.data(), v.size()));
     std::size_t vid = ti->load_root_ptr()->get_version_vinsert_delete();
@@ -86,7 +86,7 @@ TEST_F(vt, vinsert_delete) {// NOLINT
     fin();
 }
 
-TEST_F(vt, vsplit) {// NOLINT
+TEST_F(vt, vsplit) { // NOLINT
     init();
     create_storage(test_storage_name);
     tree_instance* ti{};
@@ -95,7 +95,7 @@ TEST_F(vt, vsplit) {// NOLINT
     std::array<std::string, key_length> key{};
     std::string v{"v"};
     for (std::size_t i = 0; i < key_length; ++i) {
-        key.at(i) = std::string{1, static_cast<char>(i)};// NOLINT
+        key.at(i) = std::string{1, static_cast<char>(i)}; // NOLINT
     }
     ASSERT_EQ(status::OK, put(test_storage_name, key.at(0), v.data(), v.size()));
     std::size_t vid = ti->load_root_ptr()->get_version_vsplit();
@@ -106,4 +106,4 @@ TEST_F(vt, vsplit) {// NOLINT
     fin();
 }
 
-}// namespace yakushima::testing
+} // namespace yakushima::testing

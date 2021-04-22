@@ -149,7 +149,7 @@ inline constexpr std::string_view to_string_view(const status value) noexcept {
     std::abort();
 }
 
-inline std::ostream &operator<<(std::ostream &out, const status value) {
+inline std::ostream& operator<<(std::ostream& out, const status value) {
     return out << to_string_view(value);
 }
 

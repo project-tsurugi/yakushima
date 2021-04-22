@@ -29,13 +29,13 @@ namespace yakushima {
         base_node* root = std::get<1>(elem)->load_root_ptr();
         if (root == nullptr) continue;
         root->destroy();
-        delete root;// NOLINT
+        delete root; // NOLINT
         std::get<1>(elem)->store_root_ptr(nullptr);
     }
     base_node* tables_root = storage::get_storages()->load_root_ptr();
     if (tables_root != nullptr) {
         tables_root->destroy();
-        delete tables_root;// NOLINT
+        delete tables_root; // NOLINT
         storage::get_storages()->store_root_ptr(nullptr);
     }
     return status::OK_DESTROY_ALL;
@@ -59,4 +59,4 @@ namespace yakushima {
     garbage_collection::fin<interior_node, border_node>();
 }
 
-}// namespace yakushima
+} // namespace yakushima

@@ -81,4 +81,4 @@ TEST_F(kt, short_key_long_value) { // NOLINT
     ASSERT_EQ(leave(token), status::OK);
 }
 
-}  // namespace yakushima::testing
+} // namespace yakushima::testing

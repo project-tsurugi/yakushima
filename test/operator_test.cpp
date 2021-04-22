@@ -15,4 +15,4 @@ TEST_F(ot, exclamation) { // NOLINT
     i = 0;
     ASSERT_EQ(!i, 1);
 }
-}  // namespace yakushima::testing
+} // namespace yakushima::testing

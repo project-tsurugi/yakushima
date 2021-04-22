@@ -16,7 +16,7 @@ class pt : public ::testing::Test {
 };
 
 TEST_F(pt, test1) { // NOLINT
-// basic member test.
+                    // basic member test.
     permutation per{};
     ASSERT_EQ(true, true); // test ending of function which returns void.
     ASSERT_EQ(per.get_cnk(), 0);
@@ -33,4 +33,4 @@ TEST_F(pt, test2) { // NOLINT
     ASSERT_EQ(true, true);
     //per.display();
 }
-}  // namespace yakushima::testing
+} // namespace yakushima::testing
