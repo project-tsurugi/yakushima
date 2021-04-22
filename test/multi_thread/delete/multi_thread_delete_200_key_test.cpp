@@ -24,9 +24,9 @@ class mtdt : public ::testing::Test {
     }
 };
 
-std::string test_storage_name{"1"};// NOLINT
+std::string test_storage_name{"1"}; // NOLINT
 
-TEST_F(mtdt, 200_key) {// NOLINT
+TEST_F(mtdt, 200_key) { // NOLINT
     /**
      * Concurrent put 200 key.
      * Concurrent remove 200 key.
@@ -42,7 +42,7 @@ TEST_F(mtdt, 200_key) {// NOLINT
 #ifndef NDEBUG
     for (std::size_t h = 0; h < 1; ++h) {
 #else
-    for (std::size_t h = 0; h < 30; ++h) {
+    for (std::size_t h = 0; h < 10; ++h) {
 #endif
         create_storage(test_storage_name);
 
@@ -63,7 +63,7 @@ TEST_F(mtdt, 200_key) {// NOLINT
                     std::string v(std::get<1>(i));
                     status ret = put(test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
-                        EXPECT_EQ(status::OK, ret);// output log
+                        EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
                     }
                 }
@@ -76,7 +76,7 @@ TEST_F(mtdt, 200_key) {// NOLINT
                     std::string v(std::get<1>(i));
                     status ret = remove(token, test_storage_name, std::string_view(k));
                     if (ret != status::OK) {
-                        EXPECT_EQ(status::OK, ret);// output log
+                        EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
                     }
                 }
@@ -98,7 +98,7 @@ TEST_F(mtdt, 200_key) {// NOLINT
     }
 }
 
-TEST_F(mtdt, 200_key_shuffle) {// NOLINT
+TEST_F(mtdt, 200_key_shuffle) { // NOLINT
     /**
      * Concurrent put 200 key.
      * Concurrent remove 200 key.
@@ -115,7 +115,7 @@ TEST_F(mtdt, 200_key_shuffle) {// NOLINT
 #ifndef NDEBUG
     for (std::size_t h = 0; h < 1; ++h) {
 #else
-    for (std::size_t h = 0; h < 30; ++h) {
+    for (std::size_t h = 0; h < 10; ++h) {
 #endif
         create_storage(test_storage_name);
 
@@ -139,7 +139,7 @@ TEST_F(mtdt, 200_key_shuffle) {// NOLINT
                     std::string v(std::get<1>(i));
                     status ret = put(test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
-                        EXPECT_EQ(status::OK, ret);// output log
+                        EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
                     }
                 }
@@ -152,7 +152,7 @@ TEST_F(mtdt, 200_key_shuffle) {// NOLINT
                     std::string v(std::get<1>(i));
                     status ret = remove(token, test_storage_name, k);
                     if (ret != status::OK) {
-                        EXPECT_EQ(status::OK, ret);// output log
+                        EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
                     }
                 }
@@ -173,4 +173,4 @@ TEST_F(mtdt, 200_key_shuffle) {// NOLINT
     }
 }
 
-}// namespace yakushima::testing
+} // namespace yakushima::testing

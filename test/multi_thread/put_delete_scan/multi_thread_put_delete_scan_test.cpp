@@ -25,9 +25,9 @@ class mtpdst : public ::testing::Test {
     }
 };
 
-std::string test_storage_name{"1"};// NOLINT
+std::string test_storage_name{"1"}; // NOLINT
 
-TEST_F(mtpdst, many_layer) {// NOLINT
+TEST_F(mtpdst, many_layer) { // NOLINT
     /**
      * multi-layer put-delete-scan test.
      */
@@ -64,46 +64,41 @@ TEST_F(mtpdst, many_layer) {// NOLINT
                 Token token{};
                 enter(token);
 
-#ifndef NDEBUG
-                for (std::size_t j = 0; j < 1; ++j) {
-#else
-                for (std::size_t j = 0; j < 10; ++j) {
-#endif
-                    std::shuffle(kv.begin(), kv.end(), engine);
-                    for (auto& i : kv) {
-                        std::string k(std::get<0>(i));
-                        std::string v(std::get<1>(i));
-                        status ret = put(test_storage_name, k, v.data(), v.size());
-                        if (status::OK != ret) {
-                            ASSERT_EQ(status::OK, ret);
-                            std::abort();
-                        }
+                std::shuffle(kv.begin(), kv.end(), engine);
+                for (auto& i : kv) {
+                    std::string k(std::get<0>(i));
+                    std::string v(std::get<1>(i));
+                    status ret = put(test_storage_name, k, v.data(), v.size());
+                    if (status::OK != ret) {
+                        ASSERT_EQ(status::OK, ret);
+                        std::abort();
                     }
-                    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list;// NOLINT
-                    ASSERT_EQ(status::OK, scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list));
-                    ASSERT_EQ(tuple_list.size() >= kv.size(), true);
-                    std::size_t check_ctr{0};
-                    for (auto&& elem : tuple_list) {
-                        if (kv.size() == check_ctr) break;
-                        for (auto&& elem2 : kv) {
-                            if (std::get<1>(elem2).size() == std::get<2>(elem) &&
-                                memcmp(std::get<1>(elem2).data(), std::get<1>(elem), std::get<2>(elem)) == 0) {
-                                ++check_ctr;
-                                break;
-                            }
-                        }
-                    }
-                    ASSERT_EQ(check_ctr, kv.size());
-                    for (auto& i : kv) {
-                        std::string k(std::get<0>(i));
-                        std::string v(std::get<1>(i));
-                        status ret = remove(token, test_storage_name, k);
-                        if (status::OK != ret) {
-                            ASSERT_EQ(status::OK, ret);
-                            std::abort();
+                }
+                std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list; // NOLINT
+                ASSERT_EQ(status::OK, scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list));
+                ASSERT_EQ(tuple_list.size() >= kv.size(), true);
+                std::size_t check_ctr{0};
+                for (auto&& elem : tuple_list) {
+                    if (kv.size() == check_ctr) break;
+                    for (auto&& elem2 : kv) {
+                        if (std::get<1>(elem2).size() == std::get<2>(elem) &&
+                            memcmp(std::get<1>(elem2).data(), std::get<1>(elem), std::get<2>(elem)) == 0) {
+                            ++check_ctr;
+                            break;
                         }
                     }
                 }
+                ASSERT_EQ(check_ctr, kv.size());
+                for (auto& i : kv) {
+                    std::string k(std::get<0>(i));
+                    std::string v(std::get<1>(i));
+                    status ret = remove(token, test_storage_name, k);
+                    if (status::OK != ret) {
+                        ASSERT_EQ(status::OK, ret);
+                        std::abort();
+                    }
+                }
+
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
@@ -125,7 +120,7 @@ TEST_F(mtpdst, many_layer) {// NOLINT
         for (auto&& th : thv) { th.join(); }
         thv.clear();
 
-        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list;// NOLINT
+        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list; // NOLINT
         scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list);
         ASSERT_EQ(tuple_list.size(), ary_size);
         for (std::size_t j = 0; j < ary_size; ++j) {
@@ -138,4 +133,4 @@ TEST_F(mtpdst, many_layer) {// NOLINT
     }
 }
 
-}// namespace yakushima::testing
+} // namespace yakushima::testing

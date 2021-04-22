@@ -36,6 +36,7 @@
 #ifdef PERFORMANCE_TOOLS
 // sandbox-performance-tools
 #include <performance-tools/perf_counter.h>
+
 #include <performance-tools/lap_counter.h>
 #include <performance-tools/lap_counter_init.h>
 #endif
@@ -45,12 +46,14 @@
 
 using namespace yakushima;
 
-DEFINE_uint64(duration, 3, "Duration of benchmark in seconds."); // NOLINT
+DEFINE_uint64(duration, 3, "Duration of benchmark in seconds.");               // NOLINT
 DEFINE_uint64(get_initial_record, 1000, "# initial key-values for get bench"); // NOLINT
-DEFINE_double(get_skew, 0.0, "access skew of get operations."); // NOLINT
-DEFINE_string(instruction, "get", "put or get. The default is insert."); // NOLINT
-DEFINE_uint64(thread, 1, "# worker threads."); // NOLINT
-DEFINE_uint32(value_size, 4, "value size"); // NOLINT
+DEFINE_double(get_skew, 0.0, "access skew of get operations.");                // NOLINT
+DEFINE_string(instruction, "get", "put or get. The default is insert.");       // NOLINT
+DEFINE_uint64(thread, 1, "# worker threads.");                                 // NOLINT
+DEFINE_uint32(value_size, 4, "value size");                                    // NOLINT
+
+std::string bench_storage{"1"}; // NOLINT
 
 static void check_flags() {
     std::cout << "parameter settings\n"
@@ -86,14 +89,14 @@ static void check_flags() {
     }
 }
 
-static bool isReady(const std::vector<char> &readys) {
-    for (const char &b : readys) {
+static bool isReady(const std::vector<char>& readys) {
+    for (const char& b : readys) {
         if (loadAcquireN(b) == 0) return false;
     }
     return true;
 }
 
-static void waitForReady(const std::vector<char> &readys) {
+static void waitForReady(const std::vector<char>& readys) {
     while (!isReady(readys)) {
         _mm_pause();
     }
@@ -109,7 +112,7 @@ void parallel_build_tree() {
                 void* p = (&i);
                 std::string key{static_cast<char*>(p),
                                 sizeof(std::uint64_t)}; // sizeof(std::size_t) points to loop variable.
-                put("1", std::string_view(key), value.data(), value.size());
+                put(bench_storage, std::string_view(key), value.data(), value.size());
             }
             leave(token);
         }
@@ -135,13 +138,13 @@ void parallel_build_tree() {
                                  FLAGS_get_initial_record);
             }
         }
-        for (auto &th : thv) {
+        for (auto& th : thv) {
             th.join();
         }
     }
 }
 
-void get_worker(const size_t thid, char &ready, const bool &start, const bool &quit, std::size_t &res) {
+void get_worker(const size_t thid, char& ready, const bool& start, const bool& quit, std::size_t& res) {
     // init work
     Xoroshiro128Plus rnd;
     FastZipf zipf(&rnd, FLAGS_get_skew, FLAGS_get_initial_record);
@@ -164,7 +167,7 @@ void get_worker(const size_t thid, char &ready, const bool &start, const bool &q
         std::uint64_t keynm = zipf() % FLAGS_get_initial_record;
         void* p = (&keynm);
         std::string key{static_cast<char*>(p), sizeof(std::uint64_t)};
-        std::tuple<char*, std::size_t> ret = get<char>("1", std::string_view(key));
+        std::tuple<char*, std::size_t> ret = get<char>(bench_storage, std::string_view(key));
         if (std::get<0>(ret) == nullptr) {
             std::cout << __FILE__ << " : " << __LINE__ << " : fatal error." << std::endl;
             std::abort();
@@ -178,7 +181,7 @@ void get_worker(const size_t thid, char &ready, const bool &start, const bool &q
     res = local_res;
 }
 
-void put_worker(const size_t thid, char &ready, const bool &start, const bool &quit, std::size_t &res) {
+void put_worker(const size_t thid, char& ready, const bool& start, const bool& quit, std::size_t& res) {
     // this function can be used in Linux environment only.
 #ifdef YAKUSHIMA_LINUX
     set_thread_affinity(static_cast<const int>(thid));
@@ -201,8 +204,8 @@ void put_worker(const size_t thid, char &ready, const bool &start, const bool &q
         void* p = (&i);
         std::string key{static_cast<char*>(p), sizeof(std::uint64_t)};
         try {
-            put("1", std::string_view(key), value.data(), value.size());
-        } catch (std::bad_alloc &) {
+            put(bench_storage, std::string_view(key), value.data(), value.size());
+        } catch (std::bad_alloc&) {
             std::cout << __FILE__ << " : " << __LINE__ << "bad_alloc. Please set less duration." << std::endl;
             std::abort();
         }
@@ -225,7 +228,7 @@ void put_worker(const size_t thid, char &ready, const bool &start, const bool &q
     for (std::uint64_t i = left_edge; i <= left_edge + local_res; ++i) {
         void* p = (&i);
         std::string key{static_cast<char*>(p), sizeof(std::uint64_t)};
-        remove(token, "1", std::string_view(key));
+        remove(token, bench_storage, std::string_view(key));
     }
 
     leave(token);
@@ -239,6 +242,7 @@ static void invoke_leader() try {
 
     std::cout << "[start] init masstree database." << std::endl;
     init();
+    create_storage(bench_storage);
     std::cout << "[end] init masstree database." << std::endl;
 
     std::cout << "[report] This experiments use ";
@@ -274,7 +278,7 @@ static void invoke_leader() try {
     std::cout << "[end] measurement." << std::endl;
     storeReleaseN(quit, true);
     std::cout << "[start] join worker threads." << std::endl;
-    for (auto &th : thv) th.join();
+    for (auto& th : thv) th.join();
     std::cout << "[end] join worker threads." << std::endl;
 
     /**
@@ -298,7 +302,7 @@ static void invoke_leader() try {
 
 #ifdef PERFORMANCE_TOOLS
     performance_tools::counter_class sum{};
-    for(auto &&r: *performance_tools::get_watch().laps(0,1)) {
+    for (auto&& r : *performance_tools::get_watch().laps(0, 1)) {
         sum += r;
     }
     sum /= ((fin_res + (1000000 / 2)) / 1000000);
@@ -313,7 +317,7 @@ static void invoke_leader() try {
 int main(int argc, char* argv[]) {
     logger::setup_spdlog();
     std::cout << "start yakushima bench." << std::endl;
-    gflags::SetUsageMessage(static_cast<const std::string &>("micro-benchmark for yakushima"));
+    gflags::SetUsageMessage(static_cast<const std::string&>("micro-benchmark for yakushima"));
     gflags::ParseCommandLineFlags(&argc, &argv, true);
     check_flags();
     invoke_leader();

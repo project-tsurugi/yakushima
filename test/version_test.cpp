@@ -71,7 +71,7 @@ TEST_F(vt, test3) {// NOLINT
 TEST_F(vt, vinsert_delete) {// NOLINT
     init();
     create_storage(test_storage_name);
-    tree_instance* ti;
+    tree_instance* ti{};
     find_storage(test_storage_name, &ti);
     constexpr std::size_t key_length = 2;
     std::array<std::string, key_length> key{};
@@ -89,7 +89,7 @@ TEST_F(vt, vinsert_delete) {// NOLINT
 TEST_F(vt, vsplit) {// NOLINT
     init();
     create_storage(test_storage_name);
-    tree_instance* ti;
+    tree_instance* ti{};
     find_storage(test_storage_name, &ti);
     constexpr std::size_t key_length = base_node::key_slice_length + 1;
     std::array<std::string, key_length> key{};

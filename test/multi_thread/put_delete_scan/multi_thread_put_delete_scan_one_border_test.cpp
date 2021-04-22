@@ -58,11 +58,7 @@ TEST_F(mtpdst, one_border) {// NOLINT
                 Token token{};
                 enter(token);
 
-#ifndef NDEBUG
                 for (std::size_t j = 0; j < 1; ++j) {
-#else
-                for (std::size_t j = 0; j < 10; ++j) {
-#endif
                     for (auto&& i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
@@ -173,11 +169,7 @@ TEST_F(mtpdst, one_border_shuffle) {// NOLINT
                 Token token{};
                 enter(token);
 
-#ifndef NDEBUG
                 for (std::size_t j = 0; j < 1; ++j) {
-#else
-                for (std::size_t j = 0; j < 10; ++j) {
-#endif
                     std::shuffle(kv.begin(), kv.end(), engine);
                     for (auto&& i : kv) {
                         std::string k(std::get<0>(i));

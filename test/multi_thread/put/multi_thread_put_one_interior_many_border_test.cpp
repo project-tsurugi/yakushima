@@ -24,9 +24,9 @@ class mtpt : public ::testing::Test {
     }
 };
 
-std::string test_storage_name{"1"};// NOLINT
+std::string test_storage_name{"1"}; // NOLINT
 
-TEST_F(mtpt, one_interior) {// NOLINT
+TEST_F(mtpt, one_interior) { // NOLINT
     constexpr std::size_t ary_size = 100;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
@@ -38,7 +38,7 @@ TEST_F(mtpt, one_interior) {// NOLINT
 #ifndef NDEBUG
     for (size_t h = 0; h < 1; ++h) {
 #else
-    for (size_t h = 0; h < 100; ++h) {
+    for (size_t h = 0; h < 10; ++h) {
 #endif
         create_storage(test_storage_name);
 
@@ -71,7 +71,7 @@ TEST_F(mtpt, one_interior) {// NOLINT
         thv.clear();
 
         std::string k(1, ary_size);
-        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{};// NOLINT
+        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{}; // NOLINT
         scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
         ASSERT_EQ(tuple_list.size(), ary_size);
         for (std::size_t j = 0; j < ary_size; ++j) {
@@ -84,7 +84,7 @@ TEST_F(mtpt, one_interior) {// NOLINT
     }
 }
 
-TEST_F(mtpt, one_interior_shuffle) {// NOLINT
+TEST_F(mtpt, one_interior_shuffle) { // NOLINT
     constexpr std::size_t ary_size = 100;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
@@ -96,7 +96,7 @@ TEST_F(mtpt, one_interior_shuffle) {// NOLINT
 #ifndef NDEBUG
     for (size_t h = 0; h < 1; ++h) {
 #else
-    for (size_t h = 0; h < 100; ++h) {
+    for (size_t h = 0; h < 10; ++h) {
 #endif
         create_storage(test_storage_name);
 
@@ -132,7 +132,7 @@ TEST_F(mtpt, one_interior_shuffle) {// NOLINT
         thv.clear();
 
         std::string k(1, ary_size);
-        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{};// NOLINT
+        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{}; // NOLINT
         scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
         ASSERT_EQ(tuple_list.size(), ary_size);
         for (std::size_t j = 0; j < ary_size; ++j) {
@@ -145,4 +145,4 @@ TEST_F(mtpt, one_interior_shuffle) {// NOLINT
     }
 }
 
-}// namespace yakushima::testing
+} // namespace yakushima::testing

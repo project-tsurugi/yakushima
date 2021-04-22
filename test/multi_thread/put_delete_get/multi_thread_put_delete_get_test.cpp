@@ -15,7 +15,7 @@ using namespace yakushima;
 
 namespace yakushima::testing {
 
-std::string test_storage_name{"1"};// NOLINT
+std::string test_storage_name{"1"}; // NOLINT
 
 class mtpdgt : public ::testing::Test {
 protected:
@@ -28,7 +28,7 @@ protected:
     }
 };
 
-TEST_F(mtpdgt, many_layer_many_interior_many_border) {// NOLINT
+TEST_F(mtpdgt, many_layer_many_interior_many_border) { // NOLINT
     /**
      * multi-layer put-delete-get test.
      */
@@ -64,29 +64,24 @@ TEST_F(mtpdgt, many_layer_many_interior_many_border) {// NOLINT
                 Token token{};
                 enter(token);
 
-#ifndef NDEBUG
-                for (std::size_t j = 0; j < 1; ++j) {
-#else
-                for (std::size_t j = 0; j < 10; ++j) {
-#endif
-                    std::shuffle(kv.begin(), kv.end(), engine);
-                    for (auto& i : kv) {
-                        std::string k(std::get<0>(i));
-                        std::string v(std::get<1>(i));
-                        ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
-                    }
-                    for (auto& i : kv) {
-                        std::string k(std::get<0>(i));
-                        std::string v(std::get<1>(i));
-                        std::pair<char*, std::size_t> ret = get<char>(test_storage_name, k);
-                        ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
-                    }
-                    for (auto& i : kv) {
-                        std::string k(std::get<0>(i));
-                        std::string v(std::get<1>(i));
-                        ASSERT_EQ(remove(token, test_storage_name, k), status::OK);
-                    }
+                std::shuffle(kv.begin(), kv.end(), engine);
+                for (auto& i : kv) {
+                    std::string k(std::get<0>(i));
+                    std::string v(std::get<1>(i));
+                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
                 }
+                for (auto& i : kv) {
+                    std::string k(std::get<0>(i));
+                    std::string v(std::get<1>(i));
+                    std::pair<char*, std::size_t> ret = get<char>(test_storage_name, k);
+                    ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0);
+                }
+                for (auto& i : kv) {
+                    std::string k(std::get<0>(i));
+                    std::string v(std::get<1>(i));
+                    ASSERT_EQ(remove(token, test_storage_name, k), status::OK);
+                }
+
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
@@ -118,4 +113,4 @@ TEST_F(mtpdgt, many_layer_many_interior_many_border) {// NOLINT
     }
 }
 
-}// namespace yakushima::testing
+} // namespace yakushima::testing

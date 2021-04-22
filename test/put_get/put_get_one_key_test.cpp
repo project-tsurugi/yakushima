@@ -41,7 +41,7 @@ TEST_F(kt, short_key) { // NOLINT
     ASSERT_EQ(status::OK, put(test_storage_name, k, v.data(), v.size(), (char**) nullptr, (value_align_type) sizeof(char), &nvp));
     ASSERT_EQ(nvp->get_vsplit(), 0);
     ASSERT_EQ(nvp->get_vinsert_delete(), 1);
-    tree_instance* ti;
+    tree_instance* ti{};
     find_storage(test_storage_name, &ti);
     base_node* root = ti->load_root_ptr(); // this is border node.
     ASSERT_NE(root, nullptr);
@@ -59,7 +59,7 @@ TEST_F(kt, short_key_long_value) { // NOLINT
     /**
      * put one key-long_value
      */
-    tree_instance* ti;
+    tree_instance* ti{};
     find_storage(test_storage_name, &ti);
     ASSERT_EQ(ti->load_root_ptr(), nullptr);
     std::string k("a");

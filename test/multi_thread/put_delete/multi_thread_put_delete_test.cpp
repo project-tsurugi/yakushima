@@ -44,7 +44,7 @@ TEST_F(mtpdt, multi_layer_many_interior_shuffle) {// NOLINT
 #ifndef NDEBUG
     for (size_t h = 0; h < 1; ++h) {
 #else
-    for (size_t h = 0; h < 20; ++h) {
+    for (size_t h = 0; h < 10; ++h) {
 #endif
         create_storage(test_storage_name);
 
@@ -66,11 +66,6 @@ TEST_F(mtpdt, multi_layer_many_interior_shuffle) {// NOLINT
                 Token token{};
                 enter(token);
 
-#ifndef NDEBUG
-                for (std::size_t j = 0; j < 1; ++j) {
-#else
-                for (std::size_t j = 0; j < 10; ++j) {
-#endif
                     std::shuffle(kv.begin(), kv.end(), engine);
                     for (auto& i : kv) {
                         std::string v(std::get<1>(i));
@@ -92,7 +87,7 @@ TEST_F(mtpdt, multi_layer_many_interior_shuffle) {// NOLINT
                             std::abort();
                         }
                     }
-                }
+
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));

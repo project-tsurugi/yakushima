@@ -24,10 +24,10 @@ class mtpt : public ::testing::Test {
     }
 };
 
-std::string test_storage_name{"1"};// NOLINT
+std::string test_storage_name{"1"}; // NOLINT
 
-TEST_F(mtpt, many_interior) {           // NOLINT
-    constexpr std::size_t ary_size{241};// value fanout 15 * node fanout 16 + 1
+TEST_F(mtpt, many_interior) {            // NOLINT
+    constexpr std::size_t ary_size{241}; // value fanout 15 * node fanout 16 + 1
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
         th_nm = std::thread::hardware_concurrency();
@@ -38,7 +38,7 @@ TEST_F(mtpt, many_interior) {           // NOLINT
 #ifndef NDEBUG
     for (std::size_t h = 0; h < 1; ++h) {
 #else
-    for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 10; ++h) {
 #endif
         create_storage(test_storage_name);
 
@@ -74,7 +74,7 @@ TEST_F(mtpt, many_interior) {           // NOLINT
         thv.clear();
 
         std::string k(1, ary_size - 1);
-        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{};// NOLINT
+        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{}; // NOLINT
         scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
         ASSERT_EQ(tuple_list.size(), ary_size);
 
@@ -88,8 +88,8 @@ TEST_F(mtpt, many_interior) {           // NOLINT
     }
 }
 
-TEST_F(mtpt, many_interior_shuffle) {   // NOLINT
-    constexpr std::size_t ary_size{241};// value fanout 15 * node fanout 16 + 1
+TEST_F(mtpt, many_interior_shuffle) {    // NOLINT
+    constexpr std::size_t ary_size{241}; // value fanout 15 * node fanout 16 + 1
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
         th_nm = std::thread::hardware_concurrency();
@@ -100,7 +100,7 @@ TEST_F(mtpt, many_interior_shuffle) {   // NOLINT
 #ifndef NDEBUG
     for (std::size_t h = 0; h < 1; ++h) {
 #else
-    for (std::size_t h = 0; h < 100; ++h) {
+    for (std::size_t h = 0; h < 10; ++h) {
 #endif
         create_storage(test_storage_name);
 
@@ -139,7 +139,7 @@ TEST_F(mtpt, many_interior_shuffle) {   // NOLINT
         thv.clear();
 
         std::string k(1, ary_size - 1);
-        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{};// NOLINT
+        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{}; // NOLINT
         scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list);
         ASSERT_EQ(tuple_list.size(), ary_size);
         for (std::size_t j = 0; j < ary_size; ++j) {
@@ -153,4 +153,4 @@ TEST_F(mtpt, many_interior_shuffle) {   // NOLINT
     }
 }
 
-}// namespace yakushima::testing
+} // namespace yakushima::testing

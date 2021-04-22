@@ -30,7 +30,7 @@ protected:
 };
 
 TEST_F(kt, test3) {// NOLINT
-    tree_instance* ti;
+    tree_instance* ti{};
     find_storage(test_storage_name, &ti);
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
@@ -117,7 +117,7 @@ TEST_F(kt, test4) {// NOLINT
 }
 
 TEST_F(kt, test5) {// NOLINT
-    tree_instance* ti;
+    tree_instance* ti{};
     find_storage(test_storage_name, &ti);
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
@@ -204,7 +204,7 @@ TEST_F(kt, test6) {// NOLINT
 }
 
 TEST_F(kt, test7) {// NOLINT
-    tree_instance* ti;
+    tree_instance* ti{};
     find_storage(test_storage_name, &ti);
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
@@ -233,7 +233,7 @@ TEST_F(kt, test7) {// NOLINT
 TEST_F(kt, test8) {// NOLINT
     for (std::size_t h = 0; h < 1; ++h) {
         create_storage(test_storage_name);
-        tree_instance* ti;
+        tree_instance* ti{};
         find_storage(test_storage_name, &ti);
         Token token{};
         ASSERT_EQ(enter(token), status::OK);
@@ -259,7 +259,7 @@ TEST_F(kt, test8) {// NOLINT
 }
 
 TEST_F(kt, test9) {// NOLINT
-    tree_instance* ti;
+    tree_instance* ti{};
     find_storage(test_storage_name, &ti);
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
@@ -351,7 +351,7 @@ TEST_F(kt, test9) {// NOLINT
 TEST_F(kt, test10) {// NOLINT
     for (std::size_t h = 0; h < 1; ++h) {
         create_storage(test_storage_name);
-        tree_instance* ti;
+        tree_instance* ti{};
         find_storage(test_storage_name, &ti);
         Token token{};
         ASSERT_EQ(enter(token), status::OK);
