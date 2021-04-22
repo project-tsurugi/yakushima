@@ -1,4 +1,4 @@
-# Test that put / delete / get operations work in parallel.
+# Test that put / delete / get operations work in parallel
 
 - multi_thread_put_delete_get_one_border_test.cpp
     - Test the operations on one border node.

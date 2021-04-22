@@ -1,6 +1,5 @@
 /**
  * @file scheme.h
- * @brief define status code.
  */
 
 #pragma once

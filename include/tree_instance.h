@@ -1,3 +1,7 @@
+/**
+ * @file tree_instance.h
+ */
+
 #pragma once
 
 #include "atomic_wrapper.h"

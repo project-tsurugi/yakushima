@@ -29,7 +29,7 @@ protected:
     }
 };
 
-TEST_F(dt, test1) { // NOLINT
+TEST_F(dt, single_remove) { // NOLINT
     tree_instance* ti{};
     find_storage(test_storage_name, &ti);
     /**
@@ -46,7 +46,7 @@ TEST_F(dt, test1) { // NOLINT
     ASSERT_EQ(leave(token), status::OK);
 }
 
-TEST_F(dt, test2) { // NOLINT
+TEST_F(dt, one_border) { // NOLINT
     tree_instance* ti{};
     find_storage(test_storage_name, &ti);
     Token token{};
@@ -74,7 +74,7 @@ TEST_F(dt, test2) { // NOLINT
     ASSERT_EQ(leave(token), status::OK);
 }
 
-TEST_F(dt, test3) { // NOLINT
+TEST_F(dt, one_border_shuffle) { // NOLINT
     for (std::size_t h = 0; h < 1; ++h) {
         create_storage(test_storage_name);
         tree_instance* ti{};
@@ -108,7 +108,7 @@ TEST_F(dt, test3) { // NOLINT
     }
 }
 
-TEST_F(dt, test4) { // NOLINT
+TEST_F(dt, two_border) { // NOLINT
     tree_instance* ti{};
     find_storage(test_storage_name, &ti);
     Token token{};
@@ -135,7 +135,7 @@ TEST_F(dt, test4) { // NOLINT
     ASSERT_EQ(leave(token), status::OK);
 }
 
-TEST_F(dt, test5) { // NOLINT
+TEST_F(dt, two_border_shuffle) { // NOLINT
     for (std::size_t h = 0; h < 1; ++h) {
         create_storage(test_storage_name);
         tree_instance* ti{};
@@ -164,7 +164,7 @@ TEST_F(dt, test5) { // NOLINT
     }
 }
 
-TEST_F(dt, test6) { // NOLINT
+TEST_F(dt, one_interi_two_bor) { // NOLINT
     tree_instance* ti{};
     find_storage(test_storage_name, &ti);
     Token token{};
@@ -192,7 +192,7 @@ TEST_F(dt, test6) { // NOLINT
     ASSERT_EQ(leave(token), status::OK);
 }
 
-TEST_F(dt, test7) { // NOLINT
+TEST_F(dt, one_interi_two_bor_shuffle) { // NOLINT
     for (std::size_t h = 0; h < 1; ++h) {
         create_storage(test_storage_name);
         tree_instance* ti{};
@@ -228,7 +228,7 @@ TEST_F(dt, test7) { // NOLINT
     }
 }
 
-TEST_F(dt, test8) { // NOLINT
+TEST_F(dt, two_interi) { // NOLINT
     tree_instance* ti{};
     find_storage(test_storage_name, &ti);
     Token token{};
@@ -350,7 +350,7 @@ TEST_F(dt, test8) { // NOLINT
     ASSERT_EQ(leave(token), status::OK);
 }
 
-TEST_F(dt, test9) { // NOLINT
+TEST_F(dt, many) { // NOLINT
     for (std::size_t h = 0; h < 1; ++h) {
         create_storage(test_storage_name);
         tree_instance* ti{};

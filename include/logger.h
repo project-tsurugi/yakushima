@@ -1,6 +1,6 @@
-//
-// Created by thawk on 2020/11/10.
-//
+/**
+ * @file logger.h
+ */
 
 #pragma once
 

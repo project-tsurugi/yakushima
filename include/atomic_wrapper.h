@@ -1,9 +1,9 @@
-#pragma once
-
 /**
- * @file
+ * @file atomic_wrapper.h
  * @brief atomic wrapper of builtin function.
  */
+
+#pragma once
 
 namespace yakushima {
 

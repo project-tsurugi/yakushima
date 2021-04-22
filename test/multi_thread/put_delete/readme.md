@@ -1,4 +1,4 @@
-# Test that put operations work in parallel.
+# Test that put operations work in parallel
 
 - multi_thread_put_one_border_test.cpp
     - Test the operations on one border node.

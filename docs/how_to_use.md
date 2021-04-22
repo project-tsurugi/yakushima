@@ -1,6 +1,11 @@
 # How to use yakushima
 
 This is a header only library by C++. So you can use very easily.
+- Please link thread / tbb libraries.
+- Please set include path to yakushima/include.
+- Please include [yakushima/include/kvs.h](./../include/kvs.h) only!
+
+Please refer to [yakushima/bench/CMakeLists.txt](./../bench/CMakeLists.txt).
 
 ## Example
 
