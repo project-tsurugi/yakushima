@@ -242,23 +242,23 @@ public:
                 key_length_type target_key_len = get_key_length_at(index);
                 if (key_length == 0 && target_key_len == 0) {
                     suc = true;
-                } else if (key_length > sizeof(key_slice_type) && target_key_len > sizeof(key_slice_type)) {
+                } else {
                     auto ret = memcmp(&key_slice, &target_key_slice, sizeof(key_slice_type));
                     if (ret == 0) {
-                        suc = true;
-                    } else if (ret > 0) {
-                        break;
-                    }
-                } else {
-                    if (key_length == target_key_len) {
-                        auto ret = memcmp(&key_slice, &target_key_slice, key_length);
-                        if (ret == 0) {
+                        if ((key_length > sizeof(key_slice_type) && target_key_len > sizeof(key_slice_type)) || key_length == target_key_len) {
                             suc = true;
-                        } else if (ret < 0) { 
+                        } else if (key_length < target_key_len) {
                             break;
                         }
+                    } else if (ret > 0) {
+                        if (key_length > sizeof(key_slice_type) && target_key_len > sizeof(key_slice_type)) {
+                            break;
+                        }
+                    } else if (ret < 0) {
+                        break;
                     }
                 }
+
                 if (suc) {
                     ret_lv = get_lv_at(index);
                     lv_pos = index;
