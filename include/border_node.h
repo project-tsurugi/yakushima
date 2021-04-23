@@ -232,24 +232,36 @@ public:
             /**
              * It loads cnk atomically by get_cnk func.
              */
-            std::size_t cnk = permutation_.get_cnk();
+            permutation perm{permutation_.get_body()};
+            std::size_t cnk = perm.get_cnk();
             link_or_value* ret_lv{nullptr};
             for (std::size_t i = 0; i < cnk; ++i) {
                 bool suc{false};
-                if (key_length == 0 && get_key_length_at(i) == 0) {
+                std::size_t index = perm.get_index_of_rank(i);
+                key_slice_type target_key_slice = get_key_slice_at(index);
+                key_length_type target_key_len = get_key_length_at(index);
+                if (key_length == 0 && target_key_len == 0) {
                     suc = true;
-                } else if ((key_length > sizeof(key_slice_type) && get_key_length_at(i) > sizeof(key_slice_type)) &&
-                           (memcmp(&key_slice, &get_key_slice_ref().at(i), sizeof(key_slice_type)) == 0)) {
-                    suc = true;
-                } else {
-                    if (key_length == get_key_length_at(i) &&
-                        memcmp(&key_slice, &get_key_slice_ref().at(i), key_length) == 0) {
+                } else if (key_length > sizeof(key_slice_type) && target_key_len > sizeof(key_slice_type)) {
+                    auto ret = memcmp(&key_slice, &target_key_slice, sizeof(key_slice_type));
+                    if (ret == 0) {
                         suc = true;
+                    } else if (ret > 0) {
+                        break;
+                    }
+                } else {
+                    if (key_length == target_key_len) {
+                        auto ret = memcmp(&key_slice, &target_key_slice, key_length);
+                        if (ret == 0) {
+                            suc = true;
+                        } else if (ret < 0) { 
+                            break;
+                        }
                     }
                 }
                 if (suc) {
-                    ret_lv = get_lv_at(i);
-                    lv_pos = i;
+                    ret_lv = get_lv_at(index);
+                    lv_pos = index;
                     break;
                 }
             }
