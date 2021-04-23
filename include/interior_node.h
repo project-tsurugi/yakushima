@@ -135,29 +135,22 @@ public:
         for (;;) {
             n_keys_body_type n_key = get_n_keys();
             base_node* ret_child{nullptr};
-            if (key_length == 0) {
-                ret_child = get_child_at(0);
-            } else {
-                for (auto i = 0; i < n_key; ++i) {
-                    std::size_t comp_length = key_length < get_key_length_at(i) ? key_length : get_key_length_at(i);
-                    if (comp_length > sizeof(key_slice_type)) {
-                        comp_length = sizeof(key_slice_type);
-                    }
-                    int ret_memcmp = memcmp(&key_slice, &get_key_slice_ref().at(i), comp_length);
-                    if (ret_memcmp < 0 || (ret_memcmp == 0 && key_length < get_key_length_at(i))) {
-                        /**
+            for (auto i = 0; i < n_key; ++i) {
+                std::size_t comp_length = key_length < get_key_length_at(i) ? key_length : get_key_length_at(i);
+                int ret_memcmp = memcmp(&key_slice, &get_key_slice_ref().at(i), comp_length > sizeof(key_slice_type) ? sizeof(key_slice_type) : comp_length);
+                if (ret_memcmp < 0 || (ret_memcmp == 0 && key_length < get_key_length_at(i))) {
+                    /**
                          * The key_slice must be left direction of the index.
                          */
-                        ret_child = get_child_at(i);
-                        break;
-                    }
-                    /**
+                    ret_child = get_child_at(i);
+                    break;
+                }
+                /**
                      * The key_slice must be right direction of the index.
                      */
-                    if (i == n_key - 1) {
-                        ret_child = get_child_at(i + 1);
-                        break;
-                    }
+                if (i == n_key - 1) {
+                    ret_child = get_child_at(i + 1);
+                    break;
                 }
             }
             node_version64_body check = get_stable_version();
