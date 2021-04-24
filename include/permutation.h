@@ -28,7 +28,7 @@ public:
      * cnk ... current number of keys.
      */
     static constexpr std::size_t cnk_mask = 0b1111;
-    static constexpr std::size_t cnk_bit_size = 4; // bits
+    static constexpr std::size_t cnk_bit_size = 4;  // bits
     static constexpr std::size_t pkey_bit_size = 4; // bits, permutation key size.
 
     permutation() : body_{} {}
@@ -97,14 +97,28 @@ public:
         body_.store(0, std::memory_order_release);
     }
 
+    void insert(std::size_t rank, std::size_t pos) {
+        // bit layout : left target right cnk
+        std::uint64_t cnk = get_cnk();
+        std::uint64_t target = pos << (pkey_bit_size * (rank + 1));
+        std::uint64_t left = get_body();
+        left = (left >> (pkey_bit_size * (rank + 1))) << (pkey_bit_size * (rank + 2));
+        std::uint64_t right = get_body();
+        right = (right << (pkey_bit_size * (base_node::key_slice_length - rank))) >> (base_node::key_slice_length - rank);
+        std::uint64_t final = left | target | right;
+        final &= ~cnk_mask;
+        final |= cnk;
+        set_body(final);
+    }
+
     /**
      * @pre @a key_slice and @a key_length is array whose size is equal or less than cnk of permutation.
      * If it ignores, it may occur seg-v error.
      * @param key_slice
      * @param key_length
      */
-    void rearrange(const std::array<key_slice_type, base_node::key_slice_length> &key_slice,
-                   const std::array<key_length_type, base_node::key_slice_length> &key_length) {
+    void rearrange(const std::array<key_slice_type, base_node::key_slice_length>& key_slice,
+                   const std::array<key_length_type, base_node::key_slice_length>& key_length) {
         std::uint64_t per_body(body_.load(std::memory_order_acquire));
         // get current number of keys
         auto cnk = static_cast<uint8_t>(per_body & cnk_mask);
