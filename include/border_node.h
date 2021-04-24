@@ -223,10 +223,11 @@ public:
      * @param[in] key_length
      * @param[out] stable_v  the stable version which is at atomically fetching lv.
      * @param[out] lv_pos
+     * @param[out] rank for put function.
      * @return
      */
     [[nodiscard]] link_or_value* get_lv_of(const key_slice_type key_slice, const key_length_type key_length,
-                                           node_version64_body& stable_v, std::size_t& lv_pos) {
+                                           node_version64_body& stable_v, std::size_t& lv_pos, std::size_t* rank = nullptr) {
         node_version64_body v = get_stable_version();
         for (;;) {
             /**
@@ -235,6 +236,7 @@ public:
             permutation perm{permutation_.get_body()};
             std::size_t cnk = perm.get_cnk();
             link_or_value* ret_lv{nullptr};
+            if (rank != nullptr) *rank = cnk;
             for (std::size_t i = 0; i < cnk; ++i) {
                 bool suc{false};
                 std::size_t index = perm.get_index_of_rank(i);
@@ -248,14 +250,12 @@ public:
                         if ((key_length > sizeof(key_slice_type) && target_key_len > sizeof(key_slice_type)) || key_length == target_key_len) {
                             suc = true;
                         } else if (key_length < target_key_len) {
-                            break;
-                        }
-                    } else if (ret > 0) {
-                        if (key_length > sizeof(key_slice_type) && target_key_len > sizeof(key_slice_type)) {
+                            if (rank != nullptr) *rank = index;
                             break;
                         }
                     } else if (ret < 0) {
                         break;
+                        if (rank != nullptr) *rank = index;
                     }
                 }
 
