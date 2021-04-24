@@ -338,7 +338,7 @@ public:
         set_version_border(true);
         get_version_ptr()->atomic_inc_vinsert();
         insert_lv_at(0, key_view, value_ptr, reinterpret_cast<void**>(created_value_ptr), arg_value_length, // NOLINT
-                     value_align);
+                     value_align, 0);
     }
 
     void init_border_member_range(const std::size_t start) {
@@ -355,13 +355,14 @@ public:
      * @param[out] created_value_ptr
      * @param[in] arg_value_length
      * @param[in] value_align
+     * @param[in] rank
      */
     void insert_lv_at(const std::size_t index,
                       std::string_view key_view,
                       void* const value_ptr,
                       void** const created_value_ptr,
                       const value_length_type arg_value_length,
-                      const value_align_type value_align) {
+                      const value_align_type value_align, std::size_t rank) {
         /**
          * @attention key_slice must be initialized to 0.
          * If key_view.size() is smaller than sizeof(key_slice_type),
@@ -395,7 +396,7 @@ public:
             set_lv_value(index, value_ptr, created_value_ptr, arg_value_length, value_align);
         }
         permutation_.inc_key_num();
-        permutation_rearrange();
+        permutation_.insert(rank, index);
     }
 
     void permutation_rearrange() {
