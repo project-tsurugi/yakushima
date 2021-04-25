@@ -101,14 +101,36 @@ public:
         // bit layout : left target right cnk
         std::uint64_t cnk = get_cnk();
         std::uint64_t target = pos << (pkey_bit_size * (rank + 1));
-        std::uint64_t left = get_body();
-        left = (left >> (pkey_bit_size * (rank + 1))) << (pkey_bit_size * (rank + 2));
-        std::uint64_t right = get_body();
-        right = (right << (pkey_bit_size * (base_node::key_slice_length - rank))) >> (base_node::key_slice_length - rank);
+        std::uint64_t left{};
+        if (rank == cnk - 1) {
+            left = 0;
+        } else {
+            left = get_body();
+            left = (left >> (pkey_bit_size * (rank + 1))) << (pkey_bit_size * (rank + 2));
+        }
+        std::uint64_t right{};
+        if (rank == 0) {
+            right = 0;
+        } else {
+            right = get_body();
+            right = (right << (pkey_bit_size * (base_node::key_slice_length - rank))) >> (pkey_bit_size * (base_node::key_slice_length - rank));
+        }
         std::uint64_t final = left | target | right;
         final &= ~cnk_mask;
         final |= cnk;
         set_body(final);
+    }
+
+    /**
+     * @brief for split
+     */
+    void split_dest(std::size_t num) {
+        std::uint64_t body{0};
+        for (std::size_t i = 1; i < num; ++i) {
+            body |= i << (pkey_bit_size * (i + 1));
+        }
+        body |= num;
+        set_body(body);
     }
 
     /**

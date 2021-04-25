@@ -250,12 +250,12 @@ public:
                         if ((key_length > sizeof(key_slice_type) && target_key_len > sizeof(key_slice_type)) || key_length == target_key_len) {
                             suc = true;
                         } else if (key_length < target_key_len) {
-                            if (rank != nullptr) *rank = index;
+                            if (rank != nullptr) *rank = i;
                             break;
                         }
                     } else if (ret < 0) {
+                        if (rank != nullptr) *rank = i;
                         break;
-                        if (rank != nullptr) *rank = index;
                     }
                 }
 
