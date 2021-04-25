@@ -132,7 +132,7 @@ template<class interior_node, class border_node>
 static void
 border_split(tree_instance* ti, border_node* const border, std::string_view key_view, void* const value_ptr,
              void** const created_value_ptr, const value_length_type value_length, const value_align_type value_align,
-             node_version64** inserted_node_version_ptr, std::size_t rank) {
+             node_version64** inserted_node_version_ptr, [[maybe_unused]] std::size_t rank) {
     border->set_version_splitting(true);
     border_node* new_border = new border_node(); // NOLINT
     new_border->init_border();
@@ -204,8 +204,7 @@ border_split(tree_instance* ti, border_node* const border, std::string_view key_
      */
     border->set_permutation_cnk(remaining_size);
     border->permutation_rearrange();
-    new_border->set_permutation_cnk(base_node::key_slice_length - remaining_size);
-    new_border->permutation_rearrange();
+    new_border->get_permutation().split_dest(base_node::key_slice_length - remaining_size);
 
     /**
      * The insert process we wanted to do before we split.
