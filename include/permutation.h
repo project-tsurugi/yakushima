@@ -48,6 +48,28 @@ public:
         body_.store(per_body, std::memory_order_release);
     }
 
+    void delete_rank(std::size_t rank) {
+        // layout : left delete_target right cnk
+        std::uint64_t left{};
+        std::uint64_t cnk = get_cnk();
+        if (rank == cnk - 1 || rank == key_slice_length - 1) {
+            left = 0;
+        } else {
+            left = get_body();
+            left = (left >> (pkey_bit_size * (rank + 2))) << (pkey_bit_size * (rank + 1));
+        }
+        std::uint64_t right = get_body();
+        if (rank == 0) {
+            right = 0;
+        } else {
+            right = (right << (pkey_bit_size * (key_slice_length - rank))) >> (pkey_bit_size * (key_slice_length - rank));
+        }
+        std::uint64_t final = left | right;
+        final &= ~cnk_mask;
+        final |= cnk;
+        set_body(final);
+    }
+
     void display() const {
         std::bitset<64> bs{get_body()};
         std::cout << " perm : " << bs << std::endl;

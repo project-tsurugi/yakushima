@@ -271,6 +271,23 @@ public:
         version_.atomic_inc_vinsert();
     }
 
+    // slot operation
+    std::size_t assign_empty_slot() {
+        for (std::size_t i = 0; i < key_slice_length; ++i) {
+            if ((filled_slot_ & (1 << i)) == 0) {
+                filled_slot_ |= (1 << i);
+                return i;
+            }
+        }
+        // error
+        std::cerr << "fatal error" << std::endl;
+        std::exit(1);
+    }
+
+    void remove_assigned_slot(std::size_t index) {
+        filled_slot_ &= ~(1 << index);
+    }
+
 private:
     /**
      * @attention This variable is read/written concurrently.
@@ -297,7 +314,7 @@ private:
      * If the length is more than 8, the lv points out to next layer.
      */
     std::array<key_length_type, key_slice_length> key_length_{};
-    uint16_t empty_slot_{0};
+    uint16_t filled_slot_{0};
 };
 
 } // namespace yakushima

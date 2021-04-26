@@ -28,28 +28,20 @@ public:
     /**
      * @pre This function is called by delete_of function.
      * @details delete the key-value corresponding to @a pos as position.
+     * @param[in] rank 
      * @param[in] pos The position of being deleted.
      * @param[in] target_is_value
      */
-    void delete_at(Token token, const std::size_t pos, const bool target_is_value) {
+    void delete_at(Token token, const std::size_t rank, const std::size_t pos, const bool target_is_value) {
         auto* ti = reinterpret_cast<thread_info*>(token); // NOLINT
         if (target_is_value) {
             ti->get_gc_info().push_value_container({ti->get_begin_epoch(), lv_.at(pos).get_v_or_vp_(), lv_.at(pos).get_value_length(), lv_.at(pos).get_value_align()});
         }
-        lv_.at(pos).init_lv();
+        init_border(pos);
 
-        /**
-         * rearrangement.
-         */
-        if (pos == static_cast<std::size_t>(get_permutation_cnk() - 1)) { // tail
-            init_border(pos);
-        } else { // not-tail
-            shift_left_base_member(pos + 1, 1);
-            shift_left_border_member(pos + 1, 1);
-            init_border(static_cast<size_t>(permutation_.get_cnk() - 1));
-        }
+        remove_assigned_slot(pos);
+        permutation_.delete_rank(rank);
         permutation_.dec_key_num();
-        permutation_rearrange();
     }
 
     /**
@@ -61,8 +53,9 @@ public:
     void delete_of(Token token, tree_instance* ti, base_node* const child, std::vector<node_version64*>& lock_list) {
         std::size_t cnk = get_permutation_cnk();
         for (std::size_t i = 0; i < cnk; ++i) {
-            if (child == lv_.at(i).get_next_layer()) {
-                delete_of<false>(token, ti, get_key_slice_at(i), get_key_length_at(i), lock_list); // NOLINT
+            std::size_t index = permutation_.get_index_of_rank(i);
+            if (child == lv_.at(index).get_next_layer()) {
+                delete_of<false>(token, ti, get_key_slice_at(index), get_key_length_at(index), lock_list); // NOLINT
                 return;
             }
         }
@@ -101,13 +94,10 @@ public:
          */
         std::size_t cnk = get_permutation_cnk();
         for (std::size_t i = 0; i < cnk; ++i) {
-            if ((key_slice_length == 0 && get_key_length_at(i) == 0) ||
-                (key_slice_length == get_key_length_at(i) && memcmp(&key_slice, &get_key_slice_ref().at(i),
-                                                                    key_slice_length <= sizeof(key_slice_type)
-                                                                            ? key_slice_length
-                                                                            : sizeof(key_slice_type)) ==
-                                                                     0)) {
-                delete_at(token, i, target_is_value);
+            std::size_t index = permutation_.get_index_of_rank(i);
+            if ((key_slice_length == 0 && get_key_length_at(index) == 0) ||
+                (key_slice_length == get_key_length_at(index) && memcmp(&key_slice, &get_key_slice_ref().at(index), sizeof(key_slice_type)) == 0)) {
+                delete_at(token, i, index, target_is_value);
                 if (cnk == 1) { // attention : this cnk is before delete_at;
                                 /**
                      * After this delete operation, this border node is empty.
@@ -296,6 +286,7 @@ public:
     }
 
     void init_border() {
+        assign_empty_slot();
         init_base();
         init_border_member_range(0);
         set_version_border(true);

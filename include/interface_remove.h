@@ -33,7 +33,7 @@ retry_find_border:
      * prepare key_slice
      */
     key_slice_type key_slice = 0;
-    auto key_slice_length = static_cast<key_length_type>(traverse_key_view.size());
+    auto key_length = static_cast<key_length_type>(traverse_key_view.size());
     if (traverse_key_view.size() > sizeof(key_slice_type)) {
         memcpy(&key_slice, traverse_key_view.data(), sizeof(key_slice_type));
     } else {
@@ -45,7 +45,7 @@ retry_find_border:
      * traverse tree to border node.
      */
     status special_status{status::OK};
-    std::tuple<border_node*, node_version64_body> node_and_v = find_border(root, key_slice, key_slice_length,
+    std::tuple<border_node*, node_version64_body> node_and_v = find_border(root, key_slice, key_length,
                                                                            special_status);
     if (special_status == status::WARN_RETRY_FROM_ROOT_OF_ALL) {
         /**
@@ -61,7 +61,7 @@ retry_find_border:
 retry_fetch_lv:
     node_version64_body v_at_fetch_lv{};
     std::size_t lv_pos = 0;
-    link_or_value* lv_ptr = target_border->get_lv_of(key_slice, key_slice_length, v_at_fetch_lv, lv_pos);
+    link_or_value* lv_ptr = target_border->get_lv_of(key_slice, key_length, v_at_fetch_lv, lv_pos);
     /**
      * check whether it should delete against this node.
      */
@@ -103,7 +103,7 @@ retry_fetch_lv:
             goto retry_fetch_lv; // NOLINT
         }
 
-        target_border->delete_of<true>(token, ti, key_slice, key_slice_length, lock_list);
+        target_border->delete_of<true>(token, ti, key_slice, key_length, lock_list);
         node_version64::unlock(lock_list);
         return status::OK;
     }

@@ -123,7 +123,7 @@ insert_lv(tree_instance* ti, border_node* const border, std::string_view key_vie
         if (inserted_node_version_ptr != nullptr) {
             *inserted_node_version_ptr = border->get_version_ptr();
         }
-        border->insert_lv_at(cnk, key_view, value_ptr, created_value_ptr, arg_value_length, value_align, rank);
+        border->insert_lv_at(border->assign_empty_slot(), key_view, value_ptr, created_value_ptr, arg_value_length, value_align, rank);
         border->version_unlock();
     }
 }
@@ -157,42 +157,28 @@ border_split(tree_instance* ti, border_node* const border, std::string_view key_
     std::size_t remaining_size = key_slice_length / 2 + 1;
 
     std::size_t index_ctr(0);
-    std::vector<std::size_t> shift_pos;
     for (std::size_t i = remaining_size; i < key_slice_length; ++i) {
         /**
          * move base_node members to new nodes
          */
-        std::size_t src_index{border->get_permutation().get_index_of_rank(i)};
+        std::size_t src_index{border->get_permutation().get_index_of_rank(remaining_size)}; // this is tricky.
+        border->remove_assigned_slot(src_index);
         new_border->set_key_slice_at(index_ctr, border->get_key_slice_at(src_index));
         new_border->set_key_length_at(index_ctr, border->get_key_length_at(src_index));
         new_border->set_lv(index_ctr, border->get_lv_at(src_index));
+        if (i != remaining_size) new_border->assign_empty_slot();
         base_node* nl = border->get_lv_at(src_index)->get_next_layer();
         if (nl != nullptr) {
             nl->set_parent(new_border);
         }
-        shift_pos.emplace_back(src_index);
         ++index_ctr;
+        border->init_border(src_index);
+        border->get_permutation().delete_rank(remaining_size); // this is tricky.
+        border->get_permutation().dec_key_num();
     }
-    /**
-     * fix member positions of old border_node.
-     */
-    std::sort(shift_pos.begin(), shift_pos.end());
-    std::size_t shifted_ctr(0);
-    for (std::size_t& shift_po : shift_pos) {
-        border->shift_left_base_member(shift_po + 1 - shifted_ctr, 1);
-        border->shift_left_border_member(shift_po + 1 - shifted_ctr, 1);
-        ++shifted_ctr;
-    }
-    /**
-     * maintenance about empty parts due to new border.
-     */
-    border->init_base_member_range(remaining_size);
-    border->init_border_member_range(remaining_size);
     /**
      * fix permutations
      */
-    border->set_permutation_cnk(remaining_size);
-    border->permutation_rearrange();
     new_border->get_permutation().split_dest(key_slice_length - remaining_size);
 
     /**
@@ -223,7 +209,7 @@ border_split(tree_instance* ti, border_node* const border, std::string_view key_
         if (inserted_node_version_ptr != nullptr) {
             *inserted_node_version_ptr = border->get_version_ptr();
         }
-        border->insert_lv_at(remaining_size, key_view, value_ptr, created_value_ptr, value_length, value_align, rank);
+        border->insert_lv_at(border->assign_empty_slot(), key_view, value_ptr, created_value_ptr, value_length, value_align, rank);
     } else {
         /**
          * insert to higher border node.
@@ -231,7 +217,7 @@ border_split(tree_instance* ti, border_node* const border, std::string_view key_
         if (inserted_node_version_ptr != nullptr) {
             *inserted_node_version_ptr = new_border->get_version_ptr();
         }
-        new_border->insert_lv_at(key_slice_length - remaining_size, key_view, value_ptr, created_value_ptr,
+        new_border->insert_lv_at(new_border->assign_empty_slot(), key_view, value_ptr, created_value_ptr,
                                  value_length, value_align, rank - remaining_size);
     }
 
