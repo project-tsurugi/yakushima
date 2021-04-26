@@ -151,18 +151,6 @@ border_split(tree_instance* ti, border_node* const border, std::string_view key_
         new_border->get_next()->set_prev(new_border);
     }
     /**
-     * split keys among n and n'
-     */
-    constexpr std::size_t key_tuple_index = 0;
-    constexpr std::size_t key_pos = 1;
-    std::vector<std::tuple<base_node::key_tuple, std::uint8_t>> vec;
-    std::uint8_t cnk = border->get_permutation_cnk();
-    vec.reserve(cnk);
-    for (std::uint8_t i = 0; i < cnk; ++i) {
-        vec.emplace_back(base_node::key_tuple(border->get_key_slice_at(i), border->get_key_length_at(i)), i); // NOLINT
-    }
-    std::sort(vec.begin(), vec.end());
-    /**
      * split
      * If the fan-out is odd, keep more than half to improve the performance.
      */
@@ -170,18 +158,19 @@ border_split(tree_instance* ti, border_node* const border, std::string_view key_
 
     std::size_t index_ctr(0);
     std::vector<std::size_t> shift_pos;
-    for (auto itr = vec.begin() + remaining_size; itr != vec.end(); ++itr) {
+    for (std::size_t i = remaining_size; i < base_node::key_slice_length; ++i) {
         /**
          * move base_node members to new nodes
          */
-        new_border->set_key_slice_at(index_ctr, std::get<key_tuple_index>(*itr).get_key_slice());
-        new_border->set_key_length_at(index_ctr, std::get<key_tuple_index>(*itr).get_key_length());
-        new_border->set_lv(index_ctr, border->get_lv_at(std::get<key_pos>(*itr)));
-        base_node* nl = border->get_lv_at(std::get<key_pos>(*itr))->get_next_layer();
+        std::size_t src_index{border->get_permutation().get_index_of_rank(i)};
+        new_border->set_key_slice_at(index_ctr, border->get_key_slice_at(src_index));
+        new_border->set_key_length_at(index_ctr, border->get_key_length_at(src_index));
+        new_border->set_lv(index_ctr, border->get_lv_at(src_index));
+        base_node* nl = border->get_lv_at(src_index)->get_next_layer();
         if (nl != nullptr) {
             nl->set_parent(new_border);
         }
-        shift_pos.emplace_back(std::get<key_pos>(*itr));
+        shift_pos.emplace_back(src_index);
         ++index_ctr;
     }
     /**
