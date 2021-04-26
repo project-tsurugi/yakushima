@@ -50,12 +50,12 @@ public:
      * @param[in] token
      * @param[in] child
      */
-    void delete_of(Token token, tree_instance* ti, base_node* const child, std::vector<node_version64*>& lock_list) {
+    void delete_of(Token token, tree_instance* ti, base_node* const child) {
         std::size_t cnk = get_permutation_cnk();
         for (std::size_t i = 0; i < cnk; ++i) {
             std::size_t index = permutation_.get_index_of_rank(i);
             if (child == lv_.at(index).get_next_layer()) {
-                delete_of<false>(token, ti, get_key_slice_at(index), get_key_length_at(index), lock_list); // NOLINT
+                delete_of<false>(token, ti, get_key_slice_at(index), get_key_length_at(index)); // NOLINT
                 return;
             }
         }
@@ -69,7 +69,8 @@ public:
      */
     status destroy() override {
         for (auto i = 0; i < permutation_.get_cnk(); ++i) {
-            lv_.at(static_cast<std::uint32_t>(i)).destroy();
+            std::size_t index = permutation_.get_index_of_rank(i);
+            lv_.at(static_cast<std::uint32_t>(index)).destroy();
         }
         return status::OK_DESTROY_BORDER;
     }
@@ -86,8 +87,7 @@ public:
      * @param[in] target_is_value
      */
     template<bool target_is_value>
-    void delete_of(Token token, tree_instance* ti, const key_slice_type key_slice, const key_length_type key_slice_length,
-                   std::vector<node_version64*>& lock_list) {
+    void delete_of(Token token, tree_instance* ti, const key_slice_type key_slice, const key_length_type key_slice_length) {
         set_version_inserting_deleting(true);
         /**
          * find position.
@@ -128,15 +128,15 @@ public:
                         ti->store_root_ptr(nullptr);
                     } else {
                         if (pn->get_version_border()) {
-                            dynamic_cast<border_node*>(pn)->delete_of(token, ti, this, lock_list);
+                            dynamic_cast<border_node*>(pn)->delete_of(token, ti, this);
                         } else {
                             dynamic_cast<interior_node*>(pn)->delete_of<border_node>(token, ti, this);
                         }
                         pn->version_unlock();
                     }
                     set_version_deleted(true);
-                    auto* tinfo = reinterpret_cast<thread_info*>(token);
-                    tinfo->get_gc_info().push_node_container({tinfo->get_begin_epoch(), this}); // NOLINT
+                    auto* tinfo = reinterpret_cast<thread_info*>(token); // NOLINT
+                    tinfo->get_gc_info().push_node_container({tinfo->get_begin_epoch(), this});
                 }
                 return;
             }

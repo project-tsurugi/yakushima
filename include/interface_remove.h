@@ -90,21 +90,19 @@ retry_fetch_lv:
      */
     if (target_border->get_key_length_at(lv_pos) <= sizeof(key_slice_type)) {
         target_border->lock();
-        std::vector<node_version64*> lock_list;
-        lock_list.emplace_back(target_border->get_version_ptr());
         node_version64_body final_check = target_border->get_version();
         if (final_check.get_deleted() ||                        // the border was deleted.
             final_check.get_vsplit() != v_at_fb.get_vsplit()) { // the border may be incorrect.
-            node_version64::unlock(lock_list);
+            target_border->version_unlock();
             goto retry_from_root;                                                     // NOLINT
         }                                                                             // here border is correct.
         if (final_check.get_vinsert_delete() != v_at_fetch_lv.get_vinsert_delete()) { // the lv may be inserted/deleted.
-            node_version64::unlock(lock_list);
+            target_border->version_unlock();
             goto retry_fetch_lv; // NOLINT
         }
 
-        target_border->delete_of<true>(token, ti, key_slice, key_length, lock_list);
-        node_version64::unlock(lock_list);
+        target_border->delete_of<true>(token, ti, key_slice, key_length);
+        target_border->version_unlock();
         return status::OK;
     }
 

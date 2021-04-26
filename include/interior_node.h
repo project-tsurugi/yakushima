@@ -69,8 +69,8 @@ public:
                         get_child_at(!i)->set_parent(pn);
                         pn->version_unlock();
                     }
-                    auto* tinfo = reinterpret_cast<thread_info*>(token);
-                    tinfo->get_gc_info().push_node_container(std::tuple{tinfo->get_begin_epoch(), this}); // NOLINT
+                    auto* tinfo = reinterpret_cast<thread_info*>(token); // NOLINT
+                    tinfo->get_gc_info().push_node_container(std::tuple{tinfo->get_begin_epoch(), this});
                     set_version_deleted(true);
                 } else {          // n_key > 1
                     if (i == 0) { // leftmost points

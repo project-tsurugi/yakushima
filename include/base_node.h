@@ -274,8 +274,8 @@ public:
     // slot operation
     std::size_t assign_empty_slot() {
         for (std::size_t i = 0; i < key_slice_length; ++i) {
-            if ((filled_slot_ & (1 << i)) == 0) {
-                filled_slot_ |= (1 << i);
+            if ((filled_slot_ & (static_cast<std::uint64_t>(1) << i)) == 0) {
+                filled_slot_ |= (static_cast<std::uint64_t>(1) << i);
                 return i;
             }
         }
@@ -285,7 +285,7 @@ public:
     }
 
     void remove_assigned_slot(std::size_t index) {
-        filled_slot_ &= ~(1 << index);
+        filled_slot_ &= ~(static_cast<std::uint64_t>(1) << index);
     }
 
 private:
