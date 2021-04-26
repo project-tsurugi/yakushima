@@ -99,7 +99,8 @@ public:
                 (key_slice_length == get_key_length_at(index) && memcmp(&key_slice, &get_key_slice_ref().at(index), sizeof(key_slice_type)) == 0)) {
                 delete_at(token, i, index, target_is_value);
                 if (cnk == 1) { // attention : this cnk is before delete_at;
-                                /**
+                    set_version_deleted(true);
+                    /**
                      * After this delete operation, this border node is empty.
                      */
                 retry_prev_lock:
@@ -126,17 +127,19 @@ public:
                     base_node* pn = lock_parent();
                     if (pn == nullptr) {
                         ti->store_root_ptr(nullptr);
+                        version_unlock();
                     } else {
+                        version_unlock();
                         if (pn->get_version_border()) {
                             dynamic_cast<border_node*>(pn)->delete_of(token, ti, this);
                         } else {
                             dynamic_cast<interior_node*>(pn)->delete_of<border_node>(token, ti, this);
                         }
-                        pn->version_unlock();
                     }
-                    set_version_deleted(true);
                     auto* tinfo = reinterpret_cast<thread_info*>(token); // NOLINT
                     tinfo->get_gc_info().push_node_container({tinfo->get_begin_epoch(), this});
+                } else {
+                    version_unlock();
                 }
                 return;
             }

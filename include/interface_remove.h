@@ -102,7 +102,6 @@ retry_fetch_lv:
         }
 
         target_border->delete_of<true>(token, ti, key_slice, key_length);
-        target_border->version_unlock();
         return status::OK;
     }
 

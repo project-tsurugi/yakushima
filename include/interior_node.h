@@ -51,6 +51,8 @@ public:
         for (std::size_t i = 0; i <= n_key; ++i) {
             if (get_child_at(i) == child) {
                 if (n_key == 1) {
+                    set_version_deleted(true);
+                    n_keys_decrement();
                     base_node* pn = lock_parent();
                     if (pn == nullptr) {
                         get_child_at(!i)->atomic_set_version_root(true);
@@ -69,9 +71,9 @@ public:
                         get_child_at(!i)->set_parent(pn);
                         pn->version_unlock();
                     }
+                    version_unlock();
                     auto* tinfo = reinterpret_cast<thread_info*>(token); // NOLINT
                     tinfo->get_gc_info().push_node_container(std::tuple{tinfo->get_begin_epoch(), this});
-                    set_version_deleted(true);
                 } else {          // n_key > 1
                     if (i == 0) { // leftmost points
                         shift_left_base_member(1, 1);
@@ -86,8 +88,9 @@ public:
                         set_child_at(n_key, nullptr);
                     }
                     set_key(n_key - 1, 0, 0);
+                    n_keys_decrement();
+                    version_unlock();
                 }
-                n_keys_decrement();
                 return;
             }
         }
