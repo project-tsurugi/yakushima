@@ -115,10 +115,6 @@ public:
         }
     }
 
-    static void init() {
-        set_gc_epoch(0);
-    }
-
     static Epoch get_gc_epoch() {
         return gc_epoch_.load(std::memory_order_acquire);
     }
