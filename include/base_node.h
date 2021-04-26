@@ -17,8 +17,6 @@ namespace yakushima {
 
 class base_node { // NOLINT
 public:
-    static constexpr std::size_t key_slice_length = 15;
-
     class key_tuple {
     public:
         key_tuple() = default;
@@ -299,6 +297,7 @@ private:
      * If the length is more than 8, the lv points out to next layer.
      */
     std::array<key_length_type, key_slice_length> key_length_{};
+    uint16_t empty_slot_{0};
 };
 
 } // namespace yakushima

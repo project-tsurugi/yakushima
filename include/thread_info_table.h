@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "border_node.h"
+#include "interior_node.h"
 #include "thread_info.h"
 
 namespace yakushima {
@@ -27,6 +29,18 @@ public:
         return status::WARN_MAX_SESSIONS;
     }
 
+    static void fin() {
+        for (auto&& elem : thread_info_table_) {
+            elem.get_gc_info().fin<interior_node, border_node>();
+        }
+    }
+
+    static void gc() {
+        for (auto&& elem : thread_info_table_) {
+            elem.get_gc_info().gc<interior_node, border_node>();
+        }
+    }
+
     /**
      * @brief Get reference of thread_info_table_.
      * @return the reference of thread_info_table_.
@@ -41,9 +55,9 @@ public:
      * @return void
      */
     static void init() {
-        for (auto itr = thread_info_table_.begin(); itr != thread_info_table_.end(); ++itr) { // NOLINT
-            itr->set_begin_epoch(0);
-            itr->set_running(false);
+        for (auto&& elem : thread_info_table_) {
+            elem.set_begin_epoch(0);
+            elem.set_running(false);
         }
     }
 

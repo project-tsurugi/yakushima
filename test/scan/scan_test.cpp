@@ -67,7 +67,7 @@ TEST_F(st, scan_against_1_interior_some_border) { // NOLINT
      */
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
-    constexpr std::size_t ary_size = base_node::key_slice_length + 1;
+    constexpr std::size_t ary_size = key_slice_length + 1;
     std::array<std::string, ary_size> k; // NOLINT
     std::array<std::string, ary_size> v; // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
@@ -98,12 +98,12 @@ TEST_F(st, scan_against_1_interior_2_interior_some_border) { // NOLINT
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     /**
-     * first border split occurs at inserting_deleting (base_node::key_slice_length + 1) times.
-     * after first border split, split occurs at inserting_deleting (base_node::key_slice_length / 2 + 1) times.
+     * first border split occurs at inserting_deleting (key_slice_length + 1) times.
+     * after first border split, split occurs at inserting_deleting (key_slice_length / 2 + 1) times.
      * first interior split occurs at splitting interior_node::child_length times.
      */
     constexpr std::size_t ary_size =
-            base_node::key_slice_length + 1 + (base_node::key_slice_length / 2 + 1) * (interior_node::child_length - 1);
+            key_slice_length + 1 + (key_slice_length / 2 + 1) * (interior_node::child_length - 1);
 
     std::array<std::string, ary_size> k; // NOLINT
     std::array<std::string, ary_size> v; // NOLINT

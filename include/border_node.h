@@ -34,7 +34,7 @@ public:
     void delete_at(Token token, const std::size_t pos, const bool target_is_value) {
         auto* ti = reinterpret_cast<thread_info*>(token); // NOLINT
         if (target_is_value) {
-            garbage_collection::push_value_container({ti->get_begin_epoch(), lv_.at(pos).get_v_or_vp_(), lv_.at(pos).get_value_length(), lv_.at(pos).get_value_align()});
+            ti->get_gc_info().push_value_container({ti->get_begin_epoch(), lv_.at(pos).get_v_or_vp_(), lv_.at(pos).get_value_length(), lv_.at(pos).get_value_align()});
         }
         lv_.at(pos).init_lv();
 
@@ -145,7 +145,8 @@ public:
                         pn->version_unlock();
                     }
                     set_version_deleted(true);
-                    garbage_collection::push_node_container({reinterpret_cast<thread_info*>(token)->get_begin_epoch(), this}); // NOLINT
+                    auto* tinfo = reinterpret_cast<thread_info*>(token);
+                    tinfo->get_gc_info().push_node_container({tinfo->get_begin_epoch(), this}); // NOLINT
                 }
                 return;
             }
@@ -199,7 +200,7 @@ public:
     * @return link_or_value*
     */
     [[maybe_unused]] [[nodiscard]] link_or_value* get_lv(base_node* const next_layer) {
-        for (std::size_t i = 0; i < base_node::key_slice_length; ++i) {
+        for (std::size_t i = 0; i < key_slice_length; ++i) {
             if (lv_.at(i).get_next_layer() == next_layer) {
                 return &lv_.at(i);
             }

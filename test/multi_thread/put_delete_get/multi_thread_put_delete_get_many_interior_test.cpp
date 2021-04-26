@@ -34,7 +34,7 @@ TEST_F(mtpdgt, many_interior) { // NOLINT
      * concurrent put/delete/get in the state between none to many split of interior.
      */
 
-    constexpr std::size_t ary_size = interior_node::child_length * base_node::key_slice_length * 1.4;
+    constexpr std::size_t ary_size = interior_node::child_length * key_slice_length * 1.4;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
         th_nm = std::thread::hardware_concurrency();
@@ -121,7 +121,7 @@ TEST_F(mtpdgt, many_interior_shuffle) { // NOLINT
      * concurrent put/delete/get in the state between none to many split of interior with shuffle.
      */
 
-    constexpr std::size_t ary_size = interior_node::child_length * base_node::key_slice_length * 1.4;
+    constexpr std::size_t ary_size = interior_node::child_length * key_slice_length * 1.4;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
         th_nm = std::thread::hardware_concurrency();

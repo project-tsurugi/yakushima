@@ -24,7 +24,7 @@ public:
      * @attention Use a template class so that the dependency does not cycle.
      */
     template<class interior_node, class border_node>
-    static void fin() {
+    void fin() {
         // for cache
         if (std::get<gc_target_index>(cache_node_container_) != nullptr) {
             delete std::get<gc_target_index>(cache_node_container_); // NOLINT
@@ -58,7 +58,7 @@ public:
      * @attention Use a template class so that the dependency does not cycle.
      */
     template<class interior_node, class border_node>
-    static void gc() {
+    void gc() {
         gc_node<interior_node, border_node>();
         gc_value();
     }
@@ -69,7 +69,7 @@ public:
      * @attention Use a template class so that the dependency does not cycle.
      */
     template<class interior_node, class border_node>
-    static void gc_node() {
+    void gc_node() {
         Epoch gc_epoch = get_gc_epoch();
 
         // for cache
@@ -92,7 +92,7 @@ public:
         }
     }
 
-    static void gc_value() {
+    void gc_value() {
         Epoch gc_epoch = get_gc_epoch();
 
         if (std::get<gc_target_index>(cache_value_container_) != nullptr) {
@@ -119,11 +119,11 @@ public:
         return gc_epoch_.load(std::memory_order_acquire);
     }
 
-    static void push_node_container(std::tuple<Epoch, base_node*> elem) {
+    void push_node_container(std::tuple<Epoch, base_node*> elem) {
         node_container_.push(elem);
     }
 
-    static void push_value_container(std::tuple<Epoch, void*, std::size_t, std::align_val_t> elem) {
+    void push_value_container(std::tuple<Epoch, void*, std::size_t, std::align_val_t> elem) {
         value_container_.push(elem);
     }
 
@@ -136,11 +136,11 @@ private:
     static constexpr std::size_t gc_target_index = 1;
     static constexpr std::size_t gc_target_size_index = 2;
     static constexpr std::size_t gc_target_align_index = 3;
-    alignas(CACHE_LINE_SIZE) static inline std::atomic<Epoch> gc_epoch_{0};                                                                        // NOLINT
-    static inline std::tuple<Epoch, base_node*> cache_node_container_{0, nullptr};                                                                 // NOLINT
-    static inline concurrent_queue<std::tuple<Epoch, base_node*>> node_container_;                                                                 // NOLINT
-    static inline std::tuple<Epoch, void*, std::size_t, std::align_val_t> cache_value_container_{0, nullptr, 0, static_cast<std::align_val_t>(0)}; // NOLINT
-    static inline concurrent_queue<std::tuple<Epoch, void*, std::size_t, std::align_val_t>> value_container_;                                      // NOLINT
+    alignas(CACHE_LINE_SIZE) static inline std::atomic<Epoch> gc_epoch_{0};                                                          // NOLINT
+    std::tuple<Epoch, base_node*> cache_node_container_{0, nullptr};                                                                 // NOLINT
+    concurrent_queue<std::tuple<Epoch, base_node*>> node_container_;                                                                 // NOLINT
+    std::tuple<Epoch, void*, std::size_t, std::align_val_t> cache_value_container_{0, nullptr, 0, static_cast<std::align_val_t>(0)}; // NOLINT
+    concurrent_queue<std::tuple<Epoch, void*, std::size_t, std::align_val_t>> value_container_;                                      // NOLINT
 };
 
 } // namespace yakushima

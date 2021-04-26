@@ -322,7 +322,7 @@ TEST_F(mtdt, test5) { // NOLINT
      * Concurrent remove against initial state.
      */
 
-    constexpr std::size_t ary_size = base_node::key_slice_length + 1;
+    constexpr std::size_t ary_size = key_slice_length + 1;
     std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
     std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
     for (std::size_t i = 0; i < ary_size / 2; ++i) {
@@ -391,7 +391,7 @@ TEST_F(mtdt, test6) { // NOLINT
      * Concurrent remove against initial state.
      */
 
-    constexpr std::size_t ary_size = base_node::key_slice_length + 1;
+    constexpr std::size_t ary_size = key_slice_length + 1;
     std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
     std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
     for (std::size_t i = 0; i < ary_size / 2; ++i) {

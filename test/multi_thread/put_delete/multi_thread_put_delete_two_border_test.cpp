@@ -180,7 +180,7 @@ TEST_F(mtpdt, concurrent_put_delete_between_none_and_interior) { // NOLINT
     /**
      * The number of puts that can be split border only once and the deletes are repeated in multiple threads.
      */
-    constexpr std::size_t ary_size = base_node::key_slice_length + 1;
+    constexpr std::size_t ary_size = key_slice_length + 1;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
         th_nm = std::thread::hardware_concurrency();
@@ -253,7 +253,7 @@ TEST_F(mtpdt, concurrent_put_delete_between_none_and_interior_in_second_layer) {
      * The number of puts that can be split only once and the deletes are repeated in multiple threads. This situations in second layer.
      */
 
-    constexpr std::size_t ary_size = base_node::key_slice_length + 1;
+    constexpr std::size_t ary_size = key_slice_length + 1;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
         th_nm = std::thread::hardware_concurrency();
@@ -339,7 +339,7 @@ TEST_F(mtpdt, concurrent_put_delete_between_none_and_interior_in_first_layer) { 
      * The number of puts that can be split only once and the deletes are repeated in multiple threads.
      * Use shuffled data.
      */
-    constexpr std::size_t ary_size = base_node::key_slice_length + 1;
+    constexpr std::size_t ary_size = key_slice_length + 1;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
         th_nm = std::thread::hardware_concurrency();
@@ -418,7 +418,7 @@ TEST_F(mtpdt, concurrent_put_delete_between_none_and_interior_in_second_layer_wi
     /**
      * The number of puts that can be split only once and the deletes are repeated in multiple threads. Use shuffled data.
      */
-    constexpr std::size_t ary_size = base_node::key_slice_length + 1;
+    constexpr std::size_t ary_size = key_slice_length + 1;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
         th_nm = std::thread::hardware_concurrency();

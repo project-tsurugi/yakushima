@@ -6,7 +6,6 @@
 #pragma once
 
 #include "border_helper.h"
-#include "thread_info_table.h"
 #include "tree_instance.h"
 
 namespace yakushima {
@@ -69,7 +68,7 @@ interior_split(tree_instance* ti, interior_node* const interior, base_node* cons
     /**
      * split keys among n and n'
      */
-    key_slice_type pivot_key_pos = base_node::key_slice_length / 2;
+    key_slice_type pivot_key_pos = key_slice_length / 2;
     std::size_t split_children_points = pivot_key_pos + 1;
     interior->move_key_to_base_range(new_interior, split_children_points);
     interior->set_n_keys(pivot_key_pos);
@@ -162,7 +161,7 @@ interior_split(tree_instance* ti, interior_node* const interior, base_node* cons
     interior->version_unlock();
     new_interior->set_parent(pi);
     new_interior->version_unlock();
-    if (pi->get_n_keys() == base_node::key_slice_length) {
+    if (pi->get_n_keys() == key_slice_length) {
         /**
          * parent interior full case.
          */

@@ -28,7 +28,7 @@ std::string test_storage_name{"1"}; // NOLINT
 
 TEST_F(mtpt, one_interior) { // NOLINT
 
-    constexpr std::size_t ary_size = base_node::key_slice_length + 1;
+    constexpr std::size_t ary_size = key_slice_length + 1;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
         th_nm = std::thread::hardware_concurrency();
@@ -86,7 +86,7 @@ TEST_F(mtpt, one_interior) { // NOLINT
 }
 
 TEST_F(mtpt, one_interior_shuffle) { // NOLINT
-    constexpr std::size_t ary_size = base_node::key_slice_length + 1;
+    constexpr std::size_t ary_size = key_slice_length + 1;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
         th_nm = std::thread::hardware_concurrency();

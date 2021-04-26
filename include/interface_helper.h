@@ -56,7 +56,7 @@ namespace yakushima {
     epoch_manager::set_gc_thread_end();
     epoch_manager::join_epoch_thread();
     epoch_manager::join_gc_thread();
-    garbage_collection::fin<interior_node, border_node>();
+    thread_info_table::fin();
 }
 
 } // namespace yakushima

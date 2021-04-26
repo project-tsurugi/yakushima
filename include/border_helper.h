@@ -110,7 +110,7 @@ insert_lv(tree_instance* ti, border_node* const border, std::string_view key_vie
           node_version64** inserted_node_version_ptr, std::size_t rank) {
     border->set_version_inserting_deleting(true);
     std::size_t cnk = border->get_permutation_cnk();
-    if (cnk == base_node::key_slice_length) {
+    if (cnk == key_slice_length) {
         /**
          * It needs splitting
          */
@@ -154,11 +154,11 @@ border_split(tree_instance* ti, border_node* const border, std::string_view key_
      * split
      * If the fan-out is odd, keep more than half to improve the performance.
      */
-    std::size_t remaining_size = base_node::key_slice_length / 2 + 1;
+    std::size_t remaining_size = key_slice_length / 2 + 1;
 
     std::size_t index_ctr(0);
     std::vector<std::size_t> shift_pos;
-    for (std::size_t i = remaining_size; i < base_node::key_slice_length; ++i) {
+    for (std::size_t i = remaining_size; i < key_slice_length; ++i) {
         /**
          * move base_node members to new nodes
          */
@@ -193,7 +193,7 @@ border_split(tree_instance* ti, border_node* const border, std::string_view key_
      */
     border->set_permutation_cnk(remaining_size);
     border->permutation_rearrange();
-    new_border->get_permutation().split_dest(base_node::key_slice_length - remaining_size);
+    new_border->get_permutation().split_dest(key_slice_length - remaining_size);
 
     /**
      * The insert process we wanted to do before we split.
@@ -231,7 +231,7 @@ border_split(tree_instance* ti, border_node* const border, std::string_view key_
         if (inserted_node_version_ptr != nullptr) {
             *inserted_node_version_ptr = new_border->get_version_ptr();
         }
-        new_border->insert_lv_at(base_node::key_slice_length - remaining_size, key_view, value_ptr, created_value_ptr,
+        new_border->insert_lv_at(key_slice_length - remaining_size, key_view, value_ptr, created_value_ptr,
                                  value_length, value_align, rank - remaining_size);
     }
 
@@ -300,7 +300,7 @@ border_split(tree_instance* ti, border_node* const border, std::string_view key_
     new_border->set_version_root(false);
     border->version_unlock();
     new_border->version_unlock();
-    if (pi->get_n_keys() == base_node::key_slice_length) {
+    if (pi->get_n_keys() == key_slice_length) {
         /**
          * interior full case, it splits and inserts.
          */

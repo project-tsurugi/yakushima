@@ -113,7 +113,7 @@ public:
             right = 0;
         } else {
             right = get_body();
-            right = (right << (pkey_bit_size * (base_node::key_slice_length - rank))) >> (pkey_bit_size * (base_node::key_slice_length - rank));
+            right = (right << (pkey_bit_size * (key_slice_length - rank))) >> (pkey_bit_size * (key_slice_length - rank));
         }
         std::uint64_t final = left | target | right;
         final &= ~cnk_mask;
@@ -139,15 +139,15 @@ public:
      * @param key_slice
      * @param key_length
      */
-    void rearrange(const std::array<key_slice_type, base_node::key_slice_length>& key_slice,
-                   const std::array<key_length_type, base_node::key_slice_length>& key_length) {
+    void rearrange(const std::array<key_slice_type, key_slice_length>& key_slice,
+                   const std::array<key_length_type, key_slice_length>& key_length) {
         std::uint64_t per_body(body_.load(std::memory_order_acquire));
         // get current number of keys
         auto cnk = static_cast<uint8_t>(per_body & cnk_mask);
 
         // tuple<key_slice, key_length, index>
         constexpr std::size_t key_pos = 1;
-        std::array<std::tuple<base_node::key_tuple, std::uint8_t>, base_node::key_slice_length> ar;
+        std::array<std::tuple<base_node::key_tuple, std::uint8_t>, key_slice_length> ar;
         for (std::uint8_t i = 0; i < cnk; ++i) {
             ar.at(i) = {{key_slice.at(i), key_length.at(i)}, i};
         }
@@ -159,7 +159,7 @@ public:
 
         // rearrange
         std::uint64_t new_body(0);
-        for (auto itr = ar.rbegin() + (base_node::key_slice_length - cnk);
+        for (auto itr = ar.rbegin() + (key_slice_length - cnk);
              itr != ar.rend(); ++itr) { // NOLINT : order to use "auto *itr"
             new_body |= std::get<key_pos>(*itr);
             new_body <<= pkey_bit_size;

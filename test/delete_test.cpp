@@ -169,7 +169,7 @@ TEST_F(dt, one_interi_two_bor) { // NOLINT
     find_storage(test_storage_name, &ti);
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
-    constexpr std::size_t ary_size = base_node::key_slice_length + 1;
+    constexpr std::size_t ary_size = key_slice_length + 1;
     std::array<std::string, ary_size> k; // NOLINT
     std::array<std::string, ary_size> v; // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
@@ -199,7 +199,7 @@ TEST_F(dt, one_interi_two_bor_shuffle) { // NOLINT
         find_storage(test_storage_name, &ti);
         Token token{};
         ASSERT_EQ(enter(token), status::OK);
-        constexpr std::size_t ary_size = base_node::key_slice_length + 1;
+        constexpr std::size_t ary_size = key_slice_length + 1;
         std::vector<std::tuple<std::string, std::string>> kv; // NOLINT
         for (std::size_t i = 0; i < ary_size; ++i) {
             kv.emplace_back(std::make_tuple(std::string(1, i), std::string(1, i)));
@@ -234,12 +234,12 @@ TEST_F(dt, two_interi) { // NOLINT
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     /**
-     * first border split occurs at inserting_deleting (base_node::key_slice_length + 1) times.
-     * after first border split, split occurs at inserting_deleting (base_node::key_slice_length / 2 + 1) times.
+     * first border split occurs at inserting_deleting (key_slice_length + 1) times.
+     * after first border split, split occurs at inserting_deleting (key_slice_length / 2 + 1) times.
      * first interior split occurs at splitting interior_node::child_length times.
      */
     constexpr std::size_t ary_size =
-            base_node::key_slice_length + 1 + (base_node::key_slice_length / 2 + 1) * (interior_node::child_length - 1);
+            key_slice_length + 1 + (key_slice_length / 2 + 1) * (interior_node::child_length - 1);
 
     std::array<std::string, ary_size> k; // NOLINT
     std::array<std::string, ary_size> v; // NOLINT
@@ -249,13 +249,13 @@ TEST_F(dt, two_interi) { // NOLINT
     }
     for (std::size_t i = 0; i < ary_size; ++i) {
         ASSERT_EQ(status::OK, put(test_storage_name, k.at(i), v.at(i).data(), v.at(i).size()));
-        if (i == base_node::key_slice_length - 1) {
+        if (i == key_slice_length - 1) {
             /**
              * root is full-border.
              */
             auto* n = ti->load_root_ptr();
             ASSERT_EQ(typeid(*n), typeid(border_node)); // NOLINT
-        } else if (i == base_node::key_slice_length) {
+        } else if (i == key_slice_length) {
             /**
              * split and insert.
              */
@@ -263,35 +263,35 @@ TEST_F(dt, two_interi) { // NOLINT
             ASSERT_EQ(typeid(*n), typeid(interior_node)); // NOLINT
             ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(0))->get_permutation_cnk(), 8);
             ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(1))->get_permutation_cnk(), 8);
-        } else if (i == base_node::key_slice_length + (base_node::key_slice_length / 2)) {
+        } else if (i == key_slice_length + (key_slice_length / 2)) {
             /**
              * root is interior, root has 2 children, child[0] of root has 8 keys and child[1] of root has 15 keys.
              */
             ASSERT_EQ(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_n_keys(), 1);
             ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(0))->get_permutation_cnk(), 8);
             ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(1))->get_permutation_cnk(), 15);
-        } else if (i == base_node::key_slice_length + (base_node::key_slice_length / 2) + 1) {
+        } else if (i == key_slice_length + (key_slice_length / 2) + 1) {
             /**
              * root is interior, root has 3 children, child[0-2] of root has 8 keys.
              */
             ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(0))->get_permutation_cnk(), 8);
             ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(1))->get_permutation_cnk(), 8);
             ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(2))->get_permutation_cnk(), 8);
-        } else if ((i > base_node::key_slice_length + (base_node::key_slice_length / 2) + 1) &&
-                   (i < base_node::key_slice_length +
-                                (base_node::key_slice_length / 2 + 1) * (base_node::key_slice_length - 1)) &&
-                   (i - base_node::key_slice_length) % ((base_node::key_slice_length / 2 + 1)) == 0) {
+        } else if ((i > key_slice_length + (key_slice_length / 2) + 1) &&
+                   (i < key_slice_length +
+                                (key_slice_length / 2 + 1) * (key_slice_length - 1)) &&
+                   (i - key_slice_length) % ((key_slice_length / 2 + 1)) == 0) {
             /**
-             * When it puts (base_node::key_slice_length / 2) keys, the root interior node has (i-base_node::key_slice
-             * _length) / (base_node::key_slice_length / 2);
+             * When it puts (key_slice_length / 2) keys, the root interior node has (i-base_node::key_slice
+             * _length) / (key_slice_length / 2);
              */
             ASSERT_EQ(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_n_keys(),
-                      (i - base_node::key_slice_length) / (base_node::key_slice_length / 2 + 1) + 1);
+                      (i - key_slice_length) / (key_slice_length / 2 + 1) + 1);
 
-        } else if (i == base_node::key_slice_length +
-                                ((base_node::key_slice_length / 2 + 1)) * (base_node::key_slice_length - 1)) {
+        } else if (i == key_slice_length +
+                                ((key_slice_length / 2 + 1)) * (key_slice_length - 1)) {
             ASSERT_EQ(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_n_keys(),
-                      base_node::key_slice_length);
+                      key_slice_length);
         }
     }
 
@@ -319,7 +319,7 @@ TEST_F(dt, two_interi) { // NOLINT
     /**
      * deletion phase
      */
-    constexpr std::size_t n_in_bn = base_node::key_slice_length / 2 + 1;
+    constexpr std::size_t n_in_bn = key_slice_length / 2 + 1;
 
     ASSERT_EQ(n_in_bn - 1,
               dynamic_cast<interior_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(0))->get_n_keys());
@@ -348,7 +348,7 @@ TEST_F(dt, many) { // NOLINT
         find_storage(test_storage_name, &ti);
         Token token{};
         ASSERT_EQ(enter(token), status::OK);
-        constexpr std::size_t ary_size = base_node::key_slice_length * interior_node::child_length + 1;
+        constexpr std::size_t ary_size = key_slice_length * interior_node::child_length + 1;
 
         std::vector<std::tuple<std::string, std::string>> kv; // NOLINT
         kv.reserve(ary_size);

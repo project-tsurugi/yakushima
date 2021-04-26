@@ -31,7 +31,7 @@ TEST_F(mtpdst, many_layer) { // NOLINT
     /**
      * multi-layer put-delete-scan test.
      */
-    constexpr std::size_t ary_size = interior_node::child_length * base_node::key_slice_length * 10;
+    constexpr std::size_t ary_size = interior_node::child_length * key_slice_length * 10;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
         th_nm = std::thread::hardware_concurrency();

@@ -91,7 +91,7 @@ TEST_F(vt, vsplit) { // NOLINT
     create_storage(test_storage_name);
     tree_instance* ti{};
     find_storage(test_storage_name, &ti);
-    constexpr std::size_t key_length = base_node::key_slice_length + 1;
+    constexpr std::size_t key_length = key_slice_length + 1;
     std::array<std::string, key_length> key{};
     std::string v{"v"};
     for (std::size_t i = 0; i < key_length; ++i) {

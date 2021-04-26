@@ -64,7 +64,7 @@ public:
     static void gc_thread() {
         for (;;) {
             sleepMs(YAKUSHIMA_EPOCH_TIME);
-            garbage_collection::gc<interior_node, border_node>();
+            thread_info_table::gc();
             if (kGCThreadEnd.load(std::memory_order_acquire)) break;
         }
     }

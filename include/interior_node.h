@@ -23,7 +23,7 @@ public:
      * @details The structure is "ptr, key, ptr, key, ..., ptr".
      * So the child_length is key_slice_length plus 1.
      */
-    static constexpr std::size_t child_length = base_node::key_slice_length + 1;
+    static constexpr std::size_t child_length = key_slice_length + 1;
     using n_keys_body_type = std::uint8_t;
     using n_keys_type = std::atomic<n_keys_body_type>;
 
@@ -69,7 +69,8 @@ public:
                         get_child_at(!i)->set_parent(pn);
                         pn->version_unlock();
                     }
-                    garbage_collection::push_node_container(std::tuple{reinterpret_cast<thread_info*>(token)->get_begin_epoch(), this}); // NOLINT
+                    auto* tinfo = reinterpret_cast<thread_info*>(token);
+                    tinfo->get_gc_info().push_node_container(std::tuple{tinfo->get_begin_epoch(), this}); // NOLINT
                     set_version_deleted(true);
                 } else {          // n_key > 1
                     if (i == 0) { // leftmost points

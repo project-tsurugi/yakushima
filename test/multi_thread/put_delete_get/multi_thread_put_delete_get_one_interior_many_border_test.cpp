@@ -32,7 +32,7 @@ TEST_F(mtpdgt, many_interior_many_border_shuffle) { // NOLINT
     /**
      * concurrent put/delete/get in the state between none to split of interior, which is using shuffled data.
      */
-    constexpr std::size_t ary_size = interior_node::child_length * base_node::key_slice_length / 2;
+    constexpr std::size_t ary_size = interior_node::child_length * key_slice_length / 2;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
         th_nm = std::thread::hardware_concurrency();
