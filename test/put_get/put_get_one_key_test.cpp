@@ -29,7 +29,7 @@ protected:
     }
 };
 
-TEST_F(kt, short_key) { // NOLINT
+TEST_F(kt, one_key) { // NOLINT
     /**
      * put one key-value
      */
@@ -52,10 +52,42 @@ TEST_F(kt, short_key) { // NOLINT
     ASSERT_NE(std::get<0>(tuple), nullptr);
     ASSERT_EQ(std::get<1>(tuple), v.size());
     ASSERT_EQ(memcmp(std::get<0>(tuple), v.data(), v.size()), 0);
+
+    /**
+     * put one key-value : one key is initialized by number.
+     * Test zero.
+     */
+    std::uint64_t base_num{0};
+    std::string key_buf{};
+    key_buf = std::string{reinterpret_cast<char*>(&base_num), sizeof(base_num)}; // NOLINT
+    ASSERT_EQ(put(test_storage_name, key_buf, v.data(), v.size()), status::OK);
+    tuple = get<char>(test_storage_name, key_buf);
+    ASSERT_EQ(memcmp(std::get<0>(tuple), v.data(), v.size()), 0);
+
+    /**
+     * put one key-value : one key is initialized by number.
+     * Test five.
+     */
+    base_num = 5;
+    key_buf = std::string{reinterpret_cast<char*>(&base_num), sizeof(base_num)}; // NOLINT
+    ASSERT_EQ(put(test_storage_name, key_buf, v.data(), v.size()), status::OK);
+    tuple = get<char>(test_storage_name, key_buf);
+    ASSERT_EQ(memcmp(std::get<0>(tuple), v.data(), v.size()), 0);
+
+    /**
+     * put one key-value : one key is initialized by number and padding of 0.
+     * Test five.
+     */
+    std::string padding(56, '0');
+    ASSERT_EQ(put(test_storage_name, padding + key_buf, v.data(), v.size()), status::OK);
+    tuple = get<char>(test_storage_name, padding + key_buf);
+    ASSERT_EQ(memcmp(std::get<0>(tuple), v.data(), v.size()), 0);
+
     ASSERT_EQ(leave(token), status::OK);
+
 }
 
-TEST_F(kt, short_key_long_value) { // NOLINT
+TEST_F(kt, one_key_long_value) { // NOLINT
     /**
      * put one key-long_value
      */
