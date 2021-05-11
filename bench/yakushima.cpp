@@ -223,13 +223,6 @@ void put_worker(const size_t thid, char& ready, const bool& start, const bool& q
     performance_tools::get_watch().set_point(1, thid);
 #endif
 
-    // parallel delete existing tree to reduce deleting time by single thread.
-    for (std::uint64_t i = left_edge; i <= left_edge + local_res; ++i) {
-        void* p = (&i);
-        std::string key{static_cast<char*>(p), sizeof(std::uint64_t)};
-        remove(token, bench_storage, std::string_view(key));
-    }
-
     leave(token);
     res = local_res;
 }

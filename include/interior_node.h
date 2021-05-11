@@ -10,6 +10,7 @@
 
 #include "atomic_wrapper.h"
 #include "base_node.h"
+#include "destroy_manager.h"
 #include "garbage_collection.h"
 #include "interior_helper.h"
 #include "thread_info.h"
@@ -106,10 +107,24 @@ public:
  * @pre This function is called by single thread.
  */
     status destroy() override {
+        std::vector<std::thread> th_vc;
+        th_vc.reserve(n_keys_ + 1);
         for (auto i = 0; i < n_keys_ + 1; ++i) {
-            get_child_at(i)->destroy();
-            delete get_child_at(i); // NOLINT
+            auto process = [this, i] {
+                get_child_at(i)->destroy();
+                delete get_child_at(i); // NOLINT
+            };
+            if (destroy_manager::check_room()) {
+                th_vc.emplace_back(process);
+            } else {
+                process();
+            }
         }
+        for (auto&& th : th_vc) {
+            th.join();
+            destroy_manager::return_room();
+        }
+
         return status::OK_DESTROY_INTERIOR;
     }
 

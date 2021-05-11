@@ -17,14 +17,7 @@ namespace yakushima {
 // begin - forward declaration
 [[maybe_unused]] static status enter(Token& token); // NOLINT
 [[maybe_unused]] static status leave(Token token);  // NOLINT
-template<class ValueType>
-[[maybe_unused]] static std::pair<ValueType*, std::size_t> get(tree_instance* ti, std::string_view key_view);
 [[maybe_unused]] static status remove(Token token, tree_instance* ti, std::string_view key_view); // NOLINT
-template<class ValueType>
-[[maybe_unused]] static status scan(tree_instance* ti, std::string_view l_key, scan_endpoint l_end,
-                                    std::string_view r_key, scan_endpoint r_end, std::vector<std::tuple<std::string, ValueType*, std::size_t>>& tuple_list,
-                                    std::vector<std::pair<node_version64_body, node_version64*>>* node_version_vec, std::size_t max_size);
-// end - forward declaration
 
 status storage::create_storage(std::string_view storage_name) { // NOLINT
     tree_instance new_instance;

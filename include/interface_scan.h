@@ -6,6 +6,7 @@
 
 #include "kvs.h"
 #include "scan_helper.h"
+#include "storage.h"
 #include "tree_instance.h"
 
 namespace yakushima {
