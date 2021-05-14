@@ -33,18 +33,20 @@ public:
         std::vector<std::thread> th_vc;
         th_vc.reserve(thread_info_table_.size());
         for (auto&& elem : thread_info_table_) {
-            auto process = [&elem] {
+            auto process = [&elem](bool do_rr) {
                 elem.get_gc_info().fin<interior_node, border_node>();
+                if (do_rr) {
+                    destroy_manager::return_room();
+                }
             };
             if (destroy_manager::check_room()) {
-                th_vc.emplace_back(process);
+                th_vc.emplace_back(process, true);
             } else {
-                process();
+                process(false);
             }
         }
         for (auto&& th : th_vc) {
             th.join();
-            destroy_manager::return_room();
         }
     }
 
