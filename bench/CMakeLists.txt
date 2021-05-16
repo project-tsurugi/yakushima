@@ -24,7 +24,10 @@ target_link_libraries(yakushima_bench
         PRIVATE Threads::Threads
         PRIVATE gflags::gflags
         PRIVATE tbb
+        PRIVATE tbbmalloc
+        PRIVATE tbbmalloc_proxy
         )
+
 if (PERFORMANCE_TOOLS)
     target_link_libraries(yakushima_bench
             PRIVATE performance-tools::api
