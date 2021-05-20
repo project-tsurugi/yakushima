@@ -1,8 +1,8 @@
-build_essential
+build-essential
 clang-tidy-8
 cmake
 doxygen
-gcover
+gcovr
 git
 gnuplot
 libboost-filesystem-dev
