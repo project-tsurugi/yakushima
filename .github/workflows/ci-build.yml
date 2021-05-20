@@ -4,10 +4,14 @@ on: [push, pull_request]
 
 jobs:
   Build:
+    strategy:
+      fail-fast: false
+      matrix:
+        container-tag: [ubuntu-18.04, ubuntu-20.04]
     runs-on: [self-hosted, docker]
     timeout-minutes: 30
     container:
-      image:  ghcr.io/project-tsurugi/oltp-sandbox:latest
+      image:  ghcr.io/project-tsurugi/oltp-sandbox:${{ matrix.container-tag }}
       credentials:
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GHCR_PAT }}
@@ -66,6 +70,8 @@ jobs:
         name: Generate_Annotations
         uses: ./.github/actions/tsurugi-annotations-action
         if: always()
+        with:
+          matrix: ${{ toJson(matrix) }}
 
       - id: Notify_Slack
         name: Notify_Slack
@@ -73,6 +79,7 @@ jobs:
         if: always() && (contains(github.ref, '/tags/') || contains(github.ref, '/pull/') || contains(github.ref, '/heads/master'))
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          MATRIX_CONTEXT: ${{ toJson(matrix) }}
         with:
           kind: 'job-result'
           channel: 'tsurugi-dev'
