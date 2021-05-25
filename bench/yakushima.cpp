@@ -25,7 +25,6 @@
 #include "atomic_wrapper.h"
 #include "clock.h"
 #include "cpu.h"
-#include "logger.h"
 
 // yakushima/bench/include
 #include "affinity.h"
@@ -65,27 +64,22 @@ static void check_flags() {
               << "value_size :\t\t" << FLAGS_value_size << std::endl;
 
     if (FLAGS_thread == 0) {
-        std::cerr << "Number of threads must be larger than 0." << std::endl;
-        exit(1);
+        LOG(FATAL) << "Number of threads must be larger than 0.";
     }
 
     if (FLAGS_get_initial_record == 0 && FLAGS_instruction == "get") {
-        std::cerr << "It can't execute get bench against 0 size table." << std::endl;
-        exit(1);
+        LOG(FATAL) << "It can't execute get bench against 0 size table.";
     }
 
     if (FLAGS_duration == 0) {
-        std::cerr << "Duration of benchmark in seconds must be larger than 0." << std::endl;
-        exit(1);
+        LOG(FATAL) << "Duration of benchmark in seconds must be larger than 0.";
     }
     if (FLAGS_instruction != "insert" && FLAGS_instruction != "put" && FLAGS_instruction != "get") {
-        std::cerr << "The instruction option must be insert or put or get. The default is insert." << std::endl;
-        exit(1);
+        LOG(FATAL) << "The instruction option must be insert or put or get. The default is insert.";
     }
 
     if (FLAGS_get_skew < 0 || FLAGS_get_skew > 1) {
-        std::cerr << "access skew must be in the range 0 to 0.999..." << std::endl;
-        exit(1);
+        LOG(FATAL) << "access skew must be in the range 0 to 0.999...";
     }
 }
 
@@ -169,8 +163,7 @@ void get_worker(const size_t thid, char& ready, const bool& start, const bool& q
         std::string key{static_cast<char*>(p), sizeof(std::uint64_t)};
         std::tuple<char*, std::size_t> ret = get<char>(bench_storage, std::string_view(key));
         if (std::get<0>(ret) == nullptr) {
-            std::cout << __FILE__ << " : " << __LINE__ << " : fatal error." << std::endl;
-            std::abort();
+            LOG(FATAL) << "fatal error";
         }
         ++local_res;
     }
@@ -205,18 +198,14 @@ void put_worker(const size_t thid, char& ready, const bool& start, const bool& q
         try {
             put(bench_storage, std::string_view(key), value.data(), value.size());
         } catch (std::bad_alloc&) {
-            std::cout << __FILE__ << " : " << __LINE__ << "bad_alloc. Please set less duration." << std::endl;
-            std::abort();
+            LOG(FATAL) << "bad_alloc. Please set less duration.";
         }
         ++local_res;
         if (loadAcquireN(quit)) {
             break;
         }
         if (i == right_edge - 1) {
-            std::cout << __FILE__ << " : " << __LINE__
-                      << " : This experiments fails. Please set less duration."
-                      << std::endl;
-            std::abort();
+            LOG(FATAL) << "This experiments fails. Please set less duration.";
         }
     }
 #ifdef PERFORMANCE_TOOLS
@@ -247,8 +236,7 @@ static void invoke_leader() try {
     } else if (FLAGS_instruction == "put") {
         std::cout << "put" << std::endl;
     } else {
-        std::cout << "[error] invalid instruction." << std::endl;
-        exit(1);
+        LOG(FATAL) << "[error] invalid instruction.";
     }
 
     std::vector<char> readys(FLAGS_thread);
@@ -280,9 +268,7 @@ static void invoke_leader() try {
     std::uint64_t fin_res{0};
     for (std::uint64_t i = 0; i < FLAGS_thread; ++i) {
         if ((UINT64_MAX - fin_res) < res[i]) {
-            std::cout << __FILE__ << " : " << __LINE__ << " : experimental setting is bad, which leads to overflow."
-                      << std::endl;
-            exit(1);
+            LOG(FATAL) << "experimental setting is bad, which leads to overflow.";
         }
         fin_res += res[i];
     }
@@ -301,13 +287,12 @@ static void invoke_leader() try {
     std::cout << "performance_counter: " << sum << " fin_res: " << fin_res << std::endl;
 #endif
 } catch (...) {
-    std::cout << __FILE__ << " : " << __LINE__ << " : catch exception" << std::endl;
-    std::abort();
+    LOG(FATAL) << "catch exception";
 }
 
 
 int main(int argc, char* argv[]) {
-    logger::setup_spdlog();
+    google::InitGoogleLogging("yakushima-bench-yakushima");
     std::cout << "start yakushima bench." << std::endl;
     gflags::SetUsageMessage(static_cast<const std::string&>("micro-benchmark for yakushima"));
     gflags::ParseCommandLineFlags(&argc, &argv, true);
