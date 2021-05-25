@@ -72,6 +72,7 @@ function(register_tests)
         target_link_libraries(${test_name} PRIVATE gtest_main)
       endif ()
       target_link_libraries(${test_name} 
+              PRIVATE glog::glog
               PRIVATE Threads::Threads
               PRIVATE tbb
               PRIVATE tbbmalloc

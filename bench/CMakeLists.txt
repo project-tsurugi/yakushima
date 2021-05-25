@@ -21,6 +21,7 @@ add_executable(yakushima_bench
         )
 
 target_link_libraries(yakushima_bench
+        PRIVATE glog::glog
         PRIVATE Threads::Threads
         PRIVATE gflags::gflags
         PRIVATE tbb
@@ -52,6 +53,7 @@ add_executable(malloc_bench
         )
 
 target_link_libraries(malloc_bench
+        PRIVATE glog::glog
         PRIVATE Threads::Threads
         PRIVATE gflags::gflags
         )

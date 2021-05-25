@@ -6,8 +6,11 @@
 #include <thread>
 #include <tuple>
 
+#include <glog/logging.h>
+
 #include "gtest/gtest.h"
 
+#include "epoch.h"
 #include "kvs.h"
 
 using namespace yakushima;
@@ -29,51 +32,23 @@ protected:
 };
 
 TEST_F(garbage_collection, gc) { // NOLINT
-    constexpr std::size_t th_num = 5;
-    std::array<Token, th_num> token{};
-    constexpr std::size_t array_size = 40;
-    struct S {
-        static void work(std::array<std::tuple<std::string, std::string>, array_size>& kv, Token& token) {
-            for (std::size_t j = 0; j < 10; ++j) {
-                enter(token);
-                for (auto& i : kv) {
-                    std::string k(std::get<0>(i));
-                    std::string v(std::get<1>(i));
-                    status ret = put(test_storage_name, k, v.data(), v.size());
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
-                }
-                for (auto& i : kv) {
-                    std::string k(std::get<0>(i));
-                    std::string v(std::get<1>(i));
-                    status ret = remove(token, test_storage_name, k);
-                    if (ret != status::OK) {
-                        ASSERT_EQ(ret, status::OK);
-                        std::abort();
-                    }
-                }
-                leave(token);
-            }
-        }
-    };
-
-    std::array<std::array<std::tuple<std::string, std::string>, array_size>, th_num> kv{};
-    for (std::size_t i = 0; i < th_num; ++i) {
-        for (std::size_t j = 0; j < array_size; ++j) {
-            kv.at(i).at(j) = {std::to_string(i * array_size + j), std::string("value")};
-        }
+    Token token{};
+    std::string k{"k"};
+    std::string v{"k"};
+    ASSERT_EQ(status::OK, enter(token));
+    char** created_ptr{};
+    ASSERT_EQ(status::OK, put(test_storage_name, k, v.data(), v.size(), created_ptr, std::align_val_t(8)));
+    ASSERT_EQ(status::OK, remove(token, test_storage_name, k));
+    Epoch epo{epoch_management::get_epoch()};
+    LOG(INFO) << "epoch is " << epo;
+    ASSERT_EQ(status::OK, leave(token));
+    while (epoch_management::get_epoch() - epo < 10) {
+        /**
+         * Put enough sleep and let the background thread gc.
+         */
+        _mm_pause();
     }
-
-    std::array<std::thread, th_num> th_array{};
-    for (std::size_t i = 0; i < th_num; ++i) {
-        th_array.at(i) = std::thread(S::work, std::ref(kv.at(i)), std::ref(token.at(i)));
-    }
-
-    for (std::size_t i = 0; i < th_num; ++i) {
-        th_array.at(i).join();
-    }
+    LOG(INFO) << "final epoch is " << epoch_management::get_epoch();
 }
 
 } // namespace yakushima::testing
