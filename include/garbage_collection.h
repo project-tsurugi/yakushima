@@ -99,7 +99,8 @@ public:
             if (std::get<gc_epoch_index>(cache_value_container_) >= gc_epoch) {
                 return;
             }
-            ::operator delete(std::get<gc_target_index>(cache_value_container_));
+            ::operator delete(std::get<gc_target_index>(cache_value_container_), std::get<gc_target_size_index>(cache_value_container_),
+                              std::get<gc_target_align_index>(cache_value_container_));
             std::get<gc_target_index>(cache_value_container_) = nullptr;
         }
 
