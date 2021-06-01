@@ -259,7 +259,7 @@ border_split(tree_instance* ti, border_node* const border, std::string_view key_
          * attention : The parent border node had this border node as one of the next_layer before the split.
          * The pointer is exchanged for a new parent interior node.
          */
-        auto pb = dynamic_cast<border_node*>(p);
+        auto* pb = dynamic_cast<border_node*>(p);
         pb->set_version_inserting_deleting(true);
         interior_node* pi{};
         create_interior_parent_of_border<interior_node, border_node>(border, new_border, &pi);
@@ -281,7 +281,7 @@ border_split(tree_instance* ti, border_node* const border, std::string_view key_
         std::abort();
     }
 #endif
-    auto pi = dynamic_cast<interior_node*>(p);
+    auto* pi = dynamic_cast<interior_node*>(p);
     border->set_version_root(false);
     new_border->set_version_root(false);
     border->version_unlock();

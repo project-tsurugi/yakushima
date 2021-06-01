@@ -56,7 +56,7 @@ public:
     /**
      * @details display function for analysis and debug.
      */
-    void display() {
+    void display() const {
         std::cout << "need_delete_value_ : " << get_need_delete_value() << std::endl;
         std::cout << "next_layer_ : " << get_next_layer() << std::endl;
         std::cout << "v_or_vp_ : " << get_v_or_vp_() << std::endl;

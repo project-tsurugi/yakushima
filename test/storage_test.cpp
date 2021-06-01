@@ -29,7 +29,7 @@ TEST_F(st, simple_create_storage) { // NOLINT
     std::vector<std::pair<std::string, tree_instance*>> tuple;
     ASSERT_EQ(status::OK, list_storages(tuple));
     ASSERT_EQ(tuple.size(), 1);
-    tree_instance* ret_ti;
+    tree_instance* ret_ti{};
     ASSERT_EQ(find_storage(st1, &ret_ti), status::OK);
 }
 
@@ -40,7 +40,7 @@ TEST_F(st, simple_delete_storage) { // NOLINT
     std::vector<std::pair<std::string, tree_instance*>> tuple;
     ASSERT_EQ(status::WARN_NOT_EXIST, list_storages(tuple));
     ASSERT_EQ(tuple.size(), 0);
-    tree_instance* ret_ti;
+    tree_instance* ret_ti{};
     ASSERT_EQ(find_storage(st1, &ret_ti), status::WARN_NOT_EXIST);
 }
 
@@ -48,7 +48,7 @@ TEST_F(st, simple_find_storage) { // NOLINT
     std::string st1{"st1"};
     std::string st2{"st2"};
     ASSERT_EQ(status::OK, create_storage(st1));
-    tree_instance* ret_ti;
+    tree_instance* ret_ti{};
     ASSERT_EQ(find_storage(st1, &ret_ti), status::OK);
     ASSERT_EQ(find_storage(st1), status::OK);
     ASSERT_EQ(find_storage(st2, &ret_ti), status::WARN_NOT_EXIST);

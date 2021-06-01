@@ -87,7 +87,7 @@ public:
      */
     template<class interior_node, class border_node>
     static status leave_thread_info(Token token) {
-        auto target = static_cast<thread_info*>(token);
+        auto* target = static_cast<thread_info*>(token);
         target->set_begin_epoch(0);
         target->set_running(false);
         return status::OK;

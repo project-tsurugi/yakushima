@@ -144,7 +144,7 @@ interior_split(tree_instance* ti, interior_node* const interior, base_node* cons
 #endif
     if (p->get_version_border()) {
         p->set_version_inserting_deleting(true);
-        auto pb = dynamic_cast<border_node*>(p);
+        auto* pb = dynamic_cast<border_node*>(p);
         base_node* new_p{};
         create_interior_parent_of_interior<interior_node, border_node>(interior, new_interior,
                                                                        std::make_pair(pivot_key, pivot_length), &new_p);
@@ -157,7 +157,7 @@ interior_split(tree_instance* ti, interior_node* const interior, base_node* cons
         p->version_unlock();
         return;
     }
-    auto pi = dynamic_cast<interior_node*>(p);
+    auto* pi = dynamic_cast<interior_node*>(p);
     interior->version_unlock();
     new_interior->set_parent(pi);
     new_interior->version_unlock();
