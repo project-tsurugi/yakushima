@@ -84,7 +84,7 @@ jobs:
           MATRIX_CONTEXT: ${{ toJson(matrix) }}
         with:
           kind: 'job-result'
-          channel: 'tsurugi-dev'
+          channel: 'tsurugi-build'
           status: ${{ job.status }}
           step_context: ${{ toJson(steps) }}
           username: ${{ github.workflow }}
