@@ -10,7 +10,9 @@ Please refer to [yakushima/bench/CMakeLists.txt](./../bench/CMakeLists.txt).
 
 ## Example
 
-``` cpp
+### Sample program
+
+```cpp
 // You should include this only. This file is also interface.
 #include <yakushima/include/kvs.h>
 
@@ -37,7 +39,7 @@ int main() {
     // You can get some key-value.
     std::pair<char*, std::size_t> tuple = get<char>(table_name, k);
     // You can scan some key-values.
-    std::vector<std::pair<char*, std::size_t>> tuple_vec{};
+    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_vec{};
     std::vector<std::pair<node_version64_body, node_version64*>> nv;
     scan<char>(table_name, "", scan_endpoint::INCLUSIVE, "", scan_endpoint::INCLUSIVE, tuple_vec, &nv);
     // You can remove some key-value.
@@ -51,6 +53,23 @@ int main() {
     return 0;
 }
 ```
+
+### Compile sample program
+
+```sh
+g++ [sample_program_name] -I [path/to/yakushima directory] -lpthread -ltbb -std=c++1z
+```
+
+- -I [path/to/yakushima directory]
+Take the appropriate include path.
+Mutual inclusion of yakushima files uses relative paths, so you don't have to think about it.
+Please pass the path so that the include directive you wrote is valid.
+
+- lpthread -ltbb
+yakushima assumes the use of thread library and tbb library.
+
+- std=c++1z
+yakushima assumes the use of c ++ 17.
 
 ![Overview](./pic/Overview.pdf)
 

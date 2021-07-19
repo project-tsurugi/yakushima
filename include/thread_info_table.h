@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "config.h"
 #include "border_node.h"
 #include "interior_node.h"
 #include "thread_info.h"
