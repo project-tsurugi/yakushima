@@ -172,6 +172,7 @@ retry:
                 }
                 if (ret_cmp == 0) {
                     if (r_key.size() <= full_key.size()) {
+
                         return status::OK_SCAN_END;
                     }
                     arg_r_key = r_key;
@@ -229,13 +230,30 @@ retry:
                 continue;
             }
             // pass right endpoint.
+            if (tuple_pushed_num == 0 && node_version_vec != nullptr) {
+                /**
+                  * Since it is a rightmost node included in the range, it is included in the phantom verification. 
+                  * However, there were no elements included in the range.
+                  */
+                node_version_vec->emplace_back(std::make_pair(v_at_fb, bn->get_version_ptr()));
+            }
+
             return status::OK_SCAN_END;
         }
+    }
+
+    if (tuple_pushed_num == 0 && node_version_vec != nullptr) {
+        /**
+         * Since it is a leftmost node included in the range, it is included in the phantom verification. 
+         * However, there were no elements included in the range.
+         */
+        node_version_vec->emplace_back(std::make_pair(v_at_fb, bn->get_version_ptr()));
     }
 
     if (next == nullptr) {
         return status::OK_SCAN_END;
     }
+
     *target = next;
     v_at_fb = next->get_stable_version();
     return status::OK_SCAN_CONTINUE;

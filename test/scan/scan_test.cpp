@@ -43,7 +43,7 @@ TEST_F(st, scan_multiple_same_null_char_key_2) { // NOLINT
         ASSERT_EQ(status::OK,
                   scan(test_storage_name, std::string_view(k.at(i)), scan_endpoint::INCLUSIVE, "", scan_endpoint::INF, tuple_list, &nv));
         ASSERT_EQ(tuple_list.size(), ary_size - i);
-        ASSERT_EQ(tuple_list.size(), nv.size());
+        ASSERT_EQ(tuple_list.size() == nv.size() || tuple_list.size() + 1 == nv.size(), true);
         for (std::size_t j = i; j < ary_size; ++j) {
             ASSERT_EQ(memcmp(std::get<value_index>(tuple_list.at(j - i)), v.at(j).data(), v.at(j).size()), 0);
         }

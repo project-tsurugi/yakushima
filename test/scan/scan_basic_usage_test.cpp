@@ -45,7 +45,7 @@ TEST_F(st, basic_usage) { // NOLINT
     };
     auto verify_no_exist = [&tup_lis, &nv]() {
         if (!tup_lis.empty()) return false;
-        if (tup_lis.size() != nv.size()) return false;
+        if (nv.size() != 1) return false;
         return true;
     };
     ASSERT_EQ(status::OK, scan<char>(test_storage_name, "", scan_endpoint::INCLUSIVE, "", scan_endpoint::INCLUSIVE, tup_lis, &nv));

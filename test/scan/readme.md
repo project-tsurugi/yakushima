@@ -4,6 +4,9 @@
   * Test basic usage.
 * scan_max_num_test.cpp
   * Test with maximum number specified.
+* scan_no_elem_nodes_test.cpp
+  * Test the operation on some border nodes.  
+  One of them has elements in the range, but some border nodes in the range.
 * scan_one_border_test.cpp
   * Test the operation on one border node.
 * scan_test.cpp

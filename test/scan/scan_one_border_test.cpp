@@ -74,7 +74,7 @@ TEST_F(st, scan_against_single_put_non_null_key_to_one_border) { // NOLINT
     };
     auto verify_no_exist = [&tup_lis, &nv]() {
         if (!tup_lis.empty()) return false;
-        if (tup_lis.size() != nv.size()) return false;
+        if (nv.size() != 1) return false;
         return true;
     };
     ASSERT_EQ(status::OK, scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tup_lis, &nv));
