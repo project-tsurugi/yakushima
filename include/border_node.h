@@ -32,10 +32,13 @@ public:
      * @param[in] pos The position of being deleted.
      * @param[in] target_is_value
      */
-    void delete_at(Token token, const std::size_t rank, const std::size_t pos, const bool target_is_value) {
+    void delete_at(Token token, const std::size_t rank, const std::size_t pos,
+                   const bool target_is_value) {
         auto* ti = reinterpret_cast<thread_info*>(token); // NOLINT
         if (target_is_value) {
-            ti->get_gc_info().push_value_container({ti->get_begin_epoch(), lv_.at(pos).get_v_or_vp_(), lv_.at(pos).get_value_length(), lv_.at(pos).get_value_align()});
+            ti->get_gc_info().push_value_container(
+                    {ti->get_begin_epoch(), lv_.at(pos).get_v_or_vp_(),
+                     lv_.at(pos).get_value_length(), lv_.at(pos).get_value_align()});
         }
         init_border(pos);
 
@@ -55,7 +58,8 @@ public:
         for (std::size_t i = 0; i < cnk; ++i) {
             std::size_t index = permutation_.get_index_of_rank(i);
             if (child == lv_.at(index).get_next_layer()) {
-                delete_of<false>(token, ti, get_key_slice_at(index), get_key_length_at(index)); // NOLINT
+                delete_of<false>(token, ti, get_key_slice_at(index),
+                                 get_key_length_at(index)); // NOLINT
                 return;
             }
         }
@@ -87,7 +91,8 @@ public:
      * @param[in] target_is_value
      */
     template<bool target_is_value>
-    void delete_of(Token token, tree_instance* ti, const key_slice_type key_slice, const key_length_type key_slice_length) {
+    void delete_of(Token token, tree_instance* ti, const key_slice_type key_slice,
+                   const key_length_type key_slice_length) {
         set_version_inserting_deleting(true);
         /**
          * find position.
@@ -96,7 +101,9 @@ public:
         for (std::size_t i = 0; i < cnk; ++i) {
             std::size_t index = permutation_.get_index_of_rank(i);
             if ((key_slice_length == 0 && get_key_length_at(index) == 0) ||
-                (key_slice_length == get_key_length_at(index) && memcmp(&key_slice, &get_key_slice_ref().at(index), sizeof(key_slice_type)) == 0)) {
+                (key_slice_length == get_key_length_at(index) &&
+                 memcmp(&key_slice, &get_key_slice_ref().at(index),
+                        sizeof(key_slice_type)) == 0)) {
                 delete_at(token, i, index, target_is_value);
                 if (cnk == 1) { // attention : this cnk is before delete_at;
                     set_version_deleted(true);
@@ -107,15 +114,12 @@ public:
                     border_node* prev = get_prev();
                     if (prev != nullptr) {
                         prev->lock();
-                        if (prev->get_version_deleted() ||
-                            prev != get_prev()) {
+                        if (prev->get_version_deleted() || prev != get_prev()) {
                             prev->version_unlock();
                             goto retry_prev_lock; // NOLINT
                         } else {
                             prev->set_next(get_next());
-                            if (get_next() != nullptr) {
-                                get_next()->set_prev(prev);
-                            }
+                            if (get_next() != nullptr) { get_next()->set_prev(prev); }
                             prev->version_unlock();
                         }
                     } else if (get_next() != nullptr) {
@@ -133,11 +137,13 @@ public:
                         if (pn->get_version_border()) {
                             dynamic_cast<border_node*>(pn)->delete_of(token, ti, this);
                         } else {
-                            dynamic_cast<interior_node*>(pn)->delete_of<border_node>(token, ti, this);
+                            dynamic_cast<interior_node*>(pn)->delete_of<border_node>(
+                                    token, ti, this);
                         }
                     }
                     auto* tinfo = reinterpret_cast<thread_info*>(token); // NOLINT
-                    tinfo->get_gc_info().push_node_container({tinfo->get_begin_epoch(), this});
+                    tinfo->get_gc_info().push_node_container(
+                            {tinfo->get_begin_epoch(), this});
                 } else {
                     version_unlock();
                 }
@@ -147,7 +153,8 @@ public:
         /**
          * unreachable.
          */
-        std::cerr << __FILE__ << ": " << __LINE__ << " : it gets to unreachable points." << endl;
+        std::cerr << __FILE__ << ": " << __LINE__ << " : it gets to unreachable points."
+                  << endl;
         std::abort();
     }
 
@@ -158,9 +165,7 @@ public:
         display_base();
         cout << "border_node::display" << endl;
         permutation_.display();
-        for (std::size_t i = 0; i < get_permutation_cnk(); ++i) {
-            lv_.at(i).display();
-        }
+        for (std::size_t i = 0; i < get_permutation_cnk(); ++i) { lv_.at(i).display(); }
         cout << "next : " << get_next() << endl;
     }
 
@@ -176,9 +181,7 @@ public:
         for (std::size_t i = 0; i < cnk; ++i) {
             link_or_value* lv = get_lv_at(permutation_.get_index_of_rank(i));
             base_node* nl = lv->get_next_layer();
-            if (nl != nullptr) {
-                next_layers.emplace_back(nl);
-            }
+            if (nl != nullptr) { next_layers.emplace_back(nl); }
         }
     }
 
@@ -194,9 +197,7 @@ public:
     */
     [[maybe_unused]] [[nodiscard]] link_or_value* get_lv(base_node* const next_layer) {
         for (std::size_t i = 0; i < key_slice_length; ++i) {
-            if (lv_.at(i).get_next_layer() == next_layer) {
-                return &lv_.at(i);
-            }
+            if (lv_.at(i).get_next_layer() == next_layer) { return &lv_.at(i); }
         }
         /**
          * unreachable point.
@@ -220,8 +221,11 @@ public:
      * @param[out] rank for put function.
      * @return
      */
-    [[nodiscard]] link_or_value* get_lv_of(const key_slice_type key_slice, const key_length_type key_length,
-                                           node_version64_body& stable_v, std::size_t& lv_pos, std::size_t* rank = nullptr) {
+    [[nodiscard]] link_or_value* get_lv_of(const key_slice_type key_slice,
+                                           const key_length_type key_length,
+                                           node_version64_body& stable_v,
+                                           std::size_t& lv_pos,
+                                           std::size_t* rank = nullptr) {
         node_version64_body v = get_stable_version();
         for (;;) {
             /**
@@ -239,9 +243,12 @@ public:
                 if (key_length == 0 && target_key_len == 0) {
                     suc = true;
                 } else {
-                    auto ret = memcmp(&key_slice, &target_key_slice, sizeof(key_slice_type));
+                    auto ret =
+                            memcmp(&key_slice, &target_key_slice, sizeof(key_slice_type));
                     if (ret == 0) {
-                        if ((key_length > sizeof(key_slice_type) && target_key_len > sizeof(key_slice_type)) || key_length == target_key_len) {
+                        if ((key_length > sizeof(key_slice_type) &&
+                             target_key_len > sizeof(key_slice_type)) ||
+                            key_length == target_key_len) {
                             suc = true;
                         } else if (key_length < target_key_len) {
                             if (rank != nullptr) *rank = i;
@@ -268,13 +275,9 @@ public:
         }
     }
 
-    border_node* get_next() {
-        return loadAcquireN(next_);
-    }
+    border_node* get_next() { return loadAcquireN(next_); }
 
-    permutation& get_permutation() {
-        return permutation_;
-    }
+    permutation& get_permutation() { return permutation_; }
 
     [[nodiscard]] std::uint8_t get_permutation_cnk() const {
         return permutation_.get_cnk();
@@ -284,9 +287,7 @@ public:
         return permutation_.get_lowest_key_pos();
     }
 
-    border_node* get_prev() {
-        return loadAcquireN(prev_);
-    }
+    border_node* get_prev() { return loadAcquireN(prev_); }
 
     void init_border() {
         assign_empty_slot();
@@ -315,31 +316,23 @@ public:
      * set function does not execute lock function.
      * @details This function inits border node by using arguments.
      * @param[in] key_view
-     * @param[in] value_ptr
+     * @param[in] new_value
      * @param[out] created_value_ptr The pointer to created value in yakushima.
      * @param[in] root is the root node of the layer.
-     * @param[in] arg_value_length
-     * @param[in] value_align
      */
     template<class ValueType>
-    void init_border(std::string_view key_view,
-                     ValueType* const value_ptr,
-                     ValueType** const created_value_ptr,
-                     const bool root,
-                     const value_length_type arg_value_length,
-                     const value_align_type value_align) {
+    void init_border(std::string_view key_view, value const new_value,
+                     ValueType** const created_value_ptr, const bool root) {
         init_border();
         set_version_root(root);
         set_version_border(true);
         get_version_ptr()->atomic_inc_vinsert();
-        insert_lv_at(0, key_view, value_ptr, reinterpret_cast<void**>(created_value_ptr), arg_value_length, // NOLINT
-                     value_align, 0);
+        insert_lv_at(0, key_view, new_value, reinterpret_cast<void**>(created_value_ptr), // NOLINT
+                     0);
     }
 
     void init_border_member_range(const std::size_t start) {
-        for (auto i = start; i < lv_.size(); ++i) {
-            lv_.at(i).init_lv();
-        }
+        for (auto i = start; i < lv_.size(); ++i) { lv_.at(i).init_lv(); }
     }
 
     /**
@@ -352,12 +345,9 @@ public:
      * @param[in] value_align
      * @param[in] rank
      */
-    void insert_lv_at(const std::size_t index,
-                      std::string_view key_view,
-                      void* const value_ptr,
-                      void** const created_value_ptr,
-                      const value_length_type arg_value_length,
-                      const value_align_type value_align, std::size_t rank) {
+    void insert_lv_at(const std::size_t index, std::string_view key_view,
+                      value const new_value, void** const created_value_ptr,
+                      const std::size_t rank) {
         /**
          * @attention key_slice must be initialized to 0.
          * If key_view.size() is smaller than sizeof(key_slice_type),
@@ -381,14 +371,14 @@ public:
             /**
              * @attention next_layer_border is the root of next layer.
              */
-            next_layer_border->init_border(key_view, value_ptr, created_value_ptr, true, arg_value_length, value_align);
+            next_layer_border->init_border(key_view, new_value, created_value_ptr, true);
             next_layer_border->set_parent(this);
             set_lv_next_layer(index, next_layer_border);
         } else {
             memcpy(&key_slice, key_view.data(), key_view.size());
             set_key_slice_at(index, key_slice);
             set_key_length_at(index, static_cast<key_length_type>(key_view.size()));
-            set_lv_value(index, value_ptr, created_value_ptr, arg_value_length, value_align);
+            set_lv_value(index, new_value, created_value_ptr);
         }
         permutation_.inc_key_num();
         permutation_.insert(rank, index);
@@ -411,27 +401,27 @@ public:
         lv_.at(index).set(nlv);
     }
 
-    void set_lv_value(const std::size_t index,
-                      void* const value,
-                      void** const created_value_ptr,
-                      const value_length_type value_length,
-                      const value_align_type value_align) {
-        lv_.at(index).set_value({value, value_length, value_align}, created_value_ptr);
+    /**
+     * @brief set value to link_or_value.
+     * @param[in] index todo write
+     * @param[in] new_value todo write
+     * @param[out] created_value_ptr todo write
+     */
+    void set_lv_value(const std::size_t index, const value new_value,
+                      void** const created_value_ptr) {
+        lv_.at(index).set_value(new_value, created_value_ptr);
     }
 
     void set_lv_next_layer(const std::size_t index, base_node* const next_layer) {
         lv_.at(index).set_next_layer(next_layer);
     }
 
-    void set_next(border_node* const nnext) {
-        storeReleaseN(next_, nnext);
-    }
+    void set_next(border_node* const nnext) { storeReleaseN(next_, nnext); }
 
-    void set_prev(border_node* const prev) {
-        storeReleaseN(prev_, prev);
-    }
+    void set_prev(border_node* const prev) { storeReleaseN(prev_, prev); }
 
-    void shift_left_border_member(const std::size_t start_pos, const std::size_t shift_size) {
+    void shift_left_border_member(const std::size_t start_pos,
+                                  const std::size_t shift_size) {
         memmove(get_lv_at(start_pos - shift_size), get_lv_at(start_pos),
                 sizeof(link_or_value) * (key_slice_length - start_pos));
     }

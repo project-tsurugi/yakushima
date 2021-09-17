@@ -23,8 +23,8 @@ namespace yakushima {
  * node_version64_body is stable version of base_node*.
  */
 static std::tuple<border_node*, const node_version64_body>
-find_border(base_node* const root, const key_slice_type key_slice, const key_length_type key_slice_length,
-            status& special_status) {
+find_border(base_node* const root, const key_slice_type key_slice,
+            const key_length_type key_slice_length, status& special_status) {
 retry:
     base_node* n = root;
     node_version64_body v = n->get_stable_version();
@@ -44,10 +44,9 @@ descend:
     /**
      * @a n points to a interior_node object.
      */
-    base_node* n_child = dynamic_cast<interior_node*>(n)->get_child_of(key_slice, key_slice_length);
-    if (n_child != nullptr) {
-        ret_v = n_child->get_stable_version();
-    }
+    base_node* n_child =
+            dynamic_cast<interior_node*>(n)->get_child_of(key_slice, key_slice_length);
+    if (n_child != nullptr) { ret_v = n_child->get_stable_version(); }
     /**
      * As soon as you it finished operating the contents of node, read version (v_check).
      */

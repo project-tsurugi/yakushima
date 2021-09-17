@@ -21,22 +21,16 @@ public:
     public:
         key_tuple() = default;
 
-        key_tuple(key_slice_type slice, key_length_type length) : key_slice_(slice), key_length_(length) {}
+        key_tuple(key_slice_type slice, key_length_type length)
+            : key_slice_(slice), key_length_(length) {}
 
         bool operator<(const key_tuple& r) const {
-            if (key_length_ == 0) {
-                return true;
-            }
-            if (r.key_length_ == 0) {
-                return false;
-            }
-            int ret = memcmp(&key_slice_, &r.key_slice_, key_length_ < r.key_length_ ? key_length_ : r.key_length_);
-            if (ret < 0) {
-                return true;
-            }
-            if (ret == 0) {
-                return key_length_ < r.key_length_;
-            }
+            if (key_length_ == 0) { return true; }
+            if (r.key_length_ == 0) { return false; }
+            int ret = memcmp(&key_slice_, &r.key_slice_,
+                             key_length_ < r.key_length_ ? key_length_ : r.key_length_);
+            if (ret < 0) { return true; }
+            if (ret == 0) { return key_length_ < r.key_length_; }
             return false;
         }
 
@@ -44,21 +38,13 @@ public:
             return key_slice_ == r.key_slice_ && key_length_ == r.key_length_;
         }
 
-        [[nodiscard]] key_length_type get_key_length() const {
-            return key_length_;
-        }
+        [[nodiscard]] key_length_type get_key_length() const { return key_length_; }
 
-        [[nodiscard]] key_slice_type get_key_slice() const {
-            return key_slice_;
-        }
+        [[nodiscard]] key_slice_type get_key_slice() const { return key_slice_; }
 
-        void set_key_length(const key_length_type length) {
-            key_length_ = length;
-        }
+        void set_key_length(const key_length_type length) { key_length_ = length; }
 
-        void set_key_slice(const key_slice_type slice) {
-            key_slice_ = slice;
-        }
+        void set_key_slice(const key_slice_type slice) { key_slice_ = slice; }
 
     private:
         key_slice_type key_slice_{0};
@@ -67,9 +53,7 @@ public:
 
     virtual ~base_node() = default; // NOLINT
 
-    void atomic_set_version_root(const bool tf) {
-        version_.atomic_set_root(tf);
-    }
+    void atomic_set_version_root(const bool tf) { version_.atomic_set_root(tf); }
 
     /**
      * A virtual function is defined because It wants to distinguish the children class of the contents
@@ -88,12 +72,15 @@ public:
         version_.display();
         std::cout << "parent_ : " << get_parent() << std::endl;
         for (std::size_t i = 0; i < key_slice_length; ++i) {
-            std::cout << "key_slice_[" << i << "] : " << std::to_string(get_key_slice_at(i)) << std::endl;
-            std::cout << "key_length_[" << i << "] : " << std::to_string(get_key_length_at(i)) << std::endl;
+            std::cout << "key_slice_[" << i
+                      << "] : " << std::to_string(get_key_slice_at(i)) << std::endl;
+            std::cout << "key_length_[" << i
+                      << "] : " << std::to_string(get_key_length_at(i)) << std::endl;
         }
     }
 
-    [[nodiscard]] const std::array<key_length_type, key_slice_length>& get_key_length_ref() const {
+    [[nodiscard]] const std::array<key_length_type, key_slice_length>&
+    get_key_length_ref() const {
         return key_length_;
     }
 
@@ -101,7 +88,8 @@ public:
         return key_length_.at(index);
     }
 
-    [[nodiscard]] const std::array<key_slice_type, key_slice_length>& get_key_slice_ref() const {
+    [[nodiscard]] const std::array<key_slice_type, key_slice_length>&
+    get_key_slice_ref() const {
         return key_slice_;
     }
 
@@ -109,39 +97,26 @@ public:
         return key_slice_.at(index);
     }
 
-    [[maybe_unused]] [[nodiscard]] bool get_lock() const {
-        return version_.get_locked();
-    }
+    [[maybe_unused]] [[nodiscard]] bool get_lock() const { return version_.get_locked(); }
 
     [[nodiscard]] node_version64_body get_stable_version() const {
         return version_.get_stable_version();
     }
 
-    [[nodiscard]] base_node* get_parent() const {
-        return loadAcquireN(parent_);
-    }
+    [[nodiscard]] base_node* get_parent() const { return loadAcquireN(parent_); }
 
-    [[nodiscard]] node_version64_body get_version() const {
-        return version_.get_body();
-    }
+    [[nodiscard]] node_version64_body get_version() const { return version_.get_body(); }
 
-    [[nodiscard]] node_version64* get_version_ptr() {
-        return &version_;
-    }
+    [[nodiscard]] node_version64* get_version_ptr() { return &version_; }
 
-    [[nodiscard]] bool get_version_border() const {
-        return version_.get_border();
-    }
+    [[nodiscard]] bool get_version_border() const { return version_.get_border(); }
 
-    [[nodiscard]] bool get_version_deleted() const {
-        return version_.get_deleted();
-    }
+    [[nodiscard]] bool get_version_deleted() const { return version_.get_deleted(); }
 
-    [[nodiscard]] bool get_version_root() const {
-        return version_.get_root();
-    }
+    [[nodiscard]] bool get_version_root() const { return version_.get_root(); }
 
-    [[nodiscard]] node_version64_body::vinsert_delete_type get_version_vinsert_delete() const {
+    [[nodiscard]] node_version64_body::vinsert_delete_type
+    get_version_vinsert_delete() const {
         return version_.get_vinsert_delete();
     }
 
@@ -160,14 +135,10 @@ public:
      * @details init at @a pos as position.
      * @param[in] pos This is a position (index) to be initialized.
      */
-    void init_base(const std::size_t pos) {
-        set_key(pos, 0, 0);
-    }
+    void init_base(const std::size_t pos) { set_key(pos, 0, 0); }
 
     [[maybe_unused]] void init_base_member_range(const std::size_t start) {
-        for (std::size_t i = start; i < key_slice_length; ++i) {
-            set_key(i, 0, 0);
-        }
+        for (std::size_t i = start; i < key_slice_length; ++i) { set_key(i, 0, 0); }
     }
 
     /**
@@ -175,9 +146,7 @@ public:
      * @pre It didn't lock by myself.
      * @return void
      */
-    void lock() {
-        version_.lock();
-    }
+    void lock() { version_.lock(); }
 
     /**
      * @pre This function is called by split.
@@ -188,22 +157,22 @@ public:
             if (p == nullptr) return nullptr;
             p->lock();
             base_node* check = get_parent();
-            if (p == check) {
-                return p;
-            }
+            if (p == check) { return p; }
             p->version_unlock();
             p = check;
         }
     }
 
-    [[maybe_unused]] void move_key_to_base_range(base_node* const right, const std::size_t start) {
+    [[maybe_unused]] void move_key_to_base_range(base_node* const right,
+                                                 const std::size_t start) {
         for (auto i = start; i < key_slice_length; ++i) {
             right->set_key(i - start, get_key_slice_at(i), get_key_length_at(i));
             set_key(i, 0, 0);
         }
     }
 
-    void set_key(const std::size_t index, const key_slice_type key_slice, const key_length_type key_length) {
+    void set_key(const std::size_t index, const key_slice_type key_slice,
+                 const key_length_type key_length) {
         set_key_slice_at(index, key_slice);
         set_key_length_at(index, key_length);
     }
@@ -216,35 +185,29 @@ public:
         storeReleaseN(key_slice_.at(index), key_slice);
     }
 
-    void set_parent(base_node* const new_parent) {
-        storeReleaseN(parent_, new_parent);
-    }
+    void set_parent(base_node* const new_parent) { storeReleaseN(parent_, new_parent); }
 
-    [[maybe_unused]] void set_version(const node_version64_body nv) { // this function is used.
+    [[maybe_unused]] void
+    set_version(const node_version64_body nv) { // this function is used.
         version_.set_body(nv);
     }
 
-    void set_version_border(const bool tf) {
-        version_.atomic_set_border(tf);
-    }
+    void set_version_border(const bool tf) { version_.atomic_set_border(tf); }
 
-    void set_version_deleted(const bool tf) {
-        version_.atomic_set_deleted(tf);
-    }
+    void set_version_deleted(const bool tf) { version_.atomic_set_deleted(tf); }
 
     void set_version_inserting_deleting(const bool tf) {
         version_.atomic_set_inserting_deleting(tf);
     }
 
-    void set_version_root(const bool tf) {
-        version_.atomic_set_root(tf);
-    }
+    void set_version_root(const bool tf) { version_.atomic_set_root(tf); }
 
     [[maybe_unused]] void set_version_splitting(const bool tf) {
         version_.atomic_set_splitting(tf);
     }
 
-    void shift_left_base_member(const std::size_t start_pos, const std::size_t shift_size) {
+    void shift_left_base_member(const std::size_t start_pos,
+                                const std::size_t shift_size) {
         memmove(&key_slice_.at(start_pos - shift_size), &key_slice_.at(start_pos),
                 sizeof(key_slice_type) * (key_slice_length - start_pos));
         memmove(&key_length_.at(start_pos - shift_size), &key_length_.at(start_pos),
@@ -263,13 +226,9 @@ public:
      * @pre This node was already locked.
      * @return void
      */
-    void version_unlock() {
-        version_.unlock();
-    }
+    void version_unlock() { version_.unlock(); }
 
-    [[maybe_unused]] void version_atomic_inc_vinsert() {
-        version_.atomic_inc_vinsert();
-    }
+    [[maybe_unused]] void version_atomic_inc_vinsert() { version_.atomic_inc_vinsert(); }
 
     // slot operation
     std::size_t assign_empty_slot() {

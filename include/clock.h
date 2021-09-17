@@ -11,8 +11,8 @@
 
 namespace yakushima {
 
-[[maybe_unused]] static bool
-check_clock_span(uint64_t& start, uint64_t& stop, uint64_t threshold) {
+[[maybe_unused]] static bool check_clock_span(uint64_t& start, uint64_t& stop,
+                                              uint64_t threshold) {
     if (stop < start) {
         std::cerr << __FILE__ << " : " << __LINE__ << std::endl;
         std::abort();
@@ -21,8 +21,7 @@ check_clock_span(uint64_t& start, uint64_t& stop, uint64_t threshold) {
     return diff > threshold;
 }
 
-[[maybe_unused]] static void
-sleepMs(size_t ms) {
+[[maybe_unused]] static void sleepMs(size_t ms) {
     std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
 

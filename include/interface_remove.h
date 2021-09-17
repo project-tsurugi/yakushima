@@ -118,7 +118,7 @@ retry_fetch_lv:
     goto retry_find_border; // NOLINT
 }
 
-[[maybe_unused]] static status remove(Token token, std::string_view storage_name, std::string_view key_view) {
+[[maybe_unused]] static status remove(Token token, std::string_view storage_name, std::string_view key_view) { // NOLINT
     tree_instance* ti{};
     status ret{storage::find_storage(storage_name, &ti)};
     if (status::OK != ret) {

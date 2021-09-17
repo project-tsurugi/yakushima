@@ -46,7 +46,8 @@ public:
 
     void destroy_value() {
         if (get_need_delete_value()) {
-            ::operator delete(get_v_or_vp_(), static_cast<std::align_val_t>((get_value_align())));
+            ::operator delete(get_v_or_vp_(),
+                              static_cast<std::align_val_t>((get_value_align())));
         }
         set_need_delete(false);
         set_v_or_vp(nullptr);
@@ -62,38 +63,25 @@ public:
         std::cout << "next_layer_ : " << get_next_layer() << std::endl;
         std::cout << "v_or_vp_ : " << get_v_or_vp_() << std::endl;
         std::cout << "value_length_ : " << get_value_length() << std::endl;
-        std::cout << "value_align_ : " << static_cast<std::size_t>(get_value_align()) << std::endl;
+        std::cout << "value_align_ : " << static_cast<std::size_t>(get_value_align())
+                  << std::endl;
     }
 
-    [[nodiscard]] bool get_need_delete_value() const {
-        return need_delete_;
-    }
+    [[nodiscard]] bool get_need_delete_value() const { return need_delete_; }
 
-    [[nodiscard]] base_node* get_next_layer() const {
-        return loadAcquireN(next_layer_);
-    }
+    [[nodiscard]] base_node* get_next_layer() const { return loadAcquireN(next_layer_); }
 
     [[maybe_unused]] [[nodiscard]] const std::type_info* get_lv_type() const {
-        if (get_next_layer() != nullptr) {
-            return &typeid(get_next_layer());
-        }
-        if (get_v_or_vp_() != nullptr) {
-            return &typeid(get_v_or_vp_());
-        }
+        if (get_next_layer() != nullptr) { return &typeid(get_next_layer()); }
+        if (get_v_or_vp_() != nullptr) { return &typeid(get_v_or_vp_()); }
         return &typeid(nullptr);
     }
 
-    [[nodiscard]] void* get_v_or_vp_() const {
-        return value_.get_body();
-    }
+    [[nodiscard]] void* get_v_or_vp_() const { return value_.get_body(); }
 
-    [[nodiscard]] value_align_type get_value_align() const {
-        return value_.get_align();
-    }
+    [[nodiscard]] value_align_type get_value_align() const { return value_.get_align(); }
 
-    [[nodiscard]] value_length_type get_value_length() const {
-        return value_.get_len();
-    }
+    [[nodiscard]] value_length_type get_value_length() const { return value_.get_len(); }
 
     void init_lv() {
         set_need_delete(false);
@@ -134,11 +122,10 @@ public:
              * It use copy assign, so ValueType must be copy-assignable.
              */
             // todo inline 8 bytes value.
-            set_v_or_vp(::operator new(new_value.get_len(),
-                                       static_cast<std::align_val_t>(new_value.get_align())));
-            if (created_value_ptr != nullptr) {
-                *created_value_ptr = get_v_or_vp_();
-            }
+            set_v_or_vp(
+                    ::operator new(new_value.get_len(),
+                                   static_cast<std::align_val_t>(new_value.get_align())));
+            if (created_value_ptr != nullptr) { *created_value_ptr = get_v_or_vp_(); }
             memcpy(get_v_or_vp_(), new_value.get_body(), new_value.get_len());
             set_need_delete(true);
         } catch (std::bad_alloc& e) {
@@ -154,7 +141,8 @@ public:
      * @param[out] old_value todo write
      * @param[out] created_value_ptr todo write
      */
-    void set_value(value const new_value, value& old_value, void** const created_value_ptr) {
+    void set_value(value const new_value, value& old_value,
+                   void** const created_value_ptr) {
         if (get_need_delete_value()) {
             old_value = value_;
             set_need_delete(false);
@@ -168,10 +156,10 @@ public:
             /**
              * It use copy assign, so ValueType must be copy-assignable.
              */
-            set_v_or_vp(::operator new(new_value.get_len(), static_cast<std::align_val_t>(new_value.get_align())));
-            if (created_value_ptr != nullptr) {
-                *created_value_ptr = get_v_or_vp_();
-            }
+            set_v_or_vp(
+                    ::operator new(new_value.get_len(),
+                                   static_cast<std::align_val_t>(new_value.get_align())));
+            if (created_value_ptr != nullptr) { *created_value_ptr = get_v_or_vp_(); }
             memcpy(get_v_or_vp_(), new_value.get_body(), new_value.get_len());
             set_need_delete(true);
         } catch (std::bad_alloc& e) {
@@ -189,21 +177,13 @@ public:
         storeReleaseN(next_layer_, new_next_layer);
     }
 
-    void set_v_or_vp(void* const v) {
-        value_.set_body(v);
-    }
+    void set_v_or_vp(void* const v) { value_.set_body(v); }
 
-    void set_value_align(const value_align_type align) {
-        value_.set_align(align);
-    }
+    void set_value_align(const value_align_type align) { value_.set_align(align); }
 
-    void set_value_length(const value_length_type len) {
-        value_.set_len(len);
-    }
+    void set_value_length(const value_length_type len) { value_.set_len(len); }
 
-    void set_need_delete(const bool tf) {
-        need_delete_ = tf;
-    }
+    void set_need_delete(const bool tf) { need_delete_ = tf; }
 
 private:
     /**

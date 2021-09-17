@@ -15,8 +15,10 @@ namespace yakushima {
 
 template<class ValueType>
 [[maybe_unused]] static status
-put(tree_instance* ti, std::string_view key_view, ValueType* value, std::size_t arg_value_length = sizeof(ValueType),
-    ValueType** created_value_ptr = nullptr, value_align_type value_align = static_cast<value_align_type>(alignof(ValueType)),
+put(tree_instance* ti, std::string_view key_view, ValueType* value_ptr,
+    std::size_t arg_value_length = sizeof(ValueType),
+    ValueType** created_value_ptr = nullptr,
+    value_align_type value_align = static_cast<value_align_type>(alignof(ValueType)),
     node_version64** inserted_node_version_ptr = nullptr) {
 
 root_nullptr:
@@ -26,15 +28,14 @@ root_nullptr:
          * root is nullptr, so put single border nodes.
          */
         border_node* new_border = new border_node(); // NOLINT
-        new_border->init_border(key_view, value, created_value_ptr, true, arg_value_length, value_align);
+        new_border->init_border(key_view, {value_ptr, arg_value_length, value_align},
+                                created_value_ptr, true);
         for (;;) {
             if (inserted_node_version_ptr != nullptr) {
                 *inserted_node_version_ptr = new_border->get_version_ptr();
             }
             base_node* desired{dynamic_cast<base_node*>(new_border)};
-            if (ti->cas_root_ptr(&expected, &desired)) {
-                return status::OK;
-            }
+            if (ti->cas_root_ptr(&expected, &desired)) { return status::OK; }
             if (expected != nullptr) {
                 // root is not nullptr;
                 new_border->destroy();
@@ -70,8 +71,8 @@ retry_find_border:
      * traverse tree to border node.
      */
     status special_status{status::OK};
-    std::tuple<border_node*, node_version64_body> node_and_v = find_border(root, key_slice, key_slice_length,
-                                                                           special_status);
+    std::tuple<border_node*, node_version64_body> node_and_v =
+            find_border(root, key_slice, key_slice_length, special_status);
     if (special_status == status::WARN_RETRY_FROM_ROOT_OF_ALL) {
         /**
          * @a root is the root node of the some layer, but it was deleted.
@@ -88,11 +89,13 @@ retry_fetch_lv:
     node_version64_body v_at_fetch_lv{};
     [[maybe_unused]] std::size_t lv_pos{0};
     std::size_t rank{};
-    link_or_value* lv_ptr = target_border->get_lv_of(key_slice, key_slice_length, v_at_fetch_lv, lv_pos, &rank);
+    link_or_value* lv_ptr = target_border->get_lv_of(key_slice, key_slice_length,
+                                                     v_at_fetch_lv, lv_pos, &rank);
     /**
      * check whether it should insert into this node.
      */
-    if ((v_at_fetch_lv.get_vsplit() != v_at_fb.get_vsplit()) || v_at_fetch_lv.get_deleted()) {
+    if ((v_at_fetch_lv.get_vsplit() != v_at_fb.get_vsplit()) ||
+        v_at_fetch_lv.get_deleted()) {
         /**
          * It may be change the correct border between atomically fetching border node and atomically fetching lv.
          */
@@ -114,7 +117,8 @@ retry_fetch_lv:
         /**
          * Here, border node is the correct.
          */
-        if (target_border->get_version_vinsert_delete() != v_at_fetch_lv.get_vinsert_delete()) { // It may exist lv_ptr
+        if (target_border->get_version_vinsert_delete() !=
+            v_at_fetch_lv.get_vinsert_delete()) { // It may exist lv_ptr
             /**
              * next_layers may be wrong. However, when it rechecks the next_layers, it can't get the lock down,
              * so it have to try again.
@@ -123,9 +127,10 @@ retry_fetch_lv:
             target_border->version_unlock();
             goto retry_fetch_lv; // NOLINT
         }
-        insert_lv<interior_node, border_node>(ti, target_border, traverse_key_view, value,
-                                              reinterpret_cast<void**>(created_value_ptr), arg_value_length, // NOLINT
-                                              value_align, inserted_node_version_ptr, rank);
+        insert_lv<interior_node, border_node>(
+                ti, target_border, traverse_key_view, value_ptr,
+                reinterpret_cast<void**>(created_value_ptr), arg_value_length, // NOLINT
+                value_align, inserted_node_version_ptr, rank);
         return status::OK;
     }
 
@@ -137,12 +142,18 @@ retry_fetch_lv:
         if (key_slice_length <= sizeof(key_slice_type)) {
 #if 0
             target_border->lock();
-            void* old_value{};
-            lv_ptr->set_value(reinterpret_cast<void**>(&old_value), 
-            reinterpret_cast<void**>(created_value_ptr), arg_value_length, value_align); // NOLINT
+            value old_value{};
+            lv_ptr->set_value({reinterpret_cast<void*>(value_ptr), arg_value_length, // NOLINT
+                               value_align},
+                              old_value,
+                              reinterpret_cast<void**>(created_value_ptr)); // NOLINT
             target_border->version_unlock();
             thread_info* thin = reinterpret_cast<thread_info*>(token);
-            thin->get_gc_info().push_value_container({thin->get_begin_epoch(), old_value, });
+            if (old_value.get_body() != nullptr) {
+                thin->get_gc_info().push_value_container(
+                        {thin->get_begin_epoch(), old_value.get_body(),
+                         old_value.get_len(), old_value.get_align()});
+            }
             return status::OK;
 #endif
             return status::WARN_UNIQUE_RESTRICTION;
@@ -153,10 +164,12 @@ retry_fetch_lv:
          * The key length of lv pointer cannot be smaller than the key slice type.
          * Therefore, it was interrupted by a parallel operation.
          */
-        if (target_border->get_version_deleted() || target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
+        if (target_border->get_version_deleted() ||
+            target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
             goto retry_from_root; // NOLINT
         }
-        if (target_border->get_version_vinsert_delete() != v_at_fetch_lv.get_vinsert_delete()) {
+        if (target_border->get_version_vinsert_delete() !=
+            v_at_fetch_lv.get_vinsert_delete()) {
             goto retry_fetch_lv; // NOLINT
         }
     }
@@ -168,15 +181,17 @@ retry_fetch_lv:
      * check whether border is still correct.
      */
     node_version64_body final_check = target_border->get_stable_version();
-    if (final_check.get_deleted() ||                        // this border was deleted.
-        final_check.get_vsplit() != v_at_fb.get_vsplit()) { // this border may be incorrect.
-        goto retry_from_root;                               // NOLINT
+    if (final_check.get_deleted() || // this border was deleted.
+        final_check.get_vsplit() !=
+                v_at_fb.get_vsplit()) { // this border may be incorrect.
+        goto retry_from_root;           // NOLINT
     }
     /**
      * check whether fetching lv is still correct.
      */
-    if (final_check.get_vinsert_delete() != v_at_fetch_lv.get_vinsert_delete()) { // fetched lv may be deleted
-        goto retry_fetch_lv;                                                      // NOLINT
+    if (final_check.get_vinsert_delete() !=
+        v_at_fetch_lv.get_vinsert_delete()) { // fetched lv may be deleted
+        goto retry_fetch_lv;                  // NOLINT
     }
     /**
      * root was fetched correctly.
@@ -188,14 +203,15 @@ retry_fetch_lv:
 
 template<class ValueType>
 [[maybe_unused]] static status
-put(std::string_view storage_name, std::string_view key_view, ValueType* value, std::size_t arg_value_length = sizeof(ValueType),
-    ValueType** created_value_ptr = nullptr, value_align_type value_align = static_cast<value_align_type>(alignof(ValueType)),
+put(std::string_view storage_name, std::string_view key_view, ValueType* value_ptr,
+    std::size_t arg_value_length = sizeof(ValueType),
+    ValueType** created_value_ptr = nullptr,
+    value_align_type value_align = static_cast<value_align_type>(alignof(ValueType)),
     node_version64** inserted_node_version_ptr = nullptr) {
     tree_instance* ti{};
     status ret{storage::find_storage(storage_name, &ti)};
-    if (status::OK != ret) {
-        return ret;
-    }
-    return put(ti, key_view, value, arg_value_length, created_value_ptr, value_align, inserted_node_version_ptr);
+    if (status::OK != ret) { return ret; }
+    return put(ti, key_view, value_ptr, arg_value_length, created_value_ptr, value_align,
+               inserted_node_version_ptr);
 }
 } // namespace yakushima

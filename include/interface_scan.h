@@ -13,9 +13,11 @@ namespace yakushima {
 
 template<class ValueType>
 [[maybe_unused]] static status
-scan(tree_instance* ti, std::string_view l_key, scan_endpoint l_end, std::string_view r_key, scan_endpoint r_end,
+scan(tree_instance* ti, std::string_view l_key, scan_endpoint l_end,
+     std::string_view r_key, scan_endpoint r_end,
      std::vector<std::tuple<std::string, ValueType*, std::size_t>>& tuple_list,
-     std::vector<std::pair<node_version64_body, node_version64*>>* node_version_vec, std::size_t max_size) {
+     std::vector<std::pair<node_version64_body, node_version64*>>* node_version_vec,
+     std::size_t max_size) {
     /**
      * Prohibition : std::string_view{nullptr, non-zero value}.
      */
@@ -34,21 +36,18 @@ scan(tree_instance* ti, std::string_view l_key, scan_endpoint l_end, std::string
      * , only one point that matches the endpoint can be scanned.
      * 2 : l_key == r_key &&  l_end == r_end == scan_endpoint::INF, all range.
      */
-    if (l_key == r_key && (l_end == scan_endpoint::EXCLUSIVE || r_end == scan_endpoint::EXCLUSIVE)) {
+    if (l_key == r_key &&
+        (l_end == scan_endpoint::EXCLUSIVE || r_end == scan_endpoint::EXCLUSIVE)) {
         return status::ERR_BAD_USAGE;
     }
 
     tuple_list.clear();
-    if (node_version_vec != nullptr) {
-        node_version_vec->clear();
-    }
+    if (node_version_vec != nullptr) { node_version_vec->clear(); }
 retry_from_root:
     std::string key_prefix;
     base_node* root = ti->load_root_ptr();
 
-    if (root == nullptr) {
-        return status::OK_ROOT_IS_NULL;
-    }
+    if (root == nullptr) { return status::OK_ROOT_IS_NULL; }
     std::string_view traverse_key_view{l_key};
 
     /**
@@ -67,8 +66,8 @@ retry_from_root:
      * traverse tree to border node.
      */
     status check_status{status::OK};
-    std::tuple<border_node*, node_version64_body> node_and_v = find_border(root, key_slice, key_slice_length,
-                                                                           check_status);
+    std::tuple<border_node*, node_version64_body> node_and_v =
+            find_border(root, key_slice, key_slice_length, check_status);
     if (check_status == status::WARN_RETRY_FROM_ROOT_OF_ALL) {
         /**
          * @a root is the root node of the some layer, but it was deleted.
@@ -82,14 +81,12 @@ retry_from_root:
 
     // here, it decides to scan from this nodes.
     for (;;) {
-        check_status = scan_border<ValueType>(&target_border, traverse_key_view, l_end, r_key, r_end,
-                                              tuple_list, std::get<tuple_v_index>(node_and_v), node_version_vec, key_prefix, max_size);
-        if (check_status == status::OK_SCAN_END) {
-            return status::OK;
-        }
-        if (check_status == status::OK_SCAN_CONTINUE) {
-            continue;
-        }
+        check_status = scan_border<ValueType>(&target_border, traverse_key_view, l_end,
+                                              r_key, r_end, tuple_list,
+                                              std::get<tuple_v_index>(node_and_v),
+                                              node_version_vec, key_prefix, max_size);
+        if (check_status == status::OK_SCAN_END) { return status::OK; }
+        if (check_status == status::OK_SCAN_CONTINUE) { continue; }
         if (check_status == status::OK_RETRY_FROM_ROOT) {
             goto retry_from_root; // NOLINT
         } else {
@@ -102,9 +99,12 @@ retry_from_root:
 
 template<class ValueType>
 [[maybe_unused]] static status
-scan(std::string_view storage_name, std::string_view l_key, scan_endpoint l_end, std::string_view r_key, scan_endpoint r_end,
+scan(std::string_view storage_name, std::string_view l_key, scan_endpoint l_end, // NOLINT
+     std::string_view r_key, scan_endpoint r_end,
      std::vector<std::tuple<std::string, ValueType*, std::size_t>>& tuple_list,
-     std::vector<std::pair<node_version64_body, node_version64*>>* node_version_vec = nullptr, std::size_t max_size = 0) {
+     std::vector<std::pair<node_version64_body, node_version64*>>* node_version_vec =
+             nullptr,
+     std::size_t max_size = 0) {
     // check storage
     tree_instance* ti{};
     if (storage::find_storage(storage_name, &ti) != status::OK) {

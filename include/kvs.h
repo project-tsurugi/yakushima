@@ -79,7 +79,8 @@ namespace yakushima {
  * @return status::OK if existence.
  * @return status::WARN_NOT_EXIST if not existence.
  */
-[[maybe_unused]] static status find_storage(std::string_view storage_name, tree_instance** found_storage = nullptr) {
+[[maybe_unused]] static status find_storage(std::string_view storage_name,
+                                            tree_instance** found_storage = nullptr) {
     return storage::find_storage(storage_name, found_storage);
 }
 
@@ -92,7 +93,8 @@ namespace yakushima {
  * @return status::OK if it found.
  * @return status::WARN_NOT_EXIST if it found no storage.
  */
-[[maybe_unused]] static status list_storages(std::vector<std::pair<std::string, tree_instance*>>& out) {
+[[maybe_unused]] static status
+list_storages(std::vector<std::pair<std::string, tree_instance*>>& out) {
     return storage::list_storages(out);
 }
 
@@ -122,7 +124,8 @@ namespace yakushima {
  * @return std::pair<ValueType *, std::size_t> The pair of pointer to value and the value size.
  */
 template<class ValueType>
-[[maybe_unused]] static std::pair<ValueType*, std::size_t> get(std::string_view storage_name, std::string_view key_view); // NOLINT
+[[maybe_unused]] static std::pair<ValueType*, std::size_t>
+get(std::string_view storage_name, std::string_view key_view); // NOLINT
 
 /**
  * @biref Put the value with given @a key_view.
@@ -135,7 +138,7 @@ template<class ValueType>
  * @param[in] token todo write
  * @param[in] storage_name todo write
  * @param[in] key_view The key_view of key-value.
- * @param[in] value The pointer to given value.
+ * @param[in] value_ptr The pointer to given value.
  * @param[out] created_value_ptr The pointer to created value in yakushima. Default is @a nullptr.
  * @param[in] arg_value_length The length of value object. Default is @a sizeof(ValueType).
  * @param[in] value_align The alignment information of value object. Default is @a static_cast<value_align_type>(alignof(ValueType)).
@@ -146,7 +149,9 @@ template<class ValueType>
  */
 template<class ValueType>
 [[maybe_unused]] static status
-put(Token token, std::string_view storage_name, std::string_view key_view, ValueType* value, std::size_t arg_value_length, ValueType** created_value_ptr, // NOLINT
+put(Token token, std::string_view storage_name, std::string_view key_view,
+    ValueType* value_ptr, std::size_t arg_value_length,
+    ValueType** created_value_ptr, // NOLINT
     value_align_type value_align, node_version64** inserted_node_version_ptr);
 
 /**
@@ -155,7 +160,8 @@ put(Token token, std::string_view storage_name, std::string_view key_view, Value
  * @param[in] key_view The key_view of key-value.
  * @return status::OK_ROOT_IS_NULL No existing tree.
  */
-[[maybe_unused]] static status remove(Token token, std::string_view storage_name, std::string_view key_view); // NOLINT
+[[maybe_unused]] static status remove(Token token, std::string_view storage_name, // NOLINT
+                                      std::string_view key_view);
 
 /**
  * TODO : add new 3 modes : try-mode : 1 trial : wait-mode : try until success : mid-mode : middle between try and wait.
@@ -187,8 +193,10 @@ put(Token token, std::string_view storage_name, std::string_view key_view, Value
  */
 template<class ValueType>
 [[maybe_unused]] static status
-scan(std::string_view storage_name, std::string_view l_key, scan_endpoint l_end, std::string_view r_key, scan_endpoint r_end, // NOLINT
+scan(std::string_view storage_name, std::string_view l_key, scan_endpoint l_end, // NOLINT
+     std::string_view r_key, scan_endpoint r_end,
      std::vector<std::tuple<std::string, ValueType*, std::size_t>>& tuple_list,
-     std::vector<std::pair<node_version64_body, node_version64*>>* node_version_vec, std::size_t max_size);
+     std::vector<std::pair<node_version64_body, node_version64*>>* node_version_vec,
+     std::size_t max_size);
 
 } // namespace yakushima
