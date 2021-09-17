@@ -135,6 +135,16 @@ retry_fetch_lv:
      */
     if (target_border->get_key_length_at(lv_pos) <= sizeof(key_slice_type)) {
         if (key_slice_length <= sizeof(key_slice_type)) {
+#if 0
+            target_border->lock();
+            void* old_value{};
+            lv_ptr->set_value(reinterpret_cast<void**>(&old_value), 
+            reinterpret_cast<void**>(created_value_ptr), arg_value_length, value_align); // NOLINT
+            target_border->version_unlock();
+            thread_info* thin = reinterpret_cast<thread_info*>(token);
+            thin->get_gc_info().push_value_container({thin->get_begin_epoch(), old_value, });
+            return status::OK;
+#endif
             return status::WARN_UNIQUE_RESTRICTION;
         }
         /**

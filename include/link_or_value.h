@@ -7,6 +7,7 @@
 #include "atomic_wrapper.h"
 #include "base_node.h"
 #include "cpu.h"
+#include "value.h"
 
 #include <new>
 #include <typeinfo>
@@ -45,9 +46,9 @@ public:
 
     void destroy_value() {
         if (get_need_delete_value()) {
-            ::operator delete(v_or_vp_, static_cast<std::align_val_t>((get_value_align())));
+            ::operator delete(get_v_or_vp_(), static_cast<std::align_val_t>((get_value_align())));
         }
-        set_need_delete_value(false);
+        set_need_delete(false);
         set_v_or_vp(nullptr);
         set_value_length(0);
         set_value_align(static_cast<std::align_val_t>(0));
@@ -65,7 +66,7 @@ public:
     }
 
     [[nodiscard]] bool get_need_delete_value() const {
-        return loadAcquireN(need_delete_value_);
+        return need_delete_;
     }
 
     [[nodiscard]] base_node* get_next_layer() const {
@@ -83,19 +84,19 @@ public:
     }
 
     [[nodiscard]] void* get_v_or_vp_() const {
-        return loadAcquireN(v_or_vp_);
+        return value_.get_body();
     }
 
     [[nodiscard]] value_align_type get_value_align() const {
-        return value_align_;
+        return value_.get_align();
     }
 
     [[nodiscard]] value_length_type get_value_length() const {
-        return loadAcquireN(value_length_);
+        return value_.get_len();
     }
 
     void init_lv() {
-        set_need_delete_value(false);
+        set_need_delete(false);
         set_next_layer(nullptr);
         set_v_or_vp(nullptr);
         set_value_length(0);
@@ -117,30 +118,62 @@ public:
     /**
      * @pre @a arg_value_length is divisible by sizeof( @a ValueType ).
      * @pre This function called at initialization.
-     * @param[in] vptr The pointer to source value object.
+     * @param[in] new_value todo write
      * @param[out] created_value_ptr The pointer to created value in yakushima.
-     * @param[in] arg_value_size The byte size of value.
-     * @param[in] value_align The alignment of value.
      */
-    void set_value(void* const vptr, void** const created_value_ptr, const std::size_t arg_value_size,
-                   const std::align_val_t value_align) {
+    void set_value(value const new_value, void** const created_value_ptr) {
         if (get_need_delete_value()) {
             ::operator delete(get_v_or_vp_(), get_value_length(), get_value_align());
-            set_need_delete_value(false);
+            set_need_delete(false);
         }
         set_next_layer(nullptr);
-        set_value_length(arg_value_size);
-        set_value_align(value_align);
+        set_value_length(new_value.get_len());
+        set_value_align(new_value.get_align());
         try {
             /**
              * It use copy assign, so ValueType must be copy-assignable.
              */
-            set_v_or_vp(::operator new(arg_value_size, static_cast<std::align_val_t>(value_align)));
+            // todo inline 8 bytes value.
+            set_v_or_vp(::operator new(new_value.get_len(),
+                                       static_cast<std::align_val_t>(new_value.get_align())));
             if (created_value_ptr != nullptr) {
                 *created_value_ptr = get_v_or_vp_();
             }
-            memcpy(get_v_or_vp_(), vptr, arg_value_size);
-            set_need_delete_value(true);
+            memcpy(get_v_or_vp_(), new_value.get_body(), new_value.get_len());
+            set_need_delete(true);
+        } catch (std::bad_alloc& e) {
+            std::cout << e.what() << std::endl;
+            std::cerr << __FILE__ << ": " << __LINE__ << std::endl;
+            std::abort();
+        }
+    }
+
+    /**
+     * @brief for update operation. todo : write documents much.
+     * @param[in] new_value todo write
+     * @param[out] old_value todo write
+     * @param[out] created_value_ptr todo write
+     */
+    void set_value(value const new_value, value& old_value, void** const created_value_ptr) {
+        if (get_need_delete_value()) {
+            old_value = value_;
+            set_need_delete(false);
+        } else {
+            old_value = value{};
+        }
+        set_next_layer(nullptr);
+        set_value_length(new_value.get_len());
+        set_value_align(new_value.get_align());
+        try {
+            /**
+             * It use copy assign, so ValueType must be copy-assignable.
+             */
+            set_v_or_vp(::operator new(new_value.get_len(), static_cast<std::align_val_t>(new_value.get_align())));
+            if (created_value_ptr != nullptr) {
+                *created_value_ptr = get_v_or_vp_();
+            }
+            memcpy(get_v_or_vp_(), new_value.get_body(), new_value.get_len());
+            set_need_delete(true);
         } catch (std::bad_alloc& e) {
             std::cout << e.what() << std::endl;
             std::cerr << __FILE__ << ": " << __LINE__ << std::endl;
@@ -156,20 +189,20 @@ public:
         storeReleaseN(next_layer_, new_next_layer);
     }
 
-    void set_v_or_vp(void* const new_v_or_vp) {
-        storeReleaseN(v_or_vp_, new_v_or_vp);
+    void set_v_or_vp(void* const v) {
+        value_.set_body(v);
     }
 
-    void set_value_align(const value_align_type new_value_align) {
-        value_align_ = new_value_align;
+    void set_value_align(const value_align_type align) {
+        value_.set_align(align);
     }
 
-    void set_value_length(const value_length_type new_value_length) {
-        storeReleaseN(value_length_, new_value_length);
+    void set_value_length(const value_length_type len) {
+        value_.set_len(len);
     }
 
-    void set_need_delete_value(const bool new_need_delete_value) {
-        storeReleaseN(need_delete_value_, new_need_delete_value);
+    void set_need_delete(const bool tf) {
+        need_delete_ = tf;
     }
 
 private:
@@ -180,25 +213,15 @@ private:
      * If this is not nullptr, it contains next_layer.
      */
     base_node* next_layer_{nullptr};
-    /**
-     * @details
-     * This variable is stored value body whose size is less than pointer or pointer to value.
-     * This variable is read/write concurrently.
-     */
-    void* v_or_vp_{nullptr};
+
+    value value_{};
+
     /**
      * @attention
      * This variable is read/write concurrently.
      * This variable is updated at initialization and destruction.
      */
-    value_length_type value_length_{0};
-    value_align_type value_align_{0};
-    /**
-     * @attention
-     * This variable is read/write concurrently.
-     * This variable is updated at initialization and destruction.
-     */
-    bool need_delete_value_{false};
+    bool need_delete_{false};
 };
 
 } // namespace yakushima

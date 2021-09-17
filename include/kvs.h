@@ -132,6 +132,8 @@ template<class ValueType>
  * In the cases where this is likely to cause problems and when inserting_deleting an array object,
  * the value size and value alignment information should be specified explicitly.
  * This is because sizeof for a type represents a single object size.
+ * @param[in] token todo write
+ * @param[in] storage_name todo write
  * @param[in] key_view The key_view of key-value.
  * @param[in] value The pointer to given value.
  * @param[out] created_value_ptr The pointer to created value in yakushima. Default is @a nullptr.
@@ -144,7 +146,7 @@ template<class ValueType>
  */
 template<class ValueType>
 [[maybe_unused]] static status
-put(std::string_view storage_name, std::string_view key_view, ValueType* value, std::size_t arg_value_length, ValueType** created_value_ptr, // NOLINT
+put(Token token, std::string_view storage_name, std::string_view key_view, ValueType* value, std::size_t arg_value_length, ValueType** created_value_ptr, // NOLINT
     value_align_type value_align, node_version64** inserted_node_version_ptr);
 
 /**

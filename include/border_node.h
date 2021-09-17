@@ -414,9 +414,9 @@ public:
     void set_lv_value(const std::size_t index,
                       void* const value,
                       void** const created_value_ptr,
-                      const value_length_type arg_value_length,
+                      const value_length_type value_length,
                       const value_align_type value_align) {
-        lv_.at(index).set_value(value, created_value_ptr, arg_value_length, value_align);
+        lv_.at(index).set_value({value, value_length, value_align}, created_value_ptr);
     }
 
     void set_lv_next_layer(const std::size_t index, base_node* const next_layer) {
