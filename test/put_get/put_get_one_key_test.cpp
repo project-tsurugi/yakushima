@@ -86,7 +86,7 @@ TEST_F(kt, one_key) { // NOLINT
   ASSERT_EQ(leave(token), status::OK);
 }
 
-TEST_F(kt, one_key_twice) { // NOLINT
+TEST_F(kt, one_key_twice_by_different_value) { // NOLINT
   /**
    * put one key twice
    */
@@ -100,6 +100,34 @@ TEST_F(kt, one_key_twice) { // NOLINT
   ASSERT_EQ(std::get<1>(tup), v.size());
   ASSERT_EQ(memcmp(std::get<0>(tup), v.data(), v.size()), 0);
   v = "v2";
+  ASSERT_EQ(status::OK, put(token, test_storage_name, k, v.data(), v.size()));
+  tup = get<char>(test_storage_name, k);
+  ASSERT_NE(std::get<0>(tup), nullptr);
+  ASSERT_EQ(std::get<1>(tup), v.size());
+  ASSERT_EQ(memcmp(std::get<0>(tup), v.data(), v.size()), 0);
+  ASSERT_EQ(leave(token), status::OK);
+}
+
+TEST_F(kt, one_key_third_by_different_value) { // NOLINT
+  /**
+   * put one key twice
+   */
+  std::string k{"k"};
+  std::string v{"v"};
+  Token token{};
+  ASSERT_EQ(enter(token), status::OK);
+  ASSERT_EQ(status::OK, put(token, test_storage_name, k, v.data(), v.size()));
+  std::pair<char *, std::size_t> tup = get<char>(test_storage_name, k);
+  ASSERT_NE(std::get<0>(tup), nullptr);
+  ASSERT_EQ(std::get<1>(tup), v.size());
+  ASSERT_EQ(memcmp(std::get<0>(tup), v.data(), v.size()), 0);
+  v = "v2";
+  ASSERT_EQ(status::OK, put(token, test_storage_name, k, v.data(), v.size()));
+  tup = get<char>(test_storage_name, k);
+  ASSERT_NE(std::get<0>(tup), nullptr);
+  ASSERT_EQ(std::get<1>(tup), v.size());
+  ASSERT_EQ(memcmp(std::get<0>(tup), v.data(), v.size()), 0);
+  v = "v3";
   ASSERT_EQ(status::OK, put(token, test_storage_name, k, v.data(), v.size()));
   tup = get<char>(test_storage_name, k);
   ASSERT_NE(std::get<0>(tup), nullptr);
