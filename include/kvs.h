@@ -47,7 +47,7 @@ namespace yakushima {
  * @return Same to put function.
  */
 [[maybe_unused]] static status create_storage(std::string_view storage_name) {
-  return storage::create_storage(storage_name);
+    return storage::create_storage(storage_name);
 }
 
 /**
@@ -64,7 +64,7 @@ namespace yakushima {
  * @return status::WARN_NOT_EXIST if the storage was not found.
  */
 [[maybe_unused]] static status delete_storage(std::string_view storage_name) {
-  return storage::delete_storage(storage_name);
+    return storage::delete_storage(storage_name);
 }
 
 /**
@@ -79,8 +79,8 @@ namespace yakushima {
  * @return status::WARN_NOT_EXIST if not existence.
  */
 [[maybe_unused]] static status find_storage(std::string_view storage_name,
-                                            tree_instance **found_storage = nullptr) {
-  return storage::find_storage(storage_name, found_storage);
+                                            tree_instance** found_storage = nullptr) {
+    return storage::find_storage(storage_name, found_storage);
 }
 
 /**
@@ -93,8 +93,8 @@ namespace yakushima {
  * @return status::WARN_NOT_EXIST if it found no storage.
  */
 [[maybe_unused]] static status
-list_storages(std::vector<std::pair<std::string, tree_instance *>> &out) {
-  return storage::list_storages(out);
+list_storages(std::vector<std::pair<std::string, tree_instance*>>& out) {
+    return storage::list_storages(out);
 }
 
 /**
@@ -107,7 +107,7 @@ list_storages(std::vector<std::pair<std::string, tree_instance *>> &out) {
  * @return status::WARN_MAX_SESSIONS The maximum number of sessions is already up and
  * running.
  */
-[[maybe_unused]] static status enter(Token &token); // NOLINT
+[[maybe_unused]] static status enter(Token& token); // NOLINT
 
 /**
  * @details It declares that the session ends. Values read during the session may be
@@ -127,8 +127,8 @@ list_storages(std::vector<std::pair<std::string, tree_instance *>> &out) {
  * @return std::pair<ValueType *, std::size_t> The pair of pointer to value and the value
  * size.
  */
-template <class ValueType>
-[[maybe_unused]] static std::pair<ValueType *, std::size_t>
+template<class ValueType>
+[[maybe_unused]] static std::pair<ValueType*, std::size_t>
 get(std::string_view storage_name, std::string_view key_view); // NOLINT
 
 /**
@@ -157,12 +157,12 @@ get(std::string_view storage_name, std::string_view key_view); // NOLINT
  * @return status::WARN_UNIQUE_RESTRICTION The key-value whose key is same to given key
  * already exists.
  */
-template <class ValueType>
+template<class ValueType>
 [[maybe_unused]] static status
-put(Token token, std::string_view storage_name, std::string_view key_view,
-    ValueType *value_ptr, std::size_t arg_value_length,
-    ValueType **created_value_ptr, // NOLINT
-    value_align_type value_align, node_version64 **inserted_node_version_ptr);
+put(Token token, std::string_view storage_name, std::string_view key_view, // NOLINT
+    ValueType* value_ptr, std::size_t arg_value_length,
+    ValueType** created_value_ptr, // NOLINT
+    value_align_type value_align, node_version64** inserted_node_version_ptr);
 
 /**
  * @pre @a token of arguments is valid.
@@ -170,8 +170,8 @@ put(Token token, std::string_view storage_name, std::string_view key_view,
  * @param[in] key_view The key_view of key-value.
  * @return status::OK_ROOT_IS_NULL No existing tree.
  */
-[[maybe_unused]] static status remove(Token token,
-                                      std::string_view storage_name, // NOLINT
+[[maybe_unused]] static status remove(Token token, // NOLINT
+                                      std::string_view storage_name,
                                       std::string_view key_view);
 
 /**
@@ -209,12 +209,12 @@ put(Token token, std::string_view storage_name, std::string_view key_view,
  * a specific value.
  * @return status::OK success.
  */
-template <class ValueType>
+template<class ValueType>
 [[maybe_unused]] static status
 scan(std::string_view storage_name, std::string_view l_key, scan_endpoint l_end, // NOLINT
      std::string_view r_key, scan_endpoint r_end,
-     std::vector<std::tuple<std::string, ValueType *, std::size_t>> &tuple_list,
-     std::vector<std::pair<node_version64_body, node_version64 *>> *node_version_vec,
+     std::vector<std::tuple<std::string, ValueType*, std::size_t>>& tuple_list,
+     std::vector<std::pair<node_version64_body, node_version64*>>* node_version_vec,
      std::size_t max_size);
 
 } // namespace yakushima
