@@ -16,12 +16,8 @@ using namespace yakushima;
 namespace yakushima::testing {
 
 class mtdt : public ::testing::Test {
-    void SetUp() override {
-        init();
-    }
-    void TearDown() override {
-        fin();
-    }
+    void SetUp() override { init(); }
+    void TearDown() override { fin(); }
 };
 
 std::string test_storage_name{"1"}; // NOLINT
@@ -48,11 +44,15 @@ TEST_F(mtdt, one_border) { // NOLINT
         create_storage(test_storage_name);
 
         struct S {
-            static void work(std::size_t th_id, std::size_t max_thread, std::atomic<std::size_t>* meet) {
+            static void work(std::size_t th_id, std::size_t max_thread,
+                             std::atomic<std::size_t>* meet) {
                 std::vector<std::pair<std::string, std::string>> kv;
                 kv.reserve(ary_size / max_thread);
                 // data generation
-                for (std::size_t i = (ary_size / max_thread) * th_id; i < (th_id != max_thread - 1 ? (ary_size / max_thread) * (th_id + 1) : ary_size); ++i) {
+                for (std::size_t i = (ary_size / max_thread) * th_id;
+                     i < (th_id != max_thread - 1 ? (ary_size / max_thread) * (th_id + 1)
+                                                  : ary_size);
+                     ++i) {
                     kv.emplace_back(std::string(i, '\0'), std::to_string(i));
                 }
 
@@ -62,7 +62,7 @@ TEST_F(mtdt, one_border) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         EXPECT_EQ(ret, status::OK); // output log
                         std::abort();
@@ -121,11 +121,15 @@ TEST_F(mtdt, one_border_shuffle) { // NOLINT
         create_storage(test_storage_name);
 
         struct S {
-            static void work(std::size_t th_id, std::size_t max_thread, std::atomic<std::size_t>* meet) {
+            static void work(std::size_t th_id, std::size_t max_thread,
+                             std::atomic<std::size_t>* meet) {
                 std::vector<std::pair<std::string, std::string>> kv;
                 kv.reserve(ary_size / max_thread);
                 // data generation
-                for (std::size_t i = (ary_size / max_thread) * th_id; i < (th_id != max_thread - 1 ? (ary_size / max_thread) * (th_id + 1) : ary_size); ++i) {
+                for (std::size_t i = (ary_size / max_thread) * th_id;
+                     i < (th_id != max_thread - 1 ? (ary_size / max_thread) * (th_id + 1)
+                                                  : ary_size);
+                     ++i) {
                     kv.emplace_back(std::string(i, '\0'), std::to_string(i));
                 }
 
@@ -139,7 +143,7 @@ TEST_F(mtdt, one_border_shuffle) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         EXPECT_EQ(ret, status::OK); // output log
                         std::abort();
@@ -205,11 +209,12 @@ TEST_F(mtdt, test3) { // NOLINT
         std::reverse(kv2.begin(), kv2.end());
 
         struct S {
-            static void put_work(std::vector<std::tuple<std::string, std::string>>& kv) {
+            static void put_work(Token& token,
+                                 std::vector<std::tuple<std::string, std::string>>& kv) {
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -217,7 +222,9 @@ TEST_F(mtdt, test3) { // NOLINT
                 }
             }
 
-            static void remove_work(Token& token, std::vector<std::tuple<std::string, std::string>>& kv) {
+            static void
+            remove_work(Token& token,
+                        std::vector<std::tuple<std::string, std::string>>& kv) {
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
@@ -230,8 +237,8 @@ TEST_F(mtdt, test3) { // NOLINT
             }
         };
 
-        std::thread t(S::put_work, std::ref(kv2));
-        S::put_work(std::ref(kv1));
+        std::thread t(S::put_work, std::ref(token.at(0)), std::ref(kv2));
+        S::put_work(std::ref(token.at(1)), std::ref(kv1));
         t.join();
 
         t = std::thread(S::remove_work, std::ref(token.at(0)), std::ref(kv1));
@@ -277,11 +284,12 @@ TEST_F(mtdt, test4) { // NOLINT
         std::shuffle(kv2.begin(), kv2.end(), engine);
 
         struct S {
-            static void put_work(std::vector<std::tuple<std::string, std::string>>& kv) {
+            static void put_work(Token& token,
+                                 std::vector<std::tuple<std::string, std::string>>& kv) {
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -289,7 +297,9 @@ TEST_F(mtdt, test4) { // NOLINT
                 }
             }
 
-            static void remove_work(Token& token, std::vector<std::tuple<std::string, std::string>>& kv) {
+            static void
+            remove_work(Token& token,
+                        std::vector<std::tuple<std::string, std::string>>& kv) {
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
@@ -302,8 +312,8 @@ TEST_F(mtdt, test4) { // NOLINT
             }
         };
 
-        std::thread t(S::put_work, std::ref(kv1));
-        S::put_work(std::ref(kv2));
+        std::thread t(S::put_work, std::ref(token.at(0)), std::ref(kv1));
+        S::put_work(std::ref(token.at(1)), std::ref(kv2));
         t.join();
 
         t = std::thread(S::remove_work, std::ref(token.at(0)), std::ref(kv1));
@@ -346,11 +356,12 @@ TEST_F(mtdt, test5) { // NOLINT
         std::reverse(kv2.begin(), kv2.end());
 
         struct S {
-            static void put_work(std::vector<std::tuple<std::string, std::string>>& kv) {
+            static void put_work(Token& token,
+                                 std::vector<std::tuple<std::string, std::string>>& kv) {
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -358,7 +369,9 @@ TEST_F(mtdt, test5) { // NOLINT
                 }
             }
 
-            static void remove_work(Token& token, std::vector<std::tuple<std::string, std::string>>& kv) {
+            static void
+            remove_work(Token& token,
+                        std::vector<std::tuple<std::string, std::string>>& kv) {
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
@@ -371,8 +384,8 @@ TEST_F(mtdt, test5) { // NOLINT
             }
         };
 
-        std::thread t(S::put_work, std::ref(kv1));
-        S::put_work(std::ref(kv2));
+        std::thread t(S::put_work, std::ref(token.at(0)), std::ref(kv1));
+        S::put_work(std::ref(token.at(1)), std::ref(kv2));
         t.join();
 
         t = std::thread(S::remove_work, std::ref(token.at(0)), std::ref(kv1));
@@ -417,11 +430,12 @@ TEST_F(mtdt, test6) { // NOLINT
         std::shuffle(kv2.begin(), kv2.end(), engine);
 
         struct S {
-            static void put_work(std::vector<std::tuple<std::string, std::string>>& kv) {
+            static void put_work(Token& token,
+                                 std::vector<std::tuple<std::string, std::string>>& kv) {
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -429,7 +443,9 @@ TEST_F(mtdt, test6) { // NOLINT
                 }
             }
 
-            static void remove_work(Token& token, std::vector<std::tuple<std::string, std::string>>& kv) {
+            static void
+            remove_work(Token& token,
+                        std::vector<std::tuple<std::string, std::string>>& kv) {
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
@@ -442,8 +458,8 @@ TEST_F(mtdt, test6) { // NOLINT
             }
         };
 
-        std::thread t(S::put_work, std::ref(kv1));
-        S::put_work(std::ref(kv2));
+        std::thread t(S::put_work, std::ref(token.at(0)), std::ref(kv1));
+        S::put_work(std::ref(token.at(1)), std::ref(kv2));
         t.join();
 
         t = std::thread(S::remove_work, std::ref(token.at(0)), std::ref(kv1));
@@ -486,11 +502,12 @@ TEST_F(mtdt, test7) { // NOLINT
         std::reverse(kv2.begin(), kv2.end());
 
         struct S {
-            static void put_work(std::vector<std::tuple<std::string, std::string>>& kv) {
+            static void put_work(Token& token,
+                                 std::vector<std::tuple<std::string, std::string>>& kv) {
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -498,7 +515,9 @@ TEST_F(mtdt, test7) { // NOLINT
                 }
             }
 
-            static void remove_work(Token& token, std::vector<std::tuple<std::string, std::string>>& kv) {
+            static void
+            remove_work(Token& token,
+                        std::vector<std::tuple<std::string, std::string>>& kv) {
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
@@ -511,8 +530,8 @@ TEST_F(mtdt, test7) { // NOLINT
             }
         };
 
-        std::thread t(S::put_work, std::ref(kv1));
-        S::put_work(std::ref(kv2));
+        std::thread t(S::put_work, std::ref(token.at(0)), std::ref(kv1));
+        S::put_work(std::ref(token.at(1)), std::ref(kv2));
         t.join();
 
         t = std::thread(S::remove_work, std::ref(token.at(0)), std::ref(kv1));
@@ -559,11 +578,12 @@ TEST_F(mtdt, test8) { // NOLINT
         std::shuffle(kv2.begin(), kv2.end(), engine);
 
         struct S {
-            static void put_work(std::vector<std::tuple<std::string, std::string>>& kv) {
+            static void put_work(Token& token,
+                                 std::vector<std::tuple<std::string, std::string>>& kv) {
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -571,7 +591,9 @@ TEST_F(mtdt, test8) { // NOLINT
                 }
             }
 
-            static void remove_work(Token& token, std::vector<std::tuple<std::string, std::string>>& kv) {
+            static void
+            remove_work(Token& token,
+                        std::vector<std::tuple<std::string, std::string>>& kv) {
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
@@ -584,8 +606,8 @@ TEST_F(mtdt, test8) { // NOLINT
             }
         };
 
-        std::thread t(S::put_work, std::ref(kv1));
-        S::put_work(std::ref(kv2));
+        std::thread t(S::put_work, std::ref(token.at(0)), std::ref(kv1));
+        S::put_work(std::ref(token.at(1)), std::ref(kv2));
         t.join();
 
         t = std::thread(S::remove_work, std::ref(token.at(0)), std::ref(kv1));

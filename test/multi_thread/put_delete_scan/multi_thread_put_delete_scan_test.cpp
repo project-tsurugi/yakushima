@@ -68,7 +68,7 @@ TEST_F(mtpdst, many_layer) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(), v.size());
                     if (status::OK != ret) {
                         ASSERT_EQ(status::OK, ret);
                         std::abort();
@@ -102,7 +102,7 @@ TEST_F(mtpdst, many_layer) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(), v.size());
                     if (status::OK != ret) {
                         ASSERT_EQ(status::OK, ret);
                         std::abort();

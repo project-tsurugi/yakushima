@@ -35,7 +35,7 @@ TEST_F(put_delete, simple) { // NOLINT
     std::string v("v");
     for (std::size_t i = 0; i < 100; ++i) { // NOLINT
         ASSERT_EQ(status::OK, enter(token));
-        ASSERT_EQ(status::OK, put(test_storage_name, k, v.data(), v.size()));
+        ASSERT_EQ(status::OK, put(token, test_storage_name, k, v.data(), v.size()));
         ASSERT_EQ(status::OK, leave(token));
         ASSERT_EQ(status::OK, enter(token));
         ASSERT_EQ(status::OK, remove(token, test_storage_name, k));

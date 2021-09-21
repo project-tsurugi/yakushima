@@ -106,7 +106,7 @@ void parallel_build_tree() {
                 void* p = (&i);
                 std::string key{static_cast<char*>(p),
                                 sizeof(std::uint64_t)}; // sizeof(std::size_t) points to loop variable.
-                put(bench_storage, std::string_view(key), value.data(), value.size());
+                put(token, bench_storage, std::string_view(key), value.data(), value.size());
             }
             leave(token);
         }
@@ -196,7 +196,7 @@ void put_worker(const size_t thid, char& ready, const bool& start, const bool& q
     for (std::uint64_t i = left_edge; i < right_edge; ++i) {
         std::string key{reinterpret_cast<char*>(&i), sizeof(std::uint64_t)}; // NOLINT
         try {
-            put(bench_storage, std::string_view(key), value.data(), value.size());
+            put(token, bench_storage, std::string_view(key), value.data(), value.size());
         } catch (std::bad_alloc&) {
             LOG(FATAL) << "bad_alloc. Please set less duration.";
         }

@@ -24,9 +24,7 @@ protected:
         create_storage(test_storage_name);
     }
 
-    void TearDown() override {
-        fin();
-    }
+    void TearDown() override { fin(); }
 };
 
 TEST_F(kt, test3) { // NOLINT
@@ -41,7 +39,8 @@ TEST_F(kt, test3) { // NOLINT
         k.at(i).assign(i, '\0');
         v.at(i) = std::to_string(i);
         node_version64* nvp{};
-        ASSERT_EQ(status::OK, put(test_storage_name, std::string_view(k.at(i)), v.at(i).data(), v.at(i).size(), (char**) nullptr,
+        ASSERT_EQ(status::OK, put(token, test_storage_name, std::string_view(k.at(i)),
+                                  v.at(i).data(), v.at(i).size(), (char**) nullptr,
                                   (value_align_type) sizeof(char), &nvp));
         ASSERT_EQ(nvp->get_vinsert_delete(), i + 1);
         auto* br = dynamic_cast<border_node*>(ti->load_root_ptr());
@@ -54,8 +53,10 @@ TEST_F(kt, test3) { // NOLINT
     constexpr std::size_t value_index = 0;
     constexpr std::size_t size_index = 1;
     for (std::size_t i = 0; i < ary_size; ++i) {
-        std::pair<char*, std::size_t> tuple = get<char>(test_storage_name, std::string_view(k.at(i)));
-        ASSERT_EQ(memcmp(std::get<value_index>(tuple), v.at(i).data(), v.at(i).size()), 0);
+        std::pair<char*, std::size_t> tuple =
+                get<char>(test_storage_name, std::string_view(k.at(i)));
+        ASSERT_EQ(memcmp(std::get<value_index>(tuple), v.at(i).data(), v.at(i).size()),
+                  0);
         ASSERT_EQ(std::get<size_index>(tuple), v.at(i).size());
     }
     ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
@@ -78,21 +79,25 @@ TEST_F(kt, test4) { // NOLINT
         std::shuffle(kv.begin(), kv.end(), engine);
         for (std::size_t i = 0; i < ary_size; ++i) {
             ASSERT_EQ(status::OK,
-                      put(test_storage_name, std::get<0>(kv[i]), std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()));
+                      put(token, test_storage_name, std::get<0>(kv[i]),
+                          std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()));
         }
         for (std::size_t i = 0; i < ary_size; ++i) {
             constexpr std::size_t value_index = 0;
             constexpr std::size_t size_index = 1;
-            std::pair<char*, std::size_t> tuple = get<char>(test_storage_name, std::get<0>(kv[i]));
+            std::pair<char*, std::size_t> tuple =
+                    get<char>(test_storage_name, std::get<0>(kv[i]));
             ASSERT_EQ(std::get<size_index>(tuple), std::get<1>(kv[i]).size());
-            ASSERT_EQ(memcmp(std::get<value_index>(tuple), std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()), 0);
+            ASSERT_EQ(memcmp(std::get<value_index>(tuple), std::get<1>(kv[i]).data(),
+                             std::get<1>(kv[i]).size()),
+                      0);
         }
 
         std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list; // NOLINT
         for (std::size_t i = 1; i < ary_size; ++i) {
             std::string k(i, '\0');
-            ASSERT_EQ(status::OK,
-                      scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list));
+            ASSERT_EQ(status::OK, scan<char>(test_storage_name, "", scan_endpoint::INF, k,
+                                             scan_endpoint::INCLUSIVE, tuple_list));
             ASSERT_EQ(tuple_list.size(), i + 1);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
@@ -103,7 +108,8 @@ TEST_F(kt, test4) { // NOLINT
         for (std::size_t i = ary_size - 1; i < 1; --i) {
             std::string k(i, '\0');
             ASSERT_EQ(status::OK,
-                      scan<char>(test_storage_name, k, scan_endpoint::INCLUSIVE, "", scan_endpoint::INF, tuple_list));
+                      scan<char>(test_storage_name, k, scan_endpoint::INCLUSIVE, "",
+                                 scan_endpoint::INF, tuple_list));
             ASSERT_EQ(tuple_list.size(), ary_size - i);
             for (std::size_t j = i; j < ary_size; ++j) {
                 std::string v(std::to_string(j));
@@ -127,7 +133,8 @@ TEST_F(kt, test5) { // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
         k.at(i).assign(i, '\0');
         v.at(i) = std::to_string(i);
-        ASSERT_EQ(status::OK, put(test_storage_name, k.at(i), v.at(i).data(), v.at(i).size()));
+        ASSERT_EQ(status::OK,
+                  put(token, test_storage_name, k.at(i), v.at(i).data(), v.at(i).size()));
         auto* br = dynamic_cast<border_node*>(ti->load_root_ptr());
         if (i <= 8) {
             /**
@@ -146,9 +153,11 @@ TEST_F(kt, test5) { // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
         constexpr std::size_t value_index = 0;
         constexpr std::size_t size_index = 1;
-        std::pair<char*, std::size_t> tuple = get<char>(test_storage_name, std::string_view(k.at(i)));
+        std::pair<char*, std::size_t> tuple =
+                get<char>(test_storage_name, std::string_view(k.at(i)));
         ASSERT_EQ(std::get<size_index>(tuple), v.at(i).size());
-        ASSERT_EQ(memcmp(std::get<value_index>(tuple), v.at(i).data(), v.at(i).size()), 0);
+        ASSERT_EQ(memcmp(std::get<value_index>(tuple), v.at(i).data(), v.at(i).size()),
+                  0);
     }
     /**
      * check next layer is border.
@@ -177,20 +186,25 @@ TEST_F(kt, test6) { // NOLINT
 
         for (std::size_t i = 0; i < ary_size; ++i) {
             ASSERT_EQ(status::OK,
-                      put(test_storage_name, std::get<0>(kv[i]), std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()));
+                      put(token, test_storage_name, std::get<0>(kv[i]),
+                          std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()));
         }
         for (std::size_t i = 0; i < ary_size; ++i) {
             constexpr std::size_t value_index = 0;
             constexpr std::size_t size_index = 1;
-            std::pair<char*, std::size_t> tuple = get<char>(test_storage_name, std::get<0>(kv[i]));
+            std::pair<char*, std::size_t> tuple =
+                    get<char>(test_storage_name, std::get<0>(kv[i]));
             ASSERT_EQ(std::get<size_index>(tuple), std::get<1>(kv[i]).size());
-            ASSERT_EQ(memcmp(std::get<value_index>(tuple), std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()), 0);
+            ASSERT_EQ(memcmp(std::get<value_index>(tuple), std::get<1>(kv[i]).data(),
+                             std::get<1>(kv[i]).size()),
+                      0);
         }
 
         std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list; // NOLINT
         for (std::size_t i = 1; i < ary_size; ++i) {
             std::string k(i, 'a');
-            ASSERT_EQ(status::OK, scan<char>(test_storage_name, "", scan_endpoint::INF, k, scan_endpoint::INCLUSIVE, tuple_list));
+            ASSERT_EQ(status::OK, scan<char>(test_storage_name, "", scan_endpoint::INF, k,
+                                             scan_endpoint::INCLUSIVE, tuple_list));
             ASSERT_EQ(tuple_list.size(), i + 1);
             for (std::size_t j = 0; j < i + 1; ++j) {
                 std::string v(std::to_string(j));
@@ -216,7 +230,8 @@ TEST_F(kt, test7) { // NOLINT
         v.at(i).assign(1, 'a' + i);
     }
     for (std::size_t i = 0; i < ary_size; ++i) {
-        ASSERT_EQ(status::OK, put(test_storage_name, k.at(i), v.at(i).data(), v.at(i).size()));
+        ASSERT_EQ(status::OK,
+                  put(token, test_storage_name, k.at(i), v.at(i).data(), v.at(i).size()));
     }
     auto* in = dynamic_cast<interior_node*>(ti->load_root_ptr());
     auto* n = ti->load_root_ptr();
@@ -240,7 +255,8 @@ TEST_F(kt, test8) { // NOLINT
         constexpr std::size_t ary_size = key_slice_length + 1;
         std::vector<std::pair<std::string, std::string>> kv; // NOLINT
         for (std::size_t i = 0; i < ary_size; ++i) {
-            kv.emplace_back(std::make_pair(std::string(1, 'a' + i), std::string(1, 'a' + i)));
+            kv.emplace_back(
+                    std::make_pair(std::string(1, 'a' + i), std::string(1, 'a' + i)));
         }
         std::random_device seed_gen{};
         std::mt19937 engine(seed_gen());
@@ -248,7 +264,8 @@ TEST_F(kt, test8) { // NOLINT
 
         for (std::size_t i = 0; i < ary_size; ++i) {
             ASSERT_EQ(status::OK,
-                      put(test_storage_name, std::get<0>(kv[i]), std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()));
+                      put(token, test_storage_name, std::get<0>(kv[i]),
+                          std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()));
         }
         auto* n = ti->load_root_ptr();
         ASSERT_EQ(typeid(*n), typeid(interior_node)); // NOLINT
@@ -269,7 +286,8 @@ TEST_F(kt, test9) { // NOLINT
      * first interior split occurs at splitting interior_node::child_length times.
      */
     constexpr std::size_t ary_size =
-            key_slice_length + 1 + (key_slice_length / 2 + 1) * (interior_node::child_length - 1);
+            key_slice_length + 1 +
+            (key_slice_length / 2 + 1) * (interior_node::child_length - 1);
 
     std::array<std::string, ary_size> k; // NOLINT
     std::array<std::string, ary_size> v; // NOLINT
@@ -278,7 +296,8 @@ TEST_F(kt, test9) { // NOLINT
         v.at(i).assign(1, i);
     }
     for (std::size_t i = 0; i < ary_size; ++i) {
-        ASSERT_EQ(status::OK, put(test_storage_name, k.at(i), v.at(i).data(), v.at(i).size()));
+        ASSERT_EQ(status::OK,
+                  put(token, test_storage_name, k.at(i), v.at(i).data(), v.at(i).size()));
         if (i == key_slice_length - 1) {
             /**
              * root is full-border.
@@ -291,22 +310,50 @@ TEST_F(kt, test9) { // NOLINT
              */
             auto* n = ti->load_root_ptr();
             ASSERT_EQ(typeid(*n), typeid(interior_node)); // NOLINT
-            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(0))->get_permutation_cnk(), 8);
-            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(1))->get_permutation_cnk(), 8);
+            ASSERT_EQ(dynamic_cast<border_node*>(
+                              dynamic_cast<interior_node*>(ti->load_root_ptr())
+                                      ->get_child_at(0))
+                              ->get_permutation_cnk(),
+                      8);
+            ASSERT_EQ(dynamic_cast<border_node*>(
+                              dynamic_cast<interior_node*>(ti->load_root_ptr())
+                                      ->get_child_at(1))
+                              ->get_permutation_cnk(),
+                      8);
         } else if (i == key_slice_length + (key_slice_length / 2)) {
             /**
              * root is interior, root has 2 children, child[0] of root has 8 keys and child[1] of root has 15 keys.
              */
             ASSERT_EQ(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_n_keys(), 1);
-            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(0))->get_permutation_cnk(), 8);
-            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(1))->get_permutation_cnk(), 15);
+            ASSERT_EQ(dynamic_cast<border_node*>(
+                              dynamic_cast<interior_node*>(ti->load_root_ptr())
+                                      ->get_child_at(0))
+                              ->get_permutation_cnk(),
+                      8);
+            ASSERT_EQ(dynamic_cast<border_node*>(
+                              dynamic_cast<interior_node*>(ti->load_root_ptr())
+                                      ->get_child_at(1))
+                              ->get_permutation_cnk(),
+                      15);
         } else if (i == key_slice_length + (key_slice_length / 2) + 1) {
             /**
              * root is interior, root has 3 children, child[0-2] of root has 8 keys.
              */
-            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(0))->get_permutation_cnk(), 8);
-            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(1))->get_permutation_cnk(), 8);
-            ASSERT_EQ(dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(2))->get_permutation_cnk(), 8);
+            ASSERT_EQ(dynamic_cast<border_node*>(
+                              dynamic_cast<interior_node*>(ti->load_root_ptr())
+                                      ->get_child_at(0))
+                              ->get_permutation_cnk(),
+                      8);
+            ASSERT_EQ(dynamic_cast<border_node*>(
+                              dynamic_cast<interior_node*>(ti->load_root_ptr())
+                                      ->get_child_at(1))
+                              ->get_permutation_cnk(),
+                      8);
+            ASSERT_EQ(dynamic_cast<border_node*>(
+                              dynamic_cast<interior_node*>(ti->load_root_ptr())
+                                      ->get_child_at(2))
+                              ->get_permutation_cnk(),
+                      8);
         } else if ((i > key_slice_length + (key_slice_length / 2) + 1) &&
                    (i < key_slice_length +
                                 (key_slice_length / 2 + 1) * (key_slice_length - 1)) &&
@@ -340,7 +387,8 @@ TEST_F(kt, test9) { // NOLINT
      * child of root[1] is interior.
      */
     ASSERT_EQ(child_of_root->get_version_border(), false);
-    auto* child_child_of_root = dynamic_cast<border_node*>(child_of_root->get_child_at(0));
+    auto* child_child_of_root =
+            dynamic_cast<border_node*>(child_of_root->get_child_at(0));
     /**
      * child of child of root[0] is border.
      */
@@ -369,7 +417,8 @@ TEST_F(kt, test10) { // NOLINT
         std::size_t putctr = 0;
         for (std::size_t i = 0; i < ary_size; ++i) {
             ASSERT_EQ(status::OK,
-                      put(test_storage_name, std::get<0>(kv[i]), std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()));
+                      put(token, test_storage_name, std::get<0>(kv[i]),
+                          std::get<1>(kv[i]).data(), std::get<1>(kv[i]).size()));
             if (i > key_slice_length / 2 * interior_node::child_length) { // about minimum
                 base_node* bn = ti->load_root_ptr();
                 if (!bn->get_version_border()) {
@@ -388,14 +437,13 @@ TEST_F(kt, test10) { // NOLINT
         std::sort(kv.begin(), kv.end());
         for (std::size_t i = 0; i <= putctr; ++i) {
             std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list; // NOLINT
-            scan<char>(test_storage_name, "", scan_endpoint::INF, std::get<0>(kv[i]), scan_endpoint::INCLUSIVE, tuple_list);
-            if (tuple_list.size() != i + 1) {
-                ASSERT_EQ(tuple_list.size(), i + 1);
-            }
+            scan<char>(test_storage_name, "", scan_endpoint::INF, std::get<0>(kv[i]),
+                       scan_endpoint::INCLUSIVE, tuple_list);
+            if (tuple_list.size() != i + 1) { ASSERT_EQ(tuple_list.size(), i + 1); }
             for (std::size_t j = 0; j < i + 1; ++j) {
-                ASSERT_EQ(
-                        memcmp(std::get<1>(tuple_list.at(j)), std::get<1>(kv[i]).data(), std::get<2>(tuple_list.at(j))),
-                        0);
+                ASSERT_EQ(memcmp(std::get<1>(tuple_list.at(j)), std::get<1>(kv[i]).data(),
+                                 std::get<2>(tuple_list.at(j))),
+                          0);
             }
         }
         destroy();
@@ -411,7 +459,7 @@ TEST_F(kt, test11) { // NOLINT
     std::string k("a");
     std::string v("b");
     char* created_ptr{};
-    ASSERT_EQ(status::OK, put(test_storage_name, k, v.data(), v.size(), &created_ptr));
+    ASSERT_EQ(status::OK, put(token, test_storage_name, k, v.data(), v.size(), &created_ptr));
     ASSERT_EQ(memcmp(created_ptr, v.data(), v.size()), 0);
 }
 
@@ -423,12 +471,13 @@ TEST_F(kt, test12) { // NOLINT
     std::string k4("b");   // NOLINT
     std::string v("v");    // NOLINT
     ASSERT_EQ(status::OK, enter(token));
-    ASSERT_EQ(status::OK, put(test_storage_name, k, v.data(), v.size()));
-    ASSERT_EQ(status::OK, put(test_storage_name, k2, v.data(), v.size()));
-    ASSERT_EQ(status::OK, put(test_storage_name, k3, v.data(), v.size()));
-    ASSERT_EQ(status::OK, put(test_storage_name, k4, v.data(), v.size()));
+    ASSERT_EQ(status::OK, put(token, test_storage_name, k, v.data(), v.size()));
+    ASSERT_EQ(status::OK, put(token, test_storage_name, k2, v.data(), v.size()));
+    ASSERT_EQ(status::OK, put(token, test_storage_name, k3, v.data(), v.size()));
+    ASSERT_EQ(status::OK, put(token, test_storage_name, k4, v.data(), v.size()));
     std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list;
-    scan<char>(test_storage_name, k, scan_endpoint::EXCLUSIVE, k4, scan_endpoint::EXCLUSIVE, tuple_list);
+    scan<char>(test_storage_name, k, scan_endpoint::EXCLUSIVE, k4,
+               scan_endpoint::EXCLUSIVE, tuple_list);
     ASSERT_EQ(tuple_list.size(), 2);
 }
 } // namespace yakushima::testing

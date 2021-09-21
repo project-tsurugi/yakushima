@@ -39,7 +39,7 @@ TEST_F(dt, single_remove) { // NOLINT
     ASSERT_EQ(enter(token), status::OK);
     std::string k("a");
     std::string v("v-a");
-    ASSERT_EQ(status::OK, put(test_storage_name, std::string_view(k), v.data(), v.size()));
+    ASSERT_EQ(status::OK, put(token, test_storage_name, std::string_view(k), v.data(), v.size()));
     ASSERT_EQ(status::OK, remove(token, test_storage_name, std::string_view(k)));
     ASSERT_EQ(ti->load_root_ptr(), nullptr);
     ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
@@ -57,7 +57,7 @@ TEST_F(dt, one_border) { // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
         k.at(i).assign(i, '\0');
         v.at(i) = std::to_string(i);
-        ASSERT_EQ(status::OK, put(test_storage_name, std::string_view(k.at(i)), v.at(i).data(), v.at(i).size()));
+        ASSERT_EQ(status::OK, put(token, test_storage_name, std::string_view(k.at(i)), v.at(i).data(), v.at(i).size()));
         /**
          * There are 9 key which has the same slice and the different length.
          * key length == 0, same_slice and length is 1, 2, ..., 8.
@@ -91,7 +91,7 @@ TEST_F(dt, one_border_shuffle) { // NOLINT
         std::mt19937 engine(seed_gen());
         std::shuffle(kv.begin(), kv.end(), engine);
         for (std::size_t i = 0; i < ary_size; ++i) {
-            ASSERT_EQ(status::OK, put(test_storage_name, std::get<0>(kv.at(i)),
+            ASSERT_EQ(status::OK, put(token, test_storage_name, std::get<0>(kv.at(i)),
                                       std::get<1>(kv.at(i)).data(), std::get<1>(kv.at(i)).size()));
         }
 
@@ -119,7 +119,7 @@ TEST_F(dt, two_border) { // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
         k.at(i).assign(i, '\0');
         v.at(i) = std::to_string(i);
-        ASSERT_EQ(status::OK, put(test_storage_name, std::string_view(k.at(i)), v.at(i).data(), v.at(i).size()));
+        ASSERT_EQ(status::OK, put(token, test_storage_name, std::string_view(k.at(i)), v.at(i).data(), v.at(i).size()));
     }
     for (std::size_t i = 0; i < ary_size; ++i) {
         ASSERT_EQ(status::OK, remove(token, test_storage_name, k.at(i)));
@@ -152,7 +152,7 @@ TEST_F(dt, two_border_shuffle) { // NOLINT
         std::mt19937 engine(seed_gen());
         std::shuffle(kv.begin(), kv.end(), engine);
         for (std::size_t i = 0; i < ary_size; ++i) {
-            ASSERT_EQ(status::OK, put(test_storage_name, std::get<0>(kv.at(i)),
+            ASSERT_EQ(status::OK, put(token, test_storage_name, std::get<0>(kv.at(i)),
                                       std::get<1>(kv.at(i)).data(), std::get<1>(kv.at(i)).size()));
         }
         for (std::size_t i = 0; i < ary_size; ++i) {
@@ -177,7 +177,7 @@ TEST_F(dt, one_interi_two_bor) { // NOLINT
         v.at(i).assign(1, static_cast<char>(i));
     }
     for (std::size_t i = 0; i < ary_size; ++i) {
-        ASSERT_EQ(status::OK, put(test_storage_name, k.at(i), v.at(i).data(), v.at(i).size()));
+        ASSERT_EQ(status::OK, put(token, test_storage_name, k.at(i), v.at(i).data(), v.at(i).size()));
     }
 
     constexpr std::size_t lb_n{ary_size / 2};
@@ -209,7 +209,7 @@ TEST_F(dt, one_interi_two_bor_shuffle) { // NOLINT
         std::shuffle(kv.begin(), kv.end(), engine);
 
         for (std::size_t i = 0; i < ary_size; ++i) {
-            ASSERT_EQ(status::OK, put(test_storage_name, std::get<0>(kv.at(i)),
+            ASSERT_EQ(status::OK, put(token, test_storage_name, std::get<0>(kv.at(i)),
                                       std::get<1>(kv.at(i)).data(), std::get<1>(kv.at(i)).size()));
         }
 
@@ -248,7 +248,7 @@ TEST_F(dt, two_interi) { // NOLINT
         v.at(i).assign(1, static_cast<char>(i));
     }
     for (std::size_t i = 0; i < ary_size; ++i) {
-        ASSERT_EQ(status::OK, put(test_storage_name, k.at(i), v.at(i).data(), v.at(i).size()));
+        ASSERT_EQ(status::OK, put(token, test_storage_name, k.at(i), v.at(i).data(), v.at(i).size()));
         if (i == key_slice_length - 1) {
             /**
              * root is full-border.
@@ -358,7 +358,7 @@ TEST_F(dt, many) { // NOLINT
 
         for (std::size_t i = 0; i < ary_size; ++i) {
             ASSERT_EQ(status::OK,
-                      put(test_storage_name, std::get<0>(kv.at(i)), std::get<1>(kv.at(i)).data(), std::get<1>(kv.at(i)).size()));
+                      put(token, test_storage_name, std::get<0>(kv.at(i)), std::get<1>(kv.at(i)).data(), std::get<1>(kv.at(i)).size()));
         }
 
         for (std::size_t i = 0; i < ary_size; ++i) {

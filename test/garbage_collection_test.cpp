@@ -37,7 +37,7 @@ TEST_F(garbage_collection, gc) { // NOLINT
     std::string v{"k"};
     ASSERT_EQ(status::OK, enter(token));
     char** created_ptr{};
-    ASSERT_EQ(status::OK, put(test_storage_name, k, v.data(), v.size(), created_ptr, std::align_val_t(8)));
+    ASSERT_EQ(status::OK, put(token, test_storage_name, k, v.data(), v.size(), created_ptr, std::align_val_t(8)));
     ASSERT_EQ(status::OK, remove(token, test_storage_name, k));
     Epoch epo{epoch_management::get_epoch()};
     LOG(INFO) << "epoch is " << epo;

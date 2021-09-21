@@ -31,7 +31,7 @@ TEST_F(st, scan_three_border_one_border) { // NOLINT
     std::string v{"v"};
     for (char i = 0; i <= 25; ++i) { // NOLINT
         char c = i;
-        ASSERT_EQ(status::OK, put(test_storage_name, std::string_view(&c, 1), v.data(), v.size()));
+        ASSERT_EQ(status::OK, put(token, test_storage_name, std::string_view(&c, 1), v.data(), v.size()));
     }
     /**
      * now

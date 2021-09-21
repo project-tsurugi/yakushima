@@ -24,9 +24,7 @@ protected:
         create_storage(test_storage_name);
     }
 
-    void TearDown() override {
-        fin();
-    }
+    void TearDown() override { fin(); }
 };
 
 TEST_F(mtpdgt, many_interior) { // NOLINT
@@ -54,11 +52,18 @@ TEST_F(mtpdgt, many_interior) { // NOLINT
                 std::vector<std::pair<std::string, std::string>> kv;
                 kv.reserve(ary_size / max_thread);
                 // data generation
-                for (std::size_t i = (ary_size / max_thread) * th_id; i < (th_id != max_thread - 1 ? (ary_size / max_thread) * (th_id + 1) : ary_size); ++i) {
+                for (std::size_t i = (ary_size / max_thread) * th_id;
+                     i < (th_id != max_thread - 1 ? (ary_size / max_thread) * (th_id + 1)
+                                                  : ary_size);
+                     ++i) {
                     if (i <= INT8_MAX) {
-                        kv.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
+                        kv.emplace_back(
+                                std::make_pair(std::string(1, i), std::to_string(i)));
                     } else {
-                        kv.emplace_back(std::make_pair(std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i % INT8_MAX), std::to_string(i)));
+                        kv.emplace_back(
+                                std::make_pair(std::string(i / INT8_MAX, INT8_MAX) +
+                                                       std::string(1, i % INT8_MAX),
+                                               std::to_string(i)));
                     }
                 }
 
@@ -68,7 +73,8 @@ TEST_F(mtpdgt, many_interior) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
+                    ASSERT_EQ(put(token, test_storage_name, k, v.data(), v.size()),
+                              status::OK);
                 }
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
@@ -88,7 +94,8 @@ TEST_F(mtpdgt, many_interior) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
+                    ASSERT_EQ(put(token, test_storage_name, k, v.data(), v.size()),
+                              status::OK);
                 }
 
                 leave(token);
@@ -97,14 +104,13 @@ TEST_F(mtpdgt, many_interior) { // NOLINT
 
         std::vector<std::thread> thv;
         thv.reserve(th_nm);
-        for (std::size_t i = 0; i < th_nm; ++i) {
-            thv.emplace_back(S::work, i, th_nm);
-        }
+        for (std::size_t i = 0; i < th_nm; ++i) { thv.emplace_back(S::work, i, th_nm); }
         for (auto&& th : thv) { th.join(); }
         thv.clear();
 
         std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list;
-        scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list);
+        scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF,
+                   tuple_list);
         ASSERT_EQ(tuple_list.size(), ary_size);
         for (std::size_t j = 0; j < ary_size; ++j) {
             std::string v(std::to_string(j));
@@ -141,11 +147,18 @@ TEST_F(mtpdgt, many_interior_shuffle) { // NOLINT
                 std::vector<std::pair<std::string, std::string>> kv;
                 kv.reserve(ary_size / max_thread);
                 // data generation
-                for (std::size_t i = (ary_size / max_thread) * th_id; i < (th_id != max_thread - 1 ? (ary_size / max_thread) * (th_id + 1) : ary_size); ++i) {
+                for (std::size_t i = (ary_size / max_thread) * th_id;
+                     i < (th_id != max_thread - 1 ? (ary_size / max_thread) * (th_id + 1)
+                                                  : ary_size);
+                     ++i) {
                     if (i <= INT8_MAX) {
-                        kv.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
+                        kv.emplace_back(
+                                std::make_pair(std::string(1, i), std::to_string(i)));
                     } else {
-                        kv.emplace_back(std::make_pair(std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i % INT8_MAX), std::to_string(i)));
+                        kv.emplace_back(
+                                std::make_pair(std::string(i / INT8_MAX, INT8_MAX) +
+                                                       std::string(1, i % INT8_MAX),
+                                               std::to_string(i)));
                     }
                 }
 
@@ -159,7 +172,8 @@ TEST_F(mtpdgt, many_interior_shuffle) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
+                    ASSERT_EQ(put(token, test_storage_name, k, v.data(), v.size()),
+                              status::OK);
                 }
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
@@ -175,7 +189,9 @@ TEST_F(mtpdgt, many_interior_shuffle) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(test_storage_name, std::string_view(k), v.data(), v.size()), status::OK);
+                    ASSERT_EQ(put(token, test_storage_name, std::string_view(k), v.data(),
+                                  v.size()),
+                              status::OK);
                 }
 
                 leave(token);
@@ -184,14 +200,13 @@ TEST_F(mtpdgt, many_interior_shuffle) { // NOLINT
 
         std::vector<std::thread> thv;
         thv.reserve(th_nm);
-        for (std::size_t i = 0; i < th_nm; ++i) {
-            thv.emplace_back(S::work, i, th_nm);
-        }
+        for (std::size_t i = 0; i < th_nm; ++i) { thv.emplace_back(S::work, i, th_nm); }
         for (auto&& th : thv) { th.join(); }
         thv.clear();
 
         std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list;
-        scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list);
+        scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF,
+                   tuple_list);
         ASSERT_EQ(tuple_list.size(), ary_size);
         for (std::size_t j = 0; j < ary_size; ++j) {
             std::string v(std::to_string(j));

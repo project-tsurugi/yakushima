@@ -2,6 +2,8 @@
  * @file version_test.cpp
  */
 
+#include <xmmintrin.h>
+
 #include <future>
 
 #include "gtest/gtest.h"
@@ -79,9 +81,12 @@ TEST_F(vt, vinsert_delete) { // NOLINT
     for (std::size_t i = 0; i < key_length; ++i) {
         key.at(i) = std::string{1, static_cast<char>(i)}; // NOLINT
     }
-    ASSERT_EQ(status::OK, put(test_storage_name, key.at(0), v.data(), v.size()));
+    Token token{};
+    while (status::OK != enter(token)) _mm_pause();
+    ASSERT_EQ(status::OK, put(token, test_storage_name, key.at(0), v.data(), v.size()));
     std::size_t vid = ti->load_root_ptr()->get_version_vinsert_delete();
-    ASSERT_EQ(status::OK, put(test_storage_name, key.at(1), v.data(), v.size()));
+    ASSERT_EQ(status::OK, put(token, test_storage_name, key.at(1), v.data(), v.size()));
+    leave(token);
     ASSERT_EQ(vid + 1, ti->load_root_ptr()->get_version_vinsert_delete());
     fin();
 }
@@ -97,11 +102,14 @@ TEST_F(vt, vsplit) { // NOLINT
     for (std::size_t i = 0; i < key_length; ++i) {
         key.at(i) = std::string{1, static_cast<char>(i)}; // NOLINT
     }
-    ASSERT_EQ(status::OK, put(test_storage_name, key.at(0), v.data(), v.size()));
+    Token token{};
+    while (status::OK != enter(token)) _mm_pause();
+    ASSERT_EQ(status::OK, put(token, test_storage_name, key.at(0), v.data(), v.size()));
     std::size_t vid = ti->load_root_ptr()->get_version_vsplit();
     for (std::size_t i = 1; i < key_length; ++i) {
-        ASSERT_EQ(status::OK, put(test_storage_name, key.at(i), v.data(), v.size()));
+        ASSERT_EQ(status::OK, put(token, test_storage_name, key.at(i), v.data(), v.size()));
     }
+    leave(token);
     ASSERT_EQ(vid + 1, dynamic_cast<border_node*>(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(0))->get_version_vsplit());
     fin();
 }

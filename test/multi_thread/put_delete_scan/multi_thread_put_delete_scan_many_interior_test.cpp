@@ -70,7 +70,7 @@ TEST_F(mtpdst, many_interior) {// NOLINT
                     for (auto& i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(test_storage_name, k, v.data(), v.size());
+                        status ret = put(token, test_storage_name, k, v.data(), v.size());
                         if (ret != status::OK) {
                             ASSERT_EQ(ret, status::OK);
                             std::abort();
@@ -104,7 +104,7 @@ TEST_F(mtpdst, many_interior) {// NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         ASSERT_EQ(ret, status::OK);
                         std::abort();
@@ -177,7 +177,7 @@ TEST_F(mtpdst, many_interior_shuffle) {// NOLINT
                     for (auto& i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(test_storage_name, k, v.data(), v.size());
+                        status ret = put(token, test_storage_name, k, v.data(), v.size());
                         if (ret != status::OK) {
                             ASSERT_EQ(ret, status::OK);
                             std::abort();
@@ -211,7 +211,7 @@ TEST_F(mtpdst, many_interior_shuffle) {// NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         ASSERT_EQ(ret, status::OK);
                         std::abort();

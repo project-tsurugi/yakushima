@@ -31,9 +31,9 @@ TEST_F(st, one_border) { // NOLINT
     Token token{};
     std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{}; // NOLINT
     ASSERT_EQ(enter(token), status::OK);
-    ASSERT_EQ(status::OK, put(test_storage_name, std::string_view(k1), v.data(), v.size()));
-    ASSERT_EQ(status::OK, put(test_storage_name, std::string_view(k2), v.data(), v.size()));
-    ASSERT_EQ(status::OK, put(test_storage_name, std::string_view(k3), v.data(), v.size()));
+    ASSERT_EQ(status::OK, put(token, test_storage_name, std::string_view(k1), v.data(), v.size()));
+    ASSERT_EQ(status::OK, put(token, test_storage_name, std::string_view(k2), v.data(), v.size()));
+    ASSERT_EQ(status::OK, put(token, test_storage_name, std::string_view(k3), v.data(), v.size()));
     ASSERT_EQ(status::OK, scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list, nullptr));
     ASSERT_EQ(tuple_list.size(), 3);
     ASSERT_EQ(status::OK, scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list, nullptr, 0));

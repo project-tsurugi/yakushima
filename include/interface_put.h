@@ -13,9 +13,22 @@
 
 namespace yakushima {
 
+/**
+ * @brief todo write
+ * @param[in] token
+ * @param[in] ti
+ * @param[in] key_view
+ * @param[in] value_ptr
+ * @param[in] unique_restriction 
+ * @param[in] arg_value_length
+ * @param[in] created_value_ptr
+ * @param[in] value_align
+ * @param[in] inserted_node_version_ptr
+ */
 template<class ValueType>
 [[maybe_unused]] static status
-put(tree_instance* ti, std::string_view key_view, ValueType* value_ptr,
+put([[maybe_unused]] Token token, tree_instance* ti, std::string_view key_view,
+    ValueType* value_ptr, bool unique_restriction,
     std::size_t arg_value_length = sizeof(ValueType),
     ValueType** created_value_ptr = nullptr,
     value_align_type value_align = static_cast<value_align_type>(alignof(ValueType)),
@@ -140,10 +153,22 @@ retry_fetch_lv:
      */
     if (target_border->get_key_length_at(lv_pos) <= sizeof(key_slice_type)) {
         if (key_slice_length <= sizeof(key_slice_type)) {
-#if 0
+            if (unique_restriction) { return status::WARN_UNIQUE_RESTRICTION; }
+
             target_border->lock();
+
+            if (target_border->get_version_deleted() ||
+                target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
+                goto retry_from_root; // NOLINT
+            }
+            if (target_border->get_version_vinsert_delete() !=
+                v_at_fetch_lv.get_vinsert_delete()) {
+                goto retry_fetch_lv; // NOLINT
+            }
+
             value old_value{};
-            lv_ptr->set_value({reinterpret_cast<void*>(value_ptr), arg_value_length, // NOLINT
+            lv_ptr->set_value({reinterpret_cast<void*>(value_ptr),
+                               arg_value_length, // NOLINT
                                value_align},
                               old_value,
                               reinterpret_cast<void**>(created_value_ptr)); // NOLINT
@@ -155,9 +180,8 @@ retry_fetch_lv:
                          old_value.get_len(), old_value.get_align()});
             }
             return status::OK;
-#endif
-            return status::WARN_UNIQUE_RESTRICTION;
         }
+
         /**
          * basically, unreachable.
          * If not a final slice, the key size is larger than the key slice type.
@@ -203,15 +227,15 @@ retry_fetch_lv:
 
 template<class ValueType>
 [[maybe_unused]] static status
-put(std::string_view storage_name, std::string_view key_view, ValueType* value_ptr,
-    std::size_t arg_value_length = sizeof(ValueType),
+put(Token token, std::string_view storage_name, std::string_view key_view,
+    ValueType* value_ptr, std::size_t arg_value_length = sizeof(ValueType),
     ValueType** created_value_ptr = nullptr,
     value_align_type value_align = static_cast<value_align_type>(alignof(ValueType)),
     node_version64** inserted_node_version_ptr = nullptr) {
     tree_instance* ti{};
     status ret{storage::find_storage(storage_name, &ti)};
     if (status::OK != ret) { return ret; }
-    return put(ti, key_view, value_ptr, arg_value_length, created_value_ptr, value_align,
-               inserted_node_version_ptr);
+    return put(token, ti, key_view, value_ptr, false, arg_value_length, created_value_ptr,
+               value_align, inserted_node_version_ptr);
 }
 } // namespace yakushima

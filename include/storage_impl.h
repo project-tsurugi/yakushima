@@ -21,7 +21,10 @@ namespace yakushima {
 
 status storage::create_storage(std::string_view storage_name) { // NOLINT
     tree_instance new_instance;
-    status ret_st{put(get_storages(), storage_name, &new_instance)};
+    Token token{};
+    while (status::OK != enter(token)) _mm_pause();
+    status ret_st{put(token, get_storages(), storage_name, &new_instance, true)};
+    leave(token);
     return ret_st;
 }
 

@@ -70,9 +70,9 @@ TEST_F(mtpdt, multi_layer_many_interior_shuffle) { // NOLINT
                 for (auto& i : kv) {
                     std::string v(std::get<1>(i));
                     std::string k(std::get<0>(i));
-                    status ret = put(test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(), v.size());
                     if (status::OK != ret) {
-                        ret = put(test_storage_name, k, v.data(), v.size());
+                        ret = put(token, test_storage_name, k, v.data(), v.size());
                         ASSERT_EQ(status::OK, ret);
                         std::abort();
                     }
@@ -91,7 +91,7 @@ TEST_F(mtpdt, multi_layer_many_interior_shuffle) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(), v.size());
                     if (status::OK != ret) {
                         ASSERT_EQ(status::OK, ret);
                         std::abort();

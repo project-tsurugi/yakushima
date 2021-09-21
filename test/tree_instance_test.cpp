@@ -62,8 +62,11 @@ TEST_F(ti, yakushima_in_yakushima) { // NOLINT
     std::string k{"k"};
     create_storage(storage_name);
     tree_instance tin;
-    put(storage_name, k, &tin);
+    Token token{};
+    while (status::OK != enter(token)) _mm_pause();
+    put(token, storage_name, k, &tin);
     std::pair<tree_instance*, std::size_t> ret = get<tree_instance>(storage_name, k);
+    leave(token);
     ASSERT_EQ(ret.first->load_root_ptr(), tin.load_root_ptr());
     fin();
 }

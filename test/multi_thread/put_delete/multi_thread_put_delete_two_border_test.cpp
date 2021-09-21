@@ -62,7 +62,7 @@ TEST_F(mtpdt, two_layer_two_border) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
+                    ASSERT_EQ(put(token, test_storage_name, k, v.data(), v.size()), status::OK);
                 }
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
@@ -73,7 +73,7 @@ TEST_F(mtpdt, two_layer_two_border) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
+                    ASSERT_EQ(put(token, test_storage_name, k, v.data(), v.size()), status::OK);
                 }
 
                 leave(token);
@@ -138,7 +138,7 @@ TEST_F(mtpdt, two_layer_two_border_shuffle) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
+                    ASSERT_EQ(put(token, test_storage_name, k, v.data(), v.size()), status::OK);
                 }
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
@@ -149,7 +149,7 @@ TEST_F(mtpdt, two_layer_two_border_shuffle) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
+                    ASSERT_EQ(put(token, test_storage_name, k, v.data(), v.size()), status::OK);
                 }
 
                 leave(token);
@@ -210,7 +210,7 @@ TEST_F(mtpdt, concurrent_put_delete_between_none_and_interior) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
+                    ASSERT_EQ(put(token, test_storage_name, k, v.data(), v.size()), status::OK);
                 }
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
@@ -221,7 +221,7 @@ TEST_F(mtpdt, concurrent_put_delete_between_none_and_interior) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
+                    ASSERT_EQ(put(token, test_storage_name, k, v.data(), v.size()), status::OK);
                 }
 
                 leave(token);
@@ -284,7 +284,7 @@ TEST_F(mtpdt, concurrent_put_delete_between_none_and_interior_in_second_layer) {
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         ASSERT_EQ(ret, status::OK);
                         std::abort();
@@ -303,7 +303,7 @@ TEST_F(mtpdt, concurrent_put_delete_between_none_and_interior_in_second_layer) {
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         ASSERT_EQ(ret, status::OK);
                         std::abort();
@@ -376,7 +376,7 @@ TEST_F(mtpdt, concurrent_put_delete_between_none_and_interior_in_first_layer) { 
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
+                    ASSERT_EQ(put(token, test_storage_name, k, v.data(), v.size()), status::OK);
                 }
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
@@ -387,7 +387,7 @@ TEST_F(mtpdt, concurrent_put_delete_between_none_and_interior_in_first_layer) { 
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
+                    ASSERT_EQ(put(token, test_storage_name, k, v.data(), v.size()), status::OK);
                 }
 
                 leave(token);
@@ -451,7 +451,7 @@ TEST_F(mtpdt, concurrent_put_delete_between_none_and_interior_in_second_layer_wi
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
+                    ASSERT_EQ(put(token, test_storage_name, k, v.data(), v.size()), status::OK);
                 }
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
@@ -462,7 +462,7 @@ TEST_F(mtpdt, concurrent_put_delete_between_none_and_interior_in_second_layer_wi
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
+                    ASSERT_EQ(put(token, test_storage_name, k, v.data(), v.size()), status::OK);
                 }
                 leave(token);
             }

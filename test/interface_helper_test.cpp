@@ -35,7 +35,7 @@ TEST_F(interface_helper_test, destroy) { // NOLINT
     for (auto&& itr : k) {
         itr = std::string(1, ctr); // NOLINT
         ++ctr;
-        ASSERT_EQ(status::OK, put(test_storage_name, itr, v.data(), v.size()));
+        ASSERT_EQ(status::OK, put(token, test_storage_name, itr, v.data(), v.size()));
     }
     ASSERT_EQ(leave(token), status::OK);
     // destroy test by using destructor (fin());
@@ -49,7 +49,7 @@ TEST_F(interface_helper_test, init) { // NOLINT
     ASSERT_EQ(enter(token), status::OK);
     std::string k("a");
     std::string v("v-a");
-    ASSERT_EQ(status::OK, put(test_storage_name, k, v.data(), v.size()));
+    ASSERT_EQ(status::OK, put(token, test_storage_name, k, v.data(), v.size()));
     ASSERT_NE(ti->load_root_ptr(), nullptr);
     ASSERT_EQ(leave(token), status::OK);
 }

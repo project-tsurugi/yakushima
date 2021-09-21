@@ -90,12 +90,12 @@ TEST_F(st, simple_operate_some_storage) { // NOLINT
     ASSERT_EQ(status::OK, create_storage(st2));
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
-    ASSERT_EQ(put(st1, k1, v.data(), v.size()), status::OK);
-    ASSERT_EQ(put(st1, k2, v.data(), v.size()), status::OK);
-    ASSERT_EQ(put(st1, k3, v.data(), v.size()), status::OK);
-    ASSERT_EQ(put(st2, k4, v.data(), v.size()), status::OK);
-    ASSERT_EQ(put(st2, k5, v.data(), v.size()), status::OK);
-    ASSERT_EQ(put(st2, k6, v.data(), v.size()), status::OK);
+    ASSERT_EQ(put(token, st1, k1, v.data(), v.size()), status::OK);
+    ASSERT_EQ(put(token, st1, k2, v.data(), v.size()), status::OK);
+    ASSERT_EQ(put(token, st1, k3, v.data(), v.size()), status::OK);
+    ASSERT_EQ(put(token, st2, k4, v.data(), v.size()), status::OK);
+    ASSERT_EQ(put(token, st2, k5, v.data(), v.size()), status::OK);
+    ASSERT_EQ(put(token, st2, k6, v.data(), v.size()), status::OK);
     std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list;
     constexpr std::size_t key_index{0};
     ASSERT_EQ(status::OK, scan(st1, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list));

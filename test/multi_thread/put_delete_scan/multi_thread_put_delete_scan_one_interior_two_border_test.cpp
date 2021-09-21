@@ -16,12 +16,8 @@ using namespace yakushima;
 namespace yakushima::testing {
 
 class mtpdst : public ::testing::Test {
-    void SetUp() override {
-        init();
-    }
-    void TearDown() override {
-        fin();
-    }
+    void SetUp() override { init(); }
+    void TearDown() override { fin(); }
 };
 
 std::string test_storage_name{"1"}; // NOLINT
@@ -50,7 +46,10 @@ TEST_F(mtpdst, one_interior) { // NOLINT
                 std::vector<std::pair<std::string, std::string>> kv;
                 kv.reserve(ary_size / max_thread);
                 // data generation
-                for (std::size_t i = (ary_size / max_thread) * th_id; i < (th_id != max_thread - 1 ? (ary_size / max_thread) * (th_id + 1) : ary_size); ++i) {
+                for (std::size_t i = (ary_size / max_thread) * th_id;
+                     i < (th_id != max_thread - 1 ? (ary_size / max_thread) * (th_id + 1)
+                                                  : ary_size);
+                     ++i) {
                     kv.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
                 }
 
@@ -65,21 +64,25 @@ TEST_F(mtpdst, one_interior) { // NOLINT
                     for (auto& i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(test_storage_name, k, v.data(), v.size());
+                        status ret = put(token, test_storage_name, k, v.data(), v.size());
                         if (ret != status::OK) {
                             ASSERT_EQ(ret, status::OK);
                             std::abort();
                         }
                     }
-                    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list; // NOLINT
-                    ASSERT_EQ(status::OK, scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list));
+                    std::vector<std::tuple<std::string, char*, std::size_t>>
+                            tuple_list; // NOLINT
+                    ASSERT_EQ(status::OK,
+                              scan<char>(test_storage_name, "", scan_endpoint::INF, "",
+                                         scan_endpoint::INF, tuple_list));
                     ASSERT_EQ(tuple_list.size() >= kv.size(), true);
                     std::size_t check_ctr{0};
                     for (auto&& elem : tuple_list) {
                         if (kv.size() == check_ctr) break;
                         for (auto&& elem2 : kv) {
                             if (std::get<1>(elem2).size() == std::get<2>(elem) &&
-                                memcmp(std::get<1>(elem2).data(), std::get<1>(elem), std::get<2>(elem)) == 0) {
+                                memcmp(std::get<1>(elem2).data(), std::get<1>(elem),
+                                       std::get<2>(elem)) == 0) {
                                 ++check_ctr;
                                 break;
                             }
@@ -100,7 +103,7 @@ TEST_F(mtpdst, one_interior) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         ASSERT_EQ(ret, status::OK);
                         std::abort();
@@ -113,14 +116,13 @@ TEST_F(mtpdst, one_interior) { // NOLINT
 
         std::vector<std::thread> thv;
         thv.reserve(th_nm);
-        for (std::size_t i = 0; i < th_nm; ++i) {
-            thv.emplace_back(S::work, i, th_nm);
-        }
+        for (std::size_t i = 0; i < th_nm; ++i) { thv.emplace_back(S::work, i, th_nm); }
         for (auto&& th : thv) { th.join(); }
         thv.clear();
 
         std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list; // NOLINT
-        scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list);
+        scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF,
+                   tuple_list);
         ASSERT_EQ(tuple_list.size(), ary_size);
         for (std::size_t j = 0; j < ary_size; ++j) {
             std::string v(std::to_string(j));
@@ -156,7 +158,10 @@ TEST_F(mtpdst, one_interior_shuffle) { // NOLINT
                 std::vector<std::pair<std::string, std::string>> kv;
                 kv.reserve(ary_size / max_thread);
                 // data generation
-                for (std::size_t i = (ary_size / max_thread) * th_id; i < (th_id != max_thread - 1 ? (ary_size / max_thread) * (th_id + 1) : ary_size); ++i) {
+                for (std::size_t i = (ary_size / max_thread) * th_id;
+                     i < (th_id != max_thread - 1 ? (ary_size / max_thread) * (th_id + 1)
+                                                  : ary_size);
+                     ++i) {
                     kv.emplace_back(std::make_pair(std::string(1, i), std::to_string(i)));
                 }
 
@@ -174,21 +179,25 @@ TEST_F(mtpdst, one_interior_shuffle) { // NOLINT
                     for (auto& i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(test_storage_name, k, v.data(), v.size());
+                        status ret = put(token, test_storage_name, k, v.data(), v.size());
                         if (ret != status::OK) {
                             ASSERT_EQ(ret, status::OK);
                             std::abort();
                         }
                     }
-                    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list; // NOLINT
-                    ASSERT_EQ(status::OK, scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list));
+                    std::vector<std::tuple<std::string, char*, std::size_t>>
+                            tuple_list; // NOLINT
+                    ASSERT_EQ(status::OK,
+                              scan<char>(test_storage_name, "", scan_endpoint::INF, "",
+                                         scan_endpoint::INF, tuple_list));
                     ASSERT_EQ(tuple_list.size() >= kv.size(), true);
                     std::size_t check_ctr{0};
                     for (auto&& elem : tuple_list) {
                         if (kv.size() == check_ctr) break;
                         for (auto&& elem2 : kv) {
                             if (std::get<1>(elem2).size() == std::get<2>(elem) &&
-                                memcmp(std::get<1>(elem2).data(), std::get<1>(elem), std::get<2>(elem)) == 0) {
+                                memcmp(std::get<1>(elem2).data(), std::get<1>(elem),
+                                       std::get<2>(elem)) == 0) {
                                 ++check_ctr;
                                 break;
                             }
@@ -209,7 +218,7 @@ TEST_F(mtpdst, one_interior_shuffle) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(), v.size());
                     if (ret != status::OK) {
                         ASSERT_EQ(ret, status::OK);
                         std::abort();
@@ -222,14 +231,13 @@ TEST_F(mtpdst, one_interior_shuffle) { // NOLINT
 
         std::vector<std::thread> thv;
         thv.reserve(th_nm);
-        for (std::size_t i = 0; i < th_nm; ++i) {
-            thv.emplace_back(S::work, i, th_nm);
-        }
+        for (std::size_t i = 0; i < th_nm; ++i) { thv.emplace_back(S::work, i, th_nm); }
         for (auto&& th : thv) { th.join(); }
         thv.clear();
 
         std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list; // NOLINT
-        scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list);
+        scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF,
+                   tuple_list);
         ASSERT_EQ(tuple_list.size(), ary_size);
         for (std::size_t j = 0; j < ary_size; ++j) {
             std::string v(std::to_string(j));

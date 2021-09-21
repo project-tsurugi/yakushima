@@ -68,7 +68,7 @@ TEST_F(mtpdgt, many_layer_many_interior_many_border) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
+                    ASSERT_EQ(put(token, test_storage_name, k, v.data(), v.size()), status::OK);
                 }
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
@@ -85,7 +85,7 @@ TEST_F(mtpdgt, many_layer_many_interior_many_border) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(test_storage_name, k, v.data(), v.size()), status::OK);
+                    ASSERT_EQ(put(token, test_storage_name, k, v.data(), v.size()), status::OK);
                 }
 
                 leave(token);
