@@ -21,6 +21,8 @@ find_package(Doxygen REQUIRED)
 find_package(Threads REQUIRED)
 find_package(gflags REQUIRED)
 find_package(glog REQUIRED)
+find_package(TBB REQUIRED
+        COMPONENTS tbbmalloc tbbmalloc_proxy)
 if(PERFORMANCE_TOOLS)
     find_package(performance-tools REQUIRED)
 endif()
