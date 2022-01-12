@@ -21,8 +21,16 @@ find_package(Doxygen REQUIRED)
 find_package(Threads REQUIRED)
 find_package(gflags REQUIRED)
 find_package(glog REQUIRED)
-find_package(TBB REQUIRED
-        COMPONENTS tbbmalloc tbbmalloc_proxy)
+find_package(TBB
+  COMPONENTS tbb tbbmalloc tbbmalloc_proxy
+  CONFIG QUIET
+)
+if (DEFINED TBB_CONFIG)
+  set(tbb_prefix "TBB::")
+else()
+  find_package(TBB REQUIRED)
+  set(tbb_prefix "")
+endif()
 if(PERFORMANCE_TOOLS)
     find_package(performance-tools REQUIRED)
 endif()

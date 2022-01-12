@@ -24,9 +24,9 @@ target_link_libraries(yakushima_bench
         PRIVATE glog::glog
         PRIVATE Threads::Threads
         PRIVATE gflags::gflags
-        PRIVATE tbb
-        PRIVATE tbbmalloc
-        PRIVATE tbbmalloc_proxy
+        PRIVATE ${tbb_prefix}tbb
+        PRIVATE ${tbb_prefix}tbbmalloc
+        PRIVATE ${tbb_prefix}tbbmalloc_proxy
         )
 
 if (PERFORMANCE_TOOLS)

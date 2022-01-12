@@ -29,8 +29,8 @@ register_tests(
         TARGET yakushima_test
         DEPENDS
           PRIVATE glog::glog
-          PRIVATE tbb
-          PRIVATE tbbmalloc
-          PRIVATE tbbmalloc_proxy
+          PRIVATE ${tbb_prefix}tbb
+          PRIVATE ${tbb_prefix}tbbmalloc
+          PRIVATE ${tbb_prefix}tbbmalloc_proxy
         SOURCES ${TEST_SOURCES}
 )
