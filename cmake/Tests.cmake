@@ -71,13 +71,7 @@ function(register_tests)
       else ()
         target_link_libraries(${test_name} PRIVATE gtest_main)
       endif ()
-      target_link_libraries(${test_name} 
-              PRIVATE glog::glog
-              PRIVATE Threads::Threads
-              PRIVATE tbb
-              PRIVATE tbbmalloc
-              PRIVATE tbbmalloc_proxy
-              )
+      target_link_libraries(${test_name} PRIVATE Threads::Threads)
 
       set_compile_options(${test_name})
 

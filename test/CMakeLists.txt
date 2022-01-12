@@ -27,5 +27,10 @@ file(GLOB TEST_SOURCES
 
 register_tests(
         TARGET yakushima_test
+        DEPENDS
+          PRIVATE glog::glog
+          PRIVATE tbb
+          PRIVATE tbbmalloc
+          PRIVATE tbbmalloc_proxy
         SOURCES ${TEST_SOURCES}
 )
