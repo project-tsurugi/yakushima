@@ -132,7 +132,7 @@ retry_fetch_lv:
                                       std::string_view key_view) {
     tree_instance* ti{};
     status ret{storage::find_storage(storage_name, &ti)};
-    if (status::OK != ret) { return ret; }
+    if (status::OK != ret) { return status::WARN_STORAGE_NOT_EXIST; }
     return remove(token, ti, key_view);
 }
 

@@ -133,9 +133,9 @@ list_storages(std::vector<std::pair<std::string, tree_instance*>>& out) {
  * does not exist.
  */
 template<class ValueType>
-[[maybe_unused]] static status get(std::string_view storage_name,
+[[maybe_unused]] static status get(std::string_view storage_name, // NOLINT
                                    std::string_view key_view,
-                                   std::pair<ValueType*, std::size_t>& out); // NOLINT
+                                   std::pair<ValueType*, std::size_t>& out);
 
 /**
  * @biref Put the value with given @a key_view.
@@ -162,6 +162,8 @@ template<class ValueType>
  * @return status::OK success.
  * @return status::WARN_UNIQUE_RESTRICTION The key-value whose key is same to given key
  * already exists.
+ * @return status::WARN_STORAGE_NOT_EXIST The target storage of this operation 
+ * does not exist.
  */
 template<class ValueType>
 [[maybe_unused]] static status
@@ -174,7 +176,12 @@ put(Token token, std::string_view storage_name, std::string_view key_view, // NO
  * @pre @a token of arguments is valid.
  * @param[in] token
  * @param[in] key_view The key_view of key-value.
+ * @return status::OK success
  * @return status::OK_ROOT_IS_NULL No existing tree.
+ * @return status::OK_NOT_FOUND The target storage exists, but the target 
+ * entry does not exist.
+ * @return status::WARN_STORAGE_NOT_EXIST The target storage of this operation 
+ * does not exist.
  */
 [[maybe_unused]] static status remove(Token token, // NOLINT
                                       std::string_view storage_name,
@@ -214,6 +221,8 @@ put(Token token, std::string_view storage_name, std::string_view key_view, // NO
  * This advantage is effective when the right end point is unknown but you want to scan to
  * a specific value.
  * @return status::OK success.
+ * @return status::WARN_STORAGE_NOT_EXIST The target storage of this operation 
+ * does not exist.
  */
 template<class ValueType>
 [[maybe_unused]] static status

@@ -235,7 +235,7 @@ put(Token token, std::string_view storage_name, std::string_view key_view,
     node_version64** inserted_node_version_ptr = nullptr) {
     tree_instance* ti{};
     status ret{storage::find_storage(storage_name, &ti)};
-    if (status::OK != ret) { return ret; }
+    if (status::OK != ret) { return status::WARN_STORAGE_NOT_EXIST; }
     return put(token, ti, key_view, value_ptr, false, arg_value_length, created_value_ptr,
                value_align, inserted_node_version_ptr);
 }

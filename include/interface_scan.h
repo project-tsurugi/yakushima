@@ -115,7 +115,7 @@ scan(std::string_view storage_name, std::string_view l_key, scan_endpoint l_end,
   // check storage
   tree_instance *ti{};
   if (storage::find_storage(storage_name, &ti) != status::OK) {
-    return status::WARN_NOT_EXIST;
+    return status::WARN_STORAGE_NOT_EXIST;
   }
   return scan(ti, l_key, l_end, r_key, r_end, tuple_list, node_version_vec, max_size);
 }

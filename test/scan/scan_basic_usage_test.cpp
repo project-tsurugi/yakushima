@@ -23,6 +23,16 @@ class st : public ::testing::Test {
     void TearDown() override { fin(); }
 };
 
+TEST_F(st, scan_at_non_existing_stoarge) { // NOLINT
+    Token s{};
+    ASSERT_EQ(status::OK, enter(s));
+    std::vector<std::tuple<std::string, char*, std::size_t>> tup_lis{}; // NOLINT
+    std::vector<std::pair<node_version64_body, node_version64*>> nv;
+    ASSERT_EQ(status::WARN_STORAGE_NOT_EXIST, scan<char>("", "", scan_endpoint::INCLUSIVE, "",
+                                     scan_endpoint::INCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(status::OK, leave(s));
+}
+
 TEST_F(st, basic_usage) { // NOLINT
     /**
    * basic usage
