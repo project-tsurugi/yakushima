@@ -166,9 +166,10 @@ void get_worker(const size_t thid, char& ready, const bool& start, const bool& q
         std::uint64_t keynm = zipf() % FLAGS_get_initial_record;
         void* p = (&keynm);
         std::string key{static_cast<char*>(p), sizeof(std::uint64_t)};
-        std::tuple<char*, std::size_t> ret =
-                get<char>(bench_storage, std::string_view(key));
-        if (std::get<0>(ret) == nullptr) { LOG(FATAL) << "fatal error"; }
+        std::pair<char*, std::size_t> ret{};
+        if (get<char>(bench_storage, std::string_view(key), ret) != status::OK) {
+            LOG(FATAL) << "fatal error";
+        }
         ++local_res;
     }
 #ifdef PERFORMANCE_TOOLS

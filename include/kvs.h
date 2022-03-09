@@ -123,13 +123,19 @@ list_storages(std::vector<std::pair<std::string, tree_instance*>>& out) {
  * @brief Get value which is corresponding to given @a key_view.
  * @tparam ValueType The returned pointer is cast to the given type information before it
  * is returned.
+ * @param[in] storage_name The key_view of storage name.
  * @param[in] key_view The key_view of key-value.
- * @return std::pair<ValueType *, std::size_t> The pair of pointer to value and the value
- * size.
+ * @param[out] out The result about pointer to value and value size.
+ * @return std::status::OK success
+ * @return status::WARN_NOT_EXIST The target storage of this operation exists, 
+ * but the target entry of the storage does not exist.
+ * @return status::WARN_STORAGE_NOT_EXIST The target storage of this operation 
+ * does not exist.
  */
 template<class ValueType>
-[[maybe_unused]] static std::pair<ValueType*, std::size_t>
-get(std::string_view storage_name, std::string_view key_view); // NOLINT
+[[maybe_unused]] static status get(std::string_view storage_name,
+                                   std::string_view key_view,
+                                   std::pair<ValueType*, std::size_t>& out); // NOLINT
 
 /**
  * @biref Put the value with given @a key_view.
