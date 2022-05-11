@@ -161,10 +161,14 @@ retry_fetch_lv:
 
             if (target_border->get_version_deleted() ||
                 target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
+                // maybe wrong node
+                target_border->version_unlock();
                 goto retry_from_root; // NOLINT
             }
             if (target_border->get_version_vinsert_delete() !=
                 v_at_fetch_lv.get_vinsert_delete()) {
+                // maybe wrong lv
+                target_border->version_unlock();
                 goto retry_fetch_lv; // NOLINT
             }
 
@@ -191,10 +195,12 @@ retry_fetch_lv:
           */
         if (target_border->get_version_deleted() ||
             target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
+            // maybe wrong node
             goto retry_from_root; // NOLINT
         }
         if (target_border->get_version_vinsert_delete() !=
             v_at_fetch_lv.get_vinsert_delete()) {
+            // maybe wrong lv
             goto retry_fetch_lv; // NOLINT
         }
     }
