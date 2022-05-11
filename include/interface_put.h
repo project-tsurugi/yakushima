@@ -38,8 +38,8 @@ root_nullptr:
     base_node* expected = ti->load_root_ptr();
     if (expected == nullptr) {
         /**
-     * root is nullptr, so put single border nodes.
-     */
+          * root is nullptr, so put single border nodes.
+          */
         border_node* new_border = new border_node(); // NOLINT
         new_border->init_border(key_view, {value_ptr, arg_value_length, value_align},
                                 created_value_ptr, true);
@@ -60,17 +60,17 @@ root_nullptr:
     }
 retry_from_root:
     /**
-   * here, root is not nullptr.
-   * Prepare key for traversing tree.
-   */
+      * here, root is not nullptr.
+      * Prepare key for traversing tree.
+      */
     base_node* root = ti->load_root_ptr();
     if (root == nullptr) goto root_nullptr; // NOLINT
 
     std::string_view traverse_key_view{key_view};
 retry_find_border:
     /**
-   * prepare key_slice
-   */
+      * prepare key_slice
+      */
     key_slice_type key_slice(0);
     auto key_slice_length = static_cast<key_length_type>(traverse_key_view.size());
     if (traverse_key_view.size() > sizeof(key_slice_type)) {
@@ -81,16 +81,16 @@ retry_find_border:
         }
     }
     /**
-   * traverse tree to border node.
-   */
+      * traverse tree to border node.
+      */
     status special_status{status::OK};
     std::tuple<border_node*, node_version64_body> node_and_v =
             find_border(root, key_slice, key_slice_length, special_status);
     if (special_status == status::WARN_RETRY_FROM_ROOT_OF_ALL) {
         /**
-     * @a root is the root node of the some layer, but it was deleted.
-     * So it must retry from root of the all tree.
-     */
+          * @a root is the root node of the some layer, but it was deleted.
+          * So it must retry from root of the all tree.
+          */
         goto retry_from_root; // NOLINT
     }
     constexpr std::size_t tuple_node_index = 0;
@@ -105,14 +105,14 @@ retry_fetch_lv:
     link_or_value* lv_ptr = target_border->get_lv_of(key_slice, key_slice_length,
                                                      v_at_fetch_lv, lv_pos, &rank);
     /**
-   * check whether it should insert into this node.
-   */
+      * check whether it should insert into this node.
+      */
     if ((v_at_fetch_lv.get_vsplit() != v_at_fb.get_vsplit()) ||
         v_at_fetch_lv.get_deleted()) {
         /**
-     * It may be change the correct border between atomically fetching border node and
-     * atomically fetching lv.
-     */
+          * It may be change the correct border between atomically fetching border node and
+          * atomically fetching lv.
+          */
         goto retry_from_root; // NOLINT
     }
     if (lv_ptr == nullptr) {
@@ -120,25 +120,25 @@ retry_fetch_lv:
         if (target_border->get_version_deleted() ||
             target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
             /**
-       * get_version_deleted() : It was deleted between atomically fetching border node
-       * and locking.
-       * vsplit comparison : It may be change the correct border node between
-       * atomically fetching border and lock.
-       */
+              * get_version_deleted() : It was deleted between atomically fetching border node
+              * and locking.
+              * vsplit comparison : It may be change the correct border node between
+              * atomically fetching border and lock.
+              */
             target_border->version_unlock();
             goto retry_from_root; // NOLINT
         }
         /**
-     * Here, border node is the correct.
-     */
+          * Here, border node is the correct.
+          */
         if (target_border->get_version_vinsert_delete() !=
             v_at_fetch_lv.get_vinsert_delete()) { // It may exist lv_ptr
             /**
-       * next_layers may be wrong. However, when it rechecks the next_layers, it can't get
-       * the lock down, so it have to try again.
-       * TODO : It can scan (its permutation) again and insert into this border node if it
-       * don't have the same key.
-       */
+              * next_layers may be wrong. However, when it rechecks the next_layers, it can't get
+              * the lock down, so it have to try again.
+              * TODO : It can scan (its permutation) again and insert into this border node if it
+              * don't have the same key.
+              */
             target_border->version_unlock();
             goto retry_fetch_lv; // NOLINT
         }
@@ -150,9 +150,9 @@ retry_fetch_lv:
     }
 
     /**
-   * Here, lv_ptr != nullptr.
-   * If lv_ptr has some value && final_slice
-   */
+      * Here, lv_ptr != nullptr.
+      * If lv_ptr has some value && final_slice
+      */
     if (target_border->get_key_length_at(lv_pos) <= sizeof(key_slice_type)) {
         if (key_slice_length <= sizeof(key_slice_type)) {
             if (unique_restriction) { return status::WARN_UNIQUE_RESTRICTION; }
@@ -184,11 +184,11 @@ retry_fetch_lv:
         }
 
         /**
-     * basically, unreachable.
-     * If not a final slice, the key size is larger than the key slice type.
-     * The key length of lv pointer cannot be smaller than the key slice type.
-     * Therefore, it was interrupted by a parallel operation.
-     */
+          * basically, unreachable.
+          * If not a final slice, the key size is larger than the key slice type.
+          * The key length of lv pointer cannot be smaller than the key slice type.
+          * Therefore, it was interrupted by a parallel operation.
+          */
         if (target_border->get_version_deleted() ||
             target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
             goto retry_from_root; // NOLINT
@@ -199,12 +199,12 @@ retry_fetch_lv:
         }
     }
     /**
-   * Here, lv_ptr has some next_layer.
-   */
+        * Here, lv_ptr has some next_layer.
+        */
     root = lv_ptr->get_next_layer();
     /**
-   * check whether border is still correct.
-   */
+      * check whether border is still correct.
+      */
     node_version64_body final_check = target_border->get_stable_version();
     if (final_check.get_deleted() || // this border was deleted.
         final_check.get_vsplit() !=
@@ -212,16 +212,16 @@ retry_fetch_lv:
         goto retry_from_root;           // NOLINT
     }
     /**
-   * check whether fetching lv is still correct.
-   */
+      * check whether fetching lv is still correct.
+      */
     if (final_check.get_vinsert_delete() !=
         v_at_fetch_lv.get_vinsert_delete()) { // fetched lv may be deleted
         goto retry_fetch_lv;                  // NOLINT
     }
     /**
-   * root was fetched correctly.
-   * root = lv; advance key; goto retry_find_border;
-   */
+      * root was fetched correctly.
+      * root = lv; advance key; goto retry_find_border;
+      */
     traverse_key_view.remove_prefix(sizeof(key_slice_type));
     goto retry_find_border; // NOLINT
 }
