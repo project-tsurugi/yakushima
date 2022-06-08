@@ -27,6 +27,16 @@ jobs:
           submodules: recursive
           token: ${{ secrets.GHA_PAT }}
 
+      - id: Checkout_Actions
+        name: Checkout_Actions
+        uses: actions/checkout@v2
+        with:
+          repository: project-tsurugi/tsurugi-github-actions
+          path: .github/actions
+          ref: master
+          submodules: recursive
+          token: ${{ secrets.GHA_PAT }}
+
       - id: Install_sandbox-performance-tools
         name: Install_sandbox-performance-tools
         run: |
