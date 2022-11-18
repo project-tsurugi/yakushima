@@ -9,6 +9,8 @@
 #include "storage.h"
 #include "tree_instance.h"
 
+#include "glog/logging.h"
+
 namespace yakushima {
 
 template <class ValueType>
@@ -41,10 +43,13 @@ scan(tree_instance *ti, std::string_view l_key, scan_endpoint l_end,
     return status::ERR_BAD_USAGE;
   }
 
+  // clear out parameter
   tuple_list.clear();
   if (node_version_vec != nullptr) {
+    // this out parameter is used.
     node_version_vec->clear();
   }
+
 retry_from_root:
   std::string key_prefix;
   base_node *root = ti->load_root_ptr();
@@ -98,8 +103,7 @@ retry_from_root:
       goto retry_from_root; // NOLINT
     } else {
       // unreachable
-      std::cerr << __FILE__ << ": " << __LINE__ << std::endl;
-      std::abort();
+      LOG(ERROR) << "unexpected path";
     }
   }
 }
