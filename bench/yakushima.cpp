@@ -168,7 +168,7 @@ void get_worker(const size_t thid, char& ready, const bool& start, const bool& q
         std::string key{static_cast<char*>(p), sizeof(std::uint64_t)};
         std::pair<char*, std::size_t> ret{};
         if (get<char>(bench_storage, std::string_view(key), ret) != status::OK) {
-            LOG(FATAL) << "fatal error";
+            LOG(ERROR) << "fatal error";
         }
         ++local_res;
     }

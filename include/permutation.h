@@ -20,6 +20,8 @@
 #include "base_node.h"
 #include "scheme.h"
 
+#include "glog/logging.h"
+
 namespace yakushima {
 
 class permutation {
@@ -28,8 +30,9 @@ public:
    * cnk ... current number of keys.
    */
     static constexpr std::size_t cnk_mask = 0b1111;
-    static constexpr std::size_t cnk_bit_size = 4;  // bits
-    static constexpr std::size_t pkey_bit_size = 4; // bits, permutation key size.
+    static constexpr std::size_t cnk_bit_size = 4; // bits
+    static constexpr std::size_t pkey_bit_size =
+            4; // bits, permutation key size.
 
     permutation() : body_{} {}
 
@@ -56,7 +59,8 @@ public:
             left = 0;
         } else {
             left = get_body();
-            left = (left >> (pkey_bit_size * (rank + 2))) << (pkey_bit_size * (rank + 1));
+            left = (left >> (pkey_bit_size * (rank + 2)))
+                   << (pkey_bit_size * (rank + 1));
         }
         std::uint64_t right = get_body();
         if (rank == 0) {
@@ -106,7 +110,7 @@ public:
         // increment key number
         std::size_t cnk = per_body & cnk_mask;
 #ifndef NDEBUG
-        if (cnk >= pow(2, cnk_bit_size) - 1) { std::abort(); }
+        if (cnk >= pow(2, cnk_bit_size) - 1) { LOG(ERROR); }
 #endif
         ++cnk;
         per_body &= ~cnk_mask;
@@ -125,7 +129,8 @@ public:
             left = 0;
         } else {
             left = get_body();
-            left = (left >> (pkey_bit_size * (rank + 1))) << (pkey_bit_size * (rank + 2));
+            left = (left >> (pkey_bit_size * (rank + 1)))
+                   << (pkey_bit_size * (rank + 2));
         }
         std::uint64_t right{};
         if (rank == 0) {
@@ -146,7 +151,9 @@ public:
    */
     void split_dest(std::size_t num) {
         std::uint64_t body{0};
-        for (std::size_t i = 1; i < num; ++i) { body |= i << (pkey_bit_size * (i + 1)); }
+        for (std::size_t i = 1; i < num; ++i) {
+            body |= i << (pkey_bit_size * (i + 1));
+        }
         body |= num;
         set_body(body);
     }
@@ -157,15 +164,18 @@ public:
    * @param key_slice
    * @param key_length
    */
-    void rearrange(const std::array<key_slice_type, key_slice_length>& key_slice,
-                   const std::array<key_length_type, key_slice_length>& key_length) {
+    void
+    rearrange(const std::array<key_slice_type, key_slice_length>& key_slice,
+              const std::array<key_length_type, key_slice_length>& key_length) {
         std::uint64_t per_body(body_.load(std::memory_order_acquire));
         // get current number of keys
         auto cnk = static_cast<uint8_t>(per_body & cnk_mask);
 
         // tuple<key_slice, key_length, index>
         constexpr std::size_t key_pos = 1;
-        std::array<std::tuple<base_node::key_tuple, std::uint8_t>, key_slice_length> ar;
+        std::array<std::tuple<base_node::key_tuple, std::uint8_t>,
+                   key_slice_length>
+                ar;
         for (std::uint8_t i = 0; i < cnk; ++i) {
             ar.at(i) = {{key_slice.at(i), key_length.at(i)}, i};
         }
@@ -177,8 +187,8 @@ public:
 
         // rearrange
         std::uint64_t new_body(0);
-        for (auto itr = ar.rbegin() + (key_slice_length - cnk); itr != ar.rend();
-             ++itr) { // NOLINT : order to use "auto *itr"
+        for (auto itr = ar.rbegin() + (key_slice_length - cnk);
+             itr != ar.rend(); ++itr) { // NOLINT : order to use "auto *itr"
             new_body |= std::get<key_pos>(*itr);
             new_body <<= pkey_bit_size;
         }
@@ -186,14 +196,13 @@ public:
         body_.store(new_body, std::memory_order_release);
     }
 
-    void set_body(const std::uint64_t nb) { body_.store(nb, std::memory_order_release); }
+    void set_body(const std::uint64_t nb) {
+        body_.store(nb, std::memory_order_release);
+    }
 
     status set_cnk(const std::uint8_t cnk) {
 #ifndef NDEBUG
-        if (powl(2, cnk_bit_size) <= cnk) {
-            std::cerr << __FILE__ << " : " << __LINE__ << " : fatal error." << std::endl;
-            std::abort();
-        }
+        if (powl(2, cnk_bit_size) <= cnk) { LOG(ERROR) << "unreachable path"; }
 #endif
         std::uint64_t body = body_.load(std::memory_order_acquire);
         body &= ~cnk_mask;

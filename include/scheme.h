@@ -8,6 +8,8 @@
 #include <cstdlib>
 #include <string_view>
 
+#include "glog/logging.h"
+
 namespace yakushima {
 
 /**
@@ -154,7 +156,7 @@ inline constexpr std::string_view to_string_view(const status value) noexcept {
         case status::ERR_UNKNOWN_ROOT:
             return "ERR_UNKNOWN_ROOT"sv;
     }
-    std::abort();
+    LOG(ERROR);
 }
 
 inline std::ostream& operator<<(std::ostream& out, const status value) {

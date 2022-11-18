@@ -9,6 +9,8 @@
 #include "border_helper.h"
 #include "tree_instance.h"
 
+#include "glog/logging.h"
+
 namespace yakushima {
 
 /**
@@ -94,8 +96,7 @@ interior_split(tree_instance* ti, interior_node* const interior,
     key_length_type key_length{inserting_key.second};
 #ifndef NDEBUG
     if (key_length == 0 || pivot_length == 0) {
-        std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
-        std::abort();
+        LOG(ERROR);
     }
 #endif
     std::size_t comp_length{0};
@@ -118,8 +119,7 @@ interior_split(tree_instance* ti, interior_node* const interior,
     if (p == nullptr) {
 #ifndef NDEBUG
         if (ti->load_root_ptr() != interior) {
-            std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
-            std::abort();
+            LOG(ERROR);
         }
 #endif
         /**
@@ -143,8 +143,7 @@ interior_split(tree_instance* ti, interior_node* const interior,
    */
 #ifndef NDEBUG
     if (p->get_version_deleted() || p != interior->get_parent()) {
-        std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
-        std::abort();
+        LOG(ERROR);
     }
 #endif
     if (p->get_version_border()) {

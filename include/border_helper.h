@@ -16,6 +16,8 @@
 #include "link_or_value.h"
 #include "tree_instance.h"
 
+#include "glog/logging.h"
+
 namespace yakushima {
 
 /**
@@ -250,10 +252,7 @@ static void border_split(tree_instance* ti, border_node* const border,
     base_node* p = border->lock_parent();
     if (p == nullptr) {
 #ifndef NDEBUG
-        if (ti->load_root_ptr() != border) {
-            std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
-            std::abort();
-        }
+        if (ti->load_root_ptr() != border) { LOG(ERROR); }
 #endif
         /**
      * create interior as parents and insert k.
@@ -271,10 +270,7 @@ static void border_split(tree_instance* ti, border_node* const border,
     }
 
 #ifndef NDEBUG
-    if (p != border->get_parent()) {
-        std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
-        std::abort();
-    }
+    if (p != border->get_parent()) { LOG(ERROR); }
 #endif
 
     if (p->get_version_border()) {
@@ -304,10 +300,7 @@ static void border_split(tree_instance* ti, border_node* const border,
    * parent is interior node.
    */
 #ifndef NDEBUG
-    if (p->get_version_deleted()) {
-        std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
-        std::abort();
-    }
+    if (p->get_version_deleted()) { LOG(ERROR); }
 #endif
     auto* pi = dynamic_cast<interior_node*>(p);
     border->set_version_root(false);

@@ -13,6 +13,8 @@
 #include "scheme.h"
 #include "version.h"
 
+#include "glog/logging.h"
+
 namespace yakushima {
 
 class base_node { // NOLINT
@@ -275,8 +277,7 @@ public:
             }
         }
         // error
-        std::cerr << "fatal error" << std::endl;
-        std::exit(1);
+        LOG(ERROR) << "fatal error";
     }
 
     void remove_assigned_slot(std::size_t index) {

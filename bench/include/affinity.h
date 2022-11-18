@@ -10,6 +10,8 @@
 #include <cstdint>
 #include <iostream>
 
+#include "glog/logging.h"
+
 #ifdef YAKUSHIMA_LINUX
 
 [[maybe_unused]] static void set_thread_affinity(const int myid) {
@@ -35,8 +37,7 @@
     CPU_SET(myid % local_nprocessors, &cpu_set); // NOLINT
 
     if (sched_setaffinity(pid, sizeof(cpu_set_t), &cpu_set) != 0) {
-        std::cout << __FILE__ << " : " << __LINE__ << " : error" << std::endl;
-        std::abort();
+        LOG(ERROR);
     }
 }
 
@@ -44,8 +45,7 @@
     pid_t pid = syscall(SYS_gettid); // NOLINT
 
     if (sched_setaffinity(pid, sizeof(cpu_set_t), &id) != 0) {
-        std::cout << __FILE__ << " : " << __LINE__ << " : error" << std::endl;
-        std::abort();
+        LOG(ERROR);
     }
 }
 
@@ -54,8 +54,7 @@
     cpu_set_t result;
 
     if (sched_getaffinity(pid, sizeof(cpu_set_t), &result) != 0) {
-        std::cout << __FILE__ << " : " << __LINE__ << " : error" << std::endl;
-        std::abort();
+        LOG(ERROR);
     }
 
     return result;

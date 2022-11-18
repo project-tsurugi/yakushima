@@ -16,6 +16,8 @@
 #include "thread_info.h"
 #include "tree_instance.h"
 
+#include "glog/logging.h"
+
 namespace yakushima {
 
 class alignas(CACHE_LINE_SIZE) interior_node final // NOLINT
@@ -45,10 +47,7 @@ public:
         set_version_inserting_deleting(true);
         std::size_t n_key = get_n_keys();
 #ifndef NDEBUG
-        if (n_key == 0) {
-            std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
-            std::abort();
-        }
+        if (n_key == 0) { LOG(ERROR); }
 #endif
         for (std::size_t i = 0; i <= n_key; ++i) {
             if (get_child_at(i) == child) {
@@ -103,9 +102,7 @@ public:
         }
 
 #ifndef NDEBUG
-        std::cerr << __FILE__ << " : " << __LINE__ << " : precondition failure."
-                  << std::endl;
-        std::abort();
+        LOG(ERROR) << "precondition error";
 #endif
     }
 
@@ -310,11 +307,9 @@ public:
             }
         }
         /**
-     * unreachable point.
-     */
-        std::cerr << __FILE__ << " : " << __LINE__ << " : "
-                  << "fatal error" << std::endl;
-        std::abort();
+          * unreachable point.
+          */
+        LOG(ERROR) << "unreachable path";
     }
 
 private:

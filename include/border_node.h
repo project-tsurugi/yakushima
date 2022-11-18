@@ -16,6 +16,8 @@
 #include "permutation.h"
 #include "thread_info.h"
 
+#include "glog/logging.h"
+
 namespace yakushima {
 
 using std::cout;
@@ -65,8 +67,7 @@ public:
             }
         }
         // unreachable points.
-        std::cerr << __FILE__ << " : " << __LINE__ << " : " << std::endl;
-        std::abort();
+        LOG(ERROR);
     }
 
     /**
@@ -157,11 +158,9 @@ public:
             }
         }
         /**
-     * unreachable.
-     */
-        std::cerr << __FILE__ << ": " << __LINE__
-                  << " : it gets to unreachable points." << endl;
-        std::abort();
+          * unreachable.
+          */
+        LOG(ERROR);
     }
 
     /**
@@ -213,11 +212,9 @@ public:
             if (lv_.at(i).get_next_layer() == next_layer) { return &lv_.at(i); }
         }
         /**
-     * unreachable point.
-     */
-        std::cerr << __FILE__ << " : " << __LINE__ << " : "
-                  << "fatal error." << std::endl;
-        std::abort();
+          * unreachable point.
+          */
+         LOG(ERROR) << "unreachable path";
     }
 
     [[nodiscard]] link_or_value* get_lv_at(const std::size_t index) {

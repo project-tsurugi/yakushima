@@ -8,6 +8,8 @@
 #include "interior_node.h"
 #include "version.h"
 
+#include "glog/logging.h"
+
 namespace yakushima {
 
 /**
@@ -54,9 +56,7 @@ descend:
     if (v == v_check) {
 #ifndef NDEBUG
         if (n_child == nullptr) {
-            std::cerr << __FILE__ << " : " << __LINE__ << " : fatal error."
-                      << std::endl;
-            std::abort();
+            LOG(ERROR) << "unreachable path";
         }
 #endif
         /**
