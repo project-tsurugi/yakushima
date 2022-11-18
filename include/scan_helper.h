@@ -236,9 +236,17 @@ retry:
                 tuple_list.emplace_back(std::make_tuple(
                         full_key, reinterpret_cast<ValueType*>(vp), // NOLINT
                         vsize));
-                if (node_version_vec !=
-                    nullptr) { // todo add && std::get<1>(node_version_vec.back()) !=
-                               // node_version_ptr
+                if (node_version_vec != nullptr) {
+                    /**
+                      * note: 
+                      * std::get<1>(node_version_vec.back()) != node_version_ptr
+                      * Adding this can reduce redundant emplace_back. However, 
+                      * the correspondence between the value of the scan result 
+                      * and the pointer to the node version becomes unknown, 
+                      * making it impossible to perform node verify according 
+                      * to the actual situation read by the transaction 
+                      * execution engine.
+                      */
                     node_version_vec->emplace_back(
                             std::make_pair(v_at_fb, node_version_ptr));
                 }
