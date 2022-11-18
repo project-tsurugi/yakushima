@@ -308,6 +308,7 @@ public:
         assign_empty_slot();
         init_base();
         init_border_member_range(0);
+        set_version_root(true);
         set_version_border(true);
         permutation_.init();
         set_next(nullptr);
@@ -340,7 +341,6 @@ public:
                      ValueType** const created_value_ptr, const bool root) {
         init_border();
         set_version_root(root);
-        set_version_border(true);
         get_version_ptr()->atomic_inc_vinsert();
         insert_lv_at(0, key_view, new_value,
                      reinterpret_cast<void**>(created_value_ptr), // NOLINT
