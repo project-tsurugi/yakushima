@@ -56,7 +56,8 @@ public:
             if (min_epoch != UINT64_MAX) {
                 garbage_collection::set_gc_epoch(min_epoch - 1);
             } else {
-                garbage_collection::set_gc_epoch(epoch_management::get_epoch() - 1);
+                garbage_collection::set_gc_epoch(epoch_management::get_epoch() -
+                                                 1);
             }
             if (kEpochThreadEnd.load(std::memory_order_acquire)) { break; }
         }
@@ -70,7 +71,9 @@ public:
         }
     }
 
-    static void invoke_epoch_thread() { kEpochThread = std::thread(epoch_thread); }
+    static void invoke_epoch_thread() {
+        kEpochThread = std::thread(epoch_thread);
+    }
 
     static void invoke_gc_thread() { kGCThread = std::thread(gc_thread); }
 

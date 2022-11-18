@@ -234,8 +234,8 @@ retry:
                              &node_version_vec, &v_at_fb, &node_version_ptr,
                              &tuple_pushed_num, max_size]() {
                 tuple_list.emplace_back(std::make_tuple(
-                        full_key, reinterpret_cast<ValueType*>(vp),
-                        vsize)); // NOLINT
+                        full_key, reinterpret_cast<ValueType*>(vp), // NOLINT
+                        vsize));
                 if (node_version_vec !=
                     nullptr) { // todo add && std::get<1>(node_version_vec.back()) !=
                                // node_version_ptr

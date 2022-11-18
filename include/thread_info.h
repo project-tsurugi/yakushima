@@ -24,7 +24,8 @@ public:
         bool expected(running_.load(std::memory_order_acquire));
         for (;;) {
             if (expected) { return false; }
-            if (running_.compare_exchange_weak(expected, true, std::memory_order_acq_rel,
+            if (running_.compare_exchange_weak(expected, true,
+                                               std::memory_order_acq_rel,
                                                std::memory_order_acquire)) {
                 return true;
             }
@@ -45,7 +46,9 @@ public:
         begin_epoch_.store(epoch, std::memory_order_relaxed);
     }
 
-    void set_running(const bool tf) { running_.store(tf, std::memory_order_relaxed); }
+    void set_running(const bool tf) {
+        running_.store(tf, std::memory_order_relaxed);
+    }
 
 private:
     /**

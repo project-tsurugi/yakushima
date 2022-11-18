@@ -39,9 +39,10 @@ public:
 
         // for cache
         if (std::get<gc_target_index>(cache_value_container_) != nullptr) {
-            ::operator delete(std::get<gc_target_index>(cache_value_container_),
-                              std::get<gc_target_size_index>(cache_value_container_),
-                              std::get<gc_target_align_index>(cache_value_container_));
+            ::operator delete(
+                    std::get<gc_target_index>(cache_value_container_),
+                    std::get<gc_target_size_index>(cache_value_container_),
+                    std::get<gc_target_align_index>(cache_value_container_));
             std::get<gc_target_index>(cache_value_container_) = nullptr;
         }
 
@@ -76,7 +77,9 @@ public:
 
         // for cache
         if (std::get<gc_target_index>(cache_node_container_) != nullptr) {
-            if (std::get<gc_epoch_index>(cache_node_container_) >= gc_epoch) { return; }
+            if (std::get<gc_epoch_index>(cache_node_container_) >= gc_epoch) {
+                return;
+            }
             delete std::get<gc_target_index>(cache_node_container_); // NOLINT
             std::get<gc_target_index>(cache_node_container_) = nullptr;
         }
@@ -96,10 +99,13 @@ public:
         Epoch gc_epoch = get_gc_epoch();
 
         if (std::get<gc_target_index>(cache_value_container_) != nullptr) {
-            if (std::get<gc_epoch_index>(cache_value_container_) >= gc_epoch) { return; }
-            ::operator delete(std::get<gc_target_index>(cache_value_container_),
-                              std::get<gc_target_size_index>(cache_value_container_),
-                              std::get<gc_target_align_index>(cache_value_container_));
+            if (std::get<gc_epoch_index>(cache_value_container_) >= gc_epoch) {
+                return;
+            }
+            ::operator delete(
+                    std::get<gc_target_index>(cache_value_container_),
+                    std::get<gc_target_size_index>(cache_value_container_),
+                    std::get<gc_target_align_index>(cache_value_container_));
             std::get<gc_target_index>(cache_value_container_) = nullptr;
         }
 
@@ -116,14 +122,16 @@ public:
         }
     }
 
-    static Epoch get_gc_epoch() { return gc_epoch_.load(std::memory_order_acquire); }
+    static Epoch get_gc_epoch() {
+        return gc_epoch_.load(std::memory_order_acquire);
+    }
 
     void push_node_container(std::tuple<Epoch, base_node*> elem) {
         node_container_.push(elem);
     }
 
-    void
-    push_value_container(std::tuple<Epoch, void*, std::size_t, std::align_val_t> elem) {
+    void push_value_container(
+            std::tuple<Epoch, void*, std::size_t, std::align_val_t> elem) {
         value_container_.push(elem);
     }
 
@@ -136,11 +144,13 @@ private:
     static constexpr std::size_t gc_target_index = 1;
     static constexpr std::size_t gc_target_size_index = 2;
     static constexpr std::size_t gc_target_align_index = 3;
-    alignas(CACHE_LINE_SIZE) static inline std::atomic<Epoch> gc_epoch_{0}; // NOLINT
-    std::tuple<Epoch, base_node*> cache_node_container_{0, nullptr};        // NOLINT
-    concurrent_queue<std::tuple<Epoch, base_node*>> node_container_;        // NOLINT
-    std::tuple<Epoch, void*, std::size_t, std::align_val_t> cache_value_container_{
-            0, nullptr, 0, static_cast<std::align_val_t>(0)}; // NOLINT
+    alignas(CACHE_LINE_SIZE) static inline std::atomic<Epoch> gc_epoch_{
+            0};                                                      // NOLINT
+    std::tuple<Epoch, base_node*> cache_node_container_{0, nullptr}; // NOLINT
+    concurrent_queue<std::tuple<Epoch, base_node*>> node_container_; // NOLINT
+    std::tuple<Epoch, void*, std::size_t, std::align_val_t>
+            cache_value_container_{0, nullptr, 0,
+                                   static_cast<std::align_val_t>(0)}; // NOLINT
     concurrent_queue<std::tuple<Epoch, void*, std::size_t, std::align_val_t>>
             value_container_; // NOLINT
 };

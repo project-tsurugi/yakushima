@@ -28,7 +28,8 @@ public:
             if (key_length_ == 0) { return true; }
             if (r.key_length_ == 0) { return false; }
             int ret = memcmp(&key_slice_, &r.key_slice_,
-                             key_length_ < r.key_length_ ? key_length_ : r.key_length_);
+                             key_length_ < r.key_length_ ? key_length_
+                                                         : r.key_length_);
             if (ret < 0) { return true; }
             if (ret == 0) { return key_length_ < r.key_length_; }
             return false;
@@ -38,11 +39,17 @@ public:
             return key_slice_ == r.key_slice_ && key_length_ == r.key_length_;
         }
 
-        [[nodiscard]] key_length_type get_key_length() const { return key_length_; }
+        [[nodiscard]] key_length_type get_key_length() const {
+            return key_length_;
+        }
 
-        [[nodiscard]] key_slice_type get_key_slice() const { return key_slice_; }
+        [[nodiscard]] key_slice_type get_key_slice() const {
+            return key_slice_;
+        }
 
-        void set_key_length(const key_length_type length) { key_length_ = length; }
+        void set_key_length(const key_length_type length) {
+            key_length_ = length;
+        }
 
         void set_key_slice(const key_slice_type slice) { key_slice_ = slice; }
 
@@ -53,7 +60,9 @@ public:
 
     virtual ~base_node() = default; // NOLINT
 
-    void atomic_set_version_root(const bool tf) { version_.atomic_set_root(tf); }
+    void atomic_set_version_root(const bool tf) {
+        version_.atomic_set_root(tf);
+    }
 
     /**
    * A virtual function is defined because It wants to distinguish the children class of
@@ -72,9 +81,11 @@ public:
         std::cout << "parent_ : " << get_parent() << std::endl;
         for (std::size_t i = 0; i < key_slice_length; ++i) {
             std::cout << "key_slice_[" << i
-                      << "] : " << std::to_string(get_key_slice_at(i)) << std::endl;
+                      << "] : " << std::to_string(get_key_slice_at(i))
+                      << std::endl;
             std::cout << "key_length_[" << i
-                      << "] : " << std::to_string(get_key_length_at(i)) << std::endl;
+                      << "] : " << std::to_string(get_key_length_at(i))
+                      << std::endl;
         }
     }
 
@@ -83,7 +94,8 @@ public:
         return key_length_;
     }
 
-    [[nodiscard]] key_length_type get_key_length_at(const std::size_t index) const {
+    [[nodiscard]] key_length_type
+    get_key_length_at(const std::size_t index) const {
         return key_length_.at(index);
     }
 
@@ -92,25 +104,36 @@ public:
         return key_slice_;
     }
 
-    [[nodiscard]] key_slice_type get_key_slice_at(const std::size_t index) const {
+    [[nodiscard]] key_slice_type
+    get_key_slice_at(const std::size_t index) const {
         return key_slice_.at(index);
     }
 
-    [[maybe_unused]] [[nodiscard]] bool get_lock() const { return version_.get_locked(); }
+    [[maybe_unused]] [[nodiscard]] bool get_lock() const {
+        return version_.get_locked();
+    }
 
     [[nodiscard]] node_version64_body get_stable_version() const {
         return version_.get_stable_version();
     }
 
-    [[nodiscard]] base_node* get_parent() const { return loadAcquireN(parent_); }
+    [[nodiscard]] base_node* get_parent() const {
+        return loadAcquireN(parent_);
+    }
 
-    [[nodiscard]] node_version64_body get_version() const { return version_.get_body(); }
+    [[nodiscard]] node_version64_body get_version() const {
+        return version_.get_body();
+    }
 
     [[nodiscard]] node_version64* get_version_ptr() { return &version_; }
 
-    [[nodiscard]] bool get_version_border() const { return version_.get_border(); }
+    [[nodiscard]] bool get_version_border() const {
+        return version_.get_border();
+    }
 
-    [[nodiscard]] bool get_version_deleted() const { return version_.get_deleted(); }
+    [[nodiscard]] bool get_version_deleted() const {
+        return version_.get_deleted();
+    }
 
     [[nodiscard]] bool get_version_root() const { return version_.get_root(); }
 
@@ -137,7 +160,9 @@ public:
     void init_base(const std::size_t pos) { set_key(pos, 0, 0); }
 
     [[maybe_unused]] void init_base_member_range(const std::size_t start) {
-        for (std::size_t i = start; i < key_slice_length; ++i) { set_key(i, 0, 0); }
+        for (std::size_t i = start; i < key_slice_length; ++i) {
+            set_key(i, 0, 0);
+        }
     }
 
     /**
@@ -165,7 +190,8 @@ public:
     [[maybe_unused]] void move_key_to_base_range(base_node* const right,
                                                  const std::size_t start) {
         for (auto i = start; i < key_slice_length; ++i) {
-            right->set_key(i - start, get_key_slice_at(i), get_key_length_at(i));
+            right->set_key(i - start, get_key_slice_at(i),
+                           get_key_length_at(i));
             set_key(i, 0, 0);
         }
     }
@@ -176,15 +202,19 @@ public:
         set_key_length_at(index, key_length);
     }
 
-    void set_key_length_at(const std::size_t index, const key_length_type length) {
+    void set_key_length_at(const std::size_t index,
+                           const key_length_type length) {
         storeReleaseN(key_length_.at(index), length);
     }
 
-    void set_key_slice_at(const std::size_t index, const key_slice_type key_slice) {
+    void set_key_slice_at(const std::size_t index,
+                          const key_slice_type key_slice) {
         storeReleaseN(key_slice_.at(index), key_slice);
     }
 
-    void set_parent(base_node* const new_parent) { storeReleaseN(parent_, new_parent); }
+    void set_parent(base_node* const new_parent) {
+        storeReleaseN(parent_, new_parent);
+    }
 
     [[maybe_unused]] void
     set_version(const node_version64_body nv) { // this function is used.
@@ -207,17 +237,22 @@ public:
 
     void shift_left_base_member(const std::size_t start_pos,
                                 const std::size_t shift_size) {
-        memmove(&key_slice_.at(start_pos - shift_size), &key_slice_.at(start_pos),
+        memmove(&key_slice_.at(start_pos - shift_size),
+                &key_slice_.at(start_pos),
                 sizeof(key_slice_type) * (key_slice_length - start_pos));
-        memmove(&key_length_.at(start_pos - shift_size), &key_length_.at(start_pos),
+        memmove(&key_length_.at(start_pos - shift_size),
+                &key_length_.at(start_pos),
                 sizeof(key_length_type) * (key_slice_length - start_pos));
     }
 
-    void shift_right_base_member(const std::size_t start, const std::size_t shift_size) {
+    void shift_right_base_member(const std::size_t start,
+                                 const std::size_t shift_size) {
         memmove(&key_slice_.at(start + shift_size), &key_slice_.at(start),
-                sizeof(key_slice_type) * (key_slice_length - start - shift_size));
+                sizeof(key_slice_type) *
+                        (key_slice_length - start - shift_size));
         memmove(&key_length_.at(start + shift_size), &key_length_.at(start),
-                sizeof(key_length_type) * (key_slice_length - start - shift_size));
+                sizeof(key_length_type) *
+                        (key_slice_length - start - shift_size));
     }
 
     /**
@@ -227,7 +262,9 @@ public:
    */
     void version_unlock() { version_.unlock(); }
 
-    [[maybe_unused]] void version_atomic_inc_vinsert() { version_.atomic_inc_vinsert(); }
+    [[maybe_unused]] void version_atomic_inc_vinsert() {
+        version_.atomic_inc_vinsert();
+    }
 
     // slot operation
     std::size_t assign_empty_slot() {

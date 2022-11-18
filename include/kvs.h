@@ -78,8 +78,9 @@ namespace yakushima {
  * @return status::OK if existence.
  * @return status::WARN_NOT_EXIST if not existence.
  */
-[[maybe_unused]] static status find_storage(std::string_view storage_name,
-                                            tree_instance** found_storage = nullptr) {
+[[maybe_unused]] static status
+find_storage(std::string_view storage_name,
+             tree_instance** found_storage = nullptr) {
     return storage::find_storage(storage_name, found_storage);
 }
 
@@ -167,8 +168,9 @@ template<class ValueType>
  */
 template<class ValueType>
 [[maybe_unused]] static status
-put(Token token, std::string_view storage_name, std::string_view key_view, // NOLINT
-    ValueType* value_ptr, std::size_t arg_value_length,
+put(Token token, std::string_view storage_name, // NOLINT
+    std::string_view key_view, ValueType* value_ptr,
+    std::size_t arg_value_length,
     ValueType** created_value_ptr, // NOLINT
     value_align_type value_align, node_version64** inserted_node_version_ptr);
 
@@ -220,16 +222,19 @@ put(Token token, std::string_view storage_name, std::string_view key_view, // NO
  * B, B: C and using node_version_vec to make sure the values ​​are not overwritten.
  * This advantage is effective when the right end point is unknown but you want to scan to
  * a specific value.
+ * @return Status::ERR_BAD_USAGE The arguments is invalid.
  * @return status::OK success.
+ * @return Status::OK_ROOT_IS_NULL success and root is null.
  * @return status::WARN_STORAGE_NOT_EXIST The target storage of this operation 
  * does not exist.
  */
 template<class ValueType>
 [[maybe_unused]] static status
-scan(std::string_view storage_name, std::string_view l_key, scan_endpoint l_end, // NOLINT
-     std::string_view r_key, scan_endpoint r_end,
+scan(std::string_view storage_name, std::string_view l_key, // NOLINT
+     scan_endpoint l_end, std::string_view r_key, scan_endpoint r_end,
      std::vector<std::tuple<std::string, ValueType*, std::size_t>>& tuple_list,
-     std::vector<std::pair<node_version64_body, node_version64*>>* node_version_vec,
+     std::vector<std::pair<node_version64_body, node_version64*>>*
+             node_version_vec,
      std::size_t max_size);
 
 } // namespace yakushima

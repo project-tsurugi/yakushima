@@ -38,7 +38,8 @@ public:
         if (target_is_value) {
             ti->get_gc_info().push_value_container(
                     {ti->get_begin_epoch(), lv_.at(pos).get_v_or_vp_(),
-                     lv_.at(pos).get_value_length(), lv_.at(pos).get_value_align()});
+                     lv_.at(pos).get_value_length(),
+                     lv_.at(pos).get_value_align()});
         }
         init_border(pos);
 
@@ -91,7 +92,8 @@ public:
    * @param[in] target_is_value
    */
     template<bool target_is_value>
-    void delete_of(Token token, tree_instance* ti, const key_slice_type key_slice,
+    void delete_of(Token token, tree_instance* ti,
+                   const key_slice_type key_slice,
                    const key_length_type key_slice_length) {
         set_version_inserting_deleting(true);
         /**
@@ -119,7 +121,9 @@ public:
                             goto retry_prev_lock; // NOLINT
                         } else {
                             prev->set_next(get_next());
-                            if (get_next() != nullptr) { get_next()->set_prev(prev); }
+                            if (get_next() != nullptr) {
+                                get_next()->set_prev(prev);
+                            }
                             prev->version_unlock();
                         }
                     } else if (get_next() != nullptr) {
@@ -135,13 +139,15 @@ public:
                     } else {
                         version_unlock();
                         if (pn->get_version_border()) {
-                            dynamic_cast<border_node*>(pn)->delete_of(token, ti, this);
+                            dynamic_cast<border_node*>(pn)->delete_of(token, ti,
+                                                                      this);
                         } else {
-                            dynamic_cast<interior_node*>(pn)->delete_of<border_node>(
-                                    token, ti, this);
+                            dynamic_cast<interior_node*>(pn)
+                                    ->delete_of<border_node>(token, ti, this);
                         }
                     }
-                    auto* tinfo = reinterpret_cast<thread_info*>(token); // NOLINT
+                    auto* tinfo =
+                            reinterpret_cast<thread_info*>(token); // NOLINT
                     tinfo->get_gc_info().push_node_container(
                             {tinfo->get_begin_epoch(), this});
                 } else {
@@ -153,8 +159,8 @@ public:
         /**
      * unreachable.
      */
-        std::cerr << __FILE__ << ": " << __LINE__ << " : it gets to unreachable points."
-                  << endl;
+        std::cerr << __FILE__ << ": " << __LINE__
+                  << " : it gets to unreachable points." << endl;
         std::abort();
     }
 
@@ -165,7 +171,9 @@ public:
         display_base();
         cout << "border_node::display" << endl;
         permutation_.display();
-        for (std::size_t i = 0; i < get_permutation_cnk(); ++i) { lv_.at(i).display(); }
+        for (std::size_t i = 0; i < get_permutation_cnk(); ++i) {
+            lv_.at(i).display();
+        }
         cout << "next : " << get_next() << endl;
     }
 
@@ -175,7 +183,8 @@ public:
    * @attention layers are stored in ascending order.
    * @return
    */
-    [[maybe_unused]] void get_all_next_layer(std::vector<base_node*>& next_layers) {
+    [[maybe_unused]] void
+    get_all_next_layer(std::vector<base_node*>& next_layers) {
         next_layers.clear();
         std::size_t cnk = permutation_.get_cnk();
         for (std::size_t i = 0; i < cnk; ++i) {
@@ -185,7 +194,8 @@ public:
         }
     }
 
-    [[maybe_unused]] [[nodiscard]] std::array<link_or_value, key_slice_length>& get_lv() {
+    [[maybe_unused]] [[nodiscard]] std::array<link_or_value, key_slice_length>&
+    get_lv() {
         return lv_;
     }
 
@@ -197,7 +207,8 @@ public:
    * @param[in] next_layer
    * @return link_or_value*
    */
-    [[maybe_unused]] [[nodiscard]] link_or_value* get_lv(base_node* const next_layer) {
+    [[maybe_unused]] [[nodiscard]] link_or_value*
+    get_lv(base_node* const next_layer) {
         for (std::size_t i = 0; i < key_slice_length; ++i) {
             if (lv_.at(i).get_next_layer() == next_layer) { return &lv_.at(i); }
         }
@@ -246,8 +257,8 @@ public:
                 if (key_length == 0 && target_key_len == 0) {
                     suc = true;
                 } else {
-                    auto ret =
-                            memcmp(&key_slice, &target_key_slice, sizeof(key_slice_type));
+                    auto ret = memcmp(&key_slice, &target_key_slice,
+                                      sizeof(key_slice_type));
                     if (ret == 0) {
                         if ((key_length > sizeof(key_slice_type) &&
                              target_key_len > sizeof(key_slice_type)) ||
@@ -286,7 +297,8 @@ public:
         return permutation_.get_cnk();
     }
 
-    [[maybe_unused]] [[nodiscard]] std::size_t get_permutation_lowest_key_pos() const {
+    [[maybe_unused]] [[nodiscard]] std::size_t
+    get_permutation_lowest_key_pos() const {
         return permutation_.get_lowest_key_pos();
     }
 
@@ -375,13 +387,15 @@ public:
             /**
        * @attention next_layer_border is the root of next layer.
        */
-            next_layer_border->init_border(key_view, new_value, created_value_ptr, true);
+            next_layer_border->init_border(key_view, new_value,
+                                           created_value_ptr, true);
             next_layer_border->set_parent(this);
             set_lv_next_layer(index, next_layer_border);
         } else {
             memcpy(&key_slice, key_view.data(), key_view.size());
             set_key_slice_at(index, key_slice);
-            set_key_length_at(index, static_cast<key_length_type>(key_view.size()));
+            set_key_length_at(index,
+                              static_cast<key_length_type>(key_view.size()));
             set_lv_value(index, new_value, created_value_ptr);
         }
         permutation_.inc_key_num();
@@ -416,7 +430,8 @@ public:
         lv_.at(index).set_value(new_value, created_value_ptr);
     }
 
-    void set_lv_next_layer(const std::size_t index, base_node* const next_layer) {
+    void set_lv_next_layer(const std::size_t index,
+                           base_node* const next_layer) {
         lv_.at(index).set_next_layer(next_layer);
     }
 

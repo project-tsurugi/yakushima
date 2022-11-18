@@ -102,8 +102,9 @@ private:
     /**
    * @brief Session information used by garbage collection.
    */
-    static inline std::array<thread_info, YAKUSHIMA_MAX_PARALLEL_SESSIONS> // NOLINT
-            thread_info_table_; // NOLINT
+    static inline std::array<thread_info,                     // NOLINT
+                             YAKUSHIMA_MAX_PARALLEL_SESSIONS> // NOLINT
+            thread_info_table_;                               // NOLINT
 };
 
 } // namespace yakushima

@@ -23,7 +23,8 @@ namespace yakushima {
  */
 template<class interior_node, class border_node>
 static void interior_split(tree_instance* ti, interior_node* interior,
-                           base_node* child_node, key_slice_type pivot_slice, // NOLINT
+                           base_node* child_node,
+                           key_slice_type pivot_slice, // NOLINT
                            key_length_type pivot_length);
 
 /**
@@ -39,11 +40,12 @@ static void interior_split(tree_instance* ti, interior_node* interior,
  * @param[in] rank
  */
 template<class interior_node, class border_node>
-static void border_split(tree_instance* ti, border_node* border,
-                         std::string_view key_view, void* value_ptr,
-                         void** created_value_ptr, // NOLINT
-                         value_length_type value_length, value_align_type value_align,
-                         node_version64** inserted_node_version_ptr, std::size_t rank);
+static void
+border_split(tree_instance* ti, border_node* border, std::string_view key_view,
+             void* value_ptr,
+             void** created_value_ptr, // NOLINT
+             value_length_type value_length, value_align_type value_align,
+             node_version64** inserted_node_version_ptr, std::size_t rank);
 
 /**
  * Start impl.
@@ -111,11 +113,13 @@ static void create_interior_parent_of_border(border_node* const left,
  */
 
 template<class interior_node, class border_node>
-static void
-insert_lv(tree_instance* ti, border_node* const border, std::string_view key_view,
-          void* const value_ptr, void** const created_value_ptr,
-          const value_length_type arg_value_length, const value_align_type value_align,
-          node_version64** inserted_node_version_ptr, std::size_t rank) {
+static void insert_lv(tree_instance* ti, border_node* const border,
+                      std::string_view key_view, void* const value_ptr,
+                      void** const created_value_ptr,
+                      const value_length_type arg_value_length,
+                      const value_align_type value_align,
+                      node_version64** inserted_node_version_ptr,
+                      std::size_t rank) {
     border->set_version_inserting_deleting(true);
     std::size_t cnk = border->get_permutation_cnk();
     if (cnk == key_slice_length) {
@@ -123,8 +127,8 @@ insert_lv(tree_instance* ti, border_node* const border, std::string_view key_vie
      * It needs splitting
      */
         border_split<interior_node, border_node>(
-                ti, border, key_view, value_ptr, created_value_ptr, arg_value_length,
-                value_align, inserted_node_version_ptr, rank);
+                ti, border, key_view, value_ptr, created_value_ptr,
+                arg_value_length, value_align, inserted_node_version_ptr, rank);
     } else {
         /**
      * Insert into this nodes.
@@ -140,12 +144,13 @@ insert_lv(tree_instance* ti, border_node* const border, std::string_view key_vie
 }
 
 template<class interior_node, class border_node>
-static void
-border_split(tree_instance* ti, border_node* const border, std::string_view key_view,
-             void* const value_ptr, void** const created_value_ptr,
-             const value_length_type value_length, const value_align_type value_align,
-             node_version64** inserted_node_version_ptr,
-             [[maybe_unused]] std::size_t rank) {
+static void border_split(tree_instance* ti, border_node* const border,
+                         std::string_view key_view, void* const value_ptr,
+                         void** const created_value_ptr,
+                         const value_length_type value_length,
+                         const value_align_type value_align,
+                         node_version64** inserted_node_version_ptr,
+                         [[maybe_unused]] std::size_t rank) {
     border->set_version_splitting(true);
     border_node* new_border = new border_node(); // NOLINT
     new_border->init_border();
@@ -177,15 +182,18 @@ border_split(tree_instance* ti, border_node* const border, std::string_view key_
         std::size_t src_index{border->get_permutation().get_index_of_rank(
                 remaining_size)}; // this is tricky.
         border->remove_assigned_slot(src_index);
-        new_border->set_key_slice_at(index_ctr, border->get_key_slice_at(src_index));
-        new_border->set_key_length_at(index_ctr, border->get_key_length_at(src_index));
+        new_border->set_key_slice_at(index_ctr,
+                                     border->get_key_slice_at(src_index));
+        new_border->set_key_length_at(index_ctr,
+                                      border->get_key_length_at(src_index));
         new_border->set_lv(index_ctr, border->get_lv_at(src_index));
         if (i != remaining_size) { new_border->assign_empty_slot(); }
         base_node* nl = border->get_lv_at(src_index)->get_next_layer();
         if (nl != nullptr) { nl->set_parent(new_border); }
         ++index_ctr;
         border->init_border(src_index);
-        border->get_permutation().delete_rank(remaining_size); // this is tricky.
+        border->get_permutation().delete_rank(
+                remaining_size); // this is tricky.
         border->get_permutation().dec_key_num();
     }
     /**
@@ -203,16 +211,19 @@ border_split(tree_instance* ti, border_node* const border, std::string_view key_
         memcpy(&key_slice, key_view.data(), sizeof(key_slice_type));
         key_length = sizeof(key_slice_type) + 1;
     } else {
-        if (!key_view.empty()) { memcpy(&key_slice, key_view.data(), key_view.size()); }
+        if (!key_view.empty()) {
+            memcpy(&key_slice, key_view.data(), key_view.size());
+        }
         key_length = static_cast<key_length_type>(key_view.size());
     }
-    int ret_memcmp{memcmp(&key_slice, &new_border->get_key_slice_ref().at(0),
-                          (key_length > sizeof(key_slice_type) &&
-                           new_border->get_key_length_at(0) > sizeof(key_slice_type))
-                                  ? sizeof(key_slice_type)
-                          : key_length < new_border->get_key_length_at(0)
-                                  ? key_length
-                                  : new_border->get_key_length_at(0))};
+    int ret_memcmp{
+            memcmp(&key_slice, &new_border->get_key_slice_ref().at(0),
+                   (key_length > sizeof(key_slice_type) &&
+                    new_border->get_key_length_at(0) > sizeof(key_slice_type))
+                           ? sizeof(key_slice_type)
+                   : key_length < new_border->get_key_length_at(0)
+                           ? key_length
+                           : new_border->get_key_length_at(0))};
     if (key_length == 0 || ret_memcmp < 0 ||
         (ret_memcmp == 0 && key_length < new_border->get_key_length_at(0))) {
         /**
@@ -222,8 +233,8 @@ border_split(tree_instance* ti, border_node* const border, std::string_view key_
             *inserted_node_version_ptr = border->get_version_ptr();
         }
         border->insert_lv_at(border->assign_empty_slot(), key_view,
-                             {value_ptr, value_length, value_align}, created_value_ptr,
-                             rank);
+                             {value_ptr, value_length, value_align},
+                             created_value_ptr, rank);
     } else {
         /**
      * insert to higher border node.
@@ -278,8 +289,8 @@ border_split(tree_instance* ti, border_node* const border, std::string_view key_
         auto* pb = dynamic_cast<border_node*>(p);
         pb->set_version_inserting_deleting(true);
         interior_node* pi{};
-        create_interior_parent_of_border<interior_node, border_node>(border, new_border,
-                                                                     &pi);
+        create_interior_parent_of_border<interior_node, border_node>(
+                border, new_border, &pi);
         border->version_unlock();
         new_border->version_unlock();
         pi->set_parent(p);
@@ -317,9 +328,9 @@ border_split(tree_instance* ti, border_node* const border, std::string_view key_
    * interior not-full case, it inserts.
    */
     new_border->set_parent(pi);
-    pi->template insert<border_node>(new_border,
-                                     std::make_pair(new_border->get_key_slice_at(0),
-                                                    new_border->get_key_length_at(0)));
+    pi->template insert<border_node>(
+            new_border, std::make_pair(new_border->get_key_slice_at(0),
+                                       new_border->get_key_length_at(0)));
     pi->version_unlock();
 }
 

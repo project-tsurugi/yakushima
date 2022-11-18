@@ -39,7 +39,8 @@ retry_find_border:
         memcpy(&key_slice, traverse_key_view.data(), sizeof(key_slice_type));
     } else {
         if (!traverse_key_view.empty()) {
-            memcpy(&key_slice, traverse_key_view.data(), traverse_key_view.size());
+            memcpy(&key_slice, traverse_key_view.data(),
+                   traverse_key_view.size());
         }
     }
     /**
@@ -62,8 +63,8 @@ retry_find_border:
 retry_fetch_lv:
     node_version64_body v_at_fetch_lv{};
     std::size_t lv_pos = 0;
-    link_or_value* lv_ptr =
-            target_border->get_lv_of(key_slice, key_length, v_at_fetch_lv, lv_pos);
+    link_or_value* lv_ptr = target_border->get_lv_of(key_slice, key_length,
+                                                     v_at_fetch_lv, lv_pos);
     /**
       * check whether it should delete against this node.
       */
@@ -84,8 +85,9 @@ retry_fetch_lv:
             goto retry_from_root;           // NOLINT
         }                                   // here border is correct.
         if (final_check.get_vinsert_delete() !=
-            v_at_fetch_lv.get_vinsert_delete()) { // the lv may be inserted/deleted.
-            goto retry_fetch_lv;                  // NOLINT
+            v_at_fetch_lv
+                    .get_vinsert_delete()) { // the lv may be inserted/deleted.
+            goto retry_fetch_lv;             // NOLINT
         }
 
         return status::OK_NOT_FOUND;
@@ -104,7 +106,8 @@ retry_fetch_lv:
             goto retry_from_root; // NOLINT
         }                         // here border is correct.
         if (final_check.get_vinsert_delete() !=
-            v_at_fetch_lv.get_vinsert_delete()) { // the lv may be inserted/deleted.
+            v_at_fetch_lv
+                    .get_vinsert_delete()) { // the lv may be inserted/deleted.
             target_border->version_unlock();
             goto retry_fetch_lv; // NOLINT
         }
@@ -115,9 +118,10 @@ retry_fetch_lv:
 
     root = lv_ptr->get_next_layer();
     node_version64_body final_check = target_border->get_stable_version();
-    if (final_check.get_deleted() ||                        // this border was deleted.
-        final_check.get_vsplit() != v_at_fb.get_vsplit()) { // this border is incorrect.
-        goto retry_from_root;                               // NOLINT
+    if (final_check.get_deleted() || // this border was deleted.
+        final_check.get_vsplit() !=
+                v_at_fb.get_vsplit()) { // this border is incorrect.
+        goto retry_from_root;           // NOLINT
     }
     if (final_check.get_vinsert_delete() !=
         v_at_fetch_lv.get_vinsert_delete()) { // fetched lv may be deleted.

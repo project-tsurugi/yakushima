@@ -28,12 +28,14 @@ retry_find_border:
    * prepare key_slice
    */
     key_slice_type key_slice(0);
-    auto key_slice_length = static_cast<key_length_type>(traverse_key_view.size());
+    auto key_slice_length =
+            static_cast<key_length_type>(traverse_key_view.size());
     if (traverse_key_view.size() > sizeof(key_slice_type)) {
         memcpy(&key_slice, traverse_key_view.data(), sizeof(key_slice_type));
     } else {
         if (!traverse_key_view.empty()) {
-            memcpy(&key_slice, traverse_key_view.data(), traverse_key_view.size());
+            memcpy(&key_slice, traverse_key_view.data(),
+                   traverse_key_view.size());
         }
     }
     /**
@@ -56,8 +58,8 @@ retry_find_border:
 retry_fetch_lv:
     node_version64_body v_at_fetch_lv{};
     std::size_t lv_pos{0};
-    link_or_value* lv_ptr =
-            target_border->get_lv_of(key_slice, key_slice_length, v_at_fetch_lv, lv_pos);
+    link_or_value* lv_ptr = target_border->get_lv_of(
+            key_slice, key_slice_length, v_at_fetch_lv, lv_pos);
     /**
    * check whether it should get from this node.
    */
@@ -80,19 +82,23 @@ retry_fetch_lv:
             final_check.get_deleted()) {
             goto retry_from_root; // NOLINT
         }
-        if (final_check.get_vinsert_delete() != v_at_fetch_lv.get_vinsert_delete()) {
+        if (final_check.get_vinsert_delete() !=
+            v_at_fetch_lv.get_vinsert_delete()) {
             goto retry_fetch_lv; // NOLINT
         }
-        out = std::make_pair(reinterpret_cast<ValueType*>(vp), v_size); // NOLINT
+        out = std::make_pair(reinterpret_cast<ValueType*>(vp), // NOLINT
+                             v_size);
         return status::OK;
     }
 
     root = lv_ptr->get_next_layer();
     node_version64_body final_check = target_border->get_stable_version();
-    if (final_check.get_vsplit() != v_at_fb.get_vsplit() || final_check.get_deleted()) {
+    if (final_check.get_vsplit() != v_at_fb.get_vsplit() ||
+        final_check.get_deleted()) {
         goto retry_from_root; // NOLINT
     }
-    if (final_check.get_vinsert_delete() != v_at_fetch_lv.get_vinsert_delete()) {
+    if (final_check.get_vinsert_delete() !=
+        v_at_fetch_lv.get_vinsert_delete()) {
         goto retry_fetch_lv; // NOLINT
     }
     traverse_key_view.remove_prefix(sizeof(key_slice_type));

@@ -31,7 +31,8 @@ put([[maybe_unused]] Token token, tree_instance* ti, std::string_view key_view,
     ValueType* value_ptr, bool unique_restriction,
     std::size_t arg_value_length = sizeof(ValueType),
     ValueType** created_value_ptr = nullptr,
-    value_align_type value_align = static_cast<value_align_type>(alignof(ValueType)),
+    value_align_type value_align =
+            static_cast<value_align_type>(alignof(ValueType)),
     node_version64** inserted_node_version_ptr = nullptr) {
 
 root_nullptr:
@@ -41,7 +42,8 @@ root_nullptr:
           * root is nullptr, so put single border nodes.
           */
         border_node* new_border = new border_node(); // NOLINT
-        new_border->init_border(key_view, {value_ptr, arg_value_length, value_align},
+        new_border->init_border(key_view,
+                                {value_ptr, arg_value_length, value_align},
                                 created_value_ptr, true);
         for (;;) {
             if (inserted_node_version_ptr != nullptr) {
@@ -72,12 +74,14 @@ retry_find_border:
       * prepare key_slice
       */
     key_slice_type key_slice(0);
-    auto key_slice_length = static_cast<key_length_type>(traverse_key_view.size());
+    auto key_slice_length =
+            static_cast<key_length_type>(traverse_key_view.size());
     if (traverse_key_view.size() > sizeof(key_slice_type)) {
         memcpy(&key_slice, traverse_key_view.data(), sizeof(key_slice_type));
     } else {
         if (!traverse_key_view.empty()) {
-            memcpy(&key_slice, traverse_key_view.data(), traverse_key_view.size());
+            memcpy(&key_slice, traverse_key_view.data(),
+                   traverse_key_view.size());
         }
     }
     /**
@@ -102,8 +106,8 @@ retry_fetch_lv:
     node_version64_body v_at_fetch_lv{};
     [[maybe_unused]] std::size_t lv_pos{0};
     std::size_t rank{};
-    link_or_value* lv_ptr = target_border->get_lv_of(key_slice, key_slice_length,
-                                                     v_at_fetch_lv, lv_pos, &rank);
+    link_or_value* lv_ptr = target_border->get_lv_of(
+            key_slice, key_slice_length, v_at_fetch_lv, lv_pos, &rank);
     /**
       * check whether it should insert into this node.
       */
@@ -173,10 +177,11 @@ retry_fetch_lv:
             }
 
             value old_value{};
-            lv_ptr->set_value({reinterpret_cast<void*>(value_ptr), // NOLINT
-                               arg_value_length, value_align},
-                              old_value,
-                              reinterpret_cast<void**>(created_value_ptr)); // NOLINT
+            lv_ptr->set_value(
+                    {reinterpret_cast<void*>(value_ptr), // NOLINT
+                     arg_value_length, value_align},
+                    old_value,
+                    reinterpret_cast<void**>(created_value_ptr)); // NOLINT
             target_border->version_unlock();
             auto* thin = reinterpret_cast<thread_info*>(token); // NOLINT
             if (old_value.get_body() != nullptr) {
@@ -234,15 +239,17 @@ retry_fetch_lv:
 
 template<class ValueType>
 [[maybe_unused]] static status
-put(Token token, std::string_view storage_name, std::string_view key_view,
-    ValueType* value_ptr, std::size_t arg_value_length = sizeof(ValueType),
+put(Token token, std::string_view storage_name, // NOLINT
+    std::string_view key_view, ValueType* value_ptr,
+    std::size_t arg_value_length = sizeof(ValueType),
     ValueType** created_value_ptr = nullptr,
-    value_align_type value_align = static_cast<value_align_type>(alignof(ValueType)),
+    value_align_type value_align =
+            static_cast<value_align_type>(alignof(ValueType)),
     node_version64** inserted_node_version_ptr = nullptr) {
     tree_instance* ti{};
     status ret{storage::find_storage(storage_name, &ti)};
     if (status::OK != ret) { return status::WARN_STORAGE_NOT_EXIST; }
-    return put(token, ti, key_view, value_ptr, false, arg_value_length, created_value_ptr,
-               value_align, inserted_node_version_ptr);
+    return put(token, ti, key_view, value_ptr, false, arg_value_length,
+               created_value_ptr, value_align, inserted_node_version_ptr);
 }
 } // namespace yakushima

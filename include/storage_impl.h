@@ -12,6 +12,8 @@
 #include "storage.h"
 #include "tree_instance.h"
 
+#include "glog/logging.h"
+
 namespace yakushima {
 
 // begin - forward declaration
@@ -21,11 +23,19 @@ namespace yakushima {
                                       std::string_view key_view);
 
 status storage::create_storage(std::string_view storage_name) { // NOLINT
+    // prepare create storage
     tree_instance new_instance;
     Token token{};
     while (status::OK != enter(token)) { _mm_pause(); }
-    status ret_st{put(token, get_storages(), storage_name, &new_instance, true)};
-    leave(token);
+
+    // try creating storage
+    status ret_st{
+            put(token, get_storages(), storage_name, &new_instance, true)};
+
+    // cleanup
+    auto ret_st_token = leave(token);
+    if (ret_st_token != status::OK) { LOG(ERROR) << ret_st_token; }
+
     return ret_st;
 }
 
@@ -67,9 +77,10 @@ status storage::find_storage(std::string_view storage_name,
 status storage::list_storages(
         std::vector<std::pair<std::string, tree_instance*>>& out) { // NOLINT
     out.clear();
-    std::vector<std::tuple<std::string, tree_instance*, std::size_t>> tuple_list;
-    scan(get_storages(), "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list,
-         nullptr, 0);
+    std::vector<std::tuple<std::string, tree_instance*, std::size_t>>
+            tuple_list;
+    scan(get_storages(), "", scan_endpoint::INF, "", scan_endpoint::INF,
+         tuple_list, nullptr, 0);
     if (tuple_list.empty()) { return status::WARN_NOT_EXIST; }
     out.reserve(tuple_list.size());
     for (auto&& elem : tuple_list) {
