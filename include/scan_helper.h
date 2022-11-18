@@ -44,8 +44,15 @@ status scan_check_retry(
             }
         }
         if (check.get_vsplit() != v_at_fb.get_vsplit() || check.get_deleted()) {
+            /**
+             * The node at find border was changed by split or deleted.
+             */
             return status::OK_RETRY_FROM_ROOT;
         }
+        /**
+         * The structure of the border node was not changed.
+         * So reading border node can retry from that.
+         */
         v_at_fb = check;
         return status::OK_RETRY_AFTER_FB;
     }
@@ -119,9 +126,16 @@ scan_border(border_node** const target, const std::string_view l_key,
                     node_version_vec,
             const std::string& key_prefix, const std::size_t max_size) {
 retry:
-    std::size_t tuple_pushed_num{0};
+    std::size_t tuple_pushed_num{0}; // used below loop
     border_node* bn = *target;
+    /**
+     * next node pointer must be logged before optimistic verify.
+     */
     border_node* next = bn->get_next();
+    /**
+     * get permutation at once.
+     * After scan border, optimistic verify support this is atomic.
+     */
     permutation perm(bn->get_permutation().get_body());
     for (std::size_t i = 0; i < perm.get_cnk(); ++i) {
         std::size_t index = perm.get_index_of_rank(i);
@@ -132,6 +146,11 @@ retry:
             full_key.append(
                     reinterpret_cast<char*>(&ks), // NOLINT
                     kl < sizeof(key_slice_type) ? kl : sizeof(key_slice_type));
+            /**
+             * If the key is complete (kl < sizeof(key_slice_type)), the key 
+             * slice must be copied by the size of key length.
+             * Otherwise, sizeof key_slice_type.
+             */
         }
         link_or_value* lv = bn->get_lv_at(index);
         void* vp = lv->get_v_or_vp_();
@@ -162,6 +181,7 @@ retry:
                        l_key.size() < sizeof(key_slice_type)
                                ? l_key.size()
                                : sizeof(key_slice_type));
+                // check left point
                 int ret_cmp = memcmp(&l_key_slice, &ks, sizeof(key_slice_type));
                 if (ret_cmp < 0) {
                     arg_l_key = "";
