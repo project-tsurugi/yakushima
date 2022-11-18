@@ -184,12 +184,12 @@ static void border_split(tree_instance* ti, border_node* const border,
         std::size_t src_index{border->get_permutation().get_index_of_rank(
                 remaining_size)}; // this is tricky.
         border->remove_assigned_slot(src_index);
+        new_border->assign_empty_slot();
         new_border->set_key_slice_at(index_ctr,
                                      border->get_key_slice_at(src_index));
         new_border->set_key_length_at(index_ctr,
                                       border->get_key_length_at(src_index));
         new_border->set_lv(index_ctr, border->get_lv_at(src_index));
-        if (i != remaining_size) { new_border->assign_empty_slot(); }
         base_node* nl = border->get_lv_at(src_index)->get_next_layer();
         if (nl != nullptr) { nl->set_parent(new_border); }
         ++index_ctr;

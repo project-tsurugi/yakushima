@@ -38,8 +38,9 @@ TEST_F(dt, one_border) { // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
         k.at(i).assign(i, '\0');
         v.at(i) = std::to_string(i);
-        ASSERT_EQ(status::OK, put(token, test_storage_name, std::string_view(k.at(i)),
-                                  v.at(i).data(), v.at(i).size()));
+        ASSERT_EQ(status::OK,
+                  put(token, test_storage_name, std::string_view(k.at(i)),
+                      v.at(i).data(), v.at(i).size()));
         /**
      * There are 9 key which has the same slice and the different length.
      * key length == 0, same_slice and length is 1, 2, ..., 8.
@@ -48,7 +49,9 @@ TEST_F(dt, one_border) { // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
         ASSERT_EQ(status::OK, remove(token, test_storage_name, k.at(i)));
         auto* br = dynamic_cast<border_node*>(ti->load_root_ptr());
-        if (i != ary_size - 1) { ASSERT_EQ(br->get_permutation_cnk(), ary_size - i - 1); }
+        if (i != ary_size - 1) {
+            ASSERT_EQ(br->get_permutation_cnk(), ary_size - i - 1);
+        }
     }
     ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
     ASSERT_EQ(leave(token), status::OK);
@@ -64,7 +67,8 @@ TEST_F(dt, one_border_shuffle) { // NOLINT
         constexpr std::size_t ary_size = 9;
         std::vector<std::tuple<std::string, std::string>> kv; // NOLINT
         for (std::size_t i = 0; i < ary_size; ++i) {
-            kv.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+            kv.emplace_back(
+                    std::make_tuple(std::string(i, '\0'), std::to_string(i)));
         }
 
         std::random_device seed_gen;
@@ -73,7 +77,8 @@ TEST_F(dt, one_border_shuffle) { // NOLINT
         for (std::size_t i = 0; i < ary_size; ++i) {
             ASSERT_EQ(status::OK,
                       put(token, test_storage_name, std::get<0>(kv.at(i)),
-                          std::get<1>(kv.at(i)).data(), std::get<1>(kv.at(i)).size()));
+                          std::get<1>(kv.at(i)).data(),
+                          std::get<1>(kv.at(i)).size()));
         }
 
         for (std::size_t i = 0; i < ary_size; ++i) {
@@ -101,8 +106,9 @@ TEST_F(dt, two_border) { // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
         k.at(i).assign(i, '\0');
         v.at(i) = std::to_string(i);
-        ASSERT_EQ(status::OK, put(token, test_storage_name, std::string_view(k.at(i)),
-                                  v.at(i).data(), v.at(i).size()));
+        ASSERT_EQ(status::OK,
+                  put(token, test_storage_name, std::string_view(k.at(i)),
+                      v.at(i).data(), v.at(i).size()));
     }
     for (std::size_t i = 0; i < ary_size; ++i) {
         ASSERT_EQ(status::OK, remove(token, test_storage_name, k.at(i)));
@@ -110,7 +116,9 @@ TEST_F(dt, two_border) { // NOLINT
         /**
      * here, tree has two layer constituted by two border node.
      */
-        if (i != ary_size - 1) { ASSERT_EQ(bn->get_permutation_cnk(), 10 - i - 1); }
+        if (i != ary_size - 1) {
+            ASSERT_EQ(bn->get_permutation_cnk(), 10 - i - 1);
+        }
     }
     ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
     ASSERT_EQ(leave(token), status::OK);
@@ -126,7 +134,8 @@ TEST_F(dt, two_border_shuffle) { // NOLINT
         constexpr std::size_t ary_size = 10;
         std::vector<std::tuple<std::string, std::string>> kv; // NOLINT
         for (std::size_t i = 0; i < ary_size; ++i) {
-            kv.emplace_back(std::make_tuple(std::string(i, '\0'), std::to_string(i)));
+            kv.emplace_back(
+                    std::make_tuple(std::string(i, '\0'), std::to_string(i)));
         }
 
         std::random_device seed_gen;
@@ -135,7 +144,8 @@ TEST_F(dt, two_border_shuffle) { // NOLINT
         for (std::size_t i = 0; i < ary_size; ++i) {
             ASSERT_EQ(status::OK,
                       put(token, test_storage_name, std::get<0>(kv.at(i)),
-                          std::get<1>(kv.at(i)).data(), std::get<1>(kv.at(i)).size()));
+                          std::get<1>(kv.at(i)).data(),
+                          std::get<1>(kv.at(i)).size()));
         }
         for (std::size_t i = 0; i < ary_size; ++i) {
             ASSERT_EQ(status::OK,
@@ -160,8 +170,8 @@ TEST_F(dt, one_interi_two_bor) { // NOLINT
         v.at(i).assign(1, static_cast<char>(i));
     }
     for (std::size_t i = 0; i < ary_size; ++i) {
-        ASSERT_EQ(status::OK,
-                  put(token, test_storage_name, k.at(i), v.at(i).data(), v.at(i).size()));
+        ASSERT_EQ(status::OK, put(token, test_storage_name, k.at(i),
+                                  v.at(i).data(), v.at(i).size()));
     }
 
     constexpr std::size_t lb_n{ary_size / 2};
@@ -186,7 +196,8 @@ TEST_F(dt, one_interi_two_bor_shuffle) { // NOLINT
         constexpr std::size_t ary_size = key_slice_length + 1;
         std::vector<std::tuple<std::string, std::string>> kv; // NOLINT
         for (std::size_t i = 0; i < ary_size; ++i) {
-            kv.emplace_back(std::make_tuple(std::string(1, i), std::string(1, i)));
+            kv.emplace_back(
+                    std::make_tuple(std::string(1, i), std::string(1, i)));
         }
         std::random_device seed_gen;
         std::mt19937 engine(seed_gen());
@@ -195,7 +206,8 @@ TEST_F(dt, one_interi_two_bor_shuffle) { // NOLINT
         for (std::size_t i = 0; i < ary_size; ++i) {
             ASSERT_EQ(status::OK,
                       put(token, test_storage_name, std::get<0>(kv.at(i)),
-                          std::get<1>(kv.at(i)).data(), std::get<1>(kv.at(i)).size()));
+                          std::get<1>(kv.at(i)).data(),
+                          std::get<1>(kv.at(i)).size()));
         }
 
         std::sort(kv.begin(), kv.end());
@@ -236,8 +248,8 @@ TEST_F(dt, two_interi) { // NOLINT
         v.at(i).assign(1, static_cast<char>(i));
     }
     for (std::size_t i = 0; i < ary_size; ++i) {
-        ASSERT_EQ(status::OK,
-                  put(token, test_storage_name, k.at(i), v.at(i).data(), v.at(i).size()));
+        ASSERT_EQ(status::OK, put(token, test_storage_name, k.at(i),
+                                  v.at(i).data(), v.at(i).size()));
         if (i == key_slice_length - 1) {
             /**
        * root is full-border.
@@ -265,7 +277,9 @@ TEST_F(dt, two_interi) { // NOLINT
        * root is interior, root has 2 children, child[0] of root has 8 keys and child[1]
        * of root has 15 keys.
        */
-            ASSERT_EQ(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_n_keys(), 1);
+            ASSERT_EQ(dynamic_cast<interior_node*>(ti->load_root_ptr())
+                              ->get_n_keys(),
+                      1);
             ASSERT_EQ(dynamic_cast<border_node*>(
                               dynamic_cast<interior_node*>(ti->load_root_ptr())
                                       ->get_child_at(0))
@@ -296,19 +310,21 @@ TEST_F(dt, two_interi) { // NOLINT
                               ->get_permutation_cnk(),
                       8);
         } else if ((i > key_slice_length + (key_slice_length / 2) + 1) &&
-                   (i < key_slice_length +
-                                (key_slice_length / 2 + 1) * (key_slice_length - 1)) &&
+                   (i < key_slice_length + (key_slice_length / 2 + 1) *
+                                                   (key_slice_length - 1)) &&
                    (i - key_slice_length) % ((key_slice_length / 2 + 1)) == 0) {
             /**
        * When it puts (key_slice_length / 2) keys, the root interior node has
        * (i-base_node::key_slice _length) / (key_slice_length / 2);
        */
-            ASSERT_EQ(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_n_keys(),
+            ASSERT_EQ(dynamic_cast<interior_node*>(ti->load_root_ptr())
+                              ->get_n_keys(),
                       (i - key_slice_length) / (key_slice_length / 2 + 1) + 1);
 
-        } else if (i == key_slice_length +
-                                ((key_slice_length / 2 + 1)) * (key_slice_length - 1)) {
-            ASSERT_EQ(dynamic_cast<interior_node*>(ti->load_root_ptr())->get_n_keys(),
+        } else if (i == key_slice_length + ((key_slice_length / 2 + 1)) *
+                                                   (key_slice_length - 1)) {
+            ASSERT_EQ(dynamic_cast<interior_node*>(ti->load_root_ptr())
+                              ->get_n_keys(),
                       key_slice_length);
         }
     }
@@ -342,14 +358,16 @@ TEST_F(dt, two_interi) { // NOLINT
 
     ASSERT_EQ(n_in_bn - 1,
               dynamic_cast<interior_node*>(
-                      dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(0))
+                      dynamic_cast<interior_node*>(ti->load_root_ptr())
+                              ->get_child_at(0))
                       ->get_n_keys());
     for (std::size_t i = 0; i < n_in_bn; ++i) {
         ASSERT_EQ(status::OK, remove(token, test_storage_name, k.at(i)));
     }
     ASSERT_EQ(n_in_bn - 2,
               dynamic_cast<interior_node*>(
-                      dynamic_cast<interior_node*>(ti->load_root_ptr())->get_child_at(0))
+                      dynamic_cast<interior_node*>(ti->load_root_ptr())
+                              ->get_child_at(0))
                       ->get_n_keys());
     constexpr std::size_t to_sb = (n_in_bn - 2) * n_in_bn;
     for (std::size_t i = n_in_bn; i < n_in_bn + to_sb; ++i) {
@@ -379,13 +397,15 @@ TEST_F(dt, many) { // NOLINT
         std::vector<std::tuple<std::string, std::string>> kv; // NOLINT
         kv.reserve(ary_size);
         for (std::size_t i = 0; i < ary_size; ++i) {
-            kv.emplace_back(std::make_tuple(std::string(1, i), std::string(1, i)));
+            kv.emplace_back(
+                    std::make_tuple(std::string(1, i), std::string(1, i)));
         }
 
         for (std::size_t i = 0; i < ary_size; ++i) {
             ASSERT_EQ(status::OK,
                       put(token, test_storage_name, std::get<0>(kv.at(i)),
-                          std::get<1>(kv.at(i)).data(), std::get<1>(kv.at(i)).size()));
+                          std::get<1>(kv.at(i)).data(),
+                          std::get<1>(kv.at(i)).size()));
         }
 
         for (std::size_t i = 0; i < ary_size; ++i) {

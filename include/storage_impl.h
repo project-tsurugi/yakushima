@@ -25,6 +25,9 @@ namespace yakushima {
 status storage::create_storage(std::string_view storage_name) { // NOLINT
     // prepare create storage
     tree_instance new_instance;
+    //border_node* new_border = new border_node();
+    //new_border->init_border();
+    //new_instance.store_root_ptr(new_border);
     Token token{};
     while (status::OK != enter(token)) { _mm_pause(); }
 
@@ -35,6 +38,9 @@ status storage::create_storage(std::string_view storage_name) { // NOLINT
     // cleanup
     auto ret_st_token = leave(token);
     if (ret_st_token != status::OK) { LOG(ERROR) << ret_st_token; }
+    //if (ret_st != status::OK) {
+    //    delete new_border; // NOLINT
+    //}
 
     return ret_st;
 }

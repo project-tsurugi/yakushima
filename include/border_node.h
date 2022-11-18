@@ -214,7 +214,7 @@ public:
         /**
           * unreachable point.
           */
-         LOG(ERROR) << "unreachable path";
+        LOG(ERROR) << "unreachable path";
     }
 
     [[nodiscard]] link_or_value* get_lv_at(const std::size_t index) {
@@ -302,7 +302,6 @@ public:
     border_node* get_prev() { return loadAcquireN(prev_); }
 
     void init_border() {
-        assign_empty_slot();
         init_base();
         init_border_member_range(0);
         set_version_root(true);
@@ -339,7 +338,7 @@ public:
         init_border();
         set_version_root(root);
         get_version_ptr()->atomic_inc_vinsert();
-        insert_lv_at(0, key_view, new_value,
+        insert_lv_at(assign_empty_slot(), key_view, new_value,
                      reinterpret_cast<void**>(created_value_ptr), // NOLINT
                      0);
     }
