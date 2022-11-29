@@ -28,6 +28,9 @@ protected:
 };
 
 TEST_F(kt, test3) { // NOLINT
+    /**
+     * one border node. same key char, different key length 0-8
+     */
     tree_instance* ti{};
     find_storage(test_storage_name, &ti);
     Token token{};
@@ -45,9 +48,9 @@ TEST_F(kt, test3) { // NOLINT
         ASSERT_EQ(nvp->get_vinsert_delete(), i + 1);
         auto* br = dynamic_cast<border_node*>(ti->load_root_ptr());
         /**
-     * There are 9 key which has the same slice and the different length.
-     * key length == 0, same_slice and length is 1, 2, ..., 8.
-     */
+          * There are 9 key which has the same slice and the different length.
+          * key length == 0, same_slice and length is 1, 2, ..., 8.
+          */
         ASSERT_EQ(br->get_permutation_cnk(), i + 1);
     }
     constexpr std::size_t value_index = 0;
@@ -65,6 +68,9 @@ TEST_F(kt, test3) { // NOLINT
 }
 
 TEST_F(kt, test4) { // NOLINT
+    /**
+     * test3 random order.
+     */
     for (std::size_t h = 0; h < 1; ++h) {
         create_storage(test_storage_name);
         Token token{};
@@ -140,15 +146,15 @@ TEST_F(kt, test5) { // NOLINT
         auto* br = dynamic_cast<border_node*>(ti->load_root_ptr());
         if (i <= 8) {
             /**
-       * There are 9 key which has the same slice and the different length.
-       * key length == 0, same_slice and length is 1, 2, ..., 8.
-       */
+              * There are 9 key which has the same slice and the different length.
+              * key length == 0, same_slice and length is 1, 2, ..., 8.
+              */
             ASSERT_EQ(br->get_permutation_cnk(), i + 1);
         } else {
             /**
-       * The key whose the length of same parts is more than 8, it should be next_layer.
-       * So the number of keys should not be change.
-       */
+              * The key whose the length of same parts is more than 8, it should be next_layer.
+              * So the number of keys should not be change.
+              */
             ASSERT_EQ(br->get_permutation_cnk(), 10);
         }
     }
@@ -163,8 +169,8 @@ TEST_F(kt, test5) { // NOLINT
                   0);
     }
     /**
-   * check next layer is border.
-   */
+      * check next layer is border.
+      */
     auto* br = dynamic_cast<border_node*>(ti->load_root_ptr());
     auto* n = br->get_lv_at(9)->get_next_layer();
     ASSERT_EQ(typeid(*n), typeid(border_node)); // NOLINT
@@ -285,10 +291,10 @@ TEST_F(kt, test9) { // NOLINT
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     /**
-   * first border split occurs at inserting_deleting (key_slice_length + 1) times.
-   * after first border split, split occurs at inserting_deleting (key_slice_length / 2 +
-   * 1) times. first interior split occurs at splitting interior_node::child_length times.
-   */
+      * first border split occurs at inserting_deleting (key_slice_length + 1) times.
+      * after first border split, split occurs at inserting_deleting (key_slice_length / 2 +
+      * 1) times. first interior split occurs at splitting interior_node::child_length times.
+      */
     constexpr std::size_t ary_size =
             key_slice_length + 1 +
             (key_slice_length / 2 + 1) * (interior_node::child_length - 1);

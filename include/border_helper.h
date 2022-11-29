@@ -124,17 +124,22 @@ static void insert_lv(tree_instance* ti, border_node* const border,
                       std::size_t rank) {
     border->set_version_inserting_deleting(true);
     std::size_t cnk = border->get_permutation_cnk();
+    if (cnk == 0) {
+        // this must be root && border node
+        if (!border->get_version_root()) { LOG(ERROR); }
+        border->set_version_deleted(false);
+    }
     if (cnk == key_slice_length) {
         /**
-     * It needs splitting
-     */
+          * It needs splitting
+          */
         border_split<interior_node, border_node>(
                 ti, border, key_view, value_ptr, created_value_ptr,
                 arg_value_length, value_align, inserted_node_version_ptr, rank);
     } else {
         /**
-     * Insert into this nodes.
-     */
+          * Insert into this nodes.
+          */
         if (inserted_node_version_ptr != nullptr) {
             *inserted_node_version_ptr = border->get_version_ptr();
         }
@@ -160,27 +165,27 @@ static void border_split(tree_instance* ti, border_node* const border,
     new_border->set_prev(border);
 
     /**
-   * new border is initially locked
-   */
+      * new border is initially locked
+      */
     new_border->set_version(border->get_version());
     border->set_next(new_border);
     if (new_border->get_next() != nullptr) {
         /**
-     * The prev of border next can be updated if it posesses the border lock.
-     */
+          * The prev of border next can be updated if it posesses the border lock.
+          */
         new_border->get_next()->set_prev(new_border);
     }
     /**
-   * split
-   * If the fan-out is odd, keep more than half to improve the performance.
-   */
+      * split
+      * If the fan-out is odd, keep more than half to improve the performance.
+      */
     std::size_t remaining_size = key_slice_length / 2 + 1;
 
     std::size_t index_ctr(0);
     for (std::size_t i = remaining_size; i < key_slice_length; ++i) {
         /**
-     * move base_node members to new nodes
-     */
+          * move base_node members to new nodes
+          */
         std::size_t src_index{border->get_permutation().get_index_of_rank(
                 remaining_size)}; // this is tricky.
         border->remove_assigned_slot(src_index);
@@ -199,14 +204,14 @@ static void border_split(tree_instance* ti, border_node* const border,
         border->get_permutation().dec_key_num();
     }
     /**
-   * fix permutations
-   */
+      * fix permutations
+      */
     new_border->get_permutation().split_dest(key_slice_length - remaining_size);
 
     /**
-   * The insert process we wanted to do before we split.
-   * key_slice must be initialized to 0.
-   */
+      * The insert process we wanted to do before we split.
+      * key_slice must be initialized to 0.
+      */
     key_slice_type key_slice{0};
     key_length_type key_length; // NOLINT
     if (key_view.size() > sizeof(key_slice_type)) {
@@ -229,8 +234,8 @@ static void border_split(tree_instance* ti, border_node* const border,
     if (key_length == 0 || ret_memcmp < 0 ||
         (ret_memcmp == 0 && key_length < new_border->get_key_length_at(0))) {
         /**
-     * insert to lower border node.
-     */
+          * insert to lower border node.
+          */
         if (inserted_node_version_ptr != nullptr) {
             *inserted_node_version_ptr = border->get_version_ptr();
         }
@@ -239,8 +244,8 @@ static void border_split(tree_instance* ti, border_node* const border,
                              created_value_ptr, rank);
     } else {
         /**
-     * insert to higher border node.
-     */
+          * insert to higher border node.
+          */
         if (inserted_node_version_ptr != nullptr) {
             *inserted_node_version_ptr = new_border->get_version_ptr();
         }
@@ -255,10 +260,10 @@ static void border_split(tree_instance* ti, border_node* const border,
         if (ti->load_root_ptr() != border) { LOG(ERROR); }
 #endif
         /**
-     * create interior as parents and insert k.
-     * The disappearance of the parent node may have made this node the root node in
-     * parallel. It cares in below function.
-     */
+          * create interior as parents and insert k.
+          * The disappearance of the parent node may have made this node the root node in
+          * parallel. It cares in below function.
+          */
         create_interior_parent_of_border<interior_node, border_node>(
                 border, new_border,
                 reinterpret_cast<interior_node**>(&p)); // NOLINT

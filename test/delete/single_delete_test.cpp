@@ -37,7 +37,7 @@ TEST_F(dt, delete_at_non_existing_storage) { // NOLINT
 TEST_F(dt, delete_at_existing_storage_but_no_entry) { // NOLINT
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
-    ASSERT_EQ(status::OK_ROOT_IS_NULL, remove(token, test_storage_name, ""));
+    ASSERT_EQ(status::OK_NOT_FOUND, remove(token, test_storage_name, ""));
     ASSERT_EQ(leave(token), status::OK);
 }
 
@@ -63,7 +63,7 @@ TEST_F(dt, single_remove) { // NOLINT
     ASSERT_EQ(status::OK,
               put(token, test_storage_name, std::string_view(k), v.data(), v.size()));
     ASSERT_EQ(status::OK, remove(token, test_storage_name, std::string_view(k)));
-    ASSERT_EQ(ti->load_root_ptr(), nullptr);
+    ASSERT_NE(ti->load_root_ptr(), nullptr);
     ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
     ASSERT_EQ(leave(token), status::OK);
 }

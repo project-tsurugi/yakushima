@@ -42,9 +42,9 @@ TEST_F(dt, one_border) { // NOLINT
                   put(token, test_storage_name, std::string_view(k.at(i)),
                       v.at(i).data(), v.at(i).size()));
         /**
-     * There are 9 key which has the same slice and the different length.
-     * key length == 0, same_slice and length is 1, 2, ..., 8.
-     */
+          * There are 9 key which has the same slice and the different length.
+          * key length == 0, same_slice and length is 1, 2, ..., 8.
+          */
     }
     for (std::size_t i = 0; i < ary_size; ++i) {
         ASSERT_EQ(status::OK, remove(token, test_storage_name, k.at(i)));
@@ -114,8 +114,8 @@ TEST_F(dt, two_border) { // NOLINT
         ASSERT_EQ(status::OK, remove(token, test_storage_name, k.at(i)));
         auto* bn = dynamic_cast<border_node*>(ti->load_root_ptr());
         /**
-     * here, tree has two layer constituted by two border node.
-     */
+          * here, tree has two layer constituted by two border node.
+          */
         if (i != ary_size - 1) {
             ASSERT_EQ(bn->get_permutation_cnk(), 10 - i - 1);
         }
@@ -182,7 +182,7 @@ TEST_F(dt, one_interi_two_bor) { // NOLINT
     for (std::size_t i = lb_n; i < ary_size; ++i) {
         ASSERT_EQ(status::OK, remove(token, test_storage_name, k.at(i)));
     }
-    ASSERT_EQ(ti->load_root_ptr(), nullptr);
+    ASSERT_NE(ti->load_root_ptr(), nullptr);
     ASSERT_EQ(leave(token), status::OK);
 }
 
@@ -221,7 +221,7 @@ TEST_F(dt, one_interi_two_bor_shuffle) { // NOLINT
             ASSERT_EQ(status::OK,
                       remove(token, test_storage_name, std::get<0>(kv.at(i))));
         }
-        ASSERT_EQ(ti->load_root_ptr(), nullptr);
+        ASSERT_NE(ti->load_root_ptr(), nullptr);
         ASSERT_EQ(leave(token), status::OK);
         destroy();
     }
@@ -380,7 +380,7 @@ TEST_F(dt, two_interi) { // NOLINT
         ASSERT_EQ(status::OK, remove(token, test_storage_name, k.at(i)));
     }
 
-    ASSERT_EQ(ti->load_root_ptr(), nullptr);
+    ASSERT_NE(ti->load_root_ptr(), nullptr);
     ASSERT_EQ(leave(token), status::OK);
 }
 
@@ -413,7 +413,7 @@ TEST_F(dt, many) { // NOLINT
                       remove(token, test_storage_name, std::get<0>(kv.at(i))));
         }
 
-        ASSERT_EQ(ti->load_root_ptr(), nullptr);
+        ASSERT_NE(ti->load_root_ptr(), nullptr);
         ASSERT_EQ(leave(token), status::OK);
         destroy();
     }

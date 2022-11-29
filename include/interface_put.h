@@ -95,7 +95,10 @@ retry_find_border:
           * @a root is the root node of the some layer, but it was deleted.
           * So it must retry from root of the all tree.
           */
-        goto retry_from_root; // NOLINT
+        node_version64_body nv = std::get<1>(node_and_v);
+        if (!(nv.get_root() && nv.get_deleted())) {
+            goto retry_from_root; // NOLINT
+        }
     }
     constexpr std::size_t tuple_node_index = 0;
     constexpr std::size_t tuple_v_index = 1;
@@ -112,7 +115,7 @@ retry_fetch_lv:
       * check whether it should insert into this node.
       */
     if ((v_at_fetch_lv.get_vsplit() != v_at_fb.get_vsplit()) ||
-        v_at_fetch_lv.get_deleted()) {
+        (v_at_fetch_lv.get_deleted() && !v_at_fetch_lv.get_root())) {
         /**
           * It may be change the correct border between atomically fetching border node and
           * atomically fetching lv.
@@ -121,7 +124,8 @@ retry_fetch_lv:
     }
     if (lv_ptr == nullptr) {
         target_border->lock();
-        if (target_border->get_version_deleted() ||
+        if ((target_border->get_version_deleted() &&
+             !v_at_fetch_lv.get_root()) ||
             target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
             /**
               * get_version_deleted() : It was deleted between atomically fetching border node
@@ -163,7 +167,8 @@ retry_fetch_lv:
 
             target_border->lock();
 
-            if (target_border->get_version_deleted() ||
+            if ((target_border->get_version_deleted() &&
+                 !target_border->get_version_root()) ||
                 target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
                 // maybe wrong node
                 target_border->version_unlock();
@@ -198,7 +203,8 @@ retry_fetch_lv:
           * The key length of lv pointer cannot be smaller than the key slice type.
           * Therefore, it was interrupted by a parallel operation.
           */
-        if (target_border->get_version_deleted() ||
+        if ((target_border->get_version_deleted() &&
+             !target_border->get_version_root()) ||
             target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
             // maybe wrong node
             goto retry_from_root; // NOLINT
@@ -217,7 +223,8 @@ retry_fetch_lv:
       * check whether border is still correct.
       */
     node_version64_body final_check = target_border->get_stable_version();
-    if (final_check.get_deleted() || // this border was deleted.
+    if ((final_check.get_deleted() &&
+         !final_check.get_root()) || // this border was deleted.
         final_check.get_vsplit() !=
                 v_at_fb.get_vsplit()) { // this border may be incorrect.
         goto retry_from_root;           // NOLINT

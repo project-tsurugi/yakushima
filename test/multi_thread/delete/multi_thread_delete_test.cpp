@@ -4,29 +4,45 @@
 
 #include <algorithm>
 #include <array>
+#include <mutex>
 #include <random>
 #include <thread>
 
-#include "gtest/gtest.h"
-
 #include "kvs.h"
 
+#include "gtest/gtest.h"
+
+#include "glog/logging.h"
 using namespace yakushima;
 
 namespace yakushima::testing {
 
 class mtdt : public ::testing::Test {
-    void SetUp() override { init(); }
+public:
+    static void call_once_f() {
+        google::InitGoogleLogging(
+                "yakushima-test-multi_thread-delete_multi_thread_delete_test");
+        FLAGS_stderrthreshold = 0;
+    }
+    void SetUp() override {
+        std::call_once(init_, call_once_f);
+        init();
+    }
+
     void TearDown() override { fin(); }
+
+private:
+    static inline std::once_flag init_; // NOLINT
 };
 
 std::string test_storage_name{"1"}; // NOLINT
 
 TEST_F(mtdt, one_border) { // NOLINT
     /**
-   * Initial state : multi threads put same null char key slices and different key length
-   * to multiple border. Concurrent remove against initial state.
-   */
+      * Initial state : multi threads put same null char key slices and 
+      * different key length to multiple border. Concurrent remove against 
+      * initial state.
+      */
     constexpr std::size_t ary_size = 9;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
@@ -49,8 +65,9 @@ TEST_F(mtdt, one_border) { // NOLINT
                 kv.reserve(ary_size / max_thread);
                 // data generation
                 for (std::size_t i = (ary_size / max_thread) * th_id;
-                     i < (th_id != max_thread - 1 ? (ary_size / max_thread) * (th_id + 1)
-                                                  : ary_size);
+                     i < (th_id != max_thread - 1
+                                  ? (ary_size / max_thread) * (th_id + 1)
+                                  : ary_size);
                      ++i) {
                     kv.emplace_back(std::string(i, '\0'), std::to_string(i));
                 }
@@ -61,7 +78,8 @@ TEST_F(mtdt, one_border) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(token, test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(),
+                                     v.size());
                     if (ret != status::OK) {
                         EXPECT_EQ(ret, status::OK); // output log
                         std::abort();
@@ -69,12 +87,15 @@ TEST_F(mtdt, one_border) { // NOLINT
                 }
 
                 meet->fetch_add(1);
-                while (meet->load(std::memory_order_acquire) != max_thread) _mm_pause();
+                while (meet->load(std::memory_order_acquire) != max_thread) {
+                    _mm_pause();
+                }
 
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, test_storage_name, std::string_view(k));
+                    status ret = remove(token, test_storage_name,
+                                        std::string_view(k));
                     if (ret != status::OK) {
                         EXPECT_EQ(ret, status::OK); // output log
                         std::abort();
@@ -99,10 +120,10 @@ TEST_F(mtdt, one_border) { // NOLINT
 
 TEST_F(mtdt, one_border_shuffle) { // NOLINT
     /**
-   * Initial state : multi threads put same null char key slices and different key length
-   * to multiple border, which is using shuffled data. Concurrent remove against initial
-   * state.
-   */
+      * Initial state : multi threads put same null char key slices and 
+      * different key length to multiple border, which is using shuffled data. 
+      * Concurrent remove against initial state.
+      */
     constexpr std::size_t ary_size = 9;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
@@ -125,8 +146,9 @@ TEST_F(mtdt, one_border_shuffle) { // NOLINT
                 kv.reserve(ary_size / max_thread);
                 // data generation
                 for (std::size_t i = (ary_size / max_thread) * th_id;
-                     i < (th_id != max_thread - 1 ? (ary_size / max_thread) * (th_id + 1)
-                                                  : ary_size);
+                     i < (th_id != max_thread - 1
+                                  ? (ary_size / max_thread) * (th_id + 1)
+                                  : ary_size);
                      ++i) {
                     kv.emplace_back(std::string(i, '\0'), std::to_string(i));
                 }
@@ -141,7 +163,8 @@ TEST_F(mtdt, one_border_shuffle) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(token, test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(),
+                                     v.size());
                     if (ret != status::OK) {
                         EXPECT_EQ(ret, status::OK); // output log
                         std::abort();
@@ -156,7 +179,8 @@ TEST_F(mtdt, one_border_shuffle) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, test_storage_name, std::string_view(k));
+                    status ret = remove(token, test_storage_name,
+                                        std::string_view(k));
                     if (ret != status::OK) {
                         EXPECT_EQ(ret, status::OK); // output log
                         std::abort();
@@ -181,9 +205,10 @@ TEST_F(mtdt, one_border_shuffle) { // NOLINT
 
 TEST_F(mtdt, test3) { // NOLINT
     /**
-   * Initial state : multi threads put same null char key slices and different key length
-   * to single border. Concurrent remove against initial state.
-   */
+      * Initial state : multi threads put same null char key slices and 
+      * different key length to single border. Concurrent remove against 
+      * initial state.
+      */
 
     constexpr std::size_t ary_size = 15;
     std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
@@ -209,12 +234,14 @@ TEST_F(mtdt, test3) { // NOLINT
         std::reverse(kv2.begin(), kv2.end());
 
         struct S {
-            static void put_work(Token& token,
-                                 std::vector<std::tuple<std::string, std::string>>& kv) {
+            static void
+            put_work(Token& token,
+                     std::vector<std::tuple<std::string, std::string>>& kv) {
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(token, test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(),
+                                     v.size());
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -228,7 +255,8 @@ TEST_F(mtdt, test3) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, test_storage_name, std::string_view(k));
+                    status ret = remove(token, test_storage_name,
+                                        std::string_view(k));
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -253,10 +281,10 @@ TEST_F(mtdt, test3) { // NOLINT
 
 TEST_F(mtdt, test4) { // NOLINT
     /**
-   * Initial state : multi threads put same null char key slices and different key length
-   * to single border, which is using shuffled data. Concurrent remove against initial
-   * state.
-   */
+      * Initial state : multi threads put same null char key slices and 
+      * different key length to single border, which is using shuffled data. 
+      * Concurrent remove against initial state.
+      */
 
     constexpr std::size_t ary_size = 15;
     std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
@@ -284,12 +312,14 @@ TEST_F(mtdt, test4) { // NOLINT
         std::shuffle(kv2.begin(), kv2.end(), engine);
 
         struct S {
-            static void put_work(Token& token,
-                                 std::vector<std::tuple<std::string, std::string>>& kv) {
+            static void
+            put_work(Token& token,
+                     std::vector<std::tuple<std::string, std::string>>& kv) {
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(token, test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(),
+                                     v.size());
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -303,7 +333,8 @@ TEST_F(mtdt, test4) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, test_storage_name, std::string_view(k));
+                    status ret = remove(token, test_storage_name,
+                                        std::string_view(k));
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -356,12 +387,14 @@ TEST_F(mtdt, test5) { // NOLINT
         std::reverse(kv2.begin(), kv2.end());
 
         struct S {
-            static void put_work(Token& token,
-                                 std::vector<std::tuple<std::string, std::string>>& kv) {
+            static void
+            put_work(Token& token,
+                     std::vector<std::tuple<std::string, std::string>>& kv) {
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(token, test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(),
+                                     v.size());
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -375,7 +408,8 @@ TEST_F(mtdt, test5) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, test_storage_name, std::string_view(k));
+                    status ret = remove(token, test_storage_name,
+                                        std::string_view(k));
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -400,9 +434,9 @@ TEST_F(mtdt, test5) { // NOLINT
 
 TEST_F(mtdt, test6) { // NOLINT
     /**
-   * Initial state : multi threads put until first split of border, which is using
-   * shuffled data. Concurrent remove against initial state.
-   */
+      * Initial state : multi threads put until first split of border, which is 
+      * using shuffled data. Concurrent remove against initial state.
+      */
 
     constexpr std::size_t ary_size = key_slice_length + 1;
     std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
@@ -430,12 +464,14 @@ TEST_F(mtdt, test6) { // NOLINT
         std::shuffle(kv2.begin(), kv2.end(), engine);
 
         struct S {
-            static void put_work(Token& token,
-                                 std::vector<std::tuple<std::string, std::string>>& kv) {
+            static void
+            put_work(Token& token,
+                     std::vector<std::tuple<std::string, std::string>>& kv) {
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(token, test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(),
+                                     v.size());
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -449,7 +485,8 @@ TEST_F(mtdt, test6) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, test_storage_name, std::string_view(k));
+                    status ret = remove(token, test_storage_name,
+                                        std::string_view(k));
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -474,9 +511,9 @@ TEST_F(mtdt, test6) { // NOLINT
 
 TEST_F(mtdt, test7) { // NOLINT
     /**
-   * Initial state : multi threads put between first split of border and first split of
-   * interior. Concurrent remove against initial state.
-   */
+      * Initial state : multi threads put between first split of border and 
+      * first split of interior. Concurrent remove against initial state.
+      */
 
     constexpr std::size_t ary_size = 100;
     std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
@@ -502,12 +539,14 @@ TEST_F(mtdt, test7) { // NOLINT
         std::reverse(kv2.begin(), kv2.end());
 
         struct S {
-            static void put_work(Token& token,
-                                 std::vector<std::tuple<std::string, std::string>>& kv) {
+            static void
+            put_work(Token& token,
+                     std::vector<std::tuple<std::string, std::string>>& kv) {
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(token, test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(),
+                                     v.size());
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -521,7 +560,8 @@ TEST_F(mtdt, test7) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, test_storage_name, std::string_view(k));
+                    status ret = remove(token, test_storage_name,
+                                        std::string_view(k));
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -546,10 +586,10 @@ TEST_F(mtdt, test7) { // NOLINT
 
 TEST_F(mtdt, test8) { // NOLINT
     /**
-   * Initial state : multi threads put between first split of border and first split of
-   * interior, which is using shuffled data. Concurrent remove against initial state.
-   */
-
+      * Initial state : multi threads put between first split of border and 
+      * first split of interior, which is using shuffled data. Concurrent 
+      * remove against initial state.
+      */
     constexpr std::size_t ary_size = 100;
     std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
     std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
@@ -577,12 +617,14 @@ TEST_F(mtdt, test8) { // NOLINT
         std::shuffle(kv2.begin(), kv2.end(), engine);
 
         struct S {
-            static void put_work(Token& token,
-                                 std::vector<std::tuple<std::string, std::string>>& kv) {
+            static void
+            put_work(Token& token,
+                     std::vector<std::tuple<std::string, std::string>>& kv) {
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(token, test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(),
+                                     v.size());
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();

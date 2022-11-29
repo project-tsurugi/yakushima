@@ -31,65 +31,91 @@ retry:
     base_node* n = root;
     node_version64_body v = n->get_stable_version();
     node_version64_body ret_v = v;
+    if (v.get_deleted() && v.get_root()) {
+        // root && deleted node.
+        special_status = status::OK;
+#ifndef NDEBUG
+        if (n == nullptr) {
+            LOG(ERROR) << "yakushima: find_border: root: " << root
+                       << ", key_slice: " << key_slice
+                       << ", key_slice_length: " << key_slice_length
+                       << ", special_status: " << special_status;
+        }
+#endif
+        return std::make_tuple(dynamic_cast<border_node*>(n), ret_v);
+    }
     if (v.get_deleted() || !v.get_root()) {
         special_status = status::WARN_RETRY_FROM_ROOT_OF_ALL;
         return std::make_tuple(nullptr, node_version64_body());
     }
 descend:
     /**
-   * The caller checks whether it has been deleted.
-   */
+      * The caller checks whether it has been deleted.
+      */
     if (v.get_border()) {
         special_status = status::OK;
+#ifndef NDEBUG
+        if (n == nullptr) {
+            LOG(ERROR) << "yakushima: find_border: root: " << root
+                       << ", key_slice: " << key_slice
+                       << ", key_slice_length: " << key_slice_length
+                       << ", special_status: " << special_status;
+        }
+#endif
         return std::make_tuple(dynamic_cast<border_node*>(n), ret_v);
     }
     /**
-   * @a n points to a interior_node object.
-   */
+      * @a n points to a interior_node object.
+      */
     base_node* n_child = dynamic_cast<interior_node*>(n)->get_child_of(
             key_slice, key_slice_length);
     if (n_child != nullptr) { ret_v = n_child->get_stable_version(); }
+
     /**
-   * As soon as you it finished operating the contents of node, read version (v_check).
-   */
+      * As soon as you it finished operating the contents of node, read 
+      * version (v_check).
+      */
     node_version64_body v_check = n->get_stable_version();
-    if (v == v_check) {
-#ifndef NDEBUG
-        if (n_child == nullptr) {
-            LOG(ERROR) << "unreachable path";
-        }
-#endif
-        /**
-     * This check is different with original paper's check.
-     * Original paper approach merely check whether it is locked now.
+    /**
+     * If n_child is nullptr, it must be v != v_check
      */
+#ifndef NDEBUG
+    if (n_child == nullptr && v == v_check) { LOG(ERROR) << "yakushima: bug."; }
+#endif
+    if (v == v_check) {
+        /**
+          * This check is different with original paper's check.
+          * Original paper approach merely check whether it is locked now.
+          */
         n = n_child;
         /**
-     * In the original paper, this line is done outside of if scope.
-     * However,  It is never used after that scope.
-     * Therefore, this can execute within if scope.
-     */
+          * In the original paper, this line is done outside of if scope.
+          * However,  It is never used after that scope.
+          * Therefore, this can execute within if scope.
+          */
         v = ret_v;
         goto descend; // NOLINT
     }
     /**
-   * In Original paper, v'' = stableversion(n).
-   * But it is redundant that checks global current value (n.version) and loads that here.
-   */
+      * In Original paper, v'' = stableversion(n).
+      * But it is redundant that checks global current value (n.version) and 
+      * loads that here.
+      */
 
     /**
-   * If the value of vsplit is different, the read location may be inappropriate.
-   * Split propagates upward. It have to start from root.
-   */
+      * If the value of vsplit is different, the read location may be 
+      * inappropriate.
+      * Split propagates upward. It have to start from root.
+      */
     if (v.get_vsplit() != v_check.get_vsplit() || v_check.get_deleted()) {
         goto retry; // NOLINT
     }
     /**
-   * If the vsplit values match, it can continue.
-   * Even if it is inserted, the slot value is invariant and the order is controlled by @a
-   * permutation. However, the value corresponding to the key that could not be detected
-   * may have been inserted, so re-start from this node.
-   */
+      * If the vsplit values match, it can continue. Even if it is inserted, 
+      * the slot value is invariant and the order is controlled by 
+      * @a permutation. However, the value corresponding to the key that could 
+      * not be detected may have been inserted, so re-start from this node.
+      */
     v = v_check;
     goto descend; // NOLINT
 }

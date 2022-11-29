@@ -148,7 +148,7 @@ TEST_F(kt, one_key_long_value) { // NOLINT
    */
     tree_instance* ti{};
     find_storage(test_storage_name, &ti);
-    ASSERT_EQ(ti->load_root_ptr(), nullptr);
+    ASSERT_NE(ti->load_root_ptr(), nullptr);
     std::string k("a");
     std::string v(100, 'a');
     ASSERT_EQ(v.size(), 100);

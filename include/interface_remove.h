@@ -59,6 +59,19 @@ retry_find_border:
     constexpr std::size_t tuple_node_index = 0;
     constexpr std::size_t tuple_v_index = 1;
     border_node* target_border = std::get<tuple_node_index>(node_and_v);
+#ifndef NDEBUG
+    // check target_border is not nullptr
+    if (target_border == nullptr) {
+        LOG(FATAL) << "yakushima: root: " << root
+                   << ", key_slice: " << key_slice
+                   << ", key_length: " << key_length
+                   << ", special_status: " << special_status;
+    }
+    // check target_border is border node.
+    if (typeid(*target_border) != typeid(border_node)) {
+        LOG(FATAL) << "yakushima: find_border return not border node.";
+    }
+#endif
     node_version64_body v_at_fb = std::get<tuple_v_index>(node_and_v);
 retry_fetch_lv:
     node_version64_body v_at_fetch_lv{};
@@ -69,7 +82,7 @@ retry_fetch_lv:
       * check whether it should delete against this node.
       */
     if (v_at_fetch_lv.get_vsplit() != v_at_fb.get_vsplit() ||
-        v_at_fetch_lv.get_deleted()) {
+        (v_at_fetch_lv.get_deleted() && !v_at_fetch_lv.get_root())) {
         /**
           * It may be change the correct border between atomically fetching border node 
           * and atomically fetching lv.
@@ -79,7 +92,8 @@ retry_fetch_lv:
 
     if (lv_ptr == nullptr) {
         node_version64_body final_check = target_border->get_version();
-        if (final_check.get_deleted() || // the border was deleted.
+        if ((final_check.get_deleted() &&
+             !final_check.get_root()) || // the border was deleted.
             final_check.get_vsplit() !=
                     v_at_fb.get_vsplit()) { // the border may be incorrect.
             goto retry_from_root;           // NOLINT
@@ -99,7 +113,8 @@ retry_fetch_lv:
     if (target_border->get_key_length_at(lv_pos) <= sizeof(key_slice_type)) {
         target_border->lock();
         node_version64_body final_check = target_border->get_version();
-        if (final_check.get_deleted() || // the border was deleted.
+        if ((final_check.get_deleted() &&
+             !final_check.get_root()) || // the border was deleted.
             final_check.get_vsplit() !=
                     v_at_fb.get_vsplit()) { // the border may be incorrect.
             target_border->version_unlock();
@@ -118,7 +133,8 @@ retry_fetch_lv:
 
     root = lv_ptr->get_next_layer();
     node_version64_body final_check = target_border->get_stable_version();
-    if (final_check.get_deleted() || // this border was deleted.
+    if ((final_check.get_deleted() &&
+         !final_check.get_root()) || // this border was deleted.
         final_check.get_vsplit() !=
                 v_at_fb.get_vsplit()) { // this border is incorrect.
         goto retry_from_root;           // NOLINT

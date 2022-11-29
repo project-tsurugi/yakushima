@@ -53,6 +53,7 @@ public:
             if (get_child_at(i) == child) {
                 if (n_key == 1) {
                     set_version_deleted(true);
+                    set_version_root(false);
                     n_keys_decrement();
                     base_node* pn = lock_parent();
                     if (pn == nullptr) {

@@ -278,6 +278,7 @@ public:
         }
         // error
         LOG(ERROR) << key_slice_length << ", fatal error";
+        return 0;
     }
 
     void remove_assigned_slot(std::size_t index) {

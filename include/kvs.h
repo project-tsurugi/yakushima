@@ -195,34 +195,40 @@ put(Token token, std::string_view storage_name, // NOLINT
  */
 /**
  * @brief scan range between @a l_key and @a r_key.
- * @tparam ValueType The returned pointer is cast to the given type information before it
- * is returned.
+ * @tparam ValueType The returned pointer is cast to the given type information 
+ * before it is returned.
  * @param[in] l_key An argument that specifies the left endpoint.
- * @param[in] l_end If this argument is scan_endpoint :: EXCLUSIVE, the interval does not
- * include the endpoint. If this argument is scan_endpoint :: INCLUSIVE, the interval
- * contains the endpoint. If this is scan_endpoint :: INF, there is no limit on the
- * interval in left direction. And ignore @a l_key.
+ * @param[in] l_end If this argument is scan_endpoint::EXCLUSIVE, the interval 
+ * does not include the endpoint. If this argument is scan_endpoint::INCLUSIVE, 
+ * the interval contains the endpoint. If this is scan_endpoint::INF, there is 
+ * no limit on the interval in left direction. And ignore @a l_key.
  * @param[in] r_key An argument that specifies the right endpoint.
  * @note If r_key <l_key is specified in dictionary order, nothing will be hit.
- * @param[in] r_end If this argument is scan_endpoint :: EXCLUSIVE, the interval does not
- * include the endpoint. If this argument is scan_endpoint :: INCLUSIVE, the interval
- * contains the endpoint. If this is scan_endpoint :: INF, there is no limit on the
- * interval in right direction. And ignore @a r_key.
- * @param[out] tuple_list A set with a key, a pointer to value, and size of value as a
- * result of this function.
+ * @param[in] r_end If this argument is scan_endpoint :: EXCLUSIVE, the 
+ * interval does not include the endpoint. If this argument is 
+ * scan_endpoint::INCLUSIVE, the interval contains the endpoint. If this is 
+ * scan_endpoint::INF, there is no limit on the interval in right direction. 
+ * And ignore @a r_key.
+ * @param[out] tuple_list A set with a key, a pointer to value, and size of 
+ * value as a result of this function.
  * @param[out] node_version_vec Default is nullptr. The set of node_version for
- * transaction processing (protection of phantom problems). If you don't use yakushima for
- * transaction processing, you don't have to use this argument. If you want high
- * performance and don't have to use this argument, you should specify nullptr. If this
- * argument is nullptr, it will not collect node_version.
- * @param [out] max_size Default is 0. If this argument is 0, it will not use this
- * argument. This argument limits the number of results. If you later use node_version_vec
- * to guarantee atomicity, you can split the atomic scan. Suppose you want to scan with A:
- * C, assuming the order A <B <C. You can perform an atomic scan by scanning the range A:
- * B, B: C and using node_version_vec to make sure the values ​​are not overwritten.
- * This advantage is effective when the right end point is unknown but you want to scan to
- * a specific value.
- * @return Status::ERR_BAD_USAGE The arguments is invalid.
+ * transaction processing (protection of phantom problems). If you don't use 
+ * yakushima for transaction processing, you don't have to use this argument. 
+ * If you want high performance and don't have to use this argument, you should 
+ * specify nullptr. If this argument is nullptr, it will not collect 
+ * node_version.
+ * @param [out] max_size Default is 0. If this argument is 0, it will not use 
+ * this argument. This argument limits the number of results. If you later use 
+ * node_version_vec to guarantee atomicity, you can split the atomic scan. 
+ * Suppose you want to scan with A: C, assuming the order A <B <C. You can 
+ * perform an atomic scan by scanning the range A: B, B: C and using 
+ * node_version_vec to make sure the values ​​are not overwritten. This advantage 
+ * is effective when the right end point is unknown but you want to scan to a 
+ * specific value.
+ * @return Status::ERR_BAD_USAGE The arguments is invalid. In the case1: you use
+ * same l_key and r_key and one of the endpoint is exclusive. case2: one of the
+ * endpoint use null key but the string size is not zero like 
+ * std::string_view{nullptr, non-zero-value}.
  * @return status::OK success.
  * @return Status::OK_ROOT_IS_NULL success and root is null.
  * @return status::WARN_STORAGE_NOT_EXIST The target storage of this operation 

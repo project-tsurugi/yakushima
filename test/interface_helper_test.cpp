@@ -42,7 +42,7 @@ TEST_F(interface_helper_test, destroy) { // NOLINT
 TEST_F(interface_helper_test, init) { // NOLINT
   tree_instance *ti{};
   find_storage(test_storage_name, &ti);
-  ASSERT_EQ(ti->load_root_ptr(), nullptr);
+  ASSERT_NE(ti->load_root_ptr(), nullptr);
   Token token{};
   ASSERT_EQ(enter(token), status::OK);
   std::string k("a");

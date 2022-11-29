@@ -64,7 +64,7 @@ retry_fetch_lv:
    * check whether it should get from this node.
    */
     if (v_at_fetch_lv.get_vsplit() != v_at_fb.get_vsplit() ||
-        v_at_fetch_lv.get_deleted()) {
+        (v_at_fetch_lv.get_deleted() && !v_at_fetch_lv.get_root())) {
         /**
      * The correct border was changed between atomically fetching border node and
      * atomically fetching lv.
@@ -79,7 +79,7 @@ retry_fetch_lv:
         std::size_t v_size = lv_ptr->get_value_length();
         node_version64_body final_check = target_border->get_stable_version();
         if (final_check.get_vsplit() != v_at_fb.get_vsplit() ||
-            final_check.get_deleted()) {
+            (final_check.get_deleted() && !final_check.get_root())) {
             goto retry_from_root; // NOLINT
         }
         if (final_check.get_vinsert_delete() !=
@@ -94,7 +94,7 @@ retry_fetch_lv:
     root = lv_ptr->get_next_layer();
     node_version64_body final_check = target_border->get_stable_version();
     if (final_check.get_vsplit() != v_at_fb.get_vsplit() ||
-        final_check.get_deleted()) {
+        (final_check.get_deleted() && !final_check.get_root())) {
         goto retry_from_root; // NOLINT
     }
     if (final_check.get_vinsert_delete() !=
