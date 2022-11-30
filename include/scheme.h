@@ -157,6 +157,7 @@ inline constexpr std::string_view to_string_view(const status value) noexcept {
             return "ERR_UNKNOWN_ROOT"sv;
     }
     LOG(ERROR);
+    return ""sv;
 }
 
 inline std::ostream& operator<<(std::ostream& out, const status value) {
