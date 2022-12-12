@@ -43,10 +43,10 @@ public:
                      lv_.at(pos).get_value_length(),
                      lv_.at(pos).get_value_align()});
         }
-        // clear link and value
+        // clear link and value to avoid conflict about garbage collection
         lv_.at(pos).init_lv();
 
-        remove_assigned_slot(pos);
+        // rearrange permutation
         permutation_.delete_rank(rank);
         permutation_.dec_key_num();
     }
@@ -347,7 +347,7 @@ public:
         init_border();
         set_version_root(root);
         get_version_ptr()->atomic_inc_vinsert();
-        insert_lv_at(assign_empty_slot(), key_view, new_value,
+        insert_lv_at(get_permutation().get_empty_slot(), key_view, new_value,
                      reinterpret_cast<void**>(created_value_ptr), // NOLINT
                      0);
     }

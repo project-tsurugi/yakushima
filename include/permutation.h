@@ -80,6 +80,26 @@ public:
         std::cout << " perm : " << bs << std::endl;
     }
 
+    [[nodiscard ]] std::size_t get_empty_slot() const {
+        std::uint64_t per_body(body_.load(std::memory_order_acquire));
+        std::size_t cnk = per_body & cnk_mask;
+        if (cnk == 0) {
+            return 0;
+        }
+        std::bitset<15> bs{};
+        bs.reset();
+        for (std::size_t i = 0; i < cnk; ++i) {
+            per_body = per_body >> cnk_bit_size;
+            bs.set(per_body & cnk_mask);
+        }
+        for (std::size_t i = 0; i < 15; ++i) {
+            if (!bs.test(i)) {
+                return i;
+            }
+        }
+        LOG(ERROR) << "yakushima::programming error";
+    }
+
     [[nodiscard]] std::uint64_t get_body() const {
         return body_.load(std::memory_order_acquire);
     }
