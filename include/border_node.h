@@ -43,7 +43,8 @@ public:
                      lv_.at(pos).get_value_length(),
                      lv_.at(pos).get_value_align()});
         }
-        init_border(pos);
+        // clear link and value
+        lv_.at(pos).init_lv();
 
         remove_assigned_slot(pos);
         permutation_.delete_rank(rank);
