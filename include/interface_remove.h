@@ -91,21 +91,9 @@ retry_fetch_lv:
     }
 
     if (lv_ptr == nullptr) {
-        node_version64_body final_check = target_border->get_version();
-        if ((final_check.get_deleted() &&
-             !final_check.get_root()) || // the border was deleted.
-            final_check.get_vsplit() !=
-                    v_at_fb.get_vsplit()) { // the border may be incorrect.
-            goto retry_from_root;           // NOLINT
-        }                                   // here border is correct.
-        if (final_check.get_vinsert_delete() !=
-            v_at_fetch_lv
-                    .get_vinsert_delete()) { // the lv may be inserted/deleted.
-            goto retry_fetch_lv;             // NOLINT
-        }
-
         return status::OK_NOT_FOUND;
     }
+
     /**
       * Here, lv_ptr != nullptr.
       * If lv_ptr has some value && final_slice
