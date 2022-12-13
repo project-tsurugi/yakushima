@@ -108,9 +108,8 @@ retry_find_border:
 retry_fetch_lv:
     node_version64_body v_at_fetch_lv{};
     [[maybe_unused]] std::size_t lv_pos{0};
-    std::size_t rank{};
     link_or_value* lv_ptr = target_border->get_lv_of(
-            key_slice, key_slice_length, v_at_fetch_lv, lv_pos, &rank);
+            key_slice, key_slice_length, v_at_fetch_lv, lv_pos);
     /**
       * check whether it should insert into this node.
       */
@@ -153,7 +152,9 @@ retry_fetch_lv:
         insert_lv<interior_node, border_node>(
                 ti, target_border, traverse_key_view, value_ptr,
                 reinterpret_cast<void**>(created_value_ptr), // NOLINT
-                arg_value_length, value_align, inserted_node_version_ptr, rank);
+                arg_value_length, value_align, inserted_node_version_ptr,
+                target_border->compute_rank_if_insert(key_slice,
+                                                      key_slice_length));
         return status::OK;
     }
 

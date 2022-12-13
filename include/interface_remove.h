@@ -66,7 +66,7 @@ retry_find_border:
                    << ", key_slice: " << key_slice
                    << ", key_length: " << key_length
                    << ", special_status: " << special_status;
-                   return status::ERR_FATAL;
+        return status::ERR_FATAL;
     }
     // check target_border is border node.
     if (typeid(*target_border) != typeid(border_node)) {
@@ -91,8 +91,17 @@ retry_fetch_lv:
           */
         goto retry_from_root; // NOLINT
     }
+    // the target node is correct
 
     if (lv_ptr == nullptr) {
+        /**
+         * It may be interrupted by insert or delete
+         */
+        node_version64_body final_check = target_border->get_stable_version();
+        if (final_check.get_vinsert_delete() !=
+            v_at_fetch_lv.get_vinsert_delete()) { // the lv may be inserted.
+            goto retry_fetch_lv;                  // NOLINT
+        }
         return status::OK_NOT_FOUND;
     }
 

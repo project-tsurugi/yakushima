@@ -231,6 +231,46 @@ public:
     }
 
     /**
+     * @brief 
+     * 
+     * @param key_slice 
+     * @param key_length 
+     * @pre Caller (put) must lock this node.
+     * @return std::size_t 
+     */
+    std::size_t compute_rank_if_insert(const key_slice_type key_slice,
+                                       const key_length_type key_length) {
+        permutation perm{permutation_.get_body()};
+        std::size_t cnk = perm.get_cnk();
+        for (std::size_t i = 0; i < cnk; ++i) {
+            std::size_t index = perm.get_index_of_rank(i);
+            key_slice_type target_key_slice = get_key_slice_at(index);
+            key_length_type target_key_len = get_key_length_at(index);
+            if (key_length == 0 && target_key_len == 0) {
+                LOG(ERROR) << "yakushima programming error";
+                return 0;
+            } else {
+                // not zero key
+                auto ret = memcmp(&key_slice, &target_key_slice,
+                                  sizeof(key_slice_type));
+                if (ret == 0) {
+                    if ((key_length > sizeof(key_slice_type) &&
+                         target_key_len > sizeof(key_slice_type)) ||
+                        key_length == target_key_len) {
+                    } else if (key_length < target_key_len) {
+                        return i;
+                    }
+                } else if (ret < 0) {
+                    return i;
+                    break;
+                }
+            }
+        }
+
+        return cnk;
+    }
+
+    /**
       * @attention This function must not be called with locking of this node. Because
       * this function executes get_stable_version and it waits own (lock-holder)
       * infinitely.
@@ -238,14 +278,12 @@ public:
       * @param[in] key_length
       * @param[out] stable_v  the stable version which is at atomically fetching lv.
       * @param[out] lv_pos
-      * @param[out] rank for put function.
       * @return
       */
     [[nodiscard]] link_or_value* get_lv_of(const key_slice_type key_slice,
                                            const key_length_type key_length,
                                            node_version64_body& stable_v,
-                                           std::size_t& lv_pos,
-                                           std::size_t* rank = nullptr) {
+                                           std::size_t& lv_pos) {
         node_version64_body v = get_stable_version();
         for (;;) {
             /**
@@ -254,7 +292,6 @@ public:
             permutation perm{permutation_.get_body()};
             std::size_t cnk = perm.get_cnk();
             link_or_value* ret_lv{nullptr};
-            if (rank != nullptr) *rank = cnk;
             for (std::size_t i = 0; i < cnk; ++i) {
                 bool suc{false};
                 std::size_t index = perm.get_index_of_rank(i);
@@ -271,11 +308,9 @@ public:
                             key_length == target_key_len) {
                             suc = true;
                         } else if (key_length < target_key_len) {
-                            if (rank != nullptr) { *rank = i; }
                             break;
                         }
                     } else if (ret < 0) {
-                        if (rank != nullptr) { *rank = i; }
                         break;
                     }
                 }
