@@ -97,6 +97,11 @@ enum class status : std::int32_t {
     ERR_BAD_USAGE,
     ERR_BOUNDARY,
     /**
+     * @brief fatal error
+     * 
+     */
+    ERR_FATAL,
+    /**
    * @brief root is not both interior and border.
    */
     ERR_UNKNOWN_ROOT,
@@ -153,6 +158,8 @@ inline constexpr std::string_view to_string_view(const status value) noexcept {
             return "ERR_BAD_USAGE"sv;
         case status::ERR_BOUNDARY:
             return "ERR_BOUNDARY"sv;
+        case status::ERR_FATAL:
+            return "ERR_FATAL"sv;
         case status::ERR_UNKNOWN_ROOT:
             return "ERR_UNKNOWN_ROOT"sv;
     }

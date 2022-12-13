@@ -62,14 +62,16 @@ retry_find_border:
 #ifndef NDEBUG
     // check target_border is not nullptr
     if (target_border == nullptr) {
-        LOG(FATAL) << "yakushima: root: " << root
+        LOG(ERROR) << "yakushima: root: " << root
                    << ", key_slice: " << key_slice
                    << ", key_length: " << key_length
                    << ", special_status: " << special_status;
+                   return status::ERR_FATAL;
     }
     // check target_border is border node.
     if (typeid(*target_border) != typeid(border_node)) {
-        LOG(FATAL) << "yakushima: find_border return not border node.";
+        LOG(ERROR) << "yakushima: find_border return not border node.";
+        return status::ERR_FATAL;
     }
 #endif
     node_version64_body v_at_fb = std::get<tuple_v_index>(node_and_v);
