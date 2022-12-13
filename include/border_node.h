@@ -287,8 +287,8 @@ public:
         node_version64_body v = get_stable_version();
         for (;;) {
             /**
-       * It loads cnk atomically by get_cnk func.
-       */
+              * It loads cnk atomically by get_cnk func.
+              */
             permutation perm{permutation_.get_body()};
             std::size_t cnk = perm.get_cnk();
             link_or_value* ret_lv{nullptr};
@@ -307,11 +307,7 @@ public:
                              target_key_len > sizeof(key_slice_type)) ||
                             key_length == target_key_len) {
                             suc = true;
-                        } else if (key_length < target_key_len) {
-                            break;
                         }
-                    } else if (ret < 0) {
-                        break;
                     }
                 }
 
