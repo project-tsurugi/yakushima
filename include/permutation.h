@@ -98,6 +98,7 @@ public:
             }
         }
         LOG(ERROR) << "yakushima::programming error";
+        return 0;
     }
 
     [[nodiscard]] std::uint64_t get_body() const {
