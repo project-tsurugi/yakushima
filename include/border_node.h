@@ -114,6 +114,11 @@ public:
                 delete_at(token, i, index, target_is_value);
                 if (cnk == 1) { // attention : this cnk is before delete_at;
                     set_version_deleted(true);
+                    if (ti->load_root_ptr() != this) {
+                        // root && deleted node is treated as special. This isn't.
+                        set_version_root(false);
+                    }
+
                     /**
                       * After this delete operation, this border node is empty.
                       */

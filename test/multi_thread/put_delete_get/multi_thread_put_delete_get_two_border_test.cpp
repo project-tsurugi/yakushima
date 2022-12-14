@@ -33,7 +33,7 @@ public:
     void TearDown() override { fin(); }
 
 private:
-    std::once_flag init_;
+    static inline std::once_flag init_; // NOLINT
 };
 
 std::string test_storage_name{"1"}; // NOLINT
