@@ -257,21 +257,20 @@ public:
             if (key_length == 0 && target_key_len == 0) {
                 LOG(ERROR) << log_location_prefix << "programming error";
                 return 0;
-            } else {
-                // not zero key
-                auto ret = memcmp(&key_slice, &target_key_slice,
-                                  sizeof(key_slice_type));
-                if (ret == 0) {
-                    if ((key_length > sizeof(key_slice_type) &&
-                         target_key_len > sizeof(key_slice_type)) ||
-                        key_length == target_key_len) {
-                    } else if (key_length < target_key_len) {
-                        return i;
-                    }
-                } else if (ret < 0) {
+            }
+            // not zero key
+            auto ret = memcmp(&key_slice, &target_key_slice,
+                              sizeof(key_slice_type));
+            if (ret == 0) {
+                if ((key_length > sizeof(key_slice_type) &&
+                     target_key_len > sizeof(key_slice_type)) ||
+                    key_length == target_key_len) {
+                } else if (key_length < target_key_len) {
                     return i;
-                    break;
                 }
+            } else if (ret < 0) {
+                return i;
+                break;
             }
         }
 
