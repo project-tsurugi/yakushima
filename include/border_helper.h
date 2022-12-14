@@ -126,7 +126,10 @@ static void insert_lv(tree_instance* ti, border_node* const border,
     std::size_t cnk = border->get_permutation_cnk();
     if (cnk == 0) {
         // this must be root && border node
-        if (!border->get_version_root()) { LOG(ERROR); }
+        if (!border->get_version_root()) {
+            LOG(ERROR) << "ti->load_root_ptr(): " << ti->load_root_ptr()
+                       << ", this border node: " << border;
+        }
         border->set_version_deleted(false);
     }
     if (cnk == key_slice_length) {

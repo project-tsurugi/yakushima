@@ -23,6 +23,7 @@ public:
         google::InitGoogleLogging(
                 "yakushima-test-multi_thread-put_delete_get-multi_thread_put_"
                 "delete_get_two_border_test");
+        FLAGS_stderrthreshold = 0;
     }
 
     void SetUp() override {

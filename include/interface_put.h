@@ -124,7 +124,7 @@ retry_fetch_lv:
     if (lv_ptr == nullptr) {
         target_border->lock();
         if ((target_border->get_version_deleted() &&
-             !v_at_fetch_lv.get_root()) ||
+             !target_border->get_version_root()) ||
             target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
             /**
               * get_version_deleted() : It was deleted between atomically fetching border node

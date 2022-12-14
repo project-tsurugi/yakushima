@@ -24,6 +24,7 @@ public:
     static void call_once_f() {
         google::InitGoogleLogging("yakushima-test-multi_turead-put_delete_get-"
                                   "multi_thread_put_delete_get_test");
+        FLAGS_stderrthreshold = 0;
     }
 
 protected:
@@ -50,9 +51,13 @@ TEST_F(mtpdgt, many_layer_many_interior_many_border) { // NOLINT
     } else {
         th_nm = ary_size;
     }
+    LOG(INFO) << "ary_size is " << ary_size;
+    LOG(INFO) << "th_nm is " << th_nm;
+    LOG(INFO) << "ary_size / th_nm is " << ary_size / th_nm;
 
 #ifndef NDEBUG
     for (size_t h = 0; h < 1; ++h) {
+        LOG(INFO) << "trial " << h;
 #else
     for (size_t h = 0; h < 20; ++h) {
 #endif
