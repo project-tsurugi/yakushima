@@ -43,8 +43,8 @@ public:
                      lv_.at(pos).get_value_length(),
                      lv_.at(pos).get_value_align()});
         }
-        // clear link and value to avoid conflict about garbage collection
-        lv_.at(pos).init_lv();
+        // set need delete false to avoid conflict of deleting memory
+        lv_.at(pos).set_need_delete(false);
 
         // rearrange permutation
         permutation_.delete_rank(rank);
@@ -75,8 +75,11 @@ public:
       * @brief release all heap objects and clean up.
       */
     status destroy() override {
-        for (std::size_t i = 0; i < key_slice_length; ++i) {
-            lv_.at(i).destroy();
+        std::size_t cnk = get_permutation_cnk();
+        for (std::size_t i = 0; i < cnk; ++i) {
+            std::size_t index = permutation_.get_index_of_rank(i);
+            // living link or value
+            lv_.at(index).destroy();
         }
         return status::OK_DESTROY_BORDER;
     }
@@ -96,6 +99,7 @@ public:
     void delete_of(Token token, tree_instance* ti,
                    const key_slice_type key_slice,
                    const key_length_type key_slice_length) {
+        // past: delete is treated to increment vinsert counter.
         //set_version_inserting_deleting(true);
         /**
           * find position.

@@ -84,6 +84,7 @@ public:
             std::get<gc_target_index>(cache_node_container_) = nullptr;
         }
 
+        // for container
         while (!node_container_.empty()) {
             std::tuple<Epoch, base_node*> elem;
             while (!node_container_.try_pop(elem)) continue;
