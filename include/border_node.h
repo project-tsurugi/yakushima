@@ -75,9 +75,8 @@ public:
       * @brief release all heap objects and clean up.
       */
     status destroy() override {
-        for (auto i = 0; i < permutation_.get_cnk(); ++i) {
-            std::size_t index = permutation_.get_index_of_rank(i);
-            lv_.at(static_cast<std::uint32_t>(index)).destroy();
+        for (std::size_t i = 0; i < key_slice_length; ++i) {
+            lv_.at(i).destroy();
         }
         return status::OK_DESTROY_BORDER;
     }
@@ -265,7 +264,6 @@ public:
                     break;
                 }
             }
-
         }
 
         return cnk;
