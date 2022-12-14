@@ -14,6 +14,7 @@
 #include "base_node.h"
 #include "interior_helper.h"
 #include "link_or_value.h"
+#include "log.h"
 #include "tree_instance.h"
 
 #include "glog/logging.h"
@@ -127,7 +128,9 @@ static void insert_lv(tree_instance* ti, border_node* const border,
     if (cnk == 0) {
         // this must be root && border node
         if (!border->get_version_root()) {
-            LOG(ERROR) << "ti->load_root_ptr(): " << ti->load_root_ptr()
+            LOG(ERROR) << log_location_prefix
+                       << "programming error. ti->load_root_ptr(): "
+                       << ti->load_root_ptr()
                        << ", this border node: " << border;
         }
         border->set_version_deleted(false);
@@ -260,7 +263,9 @@ static void border_split(tree_instance* ti, border_node* const border,
     base_node* p = border->lock_parent();
     if (p == nullptr) {
 #ifndef NDEBUG
-        if (ti->load_root_ptr() != border) { LOG(ERROR); }
+        if (ti->load_root_ptr() != border) {
+            LOG(ERROR) << log_location_prefix;
+        }
 #endif
         /**
           * create interior as parents and insert k.
@@ -278,7 +283,7 @@ static void border_split(tree_instance* ti, border_node* const border,
     }
 
 #ifndef NDEBUG
-    if (p != border->get_parent()) { LOG(ERROR); }
+    if (p != border->get_parent()) { LOG(ERROR) << log_location_prefix; }
 #endif
 
     if (p->get_version_border()) {
@@ -308,7 +313,7 @@ static void border_split(tree_instance* ti, border_node* const border,
    * parent is interior node.
    */
 #ifndef NDEBUG
-    if (p->get_version_deleted()) { LOG(ERROR); }
+    if (p->get_version_deleted()) { LOG(ERROR) << log_location_prefix; }
 #endif
     auto* pi = dynamic_cast<interior_node*>(p);
     border->set_version_root(false);

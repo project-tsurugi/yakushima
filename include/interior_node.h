@@ -13,6 +13,7 @@
 #include "destroy_manager.h"
 #include "garbage_collection.h"
 #include "interior_helper.h"
+#include "log.h"
 #include "thread_info.h"
 #include "tree_instance.h"
 
@@ -47,7 +48,7 @@ public:
         set_version_inserting_deleting(true);
         std::size_t n_key = get_n_keys();
 #ifndef NDEBUG
-        if (n_key == 0) { LOG(ERROR); }
+        if (n_key == 0) { LOG(ERROR) << log_location_prefix; }
 #endif
         for (std::size_t i = 0; i <= n_key; ++i) {
             if (get_child_at(i) == child) {
@@ -103,7 +104,7 @@ public:
         }
 
 #ifndef NDEBUG
-        LOG(ERROR) << "precondition error";
+        LOG(ERROR) << log_location_prefix << "precondition error";
 #endif
     }
 
@@ -310,7 +311,7 @@ public:
         /**
           * unreachable point.
           */
-        LOG(ERROR) << "unreachable path";
+        LOG(ERROR) << log_location_prefix << "unreachable path";
     }
 
 private:

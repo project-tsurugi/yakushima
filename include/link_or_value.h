@@ -7,6 +7,7 @@
 #include "atomic_wrapper.h"
 #include "base_node.h"
 #include "cpu.h"
+#include "log.h"
 #include "value.h"
 
 #include <new>
@@ -141,7 +142,7 @@ public:
             memcpy(get_v_or_vp_(), new_value.get_body(), new_value.get_len());
             set_need_delete(true);
         } catch (std::bad_alloc& e) {
-            LOG(ERROR) << e.what();
+            LOG(ERROR) << log_location_prefix << e.what();
         }
     }
 
@@ -175,7 +176,7 @@ public:
             memcpy(get_v_or_vp_(), new_value.get_body(), new_value.get_len());
             set_need_delete(true);
         } catch (std::bad_alloc& e) {
-            LOG(ERROR) << e.what();
+            LOG(ERROR) << log_location_prefix << e.what();
         }
     }
 

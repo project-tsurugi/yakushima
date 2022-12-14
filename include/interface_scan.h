@@ -5,6 +5,7 @@
 #pragma once
 
 #include "kvs.h"
+#include "log.h"
 #include "scan_helper.h"
 #include "storage.h"
 #include "tree_instance.h"
@@ -112,7 +113,7 @@ retry_from_root:
             goto retry_from_root; // NOLINT
         } else {
             // unreachable
-            LOG(ERROR) << "unexpected path";
+            LOG(ERROR) << log_location_prefix;
         }
     }
 }

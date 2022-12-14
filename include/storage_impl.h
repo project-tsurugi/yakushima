@@ -9,6 +9,7 @@
 #include "interface_get.h"
 #include "interface_put.h"
 #include "interface_remove.h"
+#include "log.h"
 #include "storage.h"
 #include "tree_instance.h"
 
@@ -37,7 +38,9 @@ status storage::create_storage(std::string_view storage_name) { // NOLINT
 
     // cleanup
     auto ret_st_token = leave(token);
-    if (ret_st_token != status::OK) { LOG(ERROR) << ret_st_token; }
+    if (ret_st_token != status::OK) {
+        LOG(ERROR) << log_location_prefix << ret_st_token;
+    }
     if (ret_st != status::OK) {
         delete new_border; // NOLINT
     }

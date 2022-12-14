@@ -9,6 +9,8 @@
 #include <iostream>
 #include <thread>
 
+#include "log.h"
+
 #include "glog/logging.h"
 
 namespace yakushima {
@@ -16,7 +18,7 @@ namespace yakushima {
 [[maybe_unused]] static bool check_clock_span(uint64_t& start, uint64_t& stop,
                                               uint64_t threshold) {
     if (stop < start) {
-        LOG(ERROR);
+        LOG(ERROR) << log_location_prefix;
     }
     uint64_t diff{stop - start};
     return diff > threshold;

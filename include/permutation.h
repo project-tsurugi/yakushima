@@ -18,6 +18,7 @@
 #include <xmmintrin.h>
 
 #include "base_node.h"
+#include "log.h"
 #include "scheme.h"
 
 #include "glog/logging.h"
@@ -80,12 +81,10 @@ public:
         std::cout << " perm : " << bs << std::endl;
     }
 
-    [[nodiscard ]] std::size_t get_empty_slot() const {
+    [[nodiscard]] std::size_t get_empty_slot() const {
         std::uint64_t per_body(body_.load(std::memory_order_acquire));
         std::size_t cnk = per_body & cnk_mask;
-        if (cnk == 0) {
-            return 0;
-        }
+        if (cnk == 0) { return 0; }
         std::bitset<15> bs{};
         bs.reset();
         for (std::size_t i = 0; i < cnk; ++i) {
@@ -93,11 +92,9 @@ public:
             bs.set(per_body & cnk_mask);
         }
         for (std::size_t i = 0; i < 15; ++i) {
-            if (!bs.test(i)) {
-                return i;
-            }
+            if (!bs.test(i)) { return i; }
         }
-        LOG(ERROR) << "yakushima::programming error";
+        LOG(ERROR) << log_location_prefix << "programming error";
         return 0;
     }
 
@@ -131,7 +128,9 @@ public:
         // increment key number
         std::size_t cnk = per_body & cnk_mask;
 #ifndef NDEBUG
-        if (cnk >= pow(2, cnk_bit_size) - 1) { LOG(ERROR); }
+        if (cnk >= pow(2, cnk_bit_size) - 1) {
+            LOG(ERROR) << log_location_prefix;
+        }
 #endif
         ++cnk;
         per_body &= ~cnk_mask;
@@ -223,7 +222,9 @@ public:
 
     status set_cnk(const std::uint8_t cnk) {
 #ifndef NDEBUG
-        if (powl(2, cnk_bit_size) <= cnk) { LOG(ERROR) << "unreachable path"; }
+        if (powl(2, cnk_bit_size) <= cnk) {
+            LOG(ERROR) << log_location_prefix << "unreachable path";
+        }
 #endif
         std::uint64_t body = body_.load(std::memory_order_acquire);
         body &= ~cnk_mask;

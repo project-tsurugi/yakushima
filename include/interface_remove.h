@@ -8,6 +8,7 @@
 
 #include "border_node.h"
 #include "kvs.h"
+#include "log.h"
 #include "storage.h"
 #include "storage_impl.h"
 #include "tree_instance.h"
@@ -62,7 +63,7 @@ retry_find_border:
 #ifndef NDEBUG
     // check target_border is not nullptr
     if (target_border == nullptr) {
-        LOG(ERROR) << "yakushima: root: " << root
+        LOG(ERROR) << log_location_prefix << "root: " << root
                    << ", key_slice: " << key_slice
                    << ", key_length: " << key_length
                    << ", special_status: " << special_status;
@@ -70,7 +71,8 @@ retry_find_border:
     }
     // check target_border is border node.
     if (typeid(*target_border) != typeid(border_node)) {
-        LOG(ERROR) << "yakushima: find_border return not border node.";
+        LOG(ERROR) << log_location_prefix
+                   << "find_border return not border node.";
         return status::ERR_FATAL;
     }
 #endif

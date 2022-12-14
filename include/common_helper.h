@@ -6,6 +6,7 @@
 
 #include "border_node.h"
 #include "interior_node.h"
+#include "log.h"
 #include "version.h"
 
 #include "glog/logging.h"
@@ -36,7 +37,7 @@ retry:
         special_status = status::OK;
 #ifndef NDEBUG
         if (n == nullptr) {
-            LOG(ERROR) << "yakushima: find_border: root: " << root
+            LOG(ERROR) << log_location_prefix << "find_border: root: " << root
                        << ", key_slice: " << key_slice
                        << ", key_slice_length: " << key_slice_length
                        << ", special_status: " << special_status;
@@ -56,7 +57,7 @@ descend:
         special_status = status::OK;
 #ifndef NDEBUG
         if (n == nullptr) {
-            LOG(ERROR) << "yakushima: find_border: root: " << root
+            LOG(ERROR) << log_location_prefix << "find_border: root: " << root
                        << ", key_slice: " << key_slice
                        << ", key_slice_length: " << key_slice_length
                        << ", special_status: " << special_status;
@@ -80,7 +81,9 @@ descend:
      * If n_child is nullptr, it must be v != v_check
      */
 #ifndef NDEBUG
-    if (n_child == nullptr && v == v_check) { LOG(ERROR) << "yakushima: bug."; }
+    if (n_child == nullptr && v == v_check) {
+        LOG(ERROR) << log_location_prefix << "bug.";
+    }
 #endif
     if (v == v_check) {
         /**

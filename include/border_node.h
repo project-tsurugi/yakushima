@@ -68,7 +68,7 @@ public:
             }
         }
         // unreachable points.
-        LOG(ERROR);
+        LOG(ERROR) << log_location_prefix;
     }
 
     /**
@@ -176,7 +176,7 @@ public:
         /**
           * unreachable.
           */
-        LOG(ERROR);
+        LOG(ERROR) << log_location_prefix;
     }
 
     /**
@@ -230,7 +230,7 @@ public:
         /**
           * unreachable point.
           */
-        LOG(ERROR) << "unreachable path";
+        LOG(ERROR) << log_location_prefix;
         return nullptr;
     }
 
@@ -255,7 +255,7 @@ public:
             key_slice_type target_key_slice = get_key_slice_at(index);
             key_length_type target_key_len = get_key_length_at(index);
             if (key_length == 0 && target_key_len == 0) {
-                LOG(ERROR) << "yakushima programming error";
+                LOG(ERROR) << log_location_prefix << "programming error";
                 return 0;
             } else {
                 // not zero key

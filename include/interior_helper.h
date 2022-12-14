@@ -7,6 +7,7 @@
 #pragma once
 
 #include "border_helper.h"
+#include "log.h"
 #include "tree_instance.h"
 
 #include "glog/logging.h"
@@ -96,7 +97,7 @@ interior_split(tree_instance* ti, interior_node* const interior,
     key_length_type key_length{inserting_key.second};
 #ifndef NDEBUG
     if (key_length == 0 || pivot_length == 0) {
-        LOG(ERROR);
+        LOG(ERROR) << log_location_prefix;
     }
 #endif
     std::size_t comp_length{0};
@@ -119,7 +120,7 @@ interior_split(tree_instance* ti, interior_node* const interior,
     if (p == nullptr) {
 #ifndef NDEBUG
         if (ti->load_root_ptr() != interior) {
-            LOG(ERROR);
+            LOG(ERROR) << log_location_prefix;
         }
 #endif
         /**
@@ -143,7 +144,7 @@ interior_split(tree_instance* ti, interior_node* const interior,
    */
 #ifndef NDEBUG
     if (p->get_version_deleted() || p != interior->get_parent()) {
-        LOG(ERROR);
+        LOG(ERROR) << log_location_prefix;
     }
 #endif
     if (p->get_version_border()) {
