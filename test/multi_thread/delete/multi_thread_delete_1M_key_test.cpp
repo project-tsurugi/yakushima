@@ -1,5 +1,5 @@
 /**
- * @file multi_thread_delete_200_key_test.cpp
+ * @file multi_thread_delete_1K_key_test.cpp
  */
 
 #include <algorithm>
@@ -18,11 +18,11 @@ using namespace yakushima;
 
 namespace yakushima::testing {
 
-class multi_thread_delete_200_key_test : public ::testing::Test {
+class multi_thread_delete_1K_key_test : public ::testing::Test {
 public:
     static void call_once_f() {
         google::InitGoogleLogging("yakushima-test-multi_thread-delete_multi_"
-                                  "thread_delete_200_key_test");
+                                  "thread_delete_1K_key_test");
     }
 
     void SetUp() override {
@@ -38,18 +38,13 @@ private:
 
 std::string test_storage_name{"1"}; // NOLINT
 
-TEST_F(multi_thread_delete_200_key_test, 200_key) { // NOLINT
+TEST_F(multi_thread_delete_1K_key_test, DISABLED_1K_key) { // NOLINT
     /**
-      * Concurrent put 200 key.
-      * Concurrent remove 200 key.
+      * Concurrent put 1K key.
+      * Concurrent remove 1K key.
       */
-    constexpr std::size_t ary_size = 200;
-    std::size_t th_nm{};
-    if (ary_size > std::thread::hardware_concurrency()) {
-        th_nm = std::thread::hardware_concurrency();
-    } else {
-        th_nm = ary_size;
-    }
+    constexpr std::size_t ary_size = 1000;
+    std::size_t th_nm{std::thread::hardware_concurrency()};
 
 #ifndef NDEBUG
     for (std::size_t h = 0; h < 1; ++h) {
@@ -106,7 +101,7 @@ TEST_F(multi_thread_delete_200_key_test, 200_key) { // NOLINT
             }
         };
 
-        std::vector<std::thread> thv;
+        std::vector<std::thread> thv{};
         thv.reserve(th_nm);
         std::atomic<std::size_t> meet{0};
         for (std::size_t i = 0; i < th_nm; ++i) {
@@ -119,13 +114,13 @@ TEST_F(multi_thread_delete_200_key_test, 200_key) { // NOLINT
     }
 }
 
-TEST_F(multi_thread_delete_200_key_test, 200_key_shuffle) { // NOLINT
+TEST_F(multi_thread_delete_1K_key_test, DISABLED_1K_key_shuffle) { // NOLINT
     /**
-      * Concurrent put 200 key.
-      * Concurrent remove 200 key.
+      * Concurrent put 1K key.
+      * Concurrent remove 1K key.
       * Shuffle data.
       */
-    constexpr std::size_t ary_size = 200;
+    constexpr std::size_t ary_size = 1000;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
         th_nm = std::thread::hardware_concurrency();
@@ -188,7 +183,7 @@ TEST_F(multi_thread_delete_200_key_test, 200_key_shuffle) { // NOLINT
             }
         };
 
-        std::vector<std::thread> thv;
+        std::vector<std::thread> thv{};
         thv.reserve(th_nm);
         std::atomic<std::size_t> meet{0};
         for (std::size_t i = 0; i < th_nm; ++i) {
