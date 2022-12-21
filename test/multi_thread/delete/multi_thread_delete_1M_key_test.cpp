@@ -23,6 +23,7 @@ public:
     static void call_once_f() {
         google::InitGoogleLogging("yakushima-test-multi_thread-delete_multi_"
                                   "thread_delete_1K_key_test");
+        FLAGS_stderrthreshold = 0;
     }
 
     void SetUp() override {
@@ -36,7 +37,7 @@ private:
     static inline std::once_flag init_; // NOLINT
 };
 
-std::string test_storage_name{"1"}; // NOLINT
+std::string st{"1"}; // NOLINT
 
 TEST_F(multi_thread_delete_1K_key_test, DISABLED_1K_key) { // NOLINT
     /**
@@ -51,7 +52,7 @@ TEST_F(multi_thread_delete_1K_key_test, DISABLED_1K_key) { // NOLINT
 #else
     for (std::size_t h = 0; h < 10; ++h) {
 #endif
-        create_storage(test_storage_name);
+        create_storage(st);
 
         struct S {
             static void work(std::size_t th_id, std::size_t max_thread,
@@ -73,10 +74,9 @@ TEST_F(multi_thread_delete_1K_key_test, DISABLED_1K_key) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(token, test_storage_name, k, v.data(),
-                                     v.size());
+                    status ret = put(token, st, k, v.data(), v.size());
                     if (ret != status::OK) {
-                        EXPECT_EQ(status::OK, ret); // output log
+                        LOG(FATAL) << ret; // output log
                         std::abort();
                     }
                 }
@@ -89,10 +89,9 @@ TEST_F(multi_thread_delete_1K_key_test, DISABLED_1K_key) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, test_storage_name,
-                                        std::string_view(k));
+                    status ret = remove(token, st, std::string_view(k));
                     if (ret != status::OK) {
-                        EXPECT_EQ(status::OK, ret); // output log
+                        LOG(FATAL) << ret; // output log
                         std::abort();
                     }
                 }
@@ -133,7 +132,7 @@ TEST_F(multi_thread_delete_1K_key_test, DISABLED_1K_key_shuffle) { // NOLINT
 #else
     for (std::size_t h = 0; h < 10; ++h) {
 #endif
-        create_storage(test_storage_name);
+        create_storage(st);
 
         struct S {
             static void work(std::size_t th_id, std::size_t max_thread,
@@ -158,8 +157,7 @@ TEST_F(multi_thread_delete_1K_key_test, DISABLED_1K_key_shuffle) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(token, test_storage_name, k, v.data(),
-                                     v.size());
+                    status ret = put(token, st, k, v.data(), v.size());
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -173,7 +171,7 @@ TEST_F(multi_thread_delete_1K_key_test, DISABLED_1K_key_shuffle) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, test_storage_name, k);
+                    status ret = remove(token, st, k);
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();

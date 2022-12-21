@@ -76,11 +76,29 @@ public:
       */
     status destroy() override {
         std::size_t cnk = get_permutation_cnk();
+        std::vector<std::thread> th_vc;
         for (std::size_t i = 0; i < cnk; ++i) {
-            std::size_t index = permutation_.get_index_of_rank(i);
             // living link or value
-            lv_.at(index).destroy();
+            std::size_t index = permutation_.get_index_of_rank(i);
+            // cleanup process
+            auto process = [this](std::size_t i) { lv_.at(i).destroy(); };
+            if (lv_.at(index).get_next_layer() != nullptr) {
+                // has some layer, considering parallel
+                if (destroy_manager::check_room()) {
+                    th_vc.emplace_back(process, index);
+                } else {
+                    process(index);
+                }
+            } else {
+                // not some layer, not considering parallel
+                process(index);
+            }
         }
+        for (auto&& th : th_vc) {
+            th.join();
+            destroy_manager::return_room();
+        }
+
         return status::OK_DESTROY_BORDER;
     }
 
@@ -176,7 +194,9 @@ public:
         /**
           * unreachable.
           */
-        LOG(ERROR) << log_location_prefix;
+        LOG(ERROR) << log_location_prefix
+                   << ", deleted: " << get_version_deleted()
+                   << ", is root: " << get_version_root();
     }
 
     /**

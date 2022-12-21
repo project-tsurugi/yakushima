@@ -15,6 +15,7 @@
  */
 
 #include <algorithm>
+#include <chrono>
 #include <thread>
 #include <vector>
 
@@ -45,12 +46,14 @@
 
 using namespace yakushima;
 
-DEFINE_uint64(duration, 3, "Duration of benchmark in seconds.");               // NOLINT
-DEFINE_uint64(get_initial_record, 1000, "# initial key-values for get bench"); // NOLINT
-DEFINE_double(get_skew, 0.0, "access skew of get operations.");                // NOLINT
-DEFINE_string(instruction, "get", "put or get. The default is insert.");       // NOLINT
-DEFINE_uint64(thread, 1, "# worker threads.");                                 // NOLINT
-DEFINE_uint32(value_size, 4, "value size");                                    // NOLINT
+DEFINE_uint64(duration, 3, "Duration of benchmark in seconds."); // NOLINT
+DEFINE_uint64(get_initial_record, 1000,
+              "# initial key-values for get bench");            // NOLINT
+DEFINE_double(get_skew, 0.0, "access skew of get operations."); // NOLINT
+DEFINE_string(instruction, "get",
+              "put or get. The default is insert."); // NOLINT
+DEFINE_uint64(thread, 1, "# worker threads.");       // NOLINT
+DEFINE_uint32(value_size, 4, "value size");          // NOLINT
 
 std::string bench_storage{"1"}; // NOLINT
 
@@ -63,7 +66,9 @@ static void check_flags() {
               << "thread :\t\t" << FLAGS_thread << "\n"
               << "value_size :\t\t" << FLAGS_value_size << std::endl;
 
-    if (FLAGS_thread == 0) { LOG(FATAL) << "Number of threads must be larger than 0."; }
+    if (FLAGS_thread == 0) {
+        LOG(FATAL) << "Number of threads must be larger than 0.";
+    }
 
     if (FLAGS_get_initial_record == 0 && FLAGS_instruction == "get") {
         LOG(FATAL) << "It can't execute get bench against 0 size table.";
@@ -74,7 +79,8 @@ static void check_flags() {
     }
     if (FLAGS_instruction != "insert" && FLAGS_instruction != "put" &&
         FLAGS_instruction != "get") {
-        LOG(FATAL) << "The instruction option must be insert or put or get. The default "
+        LOG(FATAL) << "The instruction option must be insert or put or get. "
+                      "The default "
                       "is insert.";
     }
 
@@ -124,17 +130,19 @@ void parallel_build_tree() {
         std::vector<std::thread> thv;
         for (std::size_t i = 0; i < std::thread::hardware_concurrency(); ++i) {
             if (i != std::thread::hardware_concurrency() - 1) {
-                thv.emplace_back(S::parallel_build_worker,
-                                 FLAGS_get_initial_record /
-                                         std::thread::hardware_concurrency() * i,
-                                 FLAGS_get_initial_record /
-                                         std::thread::hardware_concurrency() * (i + 1));
+                thv.emplace_back(
+                        S::parallel_build_worker,
+                        FLAGS_get_initial_record /
+                                std::thread::hardware_concurrency() * i,
+                        FLAGS_get_initial_record /
+                                std::thread::hardware_concurrency() * (i + 1));
             } else {
                 // if FLAGS_get_initial_record is odd number and hardware_concurrency() is even
                 // number, you should care surplus.
                 thv.emplace_back(S::parallel_build_worker,
                                  FLAGS_get_initial_record /
-                                         std::thread::hardware_concurrency() * i,
+                                         std::thread::hardware_concurrency() *
+                                         i,
                                  FLAGS_get_initial_record);
             }
         }
@@ -142,8 +150,8 @@ void parallel_build_tree() {
     }
 }
 
-void get_worker(const size_t thid, char& ready, const bool& start, const bool& quit,
-                std::size_t& res) {
+void get_worker(const size_t thid, char& ready, const bool& start,
+                const bool& quit, std::size_t& res) {
     // init work
     Xoroshiro128Plus rnd;
     FastZipf zipf(&rnd, FLAGS_get_skew, FLAGS_get_initial_record);
@@ -167,7 +175,8 @@ void get_worker(const size_t thid, char& ready, const bool& start, const bool& q
         void* p = (&keynm);
         std::string key{static_cast<char*>(p), sizeof(std::uint64_t)};
         std::pair<char*, std::size_t> ret{};
-        if (get<char>(bench_storage, std::string_view(key), ret) != status::OK) {
+        if (get<char>(bench_storage, std::string_view(key), ret) !=
+            status::OK) {
             LOG(ERROR) << "fatal error";
         }
         ++local_res;
@@ -179,8 +188,8 @@ void get_worker(const size_t thid, char& ready, const bool& start, const bool& q
     res = local_res;
 }
 
-void put_worker(const size_t thid, char& ready, const bool& start, const bool& quit,
-                std::size_t& res) {
+void put_worker(const size_t thid, char& ready, const bool& start,
+                const bool& quit, std::size_t& res) {
     // this function can be used in Linux environment only.
 #ifdef YAKUSHIMA_LINUX
     set_thread_affinity(static_cast<const int>(thid));
@@ -200,9 +209,11 @@ void put_worker(const size_t thid, char& ready, const bool& start, const bool& q
     performance_tools::get_watch().set_point(0, thid);
 #endif
     for (std::uint64_t i = left_edge; i < right_edge; ++i) {
-        std::string key{reinterpret_cast<char*>(&i), sizeof(std::uint64_t)}; // NOLINT
+        std::string key{reinterpret_cast<char*>(&i),
+                        sizeof(std::uint64_t)}; // NOLINT
         try {
-            put(token, bench_storage, std::string_view(key), value.data(), value.size());
+            put(token, bench_storage, std::string_view(key), value.data(),
+                value.size());
         } catch (std::bad_alloc&) {
             LOG(FATAL) << "bad_alloc. Please set less duration.";
         }
@@ -247,11 +258,11 @@ static void invoke_leader() try {
     std::vector<std::thread> thv;
     for (size_t i = 0; i < FLAGS_thread; ++i) {
         if (FLAGS_instruction == "get") {
-            thv.emplace_back(get_worker, i, std::ref(readys[i]), std::ref(start),
-                             std::ref(quit), std::ref(res[i]));
+            thv.emplace_back(get_worker, i, std::ref(readys[i]),
+                             std::ref(start), std::ref(quit), std::ref(res[i]));
         } else if (FLAGS_instruction == "put") {
-            thv.emplace_back(put_worker, i, std::ref(readys[i]), std::ref(start),
-                             std::ref(quit), std::ref(res[i]));
+            thv.emplace_back(put_worker, i, std::ref(readys[i]),
+                             std::ref(start), std::ref(quit), std::ref(res[i]));
         }
     }
 
@@ -272,30 +283,48 @@ static void invoke_leader() try {
     std::uint64_t fin_res{0};
     for (std::uint64_t i = 0; i < FLAGS_thread; ++i) {
         if ((UINT64_MAX - fin_res) < res[i]) {
-            LOG(FATAL) << "experimental setting is bad, which leads to overflow.";
+            LOG(FATAL)
+                    << "experimental setting is bad, which leads to overflow.";
         }
         fin_res += res[i];
     }
     std::cout << "throughput[ops/s]: " << fin_res / FLAGS_duration << std::endl;
 
     std::cout << "[start] fin masstree." << std::endl;
+    std::chrono::system_clock::time_point c_start;
+    std::chrono::system_clock::time_point c_end;
+    c_start = std::chrono::system_clock::now();
     fin();
+    c_end = std::chrono::system_clock::now();
     std::cout << "[end] fin masstree." << std::endl;
+    LOG(INFO) << "cleanup_time[ms]: "
+              << static_cast<double>(
+                         std::chrono::duration_cast<std::chrono::microseconds>(
+                                 c_end - c_start)
+                                 .count() /
+                         1000.0);
 
 #ifdef PERFORMANCE_TOOLS
     performance_tools::counter_class sum{};
     for (auto&& r : *performance_tools::get_watch().laps(0, 1)) { sum += r; }
     sum /= ((fin_res + (1000000 / 2)) / 1000000);
-    std::cout << "performance_counter: " << sum << " fin_res: " << fin_res << std::endl;
+    std::cout << "performance_counter: " << sum << " fin_res: " << fin_res
+              << std::endl;
 #endif
 } catch (...) { LOG(FATAL) << "catch exception"; }
 
 int main(int argc, char* argv[]) {
+    // about glog
     google::InitGoogleLogging("yakushima-bench-yakushima");
+    FLAGS_stderrthreshold = 0;
     std::cout << "start yakushima bench." << std::endl;
+
+    // about gflags
     gflags::SetUsageMessage(
             static_cast<const std::string&>("micro-benchmark for yakushima"));
     gflags::ParseCommandLineFlags(&argc, &argv, true);
+
+    // start bench
     check_flags();
     invoke_leader();
 
