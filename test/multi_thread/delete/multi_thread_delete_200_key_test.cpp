@@ -172,8 +172,9 @@ TEST_F(multi_thread_delete_200_key_test, 200_key_shuffle) { // NOLINT
                 }
 
                 meet->fetch_add(1);
-                while (meet->load(std::memory_order_acquire) != max_thread)
+                while (meet->load(std::memory_order_acquire) != max_thread) {
                     _mm_pause();
+                }
 
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));

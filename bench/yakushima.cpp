@@ -47,13 +47,13 @@
 using namespace yakushima;
 
 DEFINE_uint64(duration, 3, "Duration of benchmark in seconds."); // NOLINT
-DEFINE_uint64(get_initial_record, 1000,
-              "# initial key-values for get bench");            // NOLINT
-DEFINE_double(get_skew, 0.0, "access skew of get operations."); // NOLINT
-DEFINE_string(instruction, "get",
-              "put or get. The default is insert."); // NOLINT
-DEFINE_uint64(thread, 1, "# worker threads.");       // NOLINT
-DEFINE_uint32(value_size, 4, "value size");          // NOLINT
+DEFINE_uint64(get_initial_record, 1000,                          // NOLINT
+              "# initial key-values for get bench");             // NOLINT
+DEFINE_double(get_skew, 0.0, "access skew of get operations.");  // NOLINT
+DEFINE_string(instruction, "get",                                // NOLINT
+              "put or get. The default is insert.");             // NOLINT
+DEFINE_uint64(thread, 1, "# worker threads.");                   // NOLINT
+DEFINE_uint32(value_size, 4, "value size");                      // NOLINT
 
 std::string bench_storage{"1"}; // NOLINT
 
@@ -209,8 +209,8 @@ void put_worker(const size_t thid, char& ready, const bool& start,
     performance_tools::get_watch().set_point(0, thid);
 #endif
     for (std::uint64_t i = left_edge; i < right_edge; ++i) {
-        std::string key{reinterpret_cast<char*>(&i),
-                        sizeof(std::uint64_t)}; // NOLINT
+        std::string key{reinterpret_cast<char*>(&i), // NOLINT
+                        sizeof(std::uint64_t)};      // NOLINT
         try {
             put(token, bench_storage, std::string_view(key), value.data(),
                 value.size());
