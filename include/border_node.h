@@ -275,7 +275,7 @@ public:
             key_slice_type target_key_slice = get_key_slice_at(index);
             key_length_type target_key_len = get_key_length_at(index);
             if (key_length == 0 && target_key_len == 0) {
-                LOG(ERROR) << log_location_prefix << "programming error";
+                LOG(ERROR) << log_location_prefix << "unexpected path";
                 return 0;
             }
             // not zero key
@@ -285,6 +285,8 @@ public:
                 if ((key_length > sizeof(key_slice_type) &&
                      target_key_len > sizeof(key_slice_type)) ||
                     key_length == target_key_len) {
+                    LOG(ERROR) << log_location_prefix << "unexpected path";
+                    return 0;
                 } else if (key_length < target_key_len) {
                     return i;
                 }
