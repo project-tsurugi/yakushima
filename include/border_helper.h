@@ -218,7 +218,7 @@ static void border_split(tree_instance* ti, border_node* const border,
       * key_slice must be initialized to 0.
       */
     key_slice_type key_slice{0};
-    key_length_type key_length; // NOLINT
+    key_length_type key_length{0}; // NOLINT
     if (key_view.size() > sizeof(key_slice_type)) {
         memcpy(&key_slice, key_view.data(), sizeof(key_slice_type));
         key_length = sizeof(key_slice_type) + 1;
@@ -236,8 +236,13 @@ static void border_split(tree_instance* ti, border_node* const border,
                    : key_length < new_border->get_key_length_at(0)
                            ? key_length
                            : new_border->get_key_length_at(0))};
-    if (key_length == 0 || ret_memcmp < 0 ||
-        (ret_memcmp == 0 && key_length < new_border->get_key_length_at(0))) {
+    if (key_length == 0 || // definitely
+        ret_memcmp < 0 ||  // smaller than front of new border node
+        (ret_memcmp == 0 && key_length < new_border->get_key_length_at(0)) ||
+        // same string to the front of new border node and smaller string.
+        (ret_memcmp == 0 && rank < remaining_size)
+        // null string can't compare but rank is smaller then that.
+    ) {
         /**
           * insert to lower border node.
           */

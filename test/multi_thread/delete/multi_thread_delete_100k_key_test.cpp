@@ -1,5 +1,5 @@
 /**
- * @file multi_thread_delete_1K_key_test.cpp
+ * @file multi_thread_delete_100k_key_test.cpp
  */
 
 #include <algorithm>
@@ -18,11 +18,11 @@ using namespace yakushima;
 
 namespace yakushima::testing {
 
-class multi_thread_delete_1K_key_test : public ::testing::Test {
+class multi_thread_delete_100k_key_test : public ::testing::Test {
 public:
     static void call_once_f() {
         google::InitGoogleLogging("yakushima-test-multi_thread-delete_multi_"
-                                  "thread_delete_1K_key_test");
+                                  "thread_delete_100k_key_test");
         FLAGS_stderrthreshold = 0;
     }
 
@@ -39,12 +39,12 @@ private:
 
 std::string st{"1"}; // NOLINT
 
-TEST_F(multi_thread_delete_1K_key_test, DISABLED_1K_key) { // NOLINT
+TEST_F(multi_thread_delete_100k_key_test, DISABLED_100k_key) { // NOLINT
     /**
-      * Concurrent put 1K key.
-      * Concurrent remove 1K key.
+      * Concurrent put 100k key.
+      * Concurrent remove 100k key.
       */
-    constexpr std::size_t ary_size = 1000;
+    constexpr std::size_t ary_size = 100000;
     std::size_t th_nm{std::thread::hardware_concurrency()};
 
 #ifndef NDEBUG
@@ -65,7 +65,9 @@ TEST_F(multi_thread_delete_1K_key_test, DISABLED_1K_key) { // NOLINT
                                   ? (ary_size / max_thread) * (th_id + 1)
                                   : ary_size);
                      ++i) {
-                    kv.emplace_back(std::string(1, i), std::to_string(i));
+                    std::string k{8, 0};
+                    memcpy(k.data(), &i, sizeof(i));
+                    kv.emplace_back(k, "v");
                 }
 
                 Token token{nullptr};
@@ -113,19 +115,14 @@ TEST_F(multi_thread_delete_1K_key_test, DISABLED_1K_key) { // NOLINT
     }
 }
 
-TEST_F(multi_thread_delete_1K_key_test, DISABLED_1K_key_shuffle) { // NOLINT
+TEST_F(multi_thread_delete_100k_key_test, DISABLED_100k_key_shuffle) { // NOLINT
     /**
-      * Concurrent put 1K key.
-      * Concurrent remove 1K key.
+      * Concurrent put 100k key.
+      * Concurrent remove 100k key.
       * Shuffle data.
       */
-    constexpr std::size_t ary_size = 1000;
-    std::size_t th_nm{};
-    if (ary_size > std::thread::hardware_concurrency()) {
-        th_nm = std::thread::hardware_concurrency();
-    } else {
-        th_nm = ary_size;
-    }
+    constexpr std::size_t ary_size = 100000;
+    std::size_t th_nm{std::thread::hardware_concurrency()};
 
 #ifndef NDEBUG
     for (std::size_t h = 0; h < 1; ++h) {
@@ -145,7 +142,9 @@ TEST_F(multi_thread_delete_1K_key_test, DISABLED_1K_key_shuffle) { // NOLINT
                                   ? (ary_size / max_thread) * (th_id + 1)
                                   : ary_size);
                      ++i) {
-                    kv.emplace_back(std::string(1, i), std::to_string(i));
+                    std::string k{8, 0};
+                    memcpy(k.data(), &i, sizeof(i));
+                    kv.emplace_back(k, "v");
                 }
 
                 std::random_device seed_gen;
