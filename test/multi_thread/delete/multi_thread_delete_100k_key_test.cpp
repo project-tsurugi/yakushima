@@ -39,13 +39,13 @@ private:
 
 std::string st{"1"}; // NOLINT
 
-TEST_F(multi_thread_delete_100k_key_test, DISABLED_100k_key) { // NOLINT
+TEST_F(multi_thread_delete_100k_key_test, 100k_key) { // NOLINT
     /**
       * Concurrent put 100k key.
       * Concurrent remove 100k key.
       */
     constexpr std::size_t ary_size = 100000;
-    std::size_t th_nm{std::thread::hardware_concurrency()};
+    std::size_t th_nm{10};
 
 #ifndef NDEBUG
     for (std::size_t h = 0; h < 1; ++h) {
@@ -65,7 +65,7 @@ TEST_F(multi_thread_delete_100k_key_test, DISABLED_100k_key) { // NOLINT
                                   ? (ary_size / max_thread) * (th_id + 1)
                                   : ary_size);
                      ++i) {
-                    std::string k{8, 0};
+                    std::string k{"12345678"};
                     memcpy(k.data(), &i, sizeof(i));
                     kv.emplace_back(k, "v");
                 }
@@ -93,7 +93,8 @@ TEST_F(multi_thread_delete_100k_key_test, DISABLED_100k_key) { // NOLINT
                     std::string v(std::get<1>(i));
                     status ret = remove(token, st, std::string_view(k));
                     if (ret != status::OK) {
-                        LOG(FATAL) << ret; // output log
+                        LOG(FATAL) << "thid: " << th_id << ", "
+                                   << ret; // output log
                         std::abort();
                     }
                 }
@@ -115,14 +116,14 @@ TEST_F(multi_thread_delete_100k_key_test, DISABLED_100k_key) { // NOLINT
     }
 }
 
-TEST_F(multi_thread_delete_100k_key_test, DISABLED_100k_key_shuffle) { // NOLINT
+TEST_F(multi_thread_delete_100k_key_test, 100k_key_shuffle) { // NOLINT
     /**
       * Concurrent put 100k key.
       * Concurrent remove 100k key.
       * Shuffle data.
       */
     constexpr std::size_t ary_size = 100000;
-    std::size_t th_nm{std::thread::hardware_concurrency()};
+    std::size_t th_nm{2};
 
 #ifndef NDEBUG
     for (std::size_t h = 0; h < 1; ++h) {
@@ -142,7 +143,7 @@ TEST_F(multi_thread_delete_100k_key_test, DISABLED_100k_key_shuffle) { // NOLINT
                                   ? (ary_size / max_thread) * (th_id + 1)
                                   : ary_size);
                      ++i) {
-                    std::string k{8, 0};
+                    std::string k{"12345678"};
                     memcpy(k.data(), &i, sizeof(i));
                     kv.emplace_back(k, "v");
                 }

@@ -26,10 +26,12 @@ class st : public ::testing::Test {
 TEST_F(st, scan_at_non_existing_stoarge) { // NOLINT
     Token s{};
     ASSERT_EQ(status::OK, enter(s));
-    std::vector<std::tuple<std::string, char*, std::size_t>> tup_lis{}; // NOLINT
+    std::vector<std::tuple<std::string, char*, std::size_t>>
+            tup_lis{}; // NOLINT
     std::vector<std::pair<node_version64_body, node_version64*>> nv;
-    ASSERT_EQ(status::WARN_STORAGE_NOT_EXIST, scan<char>("", "", scan_endpoint::INCLUSIVE, "",
-                                     scan_endpoint::INCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(status::WARN_STORAGE_NOT_EXIST,
+              scan<char>("", "", scan_endpoint::INCLUSIVE, "",
+                         scan_endpoint::INCLUSIVE, tup_lis, &nv));
     ASSERT_EQ(status::OK, leave(s));
 }
 
@@ -41,15 +43,18 @@ TEST_F(st, basic_usage) { // NOLINT
     std::string v("v");
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
-    ASSERT_EQ(status::OK,
-              put(token, test_storage_name, std::string_view(k), v.data(), v.size()));
-    std::vector<std::tuple<std::string, char*, std::size_t>> tup_lis{}; // NOLINT
+    ASSERT_EQ(status::OK, put(token, test_storage_name, std::string_view(k),
+                              v.data(), v.size()));
+    std::vector<std::tuple<std::string, char*, std::size_t>>
+            tup_lis{}; // NOLINT
     std::vector<std::pair<node_version64_body, node_version64*>> nv;
     auto verify = [&tup_lis, &nv, &v]() {
         if (tup_lis.size() != 1) { return false; }
         if (tup_lis.size() != nv.size()) { return false; }
         if (std::get<2>(tup_lis.at(0)) != v.size()) { return false; }
-        if (memcmp(std::get<1>(tup_lis.at(0)), v.data(), v.size()) != 0) { return false; }
+        if (memcmp(std::get<1>(tup_lis.at(0)), v.data(), v.size()) != 0) {
+            return false;
+        }
         return true;
     };
     auto verify_no_exist = [&tup_lis, &nv]() {
@@ -57,17 +62,20 @@ TEST_F(st, basic_usage) { // NOLINT
         if (nv.size() != 1) { return false; }
         return true;
     };
-    ASSERT_EQ(status::OK, scan<char>(test_storage_name, "", scan_endpoint::INCLUSIVE, "",
-                                     scan_endpoint::INCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(status::OK,
+              scan<char>(test_storage_name, "", scan_endpoint::INCLUSIVE, "",
+                         scan_endpoint::INCLUSIVE, tup_lis, &nv));
     ASSERT_EQ(true, verify_no_exist());
-    ASSERT_EQ(status::OK, scan<char>(test_storage_name, "", scan_endpoint::INF, "",
-                                     scan_endpoint::INF, tup_lis, &nv));
+    ASSERT_EQ(status::OK, scan<char>(test_storage_name, "", scan_endpoint::INF,
+                                     "", scan_endpoint::INF, tup_lis, &nv));
     ASSERT_EQ(true, verify());
-    ASSERT_EQ(status::OK, scan<char>(test_storage_name, "", scan_endpoint::INF, "",
-                                     scan_endpoint::INCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(status::OK,
+              scan<char>(test_storage_name, "", scan_endpoint::INF, "",
+                         scan_endpoint::INCLUSIVE, tup_lis, &nv));
     ASSERT_EQ(true, verify_no_exist());
-    ASSERT_EQ(status::OK, scan<char>(test_storage_name, "", scan_endpoint::INCLUSIVE, "",
-                                     scan_endpoint::INF, tup_lis, &nv));
+    ASSERT_EQ(status::OK,
+              scan<char>(test_storage_name, "", scan_endpoint::INCLUSIVE, "",
+                         scan_endpoint::INF, tup_lis, &nv));
     ASSERT_EQ(true, verify());
     ASSERT_EQ(status::ERR_BAD_USAGE,
               scan<char>(test_storage_name, "", scan_endpoint::EXCLUSIVE, "",

@@ -14,7 +14,6 @@
 
 class Xoroshiro128Plus {
 public:
-
     Xoroshiro128Plus() { // NOLINT
         std::random_device rnd;
         s.at(0) = rnd();
@@ -38,9 +37,9 @@ public:
         const uint64_t result = s0 + s1;
 
         s1 ^= s0;
-        s.at(0) = rotl(s0, 24) ^ s1 ^ (s1 << 16);   // NOLINT
+        s.at(0) = rotl(s0, 24) ^ s1 ^ (s1 << 16); // NOLINT
         // a, b
-        s.at(1) = rotl(s1, 37);                    // c
+        s.at(1) = rotl(s1, 37); // c
 
         return result;
     }
@@ -52,11 +51,13 @@ public:
        non-overlapping subsequences for parallel computations. */
 
     void jump() {
-        static const std::array<uint64_t, 2> JUMP{0xdf900294d8f554a5, 0x170865df4b3201fc};
+        static const std::array<uint64_t, 2> JUMP{0xdf900294d8f554a5,
+                                                  0x170865df4b3201fc};
 
         uint64_t s0 = 0;
         uint64_t s1 = 0;
-        for (uint64_t i = 0; i < sizeof JUMP / sizeof JUMP.at(0); i++) { // NOLINT
+        for (uint64_t i = 0; i < sizeof JUMP / sizeof JUMP.at(0);
+             i++) { // NOLINT
             for (std::uint32_t b = 0; b < 64; b++) {
                 if ((JUMP.at(i) & UINT64_C(1) << b) != 0U) {
                     s0 ^= s.at(0);
@@ -75,11 +76,13 @@ public:
        subsequences for parallel distributed computations. */
 
     void long_jump() {
-        static const std::array<uint64_t, 2> LONG_JUMP{0xd2a98b26625eee7b, 0xdddf9b1090aa7ac1};
+        static const std::array<uint64_t, 2> LONG_JUMP{0xd2a98b26625eee7b,
+                                                       0xdddf9b1090aa7ac1};
 
         uint64_t s0 = 0;
         uint64_t s1 = 0;
-        for (uint64_t i = 0; i < sizeof LONG_JUMP / sizeof LONG_JUMP.at(0); i++) { // NOLINT
+        for (uint64_t i = 0; i < sizeof LONG_JUMP / sizeof LONG_JUMP.at(0);
+             i++) { // NOLINT
             for (std::uint32_t b = 0; b < 64; b++) {
                 if ((LONG_JUMP.at(i) & UINT64_C(1) << b) != 0U) {
                     s0 ^= s.at(0);

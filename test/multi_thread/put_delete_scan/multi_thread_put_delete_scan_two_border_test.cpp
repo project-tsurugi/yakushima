@@ -48,11 +48,12 @@ TEST_F(mtpdst, two_border) { // NOLINT
                 kv.reserve(ary_size / max_thread);
                 // data generation
                 for (std::size_t i = (ary_size / max_thread) * th_id;
-                     i < (th_id != max_thread - 1 ? (ary_size / max_thread) * (th_id + 1)
-                                                  : ary_size);
+                     i < (th_id != max_thread - 1
+                                  ? (ary_size / max_thread) * (th_id + 1)
+                                  : ary_size);
                      ++i) {
-                    kv.emplace_back(
-                            std::make_pair(std::string(i, '\0'), std::to_string(i)));
+                    kv.emplace_back(std::make_pair(std::string(i, '\0'),
+                                                   std::to_string(i)));
                 }
 
                 Token token{};
@@ -66,7 +67,8 @@ TEST_F(mtpdst, two_border) { // NOLINT
                     for (auto& i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(token, test_storage_name, k, v.data(), v.size());
+                        status ret = put(token, test_storage_name, k, v.data(),
+                                         v.size());
                         if (ret != status::OK) {
                             ASSERT_EQ(ret, status::OK);
                             std::abort();
@@ -75,15 +77,18 @@ TEST_F(mtpdst, two_border) { // NOLINT
                     std::vector<std::tuple<std::string, char*, std::size_t>>
                             tuple_list; // NOLINT
                     ASSERT_EQ(status::OK,
-                              scan<char>(test_storage_name, "", scan_endpoint::INF, "",
+                              scan<char>(test_storage_name, "",
+                                         scan_endpoint::INF, "",
                                          scan_endpoint::INF, tuple_list));
                     ASSERT_EQ(tuple_list.size() >= kv.size(), true);
                     std::size_t check_ctr{0};
                     for (auto&& elem : tuple_list) {
                         if (kv.size() == check_ctr) { break; }
                         for (auto&& elem2 : kv) {
-                            if (std::get<1>(elem2).size() == std::get<2>(elem) &&
-                                memcmp(std::get<1>(elem2).data(), std::get<1>(elem),
+                            if (std::get<1>(elem2).size() ==
+                                        std::get<2>(elem) &&
+                                memcmp(std::get<1>(elem2).data(),
+                                       std::get<1>(elem),
                                        std::get<2>(elem)) == 0) {
                                 ++check_ctr;
                                 break;
@@ -104,7 +109,8 @@ TEST_F(mtpdst, two_border) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(token, test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(),
+                                     v.size());
                     if (ret != status::OK) {
                         ASSERT_EQ(ret, status::OK);
                         std::abort();
@@ -117,17 +123,22 @@ TEST_F(mtpdst, two_border) { // NOLINT
 
         std::vector<std::thread> thv;
         thv.reserve(th_nm);
-        for (std::size_t i = 0; i < th_nm; ++i) { thv.emplace_back(S::work, i, th_nm); }
+        for (std::size_t i = 0; i < th_nm; ++i) {
+            thv.emplace_back(S::work, i, th_nm);
+        }
         for (auto&& th : thv) { th.join(); }
         thv.clear();
 
-        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list; // NOLINT
-        scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF,
-                   tuple_list);
+        std::vector<std::tuple<std::string, char*, std::size_t>>
+                tuple_list; // NOLINT
+        scan<char>(test_storage_name, "", scan_endpoint::INF, "",
+                   scan_endpoint::INF, tuple_list);
         for (std::size_t j = 0; j < ary_size; ++j) {
             std::string v(std::to_string(j));
             constexpr std::size_t v_index = 1;
-            ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
+            ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(),
+                             v.size()),
+                      0);
         }
         destroy();
     }
@@ -155,11 +166,12 @@ TEST_F(mtpdst, two_border_shuffle) { // NOLINT
                 kv.reserve(ary_size / max_thread);
                 // data generation
                 for (std::size_t i = (ary_size / max_thread) * th_id;
-                     i < (th_id != max_thread - 1 ? (ary_size / max_thread) * (th_id + 1)
-                                                  : ary_size);
+                     i < (th_id != max_thread - 1
+                                  ? (ary_size / max_thread) * (th_id + 1)
+                                  : ary_size);
                      ++i) {
-                    kv.emplace_back(
-                            std::make_pair(std::string(i, '\0'), std::to_string(i)));
+                    kv.emplace_back(std::make_pair(std::string(i, '\0'),
+                                                   std::to_string(i)));
                 }
 
                 std::random_device seed_gen{};
@@ -176,7 +188,8 @@ TEST_F(mtpdst, two_border_shuffle) { // NOLINT
                     for (auto& i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        status ret = put(token, test_storage_name, k, v.data(), v.size());
+                        status ret = put(token, test_storage_name, k, v.data(),
+                                         v.size());
                         if (ret != status::OK) {
                             ASSERT_EQ(ret, status::OK);
                             std::abort();
@@ -185,15 +198,18 @@ TEST_F(mtpdst, two_border_shuffle) { // NOLINT
                     std::vector<std::tuple<std::string, char*, std::size_t>>
                             tuple_list; // NOLINT
                     ASSERT_EQ(status::OK,
-                              scan<char>(test_storage_name, "", scan_endpoint::INF, "",
+                              scan<char>(test_storage_name, "",
+                                         scan_endpoint::INF, "",
                                          scan_endpoint::INF, tuple_list));
                     ASSERT_EQ(tuple_list.size() >= kv.size(), true);
                     std::size_t check_ctr{0};
                     for (auto&& elem : tuple_list) {
                         if (kv.size() == check_ctr) break;
                         for (auto&& elem2 : kv) {
-                            if (std::get<1>(elem2).size() == std::get<2>(elem) &&
-                                memcmp(std::get<1>(elem2).data(), std::get<1>(elem),
+                            if (std::get<1>(elem2).size() ==
+                                        std::get<2>(elem) &&
+                                memcmp(std::get<1>(elem2).data(),
+                                       std::get<1>(elem),
                                        std::get<2>(elem)) == 0) {
                                 ++check_ctr;
                                 break;
@@ -214,7 +230,8 @@ TEST_F(mtpdst, two_border_shuffle) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(token, test_storage_name, k, v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(),
+                                     v.size());
                     if (ret != status::OK) {
                         ASSERT_EQ(ret, status::OK);
                         std::abort();
@@ -227,17 +244,22 @@ TEST_F(mtpdst, two_border_shuffle) { // NOLINT
 
         std::vector<std::thread> thv;
         thv.reserve(th_nm);
-        for (std::size_t i = 0; i < th_nm; ++i) { thv.emplace_back(S::work, i, th_nm); }
+        for (std::size_t i = 0; i < th_nm; ++i) {
+            thv.emplace_back(S::work, i, th_nm);
+        }
         for (auto&& th : thv) { th.join(); }
         thv.clear();
 
-        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list; // NOLINT
-        scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF,
-                   tuple_list);
+        std::vector<std::tuple<std::string, char*, std::size_t>>
+                tuple_list; // NOLINT
+        scan<char>(test_storage_name, "", scan_endpoint::INF, "",
+                   scan_endpoint::INF, tuple_list);
         for (std::size_t j = 0; j < ary_size; ++j) {
             std::string v(std::to_string(j));
             constexpr std::size_t v_index = 1;
-            ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(), v.size()), 0);
+            ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(),
+                             v.size()),
+                      0);
         }
         destroy();
     }

@@ -71,6 +71,10 @@ descend:
     base_node* n_child = dynamic_cast<interior_node*>(n)->get_child_of(
             key_slice, key_slice_length);
     if (n_child != nullptr) { ret_v = n_child->get_stable_version(); }
+    /**
+      * else: n_child may be nullptr if the interior node is deleted by 
+      * concurrent operation.
+      */
 
     /**
       * As soon as you it finished operating the contents of node, read 

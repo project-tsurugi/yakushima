@@ -41,11 +41,13 @@ TEST_F(dt, delete_at_existing_storage_but_no_entry) { // NOLINT
     ASSERT_EQ(leave(token), status::OK);
 }
 
-TEST_F(dt, delete_at_existing_storage_exist_entry_but_not_exist_target_entry) { // NOLINT
+TEST_F(dt,
+       delete_at_existing_storage_exist_entry_but_not_exist_target_entry) { // NOLINT
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     std::string v{"v"};
-    ASSERT_EQ(status::OK, put(token, test_storage_name, "", v.data(), v.size()));
+    ASSERT_EQ(status::OK,
+              put(token, test_storage_name, "", v.data(), v.size()));
     ASSERT_EQ(status::OK_NOT_FOUND, remove(token, test_storage_name, "a"));
     ASSERT_EQ(leave(token), status::OK);
 }
@@ -60,9 +62,10 @@ TEST_F(dt, single_remove) { // NOLINT
     ASSERT_EQ(enter(token), status::OK);
     std::string k("a");
     std::string v("v-a");
+    ASSERT_EQ(status::OK, put(token, test_storage_name, std::string_view(k),
+                              v.data(), v.size()));
     ASSERT_EQ(status::OK,
-              put(token, test_storage_name, std::string_view(k), v.data(), v.size()));
-    ASSERT_EQ(status::OK, remove(token, test_storage_name, std::string_view(k)));
+              remove(token, test_storage_name, std::string_view(k)));
     ASSERT_NE(ti->load_root_ptr(), nullptr);
     ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
     ASSERT_EQ(leave(token), status::OK);

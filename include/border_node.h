@@ -287,9 +287,8 @@ public:
                     key_length == target_key_len) {
                     LOG(ERROR) << log_location_prefix << "unexpected path";
                     return 0;
-                } else if (key_length < target_key_len) {
-                    return i;
                 }
+                if (key_length < target_key_len) { return i; }
             } else if (ret < 0) {
                 return i;
                 break;

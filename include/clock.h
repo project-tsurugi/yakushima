@@ -17,9 +17,7 @@ namespace yakushima {
 
 [[maybe_unused]] static bool check_clock_span(uint64_t& start, uint64_t& stop,
                                               uint64_t threshold) {
-    if (stop < start) {
-        LOG(ERROR) << log_location_prefix;
-    }
+    if (stop < start) { LOG(ERROR) << log_location_prefix; }
     uint64_t diff{stop - start};
     return diff > threshold;
 }

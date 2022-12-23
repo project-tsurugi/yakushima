@@ -38,10 +38,11 @@ TEST_F(ct, compareData) {  // NOLINT
     memcpy(&k2, s2.data(), s2.size());
     ASSERT_NE(s1 < s2, k1 < k2);
     ASSERT_EQ(s1 < s2, memcmp(&k1, &k2, sizeof(std::uint64_t)) < 0);
-    ASSERT_EQ(s1 < s2, std::string_view(reinterpret_cast<char*>(&k1), // NOLINT
-                                        sizeof(std::uint64_t)) <
-                               std::string_view(reinterpret_cast<char*>(&k2), // NOLINT
-                                                sizeof(std::uint64_t)));
+    ASSERT_EQ(s1 < s2,
+              std::string_view(reinterpret_cast<char*>(&k1), // NOLINT
+                               sizeof(std::uint64_t)) <
+                      std::string_view(reinterpret_cast<char*>(&k2), // NOLINT
+                                       sizeof(std::uint64_t)));
 
     base_node::key_tuple kt1{};
     kt1.set_key_slice(k1);
@@ -78,32 +79,38 @@ TEST_F(ct, compareStringView) { // NOLINT
     key_length.at(0) = 0;
     key_slice.at(1) = 0;
     key_length.at(1) = 1;
-    ASSERT_EQ((std::string_view(reinterpret_cast<char*>(&key_slice.at(0)), // NOLINT
-                                key_length.at(0)) <
+    ASSERT_EQ((std::string_view(
+                       reinterpret_cast<char*>(&key_slice.at(0)), // NOLINT
+                       key_length.at(0)) <
                std::string_view{reinterpret_cast<char*>(&key_slice.at(1)),
                                 key_length.at(1)}),
-              true);                                                       // NOLINT
-    ASSERT_NE((std::string_view(reinterpret_cast<char*>(&key_slice.at(0)), // NOLINT
-                                key_length.at(0)) ==
+              true); // NOLINT
+    ASSERT_NE((std::string_view(
+                       reinterpret_cast<char*>(&key_slice.at(0)), // NOLINT
+                       key_length.at(0)) ==
                std::string_view{reinterpret_cast<char*>(&key_slice.at(1)),
                                 key_length.at(1)}),
-              true);                                                       // NOLINT
-    ASSERT_NE((std::string_view(reinterpret_cast<char*>(&key_slice.at(0)), // NOLINT
-                                key_length.at(0)) >
+              true); // NOLINT
+    ASSERT_NE((std::string_view(
+                       reinterpret_cast<char*>(&key_slice.at(0)), // NOLINT
+                       key_length.at(0)) >
                std::string_view{reinterpret_cast<char*>(&key_slice.at(1)),
                                 key_length.at(1)}),
               true); // NOLINT
     ASSERT_EQ((std::string_view(nullptr, 0) <
-               std::string_view{reinterpret_cast<char*>(&key_slice.at(1)), // NOLINT
-                                key_length.at(1)}),
+               std::string_view{
+                       reinterpret_cast<char*>(&key_slice.at(1)), // NOLINT
+                       key_length.at(1)}),
               true);
     ASSERT_NE((std::string_view(nullptr, 0) ==
-               std::string_view{reinterpret_cast<char*>(&key_slice.at(1)), // NOLINT
-                                key_length.at(1)}),
+               std::string_view{
+                       reinterpret_cast<char*>(&key_slice.at(1)), // NOLINT
+                       key_length.at(1)}),
               true);
     ASSERT_NE((std::string_view(nullptr, 0) >
-               std::string_view{reinterpret_cast<char*>(&key_slice.at(1)), // NOLINT
-                                key_length.at(1)}),
+               std::string_view{
+                       reinterpret_cast<char*>(&key_slice.at(1)), // NOLINT
+                       key_length.at(1)}),
               true);
     std::string a(1, '\0');
     std::string b(2, '\0');

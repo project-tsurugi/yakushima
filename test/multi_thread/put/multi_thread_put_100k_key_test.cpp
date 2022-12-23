@@ -63,7 +63,7 @@ TEST_F(multi_thread_put_100k_key_test, 100k_key) { // NOLINT
                                   ? (ary_size / max_thread) * (th_id + 1)
                                   : ary_size);
                      ++i) {
-                    std::string k{8, 0};
+                    std::string k{"12345678"};
                     memcpy(k.data(), &i, sizeof(i));
                     kv.emplace_back(k, "v");
                 }
@@ -122,7 +122,7 @@ TEST_F(multi_thread_put_100k_key_test, 100k_key_shuffle) { // NOLINT
                                   ? (ary_size / max_thread) * (th_id + 1)
                                   : ary_size);
                      ++i) {
-                    std::string k{8, 0};
+                    std::string k{"12345678"};
                     memcpy(k.data(), &i, sizeof(i));
                     kv.emplace_back(k, "v");
                 }

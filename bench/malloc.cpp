@@ -120,8 +120,8 @@ static void invoke_leader() {
     std::vector<char> readys(FLAGS_thread);
     std::vector<std::thread> thv;
     for (size_t i = 0; i < FLAGS_thread; ++i) {
-        thv.emplace_back(worker, i, std::ref(readys[i]), std::ref(start), std::ref(quit),
-                         std::ref(res[i]));
+        thv.emplace_back(worker, i, std::ref(readys[i]), std::ref(start),
+                         std::ref(quit), std::ref(res[i]));
     }
 
 #ifdef ENABLE_JEMALLOC
@@ -142,7 +142,8 @@ static void invoke_leader() {
     for (std::uint64_t i = 0; i < FLAGS_thread; ++i) {
         if ((UINT64_MAX - fin_res) < res[i]) {
             std::cout << __FILE__ << " : " << __LINE__
-                      << " : experimental setting is bad, which leads to overflow."
+                      << " : experimental setting is bad, which leads to "
+                         "overflow."
                       << std::endl;
             exit(1);
         }

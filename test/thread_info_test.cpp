@@ -32,9 +32,9 @@ TEST_F(tit, test1) { // NOLINT
     }
 
     for (auto&& elem : token) {
-        ASSERT_EQ(
-                (thread_info_table::leave_thread_info<interior_node, border_node>(elem)),
-                status::OK);
+        ASSERT_EQ((thread_info_table::leave_thread_info<interior_node,
+                                                        border_node>(elem)),
+                  status::OK);
     }
 }
 } // namespace yakushima::testing
