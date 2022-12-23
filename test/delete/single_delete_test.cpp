@@ -41,7 +41,7 @@ TEST_F(dt, delete_at_existing_storage_but_no_entry) { // NOLINT
     ASSERT_EQ(leave(token), status::OK);
 }
 
-TEST_F(dt,
+TEST_F(dt, // NOLINT
        delete_at_existing_storage_exist_entry_but_not_exist_target_entry) { // NOLINT
     Token token{};
     ASSERT_EQ(enter(token), status::OK);

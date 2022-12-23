@@ -82,20 +82,23 @@ TEST_F(ct, compareStringView) { // NOLINT
     ASSERT_EQ((std::string_view(
                        reinterpret_cast<char*>(&key_slice.at(0)), // NOLINT
                        key_length.at(0)) <
-               std::string_view{reinterpret_cast<char*>(&key_slice.at(1)),
-                                key_length.at(1)}),
+               std::string_view{
+                       reinterpret_cast<char*>(&key_slice.at(1)), // NOLINT
+                       key_length.at(1)}),
               true); // NOLINT
     ASSERT_NE((std::string_view(
                        reinterpret_cast<char*>(&key_slice.at(0)), // NOLINT
                        key_length.at(0)) ==
-               std::string_view{reinterpret_cast<char*>(&key_slice.at(1)),
-                                key_length.at(1)}),
+               std::string_view{
+                       reinterpret_cast<char*>(&key_slice.at(1)), // NOLINT
+                       key_length.at(1)}),
               true); // NOLINT
     ASSERT_NE((std::string_view(
                        reinterpret_cast<char*>(&key_slice.at(0)), // NOLINT
                        key_length.at(0)) >
-               std::string_view{reinterpret_cast<char*>(&key_slice.at(1)),
-                                key_length.at(1)}),
+               std::string_view{
+                       reinterpret_cast<char*>(&key_slice.at(1)), // NOLINT
+                       key_length.at(1)}),
               true); // NOLINT
     ASSERT_EQ((std::string_view(nullptr, 0) <
                std::string_view{

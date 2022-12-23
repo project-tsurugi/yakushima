@@ -284,7 +284,7 @@ TEST_F(mtpdt, concurrent_put_delete_between_none_and_interior) { // NOLINT
     }
 }
 
-TEST_F(mtpdt,
+TEST_F(mtpdt, // NOLINT
        concurrent_put_delete_between_none_and_interior_in_second_layer) { // NOLINT
     /**
    * The number of puts that can be split only once and the deletes are repeated in
@@ -383,7 +383,7 @@ TEST_F(mtpdt,
     }
 }
 
-TEST_F(mtpdt,
+TEST_F(mtpdt, // NOLINT
        concurrent_put_delete_between_none_and_interior_in_first_layer) { // NOLINT
     /**
    * The number of puts that can be split only once and the deletes are repeated in

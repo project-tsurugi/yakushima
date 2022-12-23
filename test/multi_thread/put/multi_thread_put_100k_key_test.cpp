@@ -149,7 +149,6 @@ TEST_F(multi_thread_put_100k_key_test, 100k_key_shuffle) { // NOLINT
 
         std::vector<std::thread> thv{};
         thv.reserve(th_nm);
-        std::atomic<std::size_t> meet{0};
         for (std::size_t i = 0; i < th_nm; ++i) {
             thv.emplace_back(S::work, i, th_nm);
         }

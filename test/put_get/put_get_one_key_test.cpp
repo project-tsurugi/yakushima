@@ -60,8 +60,8 @@ TEST_F(kt, one_key) { // NOLINT
    */
     std::uint64_t base_num{0};
     std::string key_buf{};
-    key_buf = std::string{reinterpret_cast<char*>(&base_num),
-                          sizeof(base_num)}; // NOLINT
+    key_buf = std::string{reinterpret_cast<char*>(&base_num), // NOLINT
+                          sizeof(base_num)};                  // NOLINT
     ASSERT_EQ(put(token, test_storage_name, key_buf, v.data(), v.size()),
               status::OK);
     ASSERT_EQ(status::OK, get<char>(test_storage_name, key_buf, tuple));
@@ -72,8 +72,8 @@ TEST_F(kt, one_key) { // NOLINT
    * Test five.
    */
     base_num = 5;
-    key_buf = std::string{reinterpret_cast<char*>(&base_num),
-                          sizeof(base_num)}; // NOLINT
+    key_buf = std::string{reinterpret_cast<char*>(&base_num), // NOLINT
+                          sizeof(base_num)};                  // NOLINT
     ASSERT_EQ(put(token, test_storage_name, key_buf, v.data(), v.size()),
               status::OK);
     ASSERT_EQ(status::OK, get<char>(test_storage_name, key_buf, tuple));
