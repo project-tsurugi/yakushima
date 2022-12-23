@@ -1,5 +1,5 @@
 /**
- * @file multi_thread_put_1K_key_test.cpp
+ * @file multi_thread_delete_1m_key_test.cpp
  */
 
 #include <algorithm>
@@ -18,11 +18,11 @@ using namespace yakushima;
 
 namespace yakushima::testing {
 
-class multi_thread_put_100k_key_test : public ::testing::Test {
+class multi_thread_delete_1m_key_test : public ::testing::Test {
 public:
     static void call_once_f() {
-        google::InitGoogleLogging("yakushima-test-multi_thread-put-multi_"
-                                  "thread_put_100k_key_test");
+        google::InitGoogleLogging("yakushima-test-multi_thread-delete_multi_"
+                                  "thread_delete_1m_key_test");
         FLAGS_stderrthreshold = 0;
     }
 
@@ -40,14 +40,15 @@ private:
 std::string st{"1"}; // NOLINT
 
 #ifndef NDEBUG
-TEST_F(multi_thread_put_100k_key_test, DISABLED_100k_key) { // NOLINT
+TEST_F(multi_thread_delete_1m_key_test, DISABLED_1m_key) { // NOLINT
 #else
-TEST_F(multi_thread_put_100k_key_test, 100k_key) { // NOLINT
+TEST_F(multi_thread_delete_1m_key_test, 1m_key) { // NOLINT
 #endif
     /**
-      * Concurrent put 100k key.
+      * Concurrent put 1m key.
+      * Concurrent remove 1m key.
       */
-    constexpr std::size_t ary_size = 100000;
+    constexpr std::size_t ary_size = 1000000;
     std::size_t th_nm{std::thread::hardware_concurrency()};
 
 #ifndef NDEBUG
@@ -58,7 +59,8 @@ TEST_F(multi_thread_put_100k_key_test, 100k_key) { // NOLINT
         create_storage(st);
 
         struct S {
-            static void work(std::size_t th_id, std::size_t max_thread) {
+            static void work(std::size_t th_id, std::size_t max_thread,
+                             std::atomic<std::size_t>* meet) {
                 std::vector<std::pair<std::string, std::string>> kv;
                 kv.reserve(ary_size / max_thread);
                 // data generation
@@ -85,14 +87,31 @@ TEST_F(multi_thread_put_100k_key_test, 100k_key) { // NOLINT
                     }
                 }
 
+                meet->fetch_add(1);
+                while (meet->load(std::memory_order_acquire) != max_thread) {
+                    _mm_pause();
+                }
+
+                for (auto& i : kv) {
+                    std::string k(std::get<0>(i));
+                    std::string v(std::get<1>(i));
+                    status ret = remove(token, st, std::string_view(k));
+                    if (ret != status::OK) {
+                        LOG(FATAL) << "thid: " << th_id << ", "
+                                   << ret; // output log
+                        std::abort();
+                    }
+                }
+
                 ASSERT_EQ(status::OK, leave(token));
             }
         };
 
         std::vector<std::thread> thv{};
         thv.reserve(th_nm);
+        std::atomic<std::size_t> meet{0};
         for (std::size_t i = 0; i < th_nm; ++i) {
-            thv.emplace_back(S::work, i, th_nm);
+            thv.emplace_back(S::work, i, th_nm, &meet);
         }
         for (auto&& th : thv) { th.join(); }
         thv.clear();
@@ -102,12 +121,13 @@ TEST_F(multi_thread_put_100k_key_test, 100k_key) { // NOLINT
 }
 
 #ifndef NDEBUG
-TEST_F(multi_thread_put_100k_key_test, DISABLED_100k_key_shuffle) { // NOLINT
+TEST_F(multi_thread_delete_1m_key_test, DISABLED_1m_key_shuffle) { // NOLINT
 #else
-TEST_F(multi_thread_put_100k_key_test, 100k_key_shuffle) { // NOLINT
+TEST_F(multi_thread_delete_1m_key_test, 1m_key_shuffle) { // NOLINT
 #endif
     /**
-      * Concurrent put 100k key.
+      * Concurrent put 1m key.
+      * Concurrent remove 1m key.
       * Shuffle data.
       */
     constexpr std::size_t ary_size = 1000000;
@@ -121,7 +141,8 @@ TEST_F(multi_thread_put_100k_key_test, 100k_key_shuffle) { // NOLINT
         create_storage(st);
 
         struct S {
-            static void work(std::size_t th_id, std::size_t max_thread) {
+            static void work(std::size_t th_id, std::size_t max_thread,
+                             std::atomic<std::size_t>* meet) {
                 std::vector<std::pair<std::string, std::string>> kv;
                 kv.reserve(ary_size / max_thread);
                 // data generation
@@ -151,14 +172,29 @@ TEST_F(multi_thread_put_100k_key_test, 100k_key_shuffle) { // NOLINT
                     }
                 }
 
+                meet->fetch_add(1);
+                while (meet->load(std::memory_order_acquire) != max_thread) {
+                    _mm_pause();
+                }
+
+                for (auto& i : kv) {
+                    std::string k(std::get<0>(i));
+                    std::string v(std::get<1>(i));
+                    status ret = remove(token, st, k);
+                    if (ret != status::OK) {
+                        EXPECT_EQ(status::OK, ret); // output log
+                        std::abort();
+                    }
+                }
                 ASSERT_EQ(status::OK, leave(token));
             }
         };
 
         std::vector<std::thread> thv{};
         thv.reserve(th_nm);
+        std::atomic<std::size_t> meet{0};
         for (std::size_t i = 0; i < th_nm; ++i) {
-            thv.emplace_back(S::work, i, th_nm);
+            thv.emplace_back(S::work, i, th_nm, &meet);
         }
         for (auto&& th : thv) { th.join(); }
         thv.clear();
