@@ -128,6 +128,14 @@ retry_fetch_lv:
             goto retry_fetch_lv; // NOLINT
         }
 
+        // re-check because delete operation is not tracked.
+        lv_ptr = target_border->get_lv_of_without_lock(key_slice, key_length);
+        if (lv_ptr == nullptr) {
+            target_border->version_unlock();
+            return status::OK_NOT_FOUND;
+        }
+
+        // success delete
         target_border->delete_of<true>(token, ti, key_slice, key_length);
         return status::OK;
     }

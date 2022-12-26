@@ -358,6 +358,43 @@ public:
         }
     }
 
+    [[nodiscard]] link_or_value*
+    get_lv_of_without_lock(const key_slice_type key_slice,
+                           const key_length_type key_length) {
+        /**
+          * It loads cnk atomically by get_cnk func.
+          */
+        permutation perm{permutation_.get_body()};
+        std::size_t cnk = perm.get_cnk();
+        link_or_value* ret_lv{nullptr};
+        for (std::size_t i = 0; i < cnk; ++i) {
+            bool suc{false};
+            std::size_t index = perm.get_index_of_rank(i);
+            key_slice_type target_key_slice = get_key_slice_at(index);
+            key_length_type target_key_len = get_key_length_at(index);
+            if (key_length == 0 && target_key_len == 0) {
+                suc = true;
+            } else {
+                auto ret = memcmp(&key_slice, &target_key_slice,
+                                  sizeof(key_slice_type));
+                if (ret == 0) {
+                    if ((key_length > sizeof(key_slice_type) &&
+                         target_key_len > sizeof(key_slice_type)) ||
+                        key_length == target_key_len) {
+                        suc = true;
+                    } else if (key_length < target_key_len) {
+                        break;
+                    }
+                } else if (ret < 0) {
+                    break;
+                }
+            }
+
+            if (suc) { ret_lv = get_lv_at(index); }
+        }
+        return ret_lv;
+    }
+
     border_node* get_next() { return loadAcquireN(next_); }
 
     permutation& get_permutation() { return permutation_; }
