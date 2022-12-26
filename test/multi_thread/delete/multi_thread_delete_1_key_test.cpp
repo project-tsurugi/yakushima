@@ -71,7 +71,6 @@ TEST_F(multi_thread_delete_1_key_test, 1_key) { // NOLINT
 
         std::vector<std::thread> thv{};
         thv.reserve(th_nm);
-        std::atomic<std::size_t> meet{0};
         for (std::size_t i = 0; i < th_nm; ++i) { thv.emplace_back(S::work); }
         for (auto&& th : thv) { th.join(); }
         thv.clear();
