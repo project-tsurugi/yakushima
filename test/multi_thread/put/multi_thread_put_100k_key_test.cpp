@@ -50,11 +50,7 @@ TEST_F(multi_thread_put_100k_key_test, 100k_key) { // NOLINT
     constexpr std::size_t ary_size = 100000;
     std::size_t th_nm{std::thread::hardware_concurrency()};
 
-#ifndef NDEBUG
     for (std::size_t h = 0; h < 1; ++h) {
-#else
-    for (std::size_t h = 0; h < 10; ++h) {
-#endif
         create_storage(st);
 
         struct S {
@@ -113,11 +109,7 @@ TEST_F(multi_thread_put_100k_key_test, 100k_key_shuffle) { // NOLINT
     constexpr std::size_t ary_size = 1000000;
     std::size_t th_nm{std::thread::hardware_concurrency()};
 
-#ifndef NDEBUG
     for (std::size_t h = 0; h < 1; ++h) {
-#else
-    for (std::size_t h = 0; h < 10; ++h) {
-#endif
         create_storage(st);
 
         struct S {
