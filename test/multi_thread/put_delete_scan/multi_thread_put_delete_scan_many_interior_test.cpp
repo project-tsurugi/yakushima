@@ -4,26 +4,43 @@
 
 #include <algorithm>
 #include <array>
+#include <mutex>
 #include <random>
 #include <thread>
 
-#include "gtest/gtest.h"
-
 #include "kvs.h"
+
+#include "glog/logging.h"
+#include "gtest/gtest.h"
 
 using namespace yakushima;
 
 namespace yakushima::testing {
 
-class mtpdst : public ::testing::Test {
-    void SetUp() override { init(); }
+class multi_thread_put_delete_scan_many_interior_test : public ::testing::Test {
+public:
+    static void call_once_f() {
+        google::InitGoogleLogging(
+                "yakushima-test-multi_thread-put_delete_scan-multi_thread_put_"
+                "delete_scan_many_interior_test");
+        FLAGS_stderrthreshold = 0;
+    }
+
+    void SetUp() override {
+        init();
+        std::call_once(init_, call_once_f);
+    }
 
     void TearDown() override { fin(); }
+
+private:
+    static inline std::once_flag init_; // NOLINT
 };
 
 std::string test_storage_name{"1"}; // NOLINT
 
-TEST_F(mtpdst, many_interior) { // NOLINT
+TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
+       many_interior) {                                 // NOLINT
     /**
    * concurrent put/delete/scan in the state between none to many split of interior.
    */
@@ -37,11 +54,7 @@ TEST_F(mtpdst, many_interior) { // NOLINT
         th_nm = ary_size;
     }
 
-#ifndef NDEBUG
     for (std::size_t h = 0; h < 1; ++h) {
-#else
-    for (std::size_t h = 0; h < 10; ++h) {
-#endif
         create_storage(test_storage_name);
 
         struct S {
@@ -67,11 +80,7 @@ TEST_F(mtpdst, many_interior) { // NOLINT
 
                 Token token{};
                 enter(token);
-#ifndef NDEBUG
                 for (std::size_t j = 0; j < 1; ++j) {
-#else
-                for (std::size_t j = 0; j < 10; ++j) {
-#endif
                     for (auto& i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
@@ -154,7 +163,8 @@ TEST_F(mtpdst, many_interior) { // NOLINT
     }
 }
 
-TEST_F(mtpdst, many_interior_shuffle) { // NOLINT
+TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
+       many_interior_shuffle) {                         // NOLINT
     /**
    * concurrent put/delete/scan in the state between none to many split of interior with
    * shuffle.
@@ -164,11 +174,7 @@ TEST_F(mtpdst, many_interior_shuffle) { // NOLINT
             interior_node::child_length * key_slice_length * 1.4;
     constexpr std::size_t th_nm{ary_size / 2};
 
-#ifndef NDEBUG
     for (size_t h = 0; h < 1; ++h) {
-#else
-    for (size_t h = 0; h < 10; ++h) {
-#endif
         create_storage(test_storage_name);
 
         struct S {
@@ -195,11 +201,7 @@ TEST_F(mtpdst, many_interior_shuffle) { // NOLINT
                 std::mt19937 engine(seed_gen());
                 Token token{};
                 enter(token);
-#ifndef NDEBUG
                 for (std::size_t j = 0; j < 1; ++j) {
-#else
-                for (std::size_t j = 0; j < 10; ++j) {
-#endif
                     std::shuffle(kv.begin(), kv.end(), engine);
                     for (auto& i : kv) {
                         std::string k(std::get<0>(i));
