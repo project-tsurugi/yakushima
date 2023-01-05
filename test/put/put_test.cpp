@@ -78,4 +78,53 @@ TEST_F(put_test, put_to_root_border_split) { // NOLINT
     ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
     ASSERT_EQ(leave(token), status::OK);
 }
+
+TEST_F(put_test, one_key) {
+    tree_instance* ti{};
+    find_storage(st, &ti);
+    Token token{};
+    ASSERT_EQ(enter(token), status::OK);
+    // test
+    std::string v{"v"};
+    ASSERT_EQ(status::OK, put(token, st, "k", v.data(), v.size()));
+    ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
+    ASSERT_EQ(leave(token), status::OK);
+}
+
+TEST_F(put_test, one_key_twice_unique_rest_true) {
+    tree_instance* ti{};
+    find_storage(st, &ti);
+    Token token{};
+    ASSERT_EQ(enter(token), status::OK);
+    // test
+    std::string v{"v"};
+    char* created_value_ptr;
+    ASSERT_EQ(status::OK,
+              put(token, st, "k", v.data(), v.size(), &created_value_ptr,
+                  static_cast<std::align_val_t>(alignof(char)), true));
+    ASSERT_EQ(status::WARN_UNIQUE_RESTRICTION,
+              put(token, st, "k", v.data(), v.size(), &created_value_ptr,
+                  static_cast<std::align_val_t>(alignof(char)), true));
+    ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
+    ASSERT_EQ(leave(token), status::OK);
+}
+
+TEST_F(put_test, one_key_twice_unique_rest_false) {
+    tree_instance* ti{};
+    find_storage(st, &ti);
+    Token token{};
+    ASSERT_EQ(enter(token), status::OK);
+    // test
+    std::string v{"v"};
+    char* created_value_ptr;
+    ASSERT_EQ(status::OK,
+              put(token, st, "k", v.data(), v.size(), &created_value_ptr,
+                  static_cast<std::align_val_t>(alignof(char)), false));
+    ASSERT_EQ(status::OK,
+              put(token, st, "k", v.data(), v.size(), &created_value_ptr,
+                  static_cast<std::align_val_t>(alignof(char)), false));
+    ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
+    ASSERT_EQ(leave(token), status::OK);
+}
+
 } // namespace yakushima::testing
