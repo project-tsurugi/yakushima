@@ -45,7 +45,7 @@ TEST_F(kt, test3) { // NOLINT
         ASSERT_EQ(status::OK,
                   put(token, test_storage_name, std::string_view(k.at(i)),
                       v.at(i).data(), v.at(i).size(), (char**) nullptr,
-                      (value_align_type) sizeof(char), &nvp));
+                      (value_align_type) sizeof(char), true, &nvp));
         ASSERT_EQ(nvp->get_vinsert_delete(), i + 1);
         auto* br = dynamic_cast<border_node*>(ti->load_root_ptr());
         /**

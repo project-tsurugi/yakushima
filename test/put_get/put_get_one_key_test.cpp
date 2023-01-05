@@ -36,9 +36,9 @@ TEST_F(kt, one_key) { // NOLINT
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     node_version64* nvp{};
-    ASSERT_EQ(status::OK,
-              put(token, test_storage_name, k, v.data(), v.size(),
-                  (char**) nullptr, (value_align_type) sizeof(char), &nvp));
+    ASSERT_EQ(status::OK, put(token, test_storage_name, k, v.data(), v.size(),
+                              (char**) nullptr, (value_align_type) sizeof(char),
+                              true, &nvp));
     ASSERT_EQ(nvp->get_vsplit(), 0);
     ASSERT_EQ(nvp->get_vinsert_delete(), 1);
     tree_instance* ti{};

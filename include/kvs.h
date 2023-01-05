@@ -157,6 +157,8 @@ template<class ValueType>
  * sizeof(ValueType).
  * @param[in] value_align The alignment information of value object. Default is @a
  * static_cast<value_align_type>(alignof(ValueType)).
+ * @param[in] unique_restriction If this is true, you can't put same key. If you
+ * update key, you should execute remove and put.
  * @param[out] inserted_node_version_ptr The pointer to version of the inserted node. It
  * may be used to find out difference of the version between some operations. Default is
  * @a nullptr.
@@ -172,7 +174,8 @@ put(Token token, std::string_view storage_name, // NOLINT
     std::string_view key_view, ValueType* value_ptr,
     std::size_t arg_value_length,
     ValueType** created_value_ptr, // NOLINT
-    value_align_type value_align, node_version64** inserted_node_version_ptr);
+    value_align_type value_align, bool unique_restriction,
+    node_version64** inserted_node_version_ptr);
 
 /**
  * @pre @a token of arguments is valid.
