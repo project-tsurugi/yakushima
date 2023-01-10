@@ -7,10 +7,12 @@
 
 #include <atomic>
 #include <bitset>
+#include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <cstring>
 #include <iostream>
+#include <thread>
 #include <vector>
 #include <xmmintrin.h>
 
@@ -275,21 +277,25 @@ public:
    * @return void
    */
     void lock() {
-        node_version64_body expected(get_body());
+        node_version64_body expected{};
         node_version64_body desired{};
         for (;;) {
-            if (expected.get_locked()) {
-                _mm_pause();
+            for (size_t i = 1;; ++i) {
                 expected = get_body();
-                continue;
+                if (expected.get_locked()) {
+                    if (i >= 10) { break; }
+                    _mm_pause();
+                    continue;
+                }
+                desired = expected;
+                desired.set_locked(true);
+                if (body_.compare_exchange_weak(expected, desired,
+                                                std::memory_order_acq_rel,
+                                                std::memory_order_acquire)) {
+                    return;
+                }
             }
-            desired = expected;
-            desired.set_locked(true);
-            if (body_.compare_exchange_weak(expected, desired,
-                                            std::memory_order_acq_rel,
-                                            std::memory_order_acquire)) {
-                break;
-            }
+            std::this_thread::sleep_for(std::chrono::microseconds(1));
         }
     }
 
