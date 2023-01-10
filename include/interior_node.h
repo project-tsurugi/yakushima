@@ -317,17 +317,17 @@ public:
 
 private:
     /**
-   * first member of base_node is aligned along with cache line size.
-   */
+     * first member of base_node is aligned along with cache line size.
+     */
 
     /**
-   * @attention This variable is read/written concurrently.
-   */
-    std::array<base_node*, child_length> children{};
-    /**
-   * @attention This variable is read/written concurrently.
-   */
+     * @attention This variable is read/written concurrently.
+     */
     n_keys_type n_keys_{};
+    /**
+     * @attention This variable is read/written concurrently.
+     */
+    std::array<base_node*, child_length> children{};
 };
 
 } // namespace yakushima

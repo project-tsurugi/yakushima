@@ -169,7 +169,7 @@ public:
                     }
                     /**
                       * This node has parent node, so this must not be root.
-                      * note: Including relation of parent-child is 
+                      * note: Including relation of parent-child is
                       * border-border.
                       */
                     set_version_root(false);
@@ -259,12 +259,12 @@ public:
     }
 
     /**
-     * @brief 
-     * 
-     * @param key_slice 
-     * @param key_length 
+     * @brief
+     *
+     * @param key_slice
+     * @param key_length
      * @pre Caller (put) must lock this node.
-     * @return std::size_t 
+     * @return std::size_t
      */
     std::size_t compute_rank_if_insert(const key_slice_type key_slice,
                                        const key_length_type key_length) {
@@ -483,7 +483,7 @@ public:
             memcpy(&key_slice, key_view.data(), sizeof(key_slice_type));
             set_key_slice_at(index, key_slice);
             /**
-              * You only need to know that it is 8 bytes or more. If it is 
+              * You only need to know that it is 8 bytes or more. If it is
               * stored obediently, key_length_type must be a large size type.
               */
             set_key_length_at(index, sizeof(key_slice_type) + 1);
@@ -553,20 +553,20 @@ public:
 private:
     // first member of base_node is aligned along with cache line size.
     /**
-      * @attention This variable is read/written concurrently.
-      */
+     * @attention This variable is read/written concurrently.
+     */
     permutation permutation_{};
     /**
-      * @attention This variable is read/written concurrently.
-      */
+     * @attention This variable is read/written concurrently.
+     */
     std::array<link_or_value, key_slice_length> lv_{};
     /**
-      * @attention This is protected by its previous sibling's lock.
-      */
+     * @attention This is protected by its previous sibling's lock.
+     */
     border_node* prev_{nullptr};
     /**
-      * @attention This variable is read/written concurrently.
-      */
+     * @attention This variable is read/written concurrently.
+     */
     border_node* next_{nullptr};
 };
 } // namespace yakushima

@@ -270,28 +270,28 @@ public:
 
 private:
     /**
-   * @attention This variable is read/written concurrently.
-   */
-    node_version64 version_{};
-    /**
-   * @attention This member is protected by its parent's lock.
-   * In the original paper, Fig 2 tells that parent's type is interior_node*,
-   * however, at Fig 1, parent's type is interior_node or border_node both
-   * interior's view and border's view.
-   * This variable is read/written concurrently.
-   */
-    base_node* parent_{nullptr};
-    /**
-   * @attention This variable is read/written concurrently.
-   */
+     * @attention This variable is read/written concurrently.
+     */
     std::array<key_slice_type, key_slice_length> key_slice_{};
     /**
-   * @attention This variable is read/written concurrently.
-   * @details This is used for distinguishing the identity of link or value and same
-   * slices. For example, key 1 : \0, key 2 : \0\0, ... , key 8 : \0\0\0\0\0\0\0\0. These
-   * keys have same key_slices (0) but different key_length. If the length is more than 8,
-   * the lv points out to next layer.
-   */
+     * @attention This member is protected by its parent's lock.
+     * In the original paper, Fig 2 tells that parent's type is interior_node*,
+     * however, at Fig 1, parent's type is interior_node or border_node both
+     * interior's view and border's view.
+     * This variable is read/written concurrently.
+     */
+    base_node* parent_{nullptr};
+    /**
+     * @attention This variable is read/written concurrently.
+     */
+    node_version64 version_{};
+    /**
+     * @attention This variable is read/written concurrently.
+     * @details This is used for distinguishing the identity of link or value and same
+     * slices. For example, key 1 : \0, key 2 : \0\0, ... , key 8 : \0\0\0\0\0\0\0\0. These
+     * keys have same key_slices (0) but different key_length. If the length is more than 8,
+     * the lv points out to next layer.
+     */
     std::array<key_length_type, key_slice_length> key_length_{};
 };
 
