@@ -9,6 +9,7 @@
 #include <bitset>
 #include <cmath>
 #include <cstdint>
+#include <cstring>
 #include <iostream>
 #include <vector>
 #include <xmmintrin.h>
@@ -41,14 +42,7 @@ public:
     ~node_version64_body() = default;
 
     bool operator==(const node_version64_body& rhs) const {
-        return get_locked() == rhs.get_locked() &&
-               get_inserting_deleting() == rhs.get_inserting_deleting() &&
-               get_splitting() == rhs.get_splitting() &&
-               get_deleted() == rhs.get_deleted() &&
-               get_root() == rhs.get_root() &&
-               get_border() == rhs.get_border() &&
-               get_vinsert_delete() == rhs.get_vinsert_delete() &&
-               get_vsplit() == rhs.get_vsplit();
+        return memcmp(this, &rhs, sizeof(node_version64_body)) == 0;
     }
 
     /**
