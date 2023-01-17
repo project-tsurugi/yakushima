@@ -42,7 +42,7 @@ std::string st{"1"}; // NOLINT
 #ifndef NDEBUG
 TEST_F(multi_thread_delete_1m_key_test, DISABLED_1m_key) { // NOLINT
 #else
-TEST_F(multi_thread_delete_1m_key_test, 1m_key) { // NOLINT
+TEST_F(multi_thread_delete_1m_key_test, 1m_key) {         // NOLINT
 #endif
     /**
       * Concurrent put 1m key.

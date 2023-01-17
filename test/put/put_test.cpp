@@ -79,7 +79,7 @@ TEST_F(put_test, put_to_root_border_split) { // NOLINT
     ASSERT_EQ(leave(token), status::OK);
 }
 
-TEST_F(put_test, one_key) {
+TEST_F(put_test, one_key) { // NOLINT
     tree_instance* ti{};
     find_storage(st, &ti);
     Token token{};
@@ -91,14 +91,14 @@ TEST_F(put_test, one_key) {
     ASSERT_EQ(leave(token), status::OK);
 }
 
-TEST_F(put_test, one_key_twice_unique_rest_true) {
+TEST_F(put_test, one_key_twice_unique_rest_true) { // NOLINT
     tree_instance* ti{};
     find_storage(st, &ti);
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     // test
     std::string v{"v"};
-    char* created_value_ptr;
+    char* created_value_ptr{};
     ASSERT_EQ(status::OK,
               put(token, st, "k", v.data(), v.size(), &created_value_ptr,
                   static_cast<std::align_val_t>(alignof(char)), true));
@@ -109,14 +109,14 @@ TEST_F(put_test, one_key_twice_unique_rest_true) {
     ASSERT_EQ(leave(token), status::OK);
 }
 
-TEST_F(put_test, one_key_twice_unique_rest_false) {
+TEST_F(put_test, one_key_twice_unique_rest_false) { // NOLINT
     tree_instance* ti{};
     find_storage(st, &ti);
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     // test
     std::string v{"v"};
-    char* created_value_ptr;
+    char* created_value_ptr{};
     ASSERT_EQ(status::OK,
               put(token, st, "k", v.data(), v.size(), &created_value_ptr,
                   static_cast<std::align_val_t>(alignof(char)), false));
