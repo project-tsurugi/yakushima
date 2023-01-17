@@ -7,9 +7,12 @@
 
 #include <atomic>
 #include <bitset>
+#include <chrono>
 #include <cmath>
 #include <cstdint>
+#include <cstring>
 #include <iostream>
+#include <thread>
 #include <vector>
 #include <xmmintrin.h>
 
@@ -41,14 +44,7 @@ public:
     ~node_version64_body() = default;
 
     bool operator==(const node_version64_body& rhs) const {
-        return get_locked() == rhs.get_locked() &&
-               get_inserting_deleting() == rhs.get_inserting_deleting() &&
-               get_splitting() == rhs.get_splitting() &&
-               get_deleted() == rhs.get_deleted() &&
-               get_root() == rhs.get_root() &&
-               get_border() == rhs.get_border() &&
-               get_vinsert_delete() == rhs.get_vinsert_delete() &&
-               get_vsplit() == rhs.get_vsplit();
+        return memcmp(this, &rhs, sizeof(node_version64_body)) == 0;
     }
 
     /**
@@ -122,51 +118,54 @@ public:
 
 private:
     /**
-   * These details is based on original paper Fig. 3.
-   * Declaration order is because class size does not exceed 8 bytes.
-   */
+     * These details is based on original paper Fig. 3.
+     * Declaration order is because class size does not exceed 8 bytes.
+     */
     /**
-   * @attention tanabe : In the original paper, the interior node does not have a delete
-   * count field. On the other hand, the border node has this (nremoved) but no details in
-   * original paper. Since there is a @a deleted field in the version, you can check
-   * whether the node you are checking has been deleted. However, you do not know that the
-   * position has been moved. Maybe you took the node from the wrong position. The
-   * original paper cannot detect it. Therefore, add notion of delete field.
-   * @details It is a counter incremented after inserting_deleting/deleting.
-   */
+     * @attention tanabe : In the original paper, the interior node does not have a delete
+     * count field. On the other hand, the border node has this (nremoved) but no details in
+     * original paper. Since there is a @a deleted field in the version, you can check
+     * whether the node you are checking has been deleted. However, you do not know that the
+     * position has been moved. Maybe you took the node from the wrong position. The
+     * original paper cannot detect it. Therefore, add notion of delete field.
+     * @details It is a counter incremented after inserting_deleting/deleting.
+     */
     vinsert_delete_type vinsert_delete : 29;
     /**
-   * @details It is claimed by update or insert.
-   */
-    bool locked : 1;
+     * @details It is claimed by update or insert.
+     */
+    vinsert_delete_type locked : 1;
     /**
-   * @details It is a dirty bit set during inserting_deleting.
-   */
-    bool inserting_deleting : 1;
+     * @details It is a dirty bit set during inserting_deleting.
+     */
+    vinsert_delete_type inserting_deleting : 1;
     /**
-   * @details It is a dirty bit set during splitting.
-   * If this flag is set, vsplit is incremented when the lock is unlocked.
-   * The function find_lowest_key takes the value from the node when this flag is up.
-   * Read. When we raise this flag, we guarantee that no problems will occur with it.
-   */
-    bool splitting : 1;
+     * @details It is a dirty bit set during splitting.
+     * If this flag is set, vsplit is incremented when the lock is unlocked.
+     * The function find_lowest_key takes the value from the node when this flag is up.
+     * Read. When we raise this flag, we guarantee that no problems will occur with it.
+     */
+    vinsert_delete_type splitting : 1;
     /**
-   * @details It is a counter incremented after splitting.
-   */
+     * @details It is a counter incremented after splitting.
+     */
     vsplit_type vsplit : 29;
     /**
-   * @details It is a delete bit set after delete.
-   */
-    bool deleted : 1;
+     * @details It is a delete bit set after delete.
+     */
+    vsplit_type deleted : 1;
     /**
-   * @details It tells whether the node is the root of some B+-tree.
-   */
-    bool root : 1;
+     * @details It tells whether the node is the root of some B+-tree.
+     */
+    vsplit_type root : 1;
     /**
-   * @details It tells whether the node is interior or border.
-   */
-    bool border : 1;
+     * @details It tells whether the node is interior or border.
+     */
+    vsplit_type border : 1;
 };
+
+// check the size of a version body
+static_assert(sizeof(node_version64_body) == 8);
 
 /**
  * @brief The class which has atomic<node_version>
@@ -278,21 +277,25 @@ public:
    * @return void
    */
     void lock() {
-        node_version64_body expected(get_body());
+        node_version64_body expected{};
         node_version64_body desired{};
         for (;;) {
-            if (expected.get_locked()) {
-                _mm_pause();
+            for (size_t i = 1;; ++i) {
                 expected = get_body();
-                continue;
+                if (expected.get_locked()) {
+                    if (i >= 10) { break; }
+                    _mm_pause();
+                    continue;
+                }
+                desired = expected;
+                desired.set_locked(true);
+                if (body_.compare_exchange_weak(expected, desired,
+                                                std::memory_order_acq_rel,
+                                                std::memory_order_acquire)) {
+                    return;
+                }
             }
-            desired = expected;
-            desired.set_locked(true);
-            if (body_.compare_exchange_weak(expected, desired,
-                                            std::memory_order_acq_rel,
-                                            std::memory_order_acquire)) {
-                break;
-            }
+            std::this_thread::sleep_for(std::chrono::microseconds(1));
         }
     }
 

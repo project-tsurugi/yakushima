@@ -157,40 +157,56 @@ public:
     }
 
     base_node* get_child_of(const key_slice_type key_slice,
-                            const key_length_type key_length) {
-        node_version64_body v = get_stable_version();
+                            const key_length_type key_length,
+                            node_version64_body& v) {
+        base_node* ret_child{};
         for (;;) {
             n_keys_body_type n_key = get_n_keys();
-            base_node* ret_child{nullptr};
+            ret_child = nullptr;
             for (auto i = 0; i < n_key; ++i) {
                 std::size_t comp_length = key_length < get_key_length_at(i)
                                                   ? key_length
                                                   : get_key_length_at(i);
-                comp_length = comp_length > sizeof(key_slice_type)
-                                      ? sizeof(key_slice_type)
-                                      : comp_length;
                 int ret_memcmp = memcmp(&key_slice, &get_key_slice_ref().at(i),
-                                        comp_length);
+                                        comp_length > sizeof(key_slice_type)
+                                                ? sizeof(key_slice_type)
+                                                : comp_length);
                 if (ret_memcmp < 0 ||
                     (ret_memcmp == 0 && key_length < get_key_length_at(i))) {
                     /**
-                      * The key_slice must be left direction of the index.
-                      */
-                    ret_child = get_child_at(i);
-                    break;
-                }
-                /**
-                  * The key_slice must be right direction of the index.
-                  */
-                if (i == n_key - 1) {
-                    ret_child = get_child_at(i + 1);
+                     * The key_slice must be left direction of the index.
+                     */
+                    ret_child = children.at(i);
                     break;
                 }
             }
-            node_version64_body check = get_stable_version();
-            if (v == check) { return ret_child; }
-            v = check;
+            if (ret_child == nullptr) {
+                /**
+                 * The key_slice must be right direction of the index.
+                 */
+                ret_child = children.at(n_key);
+                if (ret_child == nullptr) {
+                    // SMOs have found, so retry from a root node
+                    break;
+                }
+            }
+
+            // get child's status before rechecking version
+            node_version64_body child_v = ret_child->get_stable_version();
+            node_version64_body check_v = get_stable_version();
+            if (v == check_v && !child_v.get_deleted()) {
+                v = child_v; // return child's version
+                break;
+            }
+            if (v.get_vsplit() != check_v.get_vsplit() ||
+                check_v.get_deleted()) {
+                // SMOs have found, so retry from a root node
+                ret_child = nullptr;
+                break;
+            }
+            v = check_v;
         }
+        return ret_child;
     }
 
     void init_interior() {
@@ -317,17 +333,17 @@ public:
 
 private:
     /**
-   * first member of base_node is aligned along with cache line size.
-   */
+     * first member of base_node is aligned along with cache line size.
+     */
 
     /**
-   * @attention This variable is read/written concurrently.
-   */
-    std::array<base_node*, child_length> children{};
-    /**
-   * @attention This variable is read/written concurrently.
-   */
+     * @attention This variable is read/written concurrently.
+     */
     n_keys_type n_keys_{};
+    /**
+     * @attention This variable is read/written concurrently.
+     */
+    std::array<base_node*, child_length> children{};
 };
 
 } // namespace yakushima
