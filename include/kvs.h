@@ -159,9 +159,10 @@ template<class ValueType>
  * static_cast<value_align_type>(alignof(ValueType)).
  * @param[in] unique_restriction If this is true, you can't put same key. If you
  * update key, you should execute remove and put.
- * @param[out] inserted_node_version_ptr The pointer to version of the inserted node. It
- * may be used to find out difference of the version between some operations. Default is
- * @a nullptr.
+ * @param[out] inserted_node_version_ptr The pointer to version of the inserted 
+ * node. It may be used to find out difference of the version between some 
+ * operations. Default is @a nullptr. If split occurs due to this insert, this
+ *  point to old border node.
  * @return status::OK success.
  * @return status::WARN_UNIQUE_RESTRICTION The key-value whose key is same to given key
  * already exists.

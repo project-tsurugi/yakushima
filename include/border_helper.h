@@ -165,6 +165,11 @@ static void border_split(tree_instance* ti, border_node* const border,
                          const value_align_type value_align,
                          node_version64** inserted_node_version_ptr,
                          [[maybe_unused]] std::size_t rank) {
+    // update inserted_node_version_ptr
+    if (inserted_node_version_ptr != nullptr) {
+        *inserted_node_version_ptr = border->get_version_ptr();
+    }
+
     border->set_version_splitting(true);
     border_node* new_border = new border_node(); // NOLINT
     new_border->init_border();
@@ -233,9 +238,9 @@ static void border_split(tree_instance* ti, border_node* const border,
                    (key_length > sizeof(key_slice_type) &&
                     new_border->get_key_length_at(0) > sizeof(key_slice_type))
                            ? sizeof(key_slice_type)
-                           : key_length < new_border->get_key_length_at(0)
-                                     ? key_length
-                                     : new_border->get_key_length_at(0))};
+                   : key_length < new_border->get_key_length_at(0)
+                           ? key_length
+                           : new_border->get_key_length_at(0))};
     if (key_length == 0 || // definitely
         ret_memcmp < 0 ||  // smaller than front of new border node
         (ret_memcmp == 0 && key_length < new_border->get_key_length_at(0)) ||
@@ -246,9 +251,6 @@ static void border_split(tree_instance* ti, border_node* const border,
         /**
           * insert to lower border node.
           */
-        if (inserted_node_version_ptr != nullptr) {
-            *inserted_node_version_ptr = border->get_version_ptr();
-        }
         border->insert_lv_at(border->get_permutation().get_empty_slot(),
                              key_view, {value_ptr, value_length, value_align},
                              created_value_ptr, rank);
@@ -256,9 +258,6 @@ static void border_split(tree_instance* ti, border_node* const border,
         /**
           * insert to higher border node.
           */
-        if (inserted_node_version_ptr != nullptr) {
-            *inserted_node_version_ptr = new_border->get_version_ptr();
-        }
         new_border->insert_lv_at(new_border->get_permutation().get_empty_slot(),
                                  key_view,
                                  {value_ptr, value_length, value_align},
