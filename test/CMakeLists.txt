@@ -24,7 +24,8 @@ file(GLOB TEST_SOURCES
         "get/*.cpp"
         "scan/*.cpp"
         "delete/*.cpp"
-        "put_delete/*.cpp"
+        "delete_get_put_scan/*.cpp"
+        "delete_put/*.cpp"
         )
 
 register_tests(
