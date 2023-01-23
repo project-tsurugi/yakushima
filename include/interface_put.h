@@ -74,15 +74,16 @@ retry_find_border:
       * prepare key_slice
       */
     key_slice_type key_slice(0);
-    auto key_slice_length =
-            static_cast<key_length_type>(traverse_key_view.size());
+    key_length_type key_slice_length{};
     if (traverse_key_view.size() > sizeof(key_slice_type)) {
         memcpy(&key_slice, traverse_key_view.data(), sizeof(key_slice_type));
+        key_slice_length = sizeof(key_slice_type) + 1; // rule
     } else {
         if (!traverse_key_view.empty()) {
             memcpy(&key_slice, traverse_key_view.data(),
                    traverse_key_view.size());
         }
+        key_slice_length = traverse_key_view.size();
     }
     /**
       * traverse tree to border node.

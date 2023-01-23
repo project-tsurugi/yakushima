@@ -23,24 +23,27 @@ retry_from_root:
     base_node* root = ti->load_root_ptr();
     if (root == nullptr) { return status::WARN_NOT_EXIST; }
     std::string_view traverse_key_view{key_view};
+
 retry_find_border:
     /**
-   * prepare key_slice
-   */
+      * prepare key_slice
+      */
     key_slice_type key_slice(0);
-    auto key_slice_length =
-            static_cast<key_length_type>(traverse_key_view.size());
+    key_length_type key_slice_length{};
     if (traverse_key_view.size() > sizeof(key_slice_type)) {
         memcpy(&key_slice, traverse_key_view.data(), sizeof(key_slice_type));
+        key_slice_length = sizeof(key_slice_type) + 1;
     } else {
         if (!traverse_key_view.empty()) {
             memcpy(&key_slice, traverse_key_view.data(),
                    traverse_key_view.size());
         }
+        key_slice_length = traverse_key_view.size();
     }
+
     /**
-   * traverse tree to border node.
-   */
+      * traverse tree to border node.
+      */
     status special_status{status::OK};
     std::tuple<border_node*, node_version64_body> node_and_v =
             find_border(root, key_slice, key_slice_length, special_status);
@@ -60,9 +63,10 @@ retry_fetch_lv:
     std::size_t lv_pos{0};
     link_or_value* lv_ptr = target_border->get_lv_of(
             key_slice, key_slice_length, v_at_fetch_lv, lv_pos);
+
     /**
-   * check whether it should get from this node.
-   */
+      * check whether it should get from this node.
+      */
     if (v_at_fetch_lv.get_vsplit() != v_at_fb.get_vsplit() ||
         (v_at_fetch_lv.get_deleted() && !v_at_fetch_lv.get_root())) {
         /**
@@ -71,7 +75,6 @@ retry_fetch_lv:
      */
         goto retry_from_root; // NOLINT
     }
-
     if (lv_ptr == nullptr) { return status::WARN_NOT_EXIST; }
 
     if (target_border->get_key_length_at(lv_pos) <= sizeof(key_slice_type)) {
