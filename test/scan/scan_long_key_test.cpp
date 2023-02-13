@@ -33,8 +33,8 @@ private:
     static inline std::once_flag init_; // NOLINT
 };
 
-TEST_F(scan_long_key_test, DISABLED_put_scan_delete) { // NOLINT
-                                                       // prepare
+TEST_F(scan_long_key_test, put_scan_delete) { // NOLINT
+    // prepare
     Token s{};
     ASSERT_EQ(status::OK, enter(s));
     std::string st{"test"};
