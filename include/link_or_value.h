@@ -87,7 +87,10 @@ public:
         if (next != nullptr) { next->mem_usage(level + 1, mem_stat); }
     }
 
-    [[nodiscard]] bool get_need_delete_value() const { return need_delete_; }
+
+    [[nodiscard]] bool get_need_delete_value() const {
+        return value_.get_need_delete_value();
+    }
 
     [[nodiscard]] base_node* get_next_layer() const {
         return loadAcquireN(next_layer_);
@@ -149,9 +152,8 @@ public:
        * It use copy assign, so ValueType must be copy-assignable.
        */
             // todo inline 8 bytes value.
-            set_v_or_vp(::operator new(
-                    new_value.get_len(),
-                    static_cast<std::align_val_t>(new_value.get_align())));
+            set_v_or_vp(
+                    ::operator new(new_value.get_len(), new_value.get_align()));
             if (created_value_ptr != nullptr) {
                 *created_value_ptr = get_v_or_vp_();
             }
@@ -183,9 +185,8 @@ public:
             /**
        * It use copy assign, so ValueType must be copy-assignable.
        */
-            set_v_or_vp(::operator new(
-                    new_value.get_len(),
-                    static_cast<std::align_val_t>(new_value.get_align())));
+            set_v_or_vp(
+                    ::operator new(new_value.get_len(), new_value.get_align()));
             if (created_value_ptr != nullptr) {
                 *created_value_ptr = get_v_or_vp_();
             }
@@ -212,25 +213,18 @@ public:
 
     void set_value_length(const value_length_type len) { value_.set_len(len); }
 
-    void set_need_delete(const bool tf) { need_delete_ = tf; }
+    void set_need_delete(const bool tf) { value_.set_need_delete(tf); }
 
 private:
     /**
-   * @attention
-   * This variable is read/write concurrently.
-   * If this is nullptr, value is stored.
-   * If this is not nullptr, it contains next_layer.
-   */
+     * @attention
+     * This variable is read/write concurrently.
+     * If this is nullptr, value is stored.
+     * If this is not nullptr, it contains next_layer.
+     */
     base_node* next_layer_{nullptr};
 
     value value_{};
-
-    /**
-   * @attention
-   * This variable is read/write concurrently.
-   * This variable is updated at initialization and destruction.
-   */
-    bool need_delete_{false};
 };
 
 } // namespace yakushima
