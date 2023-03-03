@@ -71,6 +71,22 @@ public:
                   << static_cast<std::size_t>(get_value_align()) << std::endl;
     }
 
+    /**
+     * @brief Collect the memory usage of this record.
+     * 
+     * @param level the level of this node in the tree.
+     * @param mem_stat the stack of memory usage for each level.
+     */
+    void mem_usage(std::size_t level, memory_usage_stack& mem_stat) const {
+        const auto val_len = get_value_length();
+        auto& [node_num, used, reserved] = mem_stat.at(level);
+        used += val_len;
+        reserved += val_len;
+
+        const auto* next = get_next_layer();
+        if (next != nullptr) { next->mem_usage(level + 1, mem_stat); }
+    }
+
     [[nodiscard]] bool get_need_delete_value() const { return need_delete_; }
 
     [[nodiscard]] base_node* get_next_layer() const {

@@ -213,6 +213,29 @@ public:
     }
 
     /**
+     * @brief Collect the memory usage of this partial tree.
+     * 
+     * @param level the level of this node in the tree.
+     * @param mem_stat the stack of memory usage for each level.
+     */
+    void mem_usage(std::size_t level,
+                   memory_usage_stack& mem_stat) const override {
+        if (mem_stat.size() <= level) { mem_stat.emplace_back(0, 0, 0); }
+        auto& [node_num, used, reserved] = mem_stat.at(level);
+
+        const std::size_t cnk = get_permutation_cnk();
+        ++node_num;
+        reserved += sizeof(border_node);
+        used += sizeof(border_node) -
+                ((key_slice_length - cnk) * sizeof(link_or_value));
+
+        for (std::size_t i = 0; i < cnk; ++i) {
+            std::size_t index = permutation_.get_index_of_rank(i);
+            lv_.at(index).mem_usage(level, mem_stat);
+        }
+    }
+
+    /**
       * @post It is necessary for the caller to verify whether the extraction is appropriate.
       * @param[out] next_layers
       * @attention layers are stored in ascending order.

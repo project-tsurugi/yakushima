@@ -39,6 +39,13 @@ namespace yakushima {
 [[maybe_unused]] static status destroy(); // NOLINT
 
 /**
+ * @param [in] storage_name
+ * @return The memory usage data of the given storage.
+ */
+[[maybe_unused]] static memory_usage_stack
+mem_usage(std::string_view storage_name);
+
+/**
  * @brief Create storage
  * @param [in] storage_name
  * @attention Do not treat DDL operations in parallel with DML operations.

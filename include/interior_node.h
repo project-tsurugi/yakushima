@@ -148,11 +148,34 @@ public:
         }
     }
 
+    /**
+     * @brief Collect the memory usage of this partial tree.
+     * 
+     * @param level the level of this node in the tree.
+     * @param mem_stat the stack of memory usage for each level.
+     */
+    void mem_usage(std::size_t level,
+                   memory_usage_stack& mem_stat) const override {
+        if (mem_stat.size() <= level) { mem_stat.emplace_back(0, 0, 0); }
+        auto& [node_num, used, reserved] = mem_stat.at(level);
+
+        const auto n_keys = n_keys_ + 1UL;
+        ++node_num;
+        reserved += sizeof(interior_node);
+        used += sizeof(interior_node) -
+                ((child_length - n_keys) * sizeof(base_node*));
+
+        const auto next_level = level + 1;
+        for (std::size_t i = 0; i < n_keys; ++i) {
+            get_child_at(i)->mem_usage(next_level, mem_stat);
+        }
+    }
+
     [[nodiscard]] n_keys_body_type get_n_keys() {
         return n_keys_.load(std::memory_order_acquire);
     }
 
-    [[nodiscard]] base_node* get_child_at(std::size_t index) {
+    [[nodiscard]] base_node* get_child_at(std::size_t index) const {
         return loadAcquireN(children.at(index));
     }
 
