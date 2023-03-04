@@ -26,17 +26,22 @@ TEST_F(bnt, display) { // NOLINT
 }
 
 TEST_F(bnt, shift_left_border_member) { // NOLINT
+    constexpr auto kVAlign =
+            static_cast<value_align_type>(alignof(std::size_t));
+
     border_node bn;
-    link_or_value lv;
     for (std::size_t i = 0; i < 15; ++i) {
-        lv.set_value_length(i);
-        bn.set_lv(i, &lv);
+        auto* v = value::create_value(&i, i, kVAlign);
+        bn.set_lv_value(i, v, nullptr);
     }
     for (std::size_t i = 0; i < 5; ++i) {
-        link_or_value lv2 = *bn.get_lv_at(0);
+        const auto* leftmost_lv = bn.get_lv_at(0);
+        const auto leftmost_len = leftmost_lv->get_value()->get_len();
+
         bn.shift_left_border_member(1, 1);
-        ASSERT_EQ(lv2.get_value_length() + 1,
-                  bn.get_lv_at(0)->get_value_length());
+
+        ASSERT_EQ(leftmost_len + 1, bn.get_lv_at(0)->get_value()->get_len());
     }
+    bn.destroy();
 }
 } // namespace yakushima::testing

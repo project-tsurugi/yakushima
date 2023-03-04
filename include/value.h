@@ -9,52 +9,110 @@ namespace yakushima {
 
 class value {
 public:
-    value() = default;
+    /**
+     * @brief Create a new value instance with dynamic memory allocation.
+     * 
+     * @param[in] in_ptr The source address of a new value.
+     * @param[in] v_len The length of a new value.
+     * @param[in] v_align The alignment size of a new value.
+     * @return The pointer to the new value.
+     */
+    static value* create_value(const void* in_ptr, value_length_type v_len,
+                               value_align_type v_align) {
+        // compute the size/alignment to be reserved
+        constexpr auto kMinAlignment = static_cast<value_align_type>(8);
+        if (v_align < kMinAlignment) { v_align = kMinAlignment; }
+        const auto total_len = v_len + static_cast<value_length_type>(v_align);
 
-    value(void* body, value_length_type len, value_align_type align)
-        : body_(body), len_(len), align_(static_cast<std::uint16_t>(align)) {}
+        // allocate memory and copy the given value
+        // NOTE: it use copy assign, so ValueType must be copy-assignable.
+        value* v{};
+        try {
+            v = new (::operator new(total_len, v_align)) value{v_len, v_align};
+        } catch (std::bad_alloc& e) {
+            LOG(ERROR) << log_location_prefix << e.what();
+        }
+        memcpy(v->get_body(), in_ptr, v_len);
 
+        return v;
+    }
+
+    /**
+     * @brief Release the given value pointer.
+     * 
+     * This function computes the actual size and alignment of the given value to
+     * release the allocated memory correctly.
+     * 
+     * @param[in] v The value pointer to be deleted.
+     */
+    static void delete_value(value* v) {
+        ::operator delete(v, v->get_total_len(), v->get_align());
+    }
+
+    /**
+     * @return The address of the contained value.
+     */
+    [[nodiscard]] void* get_body() {
+        auto* shiftted_addr = &(reinterpret_cast<std::byte*>(this)[align_]);
+        return reinterpret_cast<void*>(shiftted_addr);
+    }
+
+    /**
+     * @return The length of the contained value.
+     */
+    [[nodiscard]] value_length_type get_len() const { return len_; }
+
+    /**
+     * @return The allocated memory size for this value.
+     */
+    [[nodiscard]] value_length_type get_total_len() const {
+        return len_ + align_;
+    }
+
+    /**
+     * @return The alignment size of the contained value.
+     */
     [[nodiscard]] value_align_type get_align() const {
         return static_cast<value_align_type>(align_);
     }
 
-    [[nodiscard]] void* get_body() const { return body_; }
-
-    [[nodiscard]] value_length_type get_len() const { return len_; }
-
+    /**
+     * @retval true The contained value to be deleted.
+     * @retval false  Otherwise.
+     */
     [[nodiscard]] bool get_need_delete_value() const { return need_delete_; }
 
-    void set_align(value_align_type const v_align) {
-        align_ = static_cast<std::uint16_t>(v_align);
-    }
-
-    void set_body(void* const body) { body_ = body; }
-
-    void set_len(value_length_type const v_len) { len_ = v_len; }
-
-    void set_need_delete(const bool tf) { need_delete_ = tf; }
+    /**
+     * @brief Set the flag for deletion off.
+     * 
+     */
+    void remove_delete_flag() { need_delete_ = false; }
 
 private:
     /**
-     * @details
-     * This variable is stored value body whose size is less than pointer or pointer to
-     * value. This variable is read/write concurrently.
+     * @brief Internal constructor for setting header information.
+     * 
+     * @param[in] v_len The length of a new value.
+     * @param[in] v_align The alignment size of a new value.
      */
-    void* body_{nullptr};
+    value(value_length_type v_len, value_align_type v_align)
+        : len_(v_len),
+          align_(static_cast<std::uint16_t>(v_align)), need_delete_{true} {}
 
     /**
-     * @attention
-     * This variable is read/write concurrently.
-     * This variable is updated at initialization and destruction.
+     * @brief The length of the contained value.
      */
     std::uint32_t len_{0};
 
+    /**
+     * @brief The alignment size of the contained value.
+     * 
+     * Note that the minimum alignment is 8 bytes to retain the header region.
+     */
     std::uint16_t align_{0};
 
     /**
-     * @attention
-     * This variable is read/write concurrently.
-     * This variable is updated at initialization and destruction.
+     * @brief A flag for indicating this value is active.
      */
     bool need_delete_{false};
 };

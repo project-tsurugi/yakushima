@@ -107,20 +107,16 @@ static void create_interior_parent_of_border(border_node* const left,
  * void *.
  * @param[in] border
  * @param[in] key_view
- * @param[in] value_ptr
+ * @param[in] new_value
  * @param[out] created_value_ptr
- * @param[in] arg_value_length
- * @param[in] value_align
  * @param[out] inserted_node_version_ptr
  * @param[in] rank
  */
 
 template<class interior_node, class border_node>
 static void insert_lv(tree_instance* ti, border_node* const border,
-                      std::string_view key_view, void* const value_ptr,
+                      std::string_view key_view, value* new_value,
                       void** const created_value_ptr,
-                      const value_length_type arg_value_length,
-                      const value_align_type value_align,
                       node_version64** inserted_node_version_ptr,
                       std::size_t rank) {
     border->set_version_inserting_deleting(true);
@@ -140,8 +136,8 @@ static void insert_lv(tree_instance* ti, border_node* const border,
           * It needs splitting
           */
         border_split<interior_node, border_node>(
-                ti, border, key_view, value_ptr, created_value_ptr,
-                arg_value_length, value_align, inserted_node_version_ptr, rank);
+                ti, border, key_view, new_value, created_value_ptr,
+                inserted_node_version_ptr, rank);
     } else {
         /**
           * Insert into this nodes.
@@ -150,19 +146,15 @@ static void insert_lv(tree_instance* ti, border_node* const border,
             *inserted_node_version_ptr = border->get_version_ptr();
         }
         border->insert_lv_at(border->get_permutation().get_empty_slot(),
-                             key_view,
-                             {value_ptr, arg_value_length, value_align},
-                             created_value_ptr, rank);
+                             key_view, new_value, created_value_ptr, rank);
         border->version_unlock();
     }
 }
 
 template<class interior_node, class border_node>
 static void border_split(tree_instance* ti, border_node* const border,
-                         std::string_view key_view, void* const value_ptr,
+                         std::string_view key_view, value* new_value,
                          void** const created_value_ptr,
-                         const value_length_type value_length,
-                         const value_align_type value_align,
                          node_version64** inserted_node_version_ptr,
                          [[maybe_unused]] std::size_t rank) {
     // update inserted_node_version_ptr
@@ -252,16 +244,14 @@ static void border_split(tree_instance* ti, border_node* const border,
           * insert to lower border node.
           */
         border->insert_lv_at(border->get_permutation().get_empty_slot(),
-                             key_view, {value_ptr, value_length, value_align},
-                             created_value_ptr, rank);
+                             key_view, new_value, created_value_ptr, rank);
     } else {
         /**
           * insert to higher border node.
           */
         new_border->insert_lv_at(new_border->get_permutation().get_empty_slot(),
-                                 key_view,
-                                 {value_ptr, value_length, value_align},
-                                 created_value_ptr, rank - remaining_size);
+                                 key_view, new_value, created_value_ptr,
+                                 rank - remaining_size);
     }
 
     base_node* p = border->lock_parent();

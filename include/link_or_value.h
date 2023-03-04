@@ -48,27 +48,29 @@ public:
     }
 
     void destroy_value() {
-        if (get_need_delete_value()) {
-            ::operator delete(get_v_or_vp_(), static_cast<std::align_val_t>(
-                                                      (get_value_align())));
-        }
-        set_need_delete(false);
-        set_v_or_vp(nullptr);
-        set_value_length(0);
-        set_value_align(static_cast<std::align_val_t>(0));
+        if (get_need_delete_value()) { value::delete_value(value_); }
+        value_ = nullptr;
     }
 
     /**
-   * @details display function for analysis and debug.
-   */
+     * @details display function for analysis and debug.
+     */
     void display() const {
         std::cout << "need_delete_value_ : " << get_need_delete_value()
                   << std::endl;
         std::cout << "next_layer_ : " << get_next_layer() << std::endl;
-        std::cout << "v_or_vp_ : " << get_v_or_vp_() << std::endl;
-        std::cout << "value_length_ : " << get_value_length() << std::endl;
-        std::cout << "value_align_ : "
-                  << static_cast<std::size_t>(get_value_align()) << std::endl;
+        if (value_ == nullptr) {
+            std::cout << "v_or_vp_ : " << nullptr << std::endl;
+            std::cout << "value_length_ : " << 0 << std::endl;
+            std::cout << "value_align_ : " << 0 << std::endl;
+
+        } else {
+            std::cout << "v_or_vp_ : " << value_->get_body() << std::endl;
+            std::cout << "value_length_ : " << value_->get_len() << std::endl;
+            std::cout << "value_align_ : "
+                      << static_cast<std::size_t>(value_->get_align())
+                      << std::endl;
+        }
     }
 
     /**
@@ -78,10 +80,10 @@ public:
      * @param mem_stat the stack of memory usage for each level.
      */
     void mem_usage(std::size_t level, memory_usage_stack& mem_stat) const {
-        const auto val_len = get_value_length();
+        const auto v_len = (value_ == nullptr) ? 0 : value_->get_total_len();
         auto& [node_num, used, reserved] = mem_stat.at(level);
-        used += val_len;
-        reserved += val_len;
+        used += v_len;
+        reserved += v_len;
 
         const auto* next = get_next_layer();
         if (next != nullptr) { next->mem_usage(level + 1, mem_stat); }
@@ -89,7 +91,7 @@ public:
 
 
     [[nodiscard]] bool get_need_delete_value() const {
-        return value_.get_need_delete_value();
+        return (value_ == nullptr) ? false : value_->get_need_delete_value();
     }
 
     [[nodiscard]] base_node* get_next_layer() const {
@@ -98,122 +100,76 @@ public:
 
     [[maybe_unused]] [[nodiscard]] const std::type_info* get_lv_type() const {
         if (get_next_layer() != nullptr) { return &typeid(get_next_layer()); }
-        if (get_v_or_vp_() != nullptr) { return &typeid(get_v_or_vp_()); }
+        if (get_value() != nullptr) { return &typeid(get_value()); }
         return &typeid(nullptr);
     }
 
-    [[nodiscard]] void* get_v_or_vp_() const { return value_.get_body(); }
-
-    [[nodiscard]] value_align_type get_value_align() const {
-        return value_.get_align();
-    }
-
-    [[nodiscard]] value_length_type get_value_length() const {
-        return value_.get_len();
-    }
+    [[nodiscard]] value* get_value() const { return value_; }
 
     void init_lv() {
-        set_need_delete(false);
         set_next_layer(nullptr);
-        set_v_or_vp(nullptr);
-        set_value_length(0);
-        set_value_align(static_cast<std::align_val_t>(0));
+        value_ = nullptr;
     }
 
     /**
-   * @pre This is called by split process.
-   * @details This is move process.
-   * @param nlv
-   */
+     * @pre This is called by split process.
+     * @details This is move process.
+     * @param nlv
+     */
     void set(link_or_value* const nlv) {
         /**
-     * This object in this function is not accessed concurrently, so it can copy assign.
-     */
+         * This object in this function is not accessed concurrently, so it can copy assign.
+         */
         *this = *nlv;
     }
 
     /**
-   * @pre @a arg_value_length is divisible by sizeof( @a ValueType ).
-   * @pre This function called at initialization.
-   * @param[in] new_value todo write
-   * @param[out] created_value_ptr The pointer to created value in yakushima.
-   */
-    void set_value(value const new_value, void** const created_value_ptr) {
-        if (get_need_delete_value()) {
-            ::operator delete(get_v_or_vp_(), get_value_length(),
-                              get_value_align());
-            set_need_delete(false);
-        }
+     * @pre @a arg_value_length is divisible by sizeof( @a ValueType ).
+     * @pre This function called at initialization.
+     * @param[in] new_value todo write
+     * @param[out] created_value_ptr The pointer to created value in yakushima.
+     */
+    void set_value(value* new_value, void** const created_value_ptr) {
+        // delete the old value if exist
+        if (get_need_delete_value()) { value::delete_value(value_); }
+
+        // remove the child pointer explicitly
         set_next_layer(nullptr);
-        set_value_length(new_value.get_len());
-        set_value_align(new_value.get_align());
-        try {
-            /**
-       * It use copy assign, so ValueType must be copy-assignable.
-       */
-            // todo inline 8 bytes value.
-            set_v_or_vp(
-                    ::operator new(new_value.get_len(), new_value.get_align()));
-            if (created_value_ptr != nullptr) {
-                *created_value_ptr = get_v_or_vp_();
-            }
-            memcpy(get_v_or_vp_(), new_value.get_body(), new_value.get_len());
-            set_need_delete(true);
-        } catch (std::bad_alloc& e) {
-            LOG(ERROR) << log_location_prefix << e.what();
+
+        // copy the given value
+        value_ = new_value;
+        if (created_value_ptr != nullptr) {
+            *created_value_ptr = value_->get_body();
         }
     }
 
     /**
-   * @brief for update operation. todo : write documents much.
-   * @param[in] new_value todo write
-   * @param[out] old_value todo write
-   * @param[out] created_value_ptr todo write
-   */
-    void set_value(value const new_value, value& old_value,
+     * @brief for update operation. todo : write documents much.
+     * @param[in] new_value todo write
+     * @param[out] old_value todo write
+     * @param[out] created_value_ptr todo write
+     */
+    void set_value(value* new_value, value*& old_value,
                    void** const created_value_ptr) {
-        if (get_need_delete_value()) {
-            old_value = value_;
-            set_need_delete(false);
-        } else {
-            old_value = value{};
-        }
+        old_value = get_need_delete_value() ? value_ : nullptr;
+
+        // remove the child pointer explicitly
         set_next_layer(nullptr);
-        set_value_length(new_value.get_len());
-        set_value_align(new_value.get_align());
-        try {
-            /**
-       * It use copy assign, so ValueType must be copy-assignable.
-       */
-            set_v_or_vp(
-                    ::operator new(new_value.get_len(), new_value.get_align()));
-            if (created_value_ptr != nullptr) {
-                *created_value_ptr = get_v_or_vp_();
-            }
-            memcpy(get_v_or_vp_(), new_value.get_body(), new_value.get_len());
-            set_need_delete(true);
-        } catch (std::bad_alloc& e) {
-            LOG(ERROR) << log_location_prefix << e.what();
+
+        // copy the given value
+        value_ = new_value;
+        if (created_value_ptr != nullptr) {
+            *created_value_ptr = value_->get_body();
         }
     }
 
     /**
-   * @pre This function called at initialization.
-   * @param[in] new_next_layer
-   */
+     * @pre This function called at initialization.
+     * @param[in] new_next_layer
+     */
     void set_next_layer(base_node* const new_next_layer) {
         storeReleaseN(next_layer_, new_next_layer);
     }
-
-    void set_v_or_vp(void* const v) { value_.set_body(v); }
-
-    void set_value_align(const value_align_type align) {
-        value_.set_align(align);
-    }
-
-    void set_value_length(const value_length_type len) { value_.set_len(len); }
-
-    void set_need_delete(const bool tf) { value_.set_need_delete(tf); }
 
 private:
     /**
@@ -224,7 +180,7 @@ private:
      */
     base_node* next_layer_{nullptr};
 
-    value value_{};
+    value* value_{nullptr};
 };
 
 } // namespace yakushima

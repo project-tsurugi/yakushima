@@ -38,13 +38,13 @@ public:
                    const bool target_is_value) {
         auto* ti = reinterpret_cast<thread_info*>(token); // NOLINT
         if (target_is_value) {
+            value* vp = lv_.at(pos).get_value();
+            vp->remove_delete_flag();
+            const auto len = vp->get_total_len();
+            const auto align = vp->get_align();
             ti->get_gc_info().push_value_container(
-                    {ti->get_begin_epoch(), lv_.at(pos).get_v_or_vp_(),
-                     lv_.at(pos).get_value_length(),
-                     lv_.at(pos).get_value_align()});
+                    {ti->get_begin_epoch(), vp, len, align});
         }
-        // set need delete false to avoid conflict of deleting memory
-        lv_.at(pos).set_need_delete(false);
 
         // rearrange permutation
         permutation_.delete_rank(rank);
@@ -465,7 +465,7 @@ public:
       * @param[in] root is the root node of the layer.
       */
     template<class ValueType>
-    void init_border(std::string_view key_view, value const new_value,
+    void init_border(std::string_view key_view, value* new_value,
                      ValueType** const created_value_ptr, const bool root) {
         init_border();
         set_version_root(root);
@@ -490,7 +490,7 @@ public:
       * @param[in] rank
       */
     void insert_lv_at(const std::size_t index, std::string_view key_view,
-                      value const new_value, void** const created_value_ptr,
+                      value* new_value, void** const created_value_ptr,
                       const std::size_t rank) {
         /**
           * attention: key_slice must be initialized to 0.
@@ -553,7 +553,7 @@ public:
       * @param[in] new_value todo write
       * @param[out] created_value_ptr todo write
       */
-    void set_lv_value(const std::size_t index, const value new_value,
+    void set_lv_value(const std::size_t index, value* new_value,
                       void** const created_value_ptr) {
         lv_.at(index).set_value(new_value, created_value_ptr);
     }
