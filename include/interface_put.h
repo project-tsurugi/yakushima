@@ -186,8 +186,8 @@ retry_fetch_lv:
             value* old_value = nullptr;
             value* v = value::create_value(v_ptr, v_len, v_align);
             lv_ptr->set_value(
-                    v, old_value,
-                    reinterpret_cast<void**>(created_value_ptr)); // NOLINT
+                    v, reinterpret_cast<void**>(created_value_ptr), // NOLINT
+                    &old_value);
             target_border->version_unlock();
             auto* thin = reinterpret_cast<thread_info*>(token); // NOLINT
             if (old_value != nullptr) {

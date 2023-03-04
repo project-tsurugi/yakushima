@@ -53,8 +53,8 @@ public:
      * @return The address of the contained value.
      */
     [[nodiscard]] void* get_body() {
-        auto* shiftted_addr = &(reinterpret_cast<std::byte*>(this)[align_]);
-        return reinterpret_cast<void*>(shiftted_addr);
+        return reinterpret_cast<void*>(                         // NOLINT
+                &(reinterpret_cast<std::byte*>(this)[align_])); // NOLINT
     }
 
     /**
@@ -80,7 +80,7 @@ public:
      * @retval true The contained value to be deleted.
      * @retval false  Otherwise.
      */
-    [[nodiscard]] bool get_need_delete_value() const { return need_delete_; }
+    [[nodiscard]] bool need_delete() const { return need_delete_; }
 
     /**
      * @brief Set the flag for deletion off.

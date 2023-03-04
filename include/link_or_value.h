@@ -32,84 +32,97 @@ public:
     ~link_or_value() = default;
 
     /**
-   * @details release heap objects.
-   */
+     * @details release heap objects.
+     */
     void destroy() {
-        destroy_next_layer();
-        destroy_value();
-    }
-
-    void destroy_next_layer() {
-        if (next_layer_ != nullptr) {
-            next_layer_->destroy();
-            delete next_layer_; // NOLINT
+        if (auto* child = get_next_layer(); child != nullptr) {
+            child->destroy();
+            delete child; // NOLINT
+        } else if (auto* v = get_value(); v != nullptr) {
+            if (v->need_delete()) { value::delete_value(v); }
         }
-        set_next_layer(nullptr);
-    }
-
-    void destroy_value() {
-        if (get_need_delete_value()) { value::delete_value(value_); }
-        value_ = nullptr;
+        child_or_v_ = 0;
     }
 
     /**
      * @details display function for analysis and debug.
      */
     void display() const {
-        std::cout << "need_delete_value_ : " << get_need_delete_value()
-                  << std::endl;
-        std::cout << "next_layer_ : " << get_next_layer() << std::endl;
-        if (value_ == nullptr) {
+        if (auto* child = get_next_layer(); child != nullptr) {
+            std::cout << "need_delete_value_ : " << false << std::endl;
+            std::cout << "next_layer_ : " << child << std::endl;
             std::cout << "v_or_vp_ : " << nullptr << std::endl;
             std::cout << "value_length_ : " << 0 << std::endl;
             std::cout << "value_align_ : " << 0 << std::endl;
-
-        } else {
-            std::cout << "v_or_vp_ : " << value_->get_body() << std::endl;
-            std::cout << "value_length_ : " << value_->get_len() << std::endl;
-            std::cout << "value_align_ : "
-                      << static_cast<std::size_t>(value_->get_align())
-                      << std::endl;
+        } else if (auto* v = get_value(); v != nullptr) {
+            const auto del_flag = v->need_delete();
+            const auto v_align = static_cast<std::size_t>(v->get_align());
+            std::cout << "need_delete_value_ : " << del_flag << std::endl;
+            std::cout << "next_layer_ : " << nullptr << std::endl;
+            std::cout << "v_or_vp_ : " << v->get_body() << std::endl;
+            std::cout << "value_length_ : " << v->get_len() << std::endl;
+            std::cout << "value_align_ : " << v_align << std::endl;
         }
     }
 
     /**
      * @brief Collect the memory usage of this record.
      * 
-     * @param level the level of this node in the tree.
-     * @param mem_stat the stack of memory usage for each level.
+     * @param[in] level The level of this node in the tree.
+     * @param[in,out] mem_stat The stack of memory usage for each level.
      */
     void mem_usage(std::size_t level, memory_usage_stack& mem_stat) const {
-        const auto v_len = (value_ == nullptr) ? 0 : value_->get_total_len();
-        auto& [node_num, used, reserved] = mem_stat.at(level);
-        used += v_len;
-        reserved += v_len;
-
-        const auto* next = get_next_layer();
-        if (next != nullptr) { next->mem_usage(level + 1, mem_stat); }
-    }
-
-
-    [[nodiscard]] bool get_need_delete_value() const {
-        return (value_ == nullptr) ? false : value_->get_need_delete_value();
-    }
-
-    [[nodiscard]] base_node* get_next_layer() const {
-        return loadAcquireN(next_layer_);
+        if (auto* child = get_next_layer(); child != nullptr) {
+            child->mem_usage(level + 1, mem_stat);
+        } else if (auto* v = get_value(); v != nullptr) {
+            const auto v_len = v->get_total_len();
+            auto& [node_num, used, reserved] = mem_stat.at(level);
+            used += v_len;
+            reserved += v_len;
+        }
     }
 
     [[maybe_unused]] [[nodiscard]] const std::type_info* get_lv_type() const {
-        if (get_next_layer() != nullptr) { return &typeid(get_next_layer()); }
-        if (get_value() != nullptr) { return &typeid(get_value()); }
+        if (get_next_layer() != nullptr) { return &typeid(base_node*); }
+        if (get_value() != nullptr) { return &typeid(value*); }
         return &typeid(nullptr);
     }
 
-    [[nodiscard]] value* get_value() const { return value_; }
-
-    void init_lv() {
-        set_next_layer(nullptr);
-        value_ = nullptr;
+    /**
+     * @brief Get the root node of the next layer.
+     * 
+     * Note that this function uses the atomic operation (i.e., load) for dealing with
+     * concurrent modifications.
+     * 
+     * @retval The root node of the next layer if exists.
+     * @retval nullptr otherwise.
+     */
+    [[nodiscard]] base_node* get_next_layer() const {
+        const auto ptr = loadAcquireN(child_or_v_);
+        if ((ptr & kChildFlag) == 0) { return nullptr; }
+        return reinterpret_cast<base_node*>(ptr & ~kChildFlag); // NOLINT
     }
+
+    /**
+     * @brief Get the value pointer.
+     * 
+     * Note that this function uses the atomic operation (i.e., load) for dealing with
+     * concurrent modifications.
+     * 
+     * @retval The pointer of the contained value if exists.
+     * @retval nullptr otherwise.
+     */
+    [[nodiscard]] value* get_value() const {
+        const auto ptr = loadAcquireN(child_or_v_);
+        if ((ptr & kChildFlag) > 0 || ptr == 0UL) { return nullptr; }
+        return reinterpret_cast<value*>(ptr); // NOLINT
+    }
+
+    /**
+     * @brief Initialize the payload to zero.
+     * 
+     */
+    void init_lv() { child_or_v_ = 0; }
 
     /**
      * @pre This is called by split process.
@@ -124,42 +137,27 @@ public:
     }
 
     /**
-     * @pre @a arg_value_length is divisible by sizeof( @a ValueType ).
-     * @pre This function called at initialization.
+     * @brief todo : write documents much.
      * @param[in] new_value todo write
-     * @param[out] created_value_ptr The pointer to created value in yakushima.
-     */
-    void set_value(value* new_value, void** const created_value_ptr) {
-        // delete the old value if exist
-        if (get_need_delete_value()) { value::delete_value(value_); }
-
-        // remove the child pointer explicitly
-        set_next_layer(nullptr);
-
-        // copy the given value
-        value_ = new_value;
-        if (created_value_ptr != nullptr) {
-            *created_value_ptr = value_->get_body();
-        }
-    }
-
-    /**
-     * @brief for update operation. todo : write documents much.
-     * @param[in] new_value todo write
-     * @param[out] old_value todo write
      * @param[out] created_value_ptr todo write
+     * @param[out] old_value todo write
      */
-    void set_value(value* new_value, value*& old_value,
-                   void** const created_value_ptr) {
-        old_value = get_need_delete_value() ? value_ : nullptr;
+    void set_value(value* new_value, void** const created_value_ptr,
+                   value** old_value = nullptr) {
+        auto* cur_v = get_value();
+        if (cur_v != nullptr && cur_v->need_delete()) {
+            if (old_value == nullptr) {
+                value::delete_value(cur_v);
+            } else {
+                *old_value = cur_v;
+            }
+        }
 
-        // remove the child pointer explicitly
-        set_next_layer(nullptr);
-
-        // copy the given value
-        value_ = new_value;
+        // store the given value
+        const auto ptr = reinterpret_cast<uintptr_t>(new_value); // NOLINT
+        storeReleaseN(child_or_v_, ptr);
         if (created_value_ptr != nullptr) {
-            *created_value_ptr = value_->get_body();
+            *created_value_ptr = new_value->get_body();
         }
     }
 
@@ -168,19 +166,25 @@ public:
      * @param[in] new_next_layer
      */
     void set_next_layer(base_node* const new_next_layer) {
-        storeReleaseN(next_layer_, new_next_layer);
+        auto ptr = reinterpret_cast<uintptr_t>(new_next_layer); // NOLINT
+        storeReleaseN(child_or_v_, ptr | kChildFlag);
     }
 
 private:
     /**
+     * @brief A flag for indicating that the next layer exists.
+     * 
+     */
+    static constexpr uintptr_t kChildFlag = 1UL << 63;
+
+    /**
      * @attention
      * This variable is read/write concurrently.
-     * If this is nullptr, value is stored.
-     * If this is not nullptr, it contains next_layer.
+     * If all the bits are zeros, this does not have any data.
+     * If the most significant bit is one, this contains the next layer.
+     * Otherwise, this contains the pointer of a value.
      */
-    base_node* next_layer_{nullptr};
-
-    value* value_{nullptr};
+    uintptr_t child_or_v_{0};
 };
 
 } // namespace yakushima
