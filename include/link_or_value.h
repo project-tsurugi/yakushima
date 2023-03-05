@@ -175,7 +175,7 @@ private:
      * @brief A flag for indicating that the next layer exists.
      * 
      */
-    static constexpr uintptr_t kChildFlag = 1UL << 63;
+    static constexpr uintptr_t kChildFlag = 1UL << 63UL;
 
     /**
      * @attention

@@ -28,7 +28,8 @@ public:
         // NOTE: it use copy assign, so ValueType must be copy-assignable.
         value* v{};
         try {
-            v = new (::operator new(total_len, v_align)) value{v_len, v_align};
+            auto* page = ::operator new(total_len, v_align);
+            v = new (page) value{v_len, v_align}; // NOLINT
         } catch (std::bad_alloc& e) {
             LOG(ERROR) << log_location_prefix << e.what();
         }

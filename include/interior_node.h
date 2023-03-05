@@ -163,7 +163,7 @@ public:
         ++node_num;
         reserved += sizeof(interior_node);
         used += sizeof(interior_node) -
-                ((child_length - n_keys) * sizeof(base_node*));
+                ((child_length - n_keys) * sizeof(uintptr_t));
 
         const auto next_level = level + 1;
         for (std::size_t i = 0; i < n_keys; ++i) {
