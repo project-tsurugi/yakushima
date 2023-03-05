@@ -34,6 +34,8 @@ put([[maybe_unused]] Token token, tree_instance* ti, std::string_view key_view,
     value_align_type v_align =
             static_cast<value_align_type>(alignof(ValueType)),
     node_version64** inserted_node_version_ptr = nullptr) {
+    constexpr auto kIsInline = is_inlinable<ValueType>();
+    auto* created_v_ptr = reinterpret_cast<void**>(created_value_ptr); // NOLINT
 
 root_nullptr:
     base_node* expected = ti->load_root_ptr();
@@ -42,7 +44,7 @@ root_nullptr:
           * root is nullptr, so put single border nodes.
           */
         border_node* new_border = new border_node(); // NOLINT
-        value* v = value::create_value(v_ptr, v_len, v_align);
+        value* v = value::create_value<kIsInline>(v_ptr, v_len, v_align);
         new_border->init_border(key_view, v, created_value_ptr, true);
         for (;;) {
             if (inserted_node_version_ptr != nullptr) {
@@ -149,10 +151,9 @@ retry_fetch_lv:
             target_border->version_unlock();
             goto retry_fetch_lv; // NOLINT
         }
-        value* v = value::create_value(v_ptr, v_len, v_align);
+        value* v = value::create_value<kIsInline>(v_ptr, v_len, v_align);
         insert_lv<interior_node, border_node>(
-                ti, target_border, traverse_key_view, v,
-                reinterpret_cast<void**>(created_value_ptr), // NOLINT
+                ti, target_border, traverse_key_view, v, created_v_ptr,
                 inserted_node_version_ptr,
                 target_border->compute_rank_if_insert(key_slice,
                                                       key_slice_length));
@@ -183,17 +184,20 @@ retry_fetch_lv:
                 goto retry_fetch_lv; // NOLINT
             }
 
-            value* old_value = nullptr;
-            value* v = value::create_value(v_ptr, v_len, v_align);
-            lv_ptr->set_value(
-                    v, reinterpret_cast<void**>(created_value_ptr), // NOLINT
-                    &old_value);
-            target_border->version_unlock();
-            auto* thin = reinterpret_cast<thread_info*>(token); // NOLINT
-            if (old_value != nullptr) {
-                thin->get_gc_info().push_value_container(
-                        {thin->get_begin_epoch(), old_value,
-                         old_value->get_total_len(), old_value->get_align()});
+            value* v = value::create_value<kIsInline>(v_ptr, v_len, v_align);
+            if constexpr (kIsInline) {
+                lv_ptr->set_value(v, created_v_ptr);
+                target_border->version_unlock();
+            } else {
+                value* old_v = nullptr;
+                lv_ptr->set_value(v, created_v_ptr, &old_v);
+                target_border->version_unlock();
+                auto* thin = reinterpret_cast<thread_info*>(token); // NOLINT
+                if (old_v != nullptr) {
+                    auto [o_ptr, o_len, o_align] = value::get_gc_info(old_v);
+                    thin->get_gc_info().push_value_container(
+                            {thin->get_begin_epoch(), o_ptr, o_len, o_align});
+                }
             }
             return status::OK;
         }

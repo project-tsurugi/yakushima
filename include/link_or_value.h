@@ -39,9 +39,9 @@ public:
             child->destroy();
             delete child; // NOLINT
         } else if (auto* v = get_value(); v != nullptr) {
-            if (v->need_delete()) { value::delete_value(v); }
+            if (value::need_delete(v)) { value::delete_value(v); }
         }
-        child_or_v_ = 0;
+        init_lv();
     }
 
     /**
@@ -55,12 +55,13 @@ public:
             std::cout << "value_length_ : " << 0 << std::endl;
             std::cout << "value_align_ : " << 0 << std::endl;
         } else if (auto* v = get_value(); v != nullptr) {
-            const auto del_flag = v->need_delete();
-            const auto v_align = static_cast<std::size_t>(v->get_align());
+            const auto del_flag = value::need_delete(v);
+            const auto v_align = static_cast<std::size_t>(
+                    std::get<2>(value::get_gc_info(v)));
             std::cout << "need_delete_value_ : " << del_flag << std::endl;
             std::cout << "next_layer_ : " << nullptr << std::endl;
-            std::cout << "v_or_vp_ : " << v->get_body() << std::endl;
-            std::cout << "value_length_ : " << v->get_len() << std::endl;
+            std::cout << "v_or_vp_ : " << value::get_body(v) << std::endl;
+            std::cout << "value_length_ : " << value::get_len(v) << std::endl;
             std::cout << "value_align_ : " << v_align << std::endl;
         }
     }
@@ -75,7 +76,7 @@ public:
         if (auto* child = get_next_layer(); child != nullptr) {
             child->mem_usage(level + 1, mem_stat);
         } else if (auto* v = get_value(); v != nullptr) {
-            const auto v_len = v->get_total_len();
+            const auto v_len = std::get<1>(value::get_gc_info(v));
             auto& [node_num, used, reserved] = mem_stat.at(level);
             used += v_len;
             reserved += v_len;
@@ -114,7 +115,7 @@ public:
      */
     [[nodiscard]] value* get_value() const {
         const auto ptr = loadAcquireN(child_or_v_);
-        if ((ptr & kChildFlag) > 0 || ptr == 0UL) { return nullptr; }
+        if ((ptr & kChildFlag) > 0 || ptr == kValPtrFlag) { return nullptr; }
         return reinterpret_cast<value*>(ptr); // NOLINT
     }
 
@@ -122,10 +123,9 @@ public:
      * @brief Initialize the payload to zero.
      * 
      */
-    void init_lv() { child_or_v_ = 0; }
+    void init_lv() { child_or_v_ = kValPtrFlag; }
 
-    /**
-     * @pre This is called by split process.
+    /** 
      * @details This is move process.
      * @param nlv
      */
@@ -145,7 +145,7 @@ public:
     void set_value(value* new_value, void** const created_value_ptr,
                    value** old_value = nullptr) {
         auto* cur_v = get_value();
-        if (cur_v != nullptr && cur_v->need_delete()) {
+        if (cur_v != nullptr && value::need_delete(cur_v)) {
             if (old_value == nullptr) {
                 value::delete_value(cur_v);
             } else {
@@ -157,7 +157,8 @@ public:
         const auto ptr = reinterpret_cast<uintptr_t>(new_value); // NOLINT
         storeReleaseN(child_or_v_, ptr);
         if (created_value_ptr != nullptr) {
-            *created_value_ptr = new_value->get_body();
+            auto* v_ptr = reinterpret_cast<value*>(child_or_v_); // NOLINT
+            *created_value_ptr = value::get_body(v_ptr);
         }
     }
 
@@ -175,7 +176,13 @@ private:
      * @brief A flag for indicating that the next layer exists.
      * 
      */
-    static constexpr uintptr_t kChildFlag = 1UL << 63UL;
+    static constexpr uintptr_t kChildFlag = 0b10UL << 62UL;
+
+    /**
+     * @brief A flag for indicating that the next layer exists.
+     * 
+     */
+    static constexpr uintptr_t kValPtrFlag = 0b01UL << 62UL;
 
     /**
      * @attention
@@ -184,7 +191,7 @@ private:
      * If the most significant bit is one, this contains the next layer.
      * Otherwise, this contains the pointer of a value.
      */
-    uintptr_t child_or_v_{0};
+    uintptr_t child_or_v_{kValPtrFlag};
 };
 
 } // namespace yakushima

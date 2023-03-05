@@ -39,11 +39,12 @@ public:
         auto* ti = reinterpret_cast<thread_info*>(token); // NOLINT
         if (target_is_value) {
             value* vp = lv_.at(pos).get_value();
-            vp->remove_delete_flag();
-            const auto len = vp->get_total_len();
-            const auto align = vp->get_align();
-            ti->get_gc_info().push_value_container(
-                    {ti->get_begin_epoch(), vp, len, align});
+            if (value::is_value_ptr(vp)) {
+                value::remove_delete_flag(vp);
+                auto [v_ptr, v_len, v_align] = value::get_gc_info(vp);
+                ti->get_gc_info().push_value_container(
+                        {ti->get_begin_epoch(), v_ptr, v_len, v_align});
+            }
         }
 
         // rearrange permutation

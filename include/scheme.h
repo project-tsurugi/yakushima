@@ -199,4 +199,14 @@ enum class scan_endpoint : char {
     INF,
 };
 
+template<class ValueType>
+constexpr bool is_inlinable() {
+    if constexpr (std::is_pointer_v<ValueType> ||
+                  std::is_same_v<ValueType, uintptr_t>) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 } // namespace yakushima

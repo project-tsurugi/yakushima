@@ -88,8 +88,8 @@ retry_fetch_lv:
             v_at_fetch_lv.get_vinsert_delete()) {
             goto retry_fetch_lv; // NOLINT
         }
-        out = std::make_pair(static_cast<ValueType*>(vp->get_body()),
-                             vp->get_len());
+        out = std::make_pair(static_cast<ValueType*>(value::get_body(vp)),
+                             value::get_len(vp));
         return status::OK;
     }
 

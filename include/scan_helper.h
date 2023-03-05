@@ -233,8 +233,8 @@ retry:
                              &v_at_fb, &node_version_ptr, &tuple_pushed_num,
                              max_size]() {
                 tuple_list.emplace_back(std::make_tuple(
-                        full_key, static_cast<ValueType*>(vp->get_body()),
-                        vp->get_len()));
+                        full_key, static_cast<ValueType*>(value::get_body(vp)),
+                        value::get_len(vp)));
                 if (node_version_vec != nullptr) {
                     /**
                       * note: 
