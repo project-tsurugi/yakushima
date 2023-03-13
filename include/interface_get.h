@@ -79,6 +79,7 @@ retry_fetch_lv:
 
     if (target_border->get_key_length_at(lv_pos) <= sizeof(key_slice_type)) {
         value* vp = lv_ptr->get_value();
+        auto* v_body = static_cast<ValueType*>(value::get_body(vp));
         node_version64_body final_check = target_border->get_stable_version();
         if (final_check.get_vsplit() != v_at_fb.get_vsplit() ||
             (final_check.get_deleted() && !final_check.get_root())) {
@@ -88,8 +89,7 @@ retry_fetch_lv:
             v_at_fetch_lv.get_vinsert_delete()) {
             goto retry_fetch_lv; // NOLINT
         }
-        out = std::make_pair(static_cast<ValueType*>(value::get_body(vp)),
-                             value::get_len(vp));
+        out = std::make_pair(v_body, value::get_len(vp));
         return status::OK;
     }
 
