@@ -164,6 +164,18 @@ private:
     vsplit_type border : 1;
 };
 
+inline std::ostream& operator<<(std::ostream& out, // NOLINT
+                                node_version64_body body) {
+    out << "vinsert_delete:" << body.get_vinsert_delete()
+        << ", locked:" << body.get_locked()
+        << ", inserting_deleting:" << body.get_inserting_deleting()
+        << ", splitting:" << body.get_splitting()
+        << ", vsplit:" << body.get_vsplit()
+        << ", deleted:" << body.get_deleted() << ", root:" << body.get_root()
+        << ", border:" << body.get_border();
+    return out;
+}
+
 // check the size of a version body
 static_assert(sizeof(node_version64_body) == 8);
 
