@@ -307,3 +307,9 @@ dmypy.json
 .pytype/
 
 # End of https://www.toptal.com/developers/gitignore/api/c++,clion,cmake,python,git
+
+# plus manually by tanabe
+build/
+build_release/
+build_relwithdebinfo/
+.vscode/
