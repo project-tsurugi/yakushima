@@ -31,7 +31,7 @@ int main() {
     // You should declare token and use api with the token. This token means your session that protects your read data and save temporary data.
     Token token{};
 
-    enter(token);
+    while (enter(token) != status::OK) { _mm_pause(); }
     std::string k("a");
     std::string v("b");
     // You can put some key-value.

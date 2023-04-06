@@ -42,8 +42,9 @@ std::string test_storage_name{"1"}; // NOLINT
 TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
        many_interior) {                                 // NOLINT
     /**
-   * concurrent put/delete/scan in the state between none to many split of interior.
-   */
+      * concurrent put/delete/scan in the state between none to many split of 
+      * interior.
+      */
 
     constexpr std::size_t ary_size =
             interior_node::child_length * key_slice_length * 1.4;
@@ -79,7 +80,8 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
                 }
 
                 Token token{};
-                enter(token);
+                while (enter(token) != status::OK) { _mm_pause(); }
+
                 for (std::size_t j = 0; j < 1; ++j) {
                     for (auto& i : kv) {
                         std::string k(std::get<0>(i));
@@ -166,9 +168,9 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
 TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
        many_interior_shuffle) {                         // NOLINT
     /**
-   * concurrent put/delete/scan in the state between none to many split of interior with
-   * shuffle.
-   */
+      * concurrent put/delete/scan in the state between none to many split of 
+      * interior with shuffle.
+      */
 
     constexpr std::size_t ary_size =
             interior_node::child_length * key_slice_length * 1.4;
@@ -200,7 +202,8 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
                 std::random_device seed_gen;
                 std::mt19937 engine(seed_gen());
                 Token token{};
-                enter(token);
+                while (enter(token) != status::OK) { _mm_pause(); }
+
                 for (std::size_t j = 0; j < 1; ++j) {
                     std::shuffle(kv.begin(), kv.end(), engine);
                     for (auto& i : kv) {

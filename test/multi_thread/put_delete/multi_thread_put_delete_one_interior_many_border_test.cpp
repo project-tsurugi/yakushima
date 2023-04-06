@@ -62,7 +62,7 @@ TEST_F(mtpdt, one_interior_many_border_shuffle) { // NOLINT
                 std::random_device seed_gen;
                 std::mt19937 engine(seed_gen());
                 Token token{};
-                enter(token);
+                while (enter(token) != status::OK) { _mm_pause(); }
 
                 std::shuffle(kv.begin(), kv.end(), engine);
 
@@ -155,7 +155,7 @@ TEST_F(mtpdt, second_layer_one_interior_many_border_shuffle) { // NOLINT
                 std::random_device seed_gen;
                 std::mt19937 engine(seed_gen());
                 Token token{};
-                enter(token);
+                while (enter(token) != status::OK) { _mm_pause(); }
 
                 std::shuffle(kv.begin(), kv.end(), engine);
                 for (auto& i : kv) {

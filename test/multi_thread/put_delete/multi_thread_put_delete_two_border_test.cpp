@@ -16,18 +16,29 @@ using namespace yakushima;
 namespace yakushima::testing {
 
 class mtpdt : public ::testing::Test {
-    void SetUp() override { init(); }
+    static void call_once_f() {
+        google::InitGoogleLogging("yakushima-test-multi_thread-put_delete-"
+                                  "multi_thread_put_delete_two_border_test");
+    }
+
+    void SetUp() override {
+        std::call_once(init_google_, call_once_f);
+        init();
+    }
 
     void TearDown() override { fin(); }
+
+private:
+    static inline std::once_flag init_google_; // NOLINT
 };
 
 std::string test_storage_name{"1"}; // NOLINT
 
 TEST_F(mtpdt, two_layer_two_border) { // NOLINT
     /**
-   * multiple put same null char key whose length is different each other against multiple
-   * border, which is across some layer.
-   */
+      * multiple put same null char key whose length is different each other 
+      * against multiple border, which is across some layer.
+      */
     constexpr std::size_t ary_size = 15;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
@@ -58,7 +69,7 @@ TEST_F(mtpdt, two_layer_two_border) { // NOLINT
                 }
 
                 Token token{};
-                enter(token);
+                while (enter(token) != status::OK) { _mm_pause(); }
 
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
@@ -146,7 +157,7 @@ TEST_F(mtpdt, two_layer_two_border_shuffle) { // NOLINT
                 std::random_device seed_gen{};
                 std::mt19937 engine(seed_gen());
                 Token token{};
-                enter(token);
+                while (enter(token) != status::OK) { _mm_pause(); }
 
                 std::shuffle(kv.begin(), kv.end(), engine);
                 for (auto& i : kv) {
@@ -233,7 +244,7 @@ TEST_F(mtpdt, concurrent_put_delete_between_none_and_interior) { // NOLINT
                 }
 
                 Token token{};
-                enter(token);
+                while (enter(token) != status::OK) { _mm_pause(); }
 
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
@@ -322,7 +333,7 @@ TEST_F(mtpdt, // NOLINT
                 }
 
                 Token token{};
-                enter(token);
+                while (enter(token) != status::OK) { _mm_pause(); }
 
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
@@ -386,9 +397,9 @@ TEST_F(mtpdt, // NOLINT
 TEST_F(mtpdt, // NOLINT
        concurrent_put_delete_between_none_and_interior_in_first_layer) { // NOLINT
     /**
-   * The number of puts that can be split only once and the deletes are repeated in
-   * multiple threads. Use shuffled data.
-   */
+      * The number of puts that can be split only once and the deletes are 
+      * repeated in multiple threads. Use shuffled data.
+      */
     constexpr std::size_t ary_size = key_slice_length + 1;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
@@ -403,9 +414,6 @@ TEST_F(mtpdt, // NOLINT
     for (std::size_t h = 0; h < 10; ++h) {
 #endif
         create_storage(test_storage_name);
-        std::array<Token, 2> token{};
-        ASSERT_EQ(enter(token[0]), status::OK);
-        ASSERT_EQ(enter(token[1]), status::OK);
 
         struct S {
             static void work(std::size_t th_id, std::size_t max_thread) {
@@ -424,7 +432,7 @@ TEST_F(mtpdt, // NOLINT
                 std::random_device seed_gen{};
                 std::mt19937 engine(seed_gen());
                 Token token{};
-                enter(token);
+                while (enter(token) != status::OK) { _mm_pause(); };
 
                 std::shuffle(kv.begin(), kv.end(), engine);
                 for (auto& i : kv) {
@@ -516,7 +524,7 @@ TEST_F( // NOLINT
                 std::random_device seed_gen{};
                 std::mt19937 engine(seed_gen());
                 Token token{};
-                enter(token);
+                while (enter(token) != status::OK) { _mm_pause(); }
 
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));

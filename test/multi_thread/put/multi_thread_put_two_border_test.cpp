@@ -54,7 +54,7 @@ TEST_F(mtpt, multi_layer_two_border) { // NOLINT
                 }
 
                 Token token{};
-                enter(token);
+                while (enter(token) != status::OK) { _mm_pause(); }
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
@@ -124,7 +124,7 @@ TEST_F(mtpt, multi_layer_two_border_shuffle) { // NOLINT
                 std::random_device seed_gen;
                 std::mt19937 engine(seed_gen());
                 Token token{};
-                enter(token);
+                while (enter(token) != status::OK) { _mm_pause(); }
 
                 std::shuffle(kv.begin(), kv.end(), engine);
                 for (auto& i : kv) {

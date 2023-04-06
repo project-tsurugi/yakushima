@@ -73,7 +73,7 @@ TEST_F(multi_thread_delete_one_border_test, one_border) { // NOLINT
                 }
 
                 Token token{};
-                enter(token);
+                while (enter(token) != status::OK) { _mm_pause(); }
 
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
@@ -156,7 +156,7 @@ TEST_F(multi_thread_delete_one_border_test, one_border_shuffle) { // NOLINT
                 std::random_device seed_gen{};
                 std::mt19937 engine(seed_gen());
                 Token token{};
-                enter(token);
+                while (enter(token) != status::OK) { _mm_pause(); }
 
                 std::shuffle(kv.begin(), kv.end(), engine);
 

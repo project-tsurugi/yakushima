@@ -66,7 +66,7 @@ TEST_F(mtpdt, many_interior) { // NOLINT
                 }
 
                 Token token{};
-                enter(token);
+                while (enter(token) != status::OK) { _mm_pause(); }
 
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
