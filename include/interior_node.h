@@ -62,7 +62,7 @@ public:
                         ti->store_root_ptr(get_child_at(!i)); // i == 0 or 1
                         get_child_at(!i)->set_parent(nullptr);
                     } else {
-                        pn->set_version_inserting_deleting(true);
+                        //pn->set_version_inserting_deleting(true);
                         if (pn->get_version_border()) {
                             link_or_value* lv =
                                     dynamic_cast<border_node*>(pn)->get_lv(
