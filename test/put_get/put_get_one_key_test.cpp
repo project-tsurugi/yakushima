@@ -27,10 +27,45 @@ protected:
     void TearDown() override { fin(); }
 };
 
+TEST_F(kt, one_value) { // NOLINT
+    Token token{};
+    ASSERT_EQ(enter(token), status::OK);
+
+    /**
+      * put one key-value: value is char type.
+      */
+    std::string k("a");
+    std::string v("b");
+    ASSERT_EQ(put(token, test_storage_name, k, v.data(), v.size()), status::OK);
+    std::pair<char*, std::size_t> tuple{};
+    ASSERT_EQ(status::OK, get<char>(test_storage_name, k, tuple));
+    ASSERT_NE(std::get<0>(tuple), nullptr);
+    ASSERT_EQ(std::get<1>(tuple), v.size());
+    ASSERT_EQ(memcmp(std::get<0>(tuple), v.data(), v.size()), 0);
+    /**
+      * put one key-value: value is pointer type.
+      */
+    k = "b";
+    std::string* v_ptr{&v};
+    ASSERT_EQ(put(token, test_storage_name, k, (&v_ptr), sizeof(std::string*)),
+              status::OK);
+    std::pair<std::string**, std::size_t> tuple2{};
+    ASSERT_EQ(status::OK, get<std::string*>(test_storage_name, k, tuple2));
+    ASSERT_NE(std::get<0>(tuple2), nullptr);
+    ASSERT_EQ(std::get<1>(tuple2), sizeof(std::string*));
+    LOG(INFO) << v;
+    LOG(INFO) << v_ptr;
+    LOG(INFO) << std::get<0>(tuple2);
+    LOG(INFO) << *std::get<0>(tuple2);
+    ASSERT_EQ(memcmp(&std::get<0>(tuple2), &v_ptr, sizeof(std::string*)), 0);
+
+    ASSERT_EQ(leave(token), status::OK);
+}
+
 TEST_F(kt, one_key) { // NOLINT
     /**
-   * put one key-value
-   */
+      * put one key-value
+      */
     std::string k("a");
     std::string v("v-a");
     Token token{};
@@ -55,9 +90,9 @@ TEST_F(kt, one_key) { // NOLINT
     ASSERT_EQ(memcmp(std::get<0>(tuple), v.data(), v.size()), 0);
 
     /**
-   * put one key-value : one key is initialized by number.
-   * Test zero.
-   */
+      * put one key-value : one key is initialized by number.
+      * Test zero.
+      */
     std::uint64_t base_num{0};
     std::string key_buf{};
     key_buf = std::string{reinterpret_cast<char*>(&base_num), // NOLINT
@@ -68,9 +103,9 @@ TEST_F(kt, one_key) { // NOLINT
     ASSERT_EQ(memcmp(std::get<0>(tuple), v.data(), v.size()), 0);
 
     /**
-   * put one key-value : one key is initialized by number.
-   * Test five.
-   */
+      * put one key-value : one key is initialized by number.
+      * Test five.
+      */
     base_num = 5;
     key_buf = std::string{reinterpret_cast<char*>(&base_num), // NOLINT
                           sizeof(base_num)};                  // NOLINT
@@ -80,9 +115,9 @@ TEST_F(kt, one_key) { // NOLINT
     ASSERT_EQ(memcmp(std::get<0>(tuple), v.data(), v.size()), 0);
 
     /**
-   * put one key-value : one key is initialized by number and padding of 0.
-   * Test five.
-   */
+      * put one key-value : one key is initialized by number and padding of 0.
+      * Test five.
+      */
     std::string padding(56, '0');
     ASSERT_EQ(put(token, test_storage_name, padding + key_buf, v.data(),
                   v.size()),
