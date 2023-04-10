@@ -26,17 +26,24 @@ TEST_F(bnt, display) { // NOLINT
 }
 
 TEST_F(bnt, shift_left_border_member) { // NOLINT
+    constexpr auto kUseDynamicAllocation = false;
+    constexpr auto kVAlign =
+            static_cast<value_align_type>(alignof(std::size_t));
+
     border_node bn;
-    link_or_value lv;
     for (std::size_t i = 0; i < 15; ++i) {
-        lv.set_value_length(i);
-        bn.set_lv(i, &lv);
+        auto* v = value::create_value<kUseDynamicAllocation>(&i, i, kVAlign);
+        bn.set_lv_value(i, v, nullptr);
     }
     for (std::size_t i = 0; i < 5; ++i) {
-        link_or_value lv2 = *bn.get_lv_at(0);
+        const auto* leftmost_lv = bn.get_lv_at(0);
+        const auto* lm_v = leftmost_lv->get_value();
+
         bn.shift_left_border_member(1, 1);
-        ASSERT_EQ(lv2.get_value_length() + 1,
-                  bn.get_lv_at(0)->get_value_length());
+
+        const auto* moved_v = bn.get_lv_at(0)->get_value();
+        ASSERT_EQ(value::get_len(lm_v) + 1, value::get_len(moved_v));
     }
+    bn.destroy();
 }
 } // namespace yakushima::testing

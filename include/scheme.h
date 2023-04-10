@@ -7,6 +7,8 @@
 #include <cstdint>
 #include <cstdlib>
 #include <string_view>
+#include <tuple>
+#include <vector>
 
 #include "log.h"
 
@@ -28,6 +30,12 @@ static constexpr std::size_t key_slice_length = 15;
 using key_length_type = std::uint8_t;
 using value_length_type = std::size_t;
 using value_align_type = std::align_val_t;
+
+/**
+ * @brief The stack of (# of nodes, used memory, reserved memory) tuples.
+ */
+using memory_usage_stack =
+        std::vector<std::tuple<std::size_t, std::size_t, std::size_t>>;
 
 enum class status : std::int32_t {
     /**
@@ -190,5 +198,15 @@ enum class scan_endpoint : char {
    */
     INF,
 };
+
+template<class ValueType>
+constexpr bool is_inlinable() {
+    if constexpr (std::is_pointer_v<ValueType> ||
+                  std::is_same_v<ValueType, uintptr_t>) {
+        return true;
+    } else {
+        return false;
+    }
+}
 
 } // namespace yakushima

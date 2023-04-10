@@ -153,8 +153,7 @@ retry:
              */
         }
         link_or_value* lv = bn->get_lv_at(index);
-        void* vp = lv->get_v_or_vp_();
-        std::size_t vsize = lv->get_value_length();
+        value* vp = lv->get_value();
         base_node* next_layer = lv->get_next_layer();
         node_version64* node_version_ptr = bn->get_version_ptr();
         /**
@@ -230,12 +229,12 @@ retry:
                 goto retry; // NOLINT
             }
         } else {
-            auto in_range = [&full_key, &tuple_list, &vp, &vsize,
-                             &node_version_vec, &v_at_fb, &node_version_ptr,
-                             &tuple_pushed_num, max_size]() {
+            auto in_range = [&full_key, &tuple_list, &vp, &node_version_vec,
+                             &v_at_fb, &node_version_ptr, &tuple_pushed_num,
+                             max_size]() {
                 tuple_list.emplace_back(std::make_tuple(
-                        full_key, reinterpret_cast<ValueType*>(vp), // NOLINT
-                        vsize));
+                        full_key, static_cast<ValueType*>(value::get_body(vp)),
+                        value::get_len(vp)));
                 if (node_version_vec != nullptr) {
                     /**
                       * note: 

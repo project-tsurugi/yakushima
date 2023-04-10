@@ -38,13 +38,14 @@ public:
                    const bool target_is_value) {
         auto* ti = reinterpret_cast<thread_info*>(token); // NOLINT
         if (target_is_value) {
-            ti->get_gc_info().push_value_container(
-                    {ti->get_begin_epoch(), lv_.at(pos).get_v_or_vp_(),
-                     lv_.at(pos).get_value_length(),
-                     lv_.at(pos).get_value_align()});
+            value* vp = lv_.at(pos).get_value();
+            if (value::is_value_ptr(vp)) {
+                value::remove_delete_flag(vp);
+                auto [v_ptr, v_len, v_align] = value::get_gc_info(vp);
+                ti->get_gc_info().push_value_container(
+                        {ti->get_begin_epoch(), v_ptr, v_len, v_align});
+            }
         }
-        // set need delete false to avoid conflict of deleting memory
-        lv_.at(pos).set_need_delete(false);
 
         // rearrange permutation
         permutation_.delete_rank(rank);
@@ -210,6 +211,29 @@ public:
             lv_.at(i).display();
         }
         cout << "next : " << get_next() << endl;
+    }
+
+    /**
+     * @brief Collect the memory usage of this partial tree.
+     * 
+     * @param level the level of this node in the tree.
+     * @param mem_stat the stack of memory usage for each level.
+     */
+    void mem_usage(std::size_t level,
+                   memory_usage_stack& mem_stat) const override {
+        if (mem_stat.size() <= level) { mem_stat.emplace_back(0, 0, 0); }
+        auto& [node_num, used, reserved] = mem_stat.at(level);
+
+        const std::size_t cnk = get_permutation_cnk();
+        ++node_num;
+        reserved += sizeof(border_node);
+        used += sizeof(border_node) -
+                ((key_slice_length - cnk) * sizeof(link_or_value));
+
+        for (std::size_t i = 0; i < cnk; ++i) {
+            std::size_t index = permutation_.get_index_of_rank(i);
+            lv_.at(index).mem_usage(level, mem_stat);
+        }
     }
 
     /**
@@ -442,7 +466,7 @@ public:
       * @param[in] root is the root node of the layer.
       */
     template<class ValueType>
-    void init_border(std::string_view key_view, value const new_value,
+    void init_border(std::string_view key_view, value* new_value,
                      ValueType** const created_value_ptr, const bool root) {
         init_border();
         set_version_root(root);
@@ -467,7 +491,7 @@ public:
       * @param[in] rank
       */
     void insert_lv_at(const std::size_t index, std::string_view key_view,
-                      value const new_value, void** const created_value_ptr,
+                      value* new_value, void** const created_value_ptr,
                       const std::size_t rank) {
         /**
           * attention: key_slice must be initialized to 0.
@@ -530,7 +554,7 @@ public:
       * @param[in] new_value todo write
       * @param[out] created_value_ptr todo write
       */
-    void set_lv_value(const std::size_t index, const value new_value,
+    void set_lv_value(const std::size_t index, value* new_value,
                       void** const created_value_ptr) {
         lv_.at(index).set_value(new_value, created_value_ptr);
     }

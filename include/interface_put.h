@@ -18,22 +18,24 @@ namespace yakushima {
  * @param[in] token
  * @param[in] ti
  * @param[in] key_view
- * @param[in] value_ptr
+ * @param[in] v_ptr
  * @param[in] unique_restriction
- * @param[in] arg_value_length
+ * @param[in] v_len
  * @param[in] created_value_ptr
- * @param[in] value_align
+ * @param[in] v_align
  * @param[in] inserted_node_version_ptr
  */
 template<class ValueType>
 [[maybe_unused]] static status
 put([[maybe_unused]] Token token, tree_instance* ti, std::string_view key_view,
-    ValueType* value_ptr, bool unique_restriction,
-    std::size_t arg_value_length = sizeof(ValueType),
+    ValueType* v_ptr, bool unique_restriction,
+    value_length_type v_len = sizeof(ValueType),
     ValueType** created_value_ptr = nullptr,
-    value_align_type value_align =
+    value_align_type v_align =
             static_cast<value_align_type>(alignof(ValueType)),
     node_version64** inserted_node_version_ptr = nullptr) {
+    constexpr auto kIsInline = is_inlinable<ValueType>();
+    auto* created_v_ptr = reinterpret_cast<void**>(created_value_ptr); // NOLINT
 
 root_nullptr:
     base_node* expected = ti->load_root_ptr();
@@ -42,9 +44,8 @@ root_nullptr:
           * root is nullptr, so put single border nodes.
           */
         border_node* new_border = new border_node(); // NOLINT
-        new_border->init_border(key_view,
-                                {value_ptr, arg_value_length, value_align},
-                                created_value_ptr, true);
+        value* v = value::create_value<kIsInline>(v_ptr, v_len, v_align);
+        new_border->init_border(key_view, v, created_value_ptr, true);
         for (;;) {
             if (inserted_node_version_ptr != nullptr) {
                 *inserted_node_version_ptr = new_border->get_version_ptr();
@@ -150,10 +151,10 @@ retry_fetch_lv:
             target_border->version_unlock();
             goto retry_fetch_lv; // NOLINT
         }
+        value* v = value::create_value<kIsInline>(v_ptr, v_len, v_align);
         insert_lv<interior_node, border_node>(
-                ti, target_border, traverse_key_view, value_ptr,
-                reinterpret_cast<void**>(created_value_ptr), // NOLINT
-                arg_value_length, value_align, inserted_node_version_ptr,
+                ti, target_border, traverse_key_view, v, created_v_ptr,
+                inserted_node_version_ptr,
                 target_border->compute_rank_if_insert(key_slice,
                                                       key_slice_length));
         return status::OK;
@@ -183,18 +184,20 @@ retry_fetch_lv:
                 goto retry_fetch_lv; // NOLINT
             }
 
-            value old_value{};
-            lv_ptr->set_value(
-                    {reinterpret_cast<void*>(value_ptr), // NOLINT
-                     arg_value_length, value_align},
-                    old_value,
-                    reinterpret_cast<void**>(created_value_ptr)); // NOLINT
-            target_border->version_unlock();
-            auto* thin = reinterpret_cast<thread_info*>(token); // NOLINT
-            if (old_value.get_body() != nullptr) {
-                thin->get_gc_info().push_value_container(
-                        {thin->get_begin_epoch(), old_value.get_body(),
-                         old_value.get_len(), old_value.get_align()});
+            value* v = value::create_value<kIsInline>(v_ptr, v_len, v_align);
+            if constexpr (kIsInline) {
+                lv_ptr->set_value(v, created_v_ptr);
+                target_border->version_unlock();
+            } else {
+                value* old_v = nullptr;
+                lv_ptr->set_value(v, created_v_ptr, &old_v);
+                target_border->version_unlock();
+                auto* thin = reinterpret_cast<thread_info*>(token); // NOLINT
+                if (old_v != nullptr) {
+                    auto [o_ptr, o_len, o_align] = value::get_gc_info(old_v);
+                    thin->get_gc_info().push_value_container(
+                            {thin->get_begin_epoch(), o_ptr, o_len, o_align});
+                }
             }
             return status::OK;
         }

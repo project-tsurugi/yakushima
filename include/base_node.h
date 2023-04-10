@@ -77,6 +77,15 @@ public:
    */
     virtual void display() = 0;
 
+    /**
+     * @brief Collect the memory usage of this partial tree.
+     * 
+     * @param level the level of this node in the tree.
+     * @param mem_stat the stack of memory usage for each level.
+     */
+    virtual void mem_usage(std::size_t level,
+                           memory_usage_stack& mem_stat) const = 0;
+
     void display_base() {
         std::cout << "base_node::display_base" << std::endl;
         version_.display();
