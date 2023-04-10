@@ -201,6 +201,7 @@ enum class scan_endpoint : char {
 
 template<class ValueType>
 constexpr bool is_inlinable() {
+    // pointer type or uintptr_t, it is inlinable
     if constexpr (std::is_pointer_v<ValueType> ||
                   std::is_same_v<ValueType, uintptr_t>) {
         return true;
