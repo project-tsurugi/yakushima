@@ -38,6 +38,7 @@ private:
 };
 
 std::string test_storage_name{"1"}; // NOLINT
+std::mutex debug_mtx;
 
 TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
        many_interior) {                                 // NOLINT
@@ -99,6 +100,7 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
                               scan<char>(test_storage_name, "",
                                          scan_endpoint::INF, "",
                                          scan_endpoint::INF, tuple_list));
+                    // this thread put kv entries, so at lest, it must find it.
                     ASSERT_EQ(tuple_list.size() >= kv.size(), true);
                     std::size_t check_ctr{0};
                     for (auto&& elem : tuple_list) {
@@ -115,6 +117,28 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
                         }
                     }
                     ASSERT_EQ(check_ctr, kv.size());
+#if 0
+                    // todo fix about it.
+                    // check success for own puts. check duplicate about key.
+                    std::sort(tuple_list.begin(), tuple_list.end());
+                    std::string check_key = std::get<0>(*tuple_list.begin());
+                    for (auto itr = tuple_list.begin() + 1;
+                         itr != tuple_list.end(); ++itr) {
+                        if (check_key == std::get<0>(*itr)) {
+                            std::unique_lock lk{debug_mtx};
+                            LOG(INFO) << "it found duplicate. thread " << th_id;
+                            for (auto itr_2 = tuple_list.begin();
+                                 itr_2 != tuple_list.end(); ++itr_2) {
+                                LOG(INFO) << th_id << ", "
+                                          << std::get<0>(*itr_2).size() << ", "
+                                          << std::get<0>(*itr_2);
+                            }
+                            LOG(FATAL);
+                        }
+                        check_key = std::get<0>(*itr);
+                    }
+#endif
+
                     for (auto& i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
