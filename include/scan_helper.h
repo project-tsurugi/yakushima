@@ -24,25 +24,10 @@ scan_border(border_node** target, std::string_view l_key, scan_endpoint l_end,
                                    node_version64*>>* node_version_vec,
             const std::string& key_prefix, std::size_t max_size);
 
-template<class ValueType>
-status scan_check_retry(
-        border_node* const bn, node_version64_body& v_at_fb,
-        std::vector<std::tuple<std::string, ValueType*, std::size_t>>&
-                tuple_list,
-        const std::size_t tuple_pushed_num,
-        std::vector<std::pair<node_version64_body, node_version64*>>* const
-                node_version_vec) {
+status scan_check_retry(border_node* const bn, node_version64_body& v_at_fb) {
     node_version64_body check = bn->get_stable_version();
     if (check != v_at_fb) {
-        if (tuple_pushed_num != 0) {
-            tuple_list.erase(tuple_list.end() - tuple_pushed_num,
-                             tuple_list.end());
-            if (node_version_vec != nullptr) {
-                node_version_vec->erase(node_version_vec->end() -
-                                                tuple_pushed_num,
-                                        node_version_vec->end());
-            }
-        }
+        // fail optimistic verify
         if (check.get_vsplit() != v_at_fb.get_vsplit() || check.get_deleted()) {
             /**
              * The node at find border was changed by split or deleted.
@@ -92,11 +77,15 @@ retry:
     node_version64_body check_v = std::get<tuple_v_index>(node_and_v);
 
     for (;;) {
+        // scan the border node
         check_status = scan_border<ValueType>(
                 &bn, l_key, l_end, r_key, r_end, tuple_list, check_v,
                 node_version_vec, key_prefix, max_size);
+
+        // check rc
         if (check_status == status::OK_SCAN_END) { return status::OK; }
         if (check_status == status::OK_SCAN_CONTINUE) { continue; }
+
         if (check_status == status::OK_RETRY_AFTER_FB) {
             node_version64_body re_check_v = bn->get_stable_version();
             if (check_v.get_vsplit() != re_check_v.get_vsplit() ||
@@ -125,8 +114,40 @@ scan_border(border_node** const target, const std::string_view l_key,
             std::vector<std::pair<node_version64_body, node_version64*>>* const
                     node_version_vec,
             const std::string& key_prefix, const std::size_t max_size) {
+    /**
+     * Log size before scanning this node.
+     * This must be before retry label for retry at find border.
+    */
+    std::size_t initial_size_of_tuple_list{tuple_list.size()};
+    std::size_t initial_size_of_node_version_vec{};
+    if (node_version_vec != nullptr) {
+        initial_size_of_node_version_vec = node_version_vec->size();
+    }
 retry:
-    std::size_t tuple_pushed_num{0}; // used below loop
+    /**
+      * For retry of failing optimistic verify, it must erase parts of 
+      * tuple_list and node vec. about tuple_list
+      */
+    if (tuple_list.size() != initial_size_of_tuple_list) {
+        std::size_t erase_num = tuple_list.size() - initial_size_of_tuple_list;
+        tuple_list.erase(tuple_list.end() - erase_num, tuple_list.end());
+    }
+    // about node_version_vec
+    if (node_version_vec != nullptr) {
+        if (node_version_vec->size() != initial_size_of_node_version_vec) {
+            std::size_t erase_num =
+                    node_version_vec->size() - initial_size_of_node_version_vec;
+            node_version_vec->erase(node_version_vec->end() - erase_num,
+                                    node_version_vec->end());
+        }
+    }
+
+    /**
+     * This is used below loop for logging whether this scan catches some 
+     * elements in this node.
+     */
+    bool tuple_pushed_num{false};
+
     border_node* bn = *target;
     /**
      * next node pointer must be logged before optimistic verify.
@@ -137,12 +158,14 @@ retry:
      * After scan border, optimistic verify support this is atomic.
      */
     permutation perm(bn->get_permutation().get_body());
+    // check all elements in border node.
     for (std::size_t i = 0; i < perm.get_cnk(); ++i) {
         std::size_t index = perm.get_index_of_rank(i);
         key_slice_type ks = bn->get_key_slice_at(index);
         key_length_type kl = bn->get_key_length_at(index);
         std::string full_key{key_prefix};
         if (kl > 0) {
+            // gen full key from log and this key slice
             full_key.append(
                     reinterpret_cast<char*>(&ks), // NOLINT
                     kl < sizeof(key_slice_type) ? kl : sizeof(key_slice_type));
@@ -160,8 +183,7 @@ retry:
          * This verification may seem verbose, but it can also be considered 
          * an early abort.
          */
-        status check_status = scan_check_retry(
-                bn, v_at_fb, tuple_list, tuple_pushed_num, node_version_vec);
+        status check_status = scan_check_retry(bn, v_at_fb);
         if (check_status == status::OK_RETRY_FROM_ROOT) {
             return status::OK_RETRY_FROM_ROOT;
         }
@@ -249,7 +271,7 @@ retry:
                     node_version_vec->emplace_back(
                             std::make_pair(v_at_fb, node_version_ptr));
                 }
-                ++tuple_pushed_num;
+                tuple_pushed_num = true;
                 if (max_size != 0 && tuple_list.size() >= max_size) {
                     return status::OK_SCAN_END;
                 }
@@ -294,7 +316,7 @@ retry:
                 continue;
             }
             // pass right endpoint.
-            if (tuple_pushed_num == 0 && node_version_vec != nullptr) {
+            if (!tuple_pushed_num && node_version_vec != nullptr) {
                 /**
                   * Since it is a rightmost node included in the range, it is 
                   * included in the phantom verification. However, there were 
@@ -307,8 +329,9 @@ retry:
             return status::OK_SCAN_END;
         }
     }
+    // done about checking for all elements of border node.
 
-    if (tuple_pushed_num == 0 && node_version_vec != nullptr) {
+    if (!tuple_pushed_num && node_version_vec != nullptr) {
         /**
           * Since it is a leftmost node included in the range, it is included 
           * in the phantom verification. However, there were no elements 
@@ -318,8 +341,10 @@ retry:
                 std::make_pair(v_at_fb, bn->get_version_ptr()));
     }
 
+    // it reaches right endpoint of entire tree.
     if (next == nullptr) { return status::OK_SCAN_END; }
 
+    // it is in scan range and fin scaning this border node.
     *target = next;
     v_at_fb = next->get_stable_version();
     return status::OK_SCAN_CONTINUE;

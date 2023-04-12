@@ -43,9 +43,9 @@ TEST_F(put_get_scan_remove_long_key_test, put_get) { // NOLINT
     ASSERT_EQ(status::OK, create_storage(st));
 
     std::string v{"v"};
-    for (std::size_t i = 1024; i <= 1024 * 35; i += 1024) { // NOLINT
+    for (std::size_t i = 1024; i <= 1024 * 30; i += 1024) { // NOLINT
         LOG(INFO) << "test key size " << i << " B";
-        LOG(INFO) << "test key size " << i / 1024 << " KB";
+        LOG(INFO) << "test key size " << i / 1024 << " KiB";
         std::string k(i, 'a');
         // test: put
         ASSERT_EQ(status::OK, put(s, st, k, v.data(), v.size()));

@@ -117,8 +117,6 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
                         }
                     }
                     ASSERT_EQ(check_ctr, kv.size());
-#if 0
-                    // todo fix about it.
                     // check success for own puts. check duplicate about key.
                     std::sort(tuple_list.begin(), tuple_list.end());
                     std::string check_key = std::get<0>(*tuple_list.begin());
@@ -129,15 +127,14 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
                             LOG(INFO) << "it found duplicate. thread " << th_id;
                             for (auto itr_2 = tuple_list.begin();
                                  itr_2 != tuple_list.end(); ++itr_2) {
-                                LOG(INFO) << th_id << ", "
-                                          << std::get<0>(*itr_2).size() << ", "
-                                          << std::get<0>(*itr_2);
+                                LOG(INFO) << "th_id:" << th_id << ", size:"
+                                          << std::get<0>(*itr_2).size()
+                                          << ", key:" << std::get<0>(*itr_2);
                             }
                             LOG(FATAL);
                         }
                         check_key = std::get<0>(*itr);
                     }
-#endif
 
                     for (auto& i : kv) {
                         std::string k(std::get<0>(i));

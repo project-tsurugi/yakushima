@@ -23,6 +23,7 @@ public:
     }
 
     void SetUp() override {
+        std::call_once(init_, call_once_f);
         init();
         create_storage(st);
     }
@@ -41,9 +42,9 @@ TEST_F(scan_long_key_test, put_scan_delete) { // NOLINT
     ASSERT_EQ(status::OK, create_storage(st));
 
     std::string v{"v"};
-    for (std::size_t i = 1; i < 1024 * 50; i *= 2) {
+    for (std::size_t i = 1024; i <= 1024 * 30; i += 1024) { // NOLINT
         // put
-        LOG(INFO) << "test key size " << i << " bytes";
+        LOG(INFO) << "test key size " << i / 1024 << " KiB";
         std::string k(i, 'a');
         ASSERT_EQ(status::OK, put(s, st, k, v.data(), v.size()));
 

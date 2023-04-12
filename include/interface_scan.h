@@ -45,14 +45,14 @@ scan(tree_instance* ti, std::string_view l_key, scan_endpoint l_end,
         return status::ERR_BAD_USAGE;
     }
 
-    // clear out parameter
+retry_from_root:
+    // clear out parameter, this must be after retry_from_root for retry.
     tuple_list.clear();
     if (node_version_vec != nullptr) {
         // this out parameter is used.
         node_version_vec->clear();
     }
 
-retry_from_root:
     std::string key_prefix;
     base_node* root = ti->load_root_ptr();
 
@@ -103,12 +103,18 @@ retry_from_root:
             }
             return status::OK;
         }
+
+        // scan
         check_status = scan_border<ValueType>(
                 &target_border, traverse_key_view, l_end, r_key, r_end,
                 tuple_list, std::get<tuple_v_index>(node_and_v),
                 node_version_vec, key_prefix, max_size);
+
+        // check rc
         if (check_status == status::OK_SCAN_END) { return status::OK; }
         if (check_status == status::OK_SCAN_CONTINUE) { continue; }
+
+        // fail
         if (check_status == status::OK_RETRY_FROM_ROOT) {
             goto retry_from_root; // NOLINT
         } else {
