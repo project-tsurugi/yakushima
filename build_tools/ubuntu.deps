@@ -1,4 +1,6 @@
 build-essential
+clang-tidy
+clang-tools
 clang-tidy-8
 cmake
 doxygen
