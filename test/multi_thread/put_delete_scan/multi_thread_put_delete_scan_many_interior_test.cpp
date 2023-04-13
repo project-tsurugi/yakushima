@@ -125,8 +125,8 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
                         if (check_key == std::get<0>(*itr)) {
                             std::unique_lock lk{debug_mtx};
                             LOG(INFO) << "it found duplicate. thread " << th_id;
-                            for (auto itr_2 = tuple_list.begin();
-                                 itr_2 != tuple_list.end(); ++itr_2) { // NOLINT
+                            for (auto itr_2 = tuple_list.begin(); // NOLINT
+                                 itr_2 != tuple_list.end(); ++itr_2) {
                                 LOG(INFO) << "th_id:" << th_id << ", size:"
                                           << std::get<0>(*itr_2).size()
                                           << ", key:" << std::get<0>(*itr_2);

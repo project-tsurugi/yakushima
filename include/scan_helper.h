@@ -24,8 +24,8 @@ scan_border(border_node** target, std::string_view l_key, scan_endpoint l_end,
                                    node_version64*>>* node_version_vec,
             const std::string& key_prefix, std::size_t max_size);
 
-status scan_check_retry(border_node* const bn, // NOLINT
-                        node_version64_body& v_at_fb) {
+inline status scan_check_retry(border_node* const bn,
+                               node_version64_body& v_at_fb) {
     node_version64_body check = bn->get_stable_version();
     if (check != v_at_fb) {
         // fail optimistic verify
