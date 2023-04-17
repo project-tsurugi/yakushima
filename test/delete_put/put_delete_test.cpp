@@ -27,12 +27,11 @@ protected:
     void TearDown() override { fin(); }
 };
 
-TEST_F(put_delete, DISABLED_simple) { // NOLINT
+TEST_F(put_delete, simple) { // NOLINT
     Token token{};
     std::string k("k");
     std::string v("v");
     for (std::size_t i = 0; i < 100; ++i) { // NOLINT
-        LOG(INFO) << i;
         ASSERT_EQ(status::OK, enter(token));
         ASSERT_EQ(status::OK,
                   put(token, test_storage_name, k, v.data(), v.size()));
@@ -40,7 +39,6 @@ TEST_F(put_delete, DISABLED_simple) { // NOLINT
         ASSERT_EQ(status::OK, enter(token));
         ASSERT_EQ(status::OK, remove(token, test_storage_name, k));
         ASSERT_EQ(status::OK, leave(token));
-        usleep(1000 * 100); // todo remove for debug
     }
 }
 

@@ -23,6 +23,7 @@ public:
                                              value_align_type v_align) {
         value* v{};
         if constexpr (kIsInlineValue) {
+            // inline value
             memcpy(&v, in_ptr, sizeof(uintptr_t));
         } else {
             // compute the size/alignment to be reserved

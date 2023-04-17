@@ -40,12 +40,14 @@ public:
         if (target_is_value) {
             value* vp = lv_.at(pos).get_value();
             if (value::is_value_ptr(vp)) {
+                // it is value ptr (not inline value)
                 value::remove_delete_flag(vp);
                 auto [v_ptr, v_len, v_align] = value::get_gc_info(vp);
                 ti->get_gc_info().push_value_container(
                         {ti->get_begin_epoch(), v_ptr, v_len, v_align});
             }
         }
+        lv_.at(pos).init_lv();
 
         // rearrange permutation
         permutation_.delete_rank(rank);
@@ -521,10 +523,12 @@ public:
             next_layer_border->set_parent(this);
             set_lv_next_layer(index, next_layer_border);
         } else {
+            // set key
             memcpy(&key_slice, key_view.data(), key_view.size());
             set_key_slice_at(index, key_slice);
             set_key_length_at(index,
                               static_cast<key_length_type>(key_view.size()));
+            // set value
             set_lv_value(index, new_value, created_value_ptr);
         }
         permutation_.inc_key_num();
