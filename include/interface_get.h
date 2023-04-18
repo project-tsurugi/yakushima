@@ -45,6 +45,9 @@ retry_find_border:
       * traverse tree to border node.
       */
     status special_status{status::OK};
+    if (root == nullptr) {
+        LOG(ERROR) << log_location_prefix << "unexpected process.";
+    }
     std::tuple<border_node*, node_version64_body> node_and_v =
             find_border(root, key_slice, key_slice_length, special_status);
     if (special_status == status::WARN_RETRY_FROM_ROOT_OF_ALL) {
@@ -102,6 +105,9 @@ retry_fetch_lv:
     if (final_check.get_vinsert_delete() !=
         v_at_fetch_lv.get_vinsert_delete()) {
         goto retry_fetch_lv; // NOLINT
+    }
+    if (root == nullptr) {
+        LOG(ERROR) << log_location_prefix << "unexpected process.";
     }
     traverse_key_view.remove_prefix(sizeof(key_slice_type));
     goto retry_find_border; // NOLINT

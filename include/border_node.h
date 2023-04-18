@@ -45,9 +45,13 @@ public:
                 auto [v_ptr, v_len, v_align] = value::get_gc_info(vp);
                 ti->get_gc_info().push_value_container(
                         {ti->get_begin_epoch(), v_ptr, v_len, v_align});
+                /**
+                  * clear for preventing heap use after free by reference of 
+                  * need_delete
+                 */
+                lv_.at(pos).init_lv();
             }
         }
-        lv_.at(pos).init_lv();
 
         // rearrange permutation
         permutation_.delete_rank(rank);

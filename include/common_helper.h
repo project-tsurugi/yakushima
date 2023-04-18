@@ -30,6 +30,17 @@ find_border(base_node* const root, const key_slice_type key_slice,
             const key_length_type key_slice_length, status& special_status) {
     special_status = status::OK;
 retry:
+#ifndef NDEBUG
+    if (root == nullptr) {
+        LOG(ERROR) << log_location_prefix << "find_border: root: " << root
+                   << ", key_slice: " << key_slice
+                   << ", key_slice_length: " << key_slice_length
+                   << ", special_status: " << special_status;
+        // if special status is ok, it is just after called.
+        // if special status is warn, it is just after retry one.
+    }
+#endif
+
     base_node* n = root;
     node_version64_body v = n->get_stable_version();
     if (!v.get_root()) {
@@ -63,6 +74,7 @@ retry:
              * inappropriate.
              * Split propagates upward. It have to start from root.
              */
+            special_status = status::WARN_CONCURRENT_OPERATIONS;
             goto retry; // NOLINT
         }
         n = n_child;

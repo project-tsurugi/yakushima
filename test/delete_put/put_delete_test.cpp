@@ -39,6 +39,7 @@ TEST_F(put_delete, simple) { // NOLINT
         ASSERT_EQ(status::OK, enter(token));
         ASSERT_EQ(status::OK, remove(token, test_storage_name, k));
         ASSERT_EQ(status::OK, leave(token));
+        //usleep(1000 * 100); // for checking gc trouble
     }
 }
 

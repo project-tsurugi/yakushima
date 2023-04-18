@@ -23,6 +23,7 @@ public:
         google::InitGoogleLogging(
                 "yakushima-test-multi_thread-put_delete_get-multi_thread_put_"
                 "delete_get_two_border_test");
+        google::InstallFailureSignalHandler();
         FLAGS_stderrthreshold = 0;
     }
 
@@ -64,7 +65,7 @@ TEST_F(mtpdgt, two_border_null_key) { // NOLINT
                                   ? (ary_size / max_thread) * (th_id + 1)
                                   : ary_size);
                      ++i) {
-                    kv.emplace_back(std::make_pair(std::string(i, '\0'),
+                    kv.emplace_back(std::make_pair(std::string(i, 'a'),
                                                    std::to_string(i)));
                 }
 
@@ -158,7 +159,7 @@ TEST_F(mtpdgt, two_border_null_key_shuffle) { // NOLINT
                                   ? (ary_size / max_thread) * (th_id + 1)
                                   : ary_size);
                      ++i) {
-                    kv.emplace_back(std::make_pair(std::string(i, '\0'),
+                    kv.emplace_back(std::make_pair(std::string(i, 'a'),
                                                    std::to_string(i)));
                 }
 
