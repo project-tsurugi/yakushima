@@ -110,11 +110,13 @@ retry_from_root:
                 tuple_list, std::get<tuple_v_index>(node_and_v),
                 node_version_vec, key_prefix, max_size);
 
-        // check rc
+        // check rc, success
         if (check_status == status::OK_SCAN_END) { return status::OK; }
         if (check_status == status::OK_SCAN_CONTINUE) { continue; }
 
-        // fail
+        /**
+         * fail. It will clear all tuple and node information after goto.
+        */
         if (check_status == status::OK_RETRY_FROM_ROOT) {
             goto retry_from_root; // NOLINT
         } else {

@@ -45,6 +45,9 @@ inline status scan_check_retry(border_node* const bn,
     return status::OK;
 }
 
+/**
+ * scan for some try nodes which is not root.
+*/
 template<class ValueType>
 static status
 scan(base_node* const root, const std::string_view l_key,
@@ -83,10 +86,14 @@ retry:
                 &bn, l_key, l_end, r_key, r_end, tuple_list, check_v,
                 node_version_vec, key_prefix, max_size);
 
-        // check rc
+        // check rc, success
         if (check_status == status::OK_SCAN_END) { return status::OK; }
         if (check_status == status::OK_SCAN_CONTINUE) { continue; }
-
+        
+        /**
+         * fail. it doesn't need to clear tuple and node information because
+         * caller of this will do.
+        */
         if (check_status == status::OK_RETRY_AFTER_FB) {
             node_version64_body re_check_v = bn->get_stable_version();
             if (check_v.get_vsplit() != re_check_v.get_vsplit() ||
@@ -104,6 +111,9 @@ retry:
     }
 }
 
+/**
+ * scan for some leafnode of b+tree.
+*/
 template<class ValueType>
 static status
 scan_border(border_node** const target, const std::string_view l_key,
@@ -127,7 +137,8 @@ scan_border(border_node** const target, const std::string_view l_key,
 retry:
     /**
       * For retry of failing optimistic verify, it must erase parts of 
-      * tuple_list and node vec. about tuple_list
+      * tuple_list and node vec. clear between initial_size... and current size.
+      * about tuple_list.
       */
     if (tuple_list.size() != initial_size_of_tuple_list) {
         std::size_t erase_num = tuple_list.size() - initial_size_of_tuple_list;
