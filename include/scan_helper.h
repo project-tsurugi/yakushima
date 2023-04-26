@@ -89,7 +89,7 @@ retry:
         // check rc, success
         if (check_status == status::OK_SCAN_END) { return status::OK; }
         if (check_status == status::OK_SCAN_CONTINUE) { continue; }
-        
+
         /**
          * fail. it doesn't need to clear tuple and node information because
          * caller of this will do.
@@ -353,12 +353,25 @@ retry:
                 std::make_pair(v_at_fb, bn->get_version_ptr()));
     }
 
+    // log before verify for atomicity
+    node_version64_body next_version{};
+    if (next != nullptr) { next_version = next->get_stable_version(); }
+
+    // final check for atomicity
+    status check_status = scan_check_retry(bn, v_at_fb);
+    if (check_status == status::OK_RETRY_FROM_ROOT) {
+        return status::OK_RETRY_FROM_ROOT;
+    }
+    if (check_status == status::OK_RETRY_AFTER_FB) {
+        goto retry; // NOLINT
+    }
+
     // it reaches right endpoint of entire tree.
     if (next == nullptr) { return status::OK_SCAN_END; }
 
     // it is in scan range and fin scaning this border node.
     *target = next;
-    v_at_fb = next->get_stable_version();
+    v_at_fb = next_version;
     return status::OK_SCAN_CONTINUE;
 }
 
