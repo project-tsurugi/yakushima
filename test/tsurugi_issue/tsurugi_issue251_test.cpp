@@ -29,7 +29,7 @@ private:
     static inline std::once_flag init_; // NOLINT
 };
 
-TEST_F(tsurugi_issue251_test, DISABLED_20230426_comment_ban) { // NOLINT
+TEST_F(tsurugi_issue251_test, 20230426_comment_ban) { // NOLINT
     // prepare
     constexpr int rec_num{100000};
     std::string st{"st"};

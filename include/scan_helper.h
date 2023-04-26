@@ -57,6 +57,38 @@ scan(base_node* const root, const std::string_view l_key,
      std::vector<std::pair<node_version64_body, node_version64*>>* const
              node_version_vec,
      const std::string& key_prefix, const std::size_t max_size) {
+    /**
+     * Log size before scanning this node.
+     * This must be before retry label for retry at find border.
+    */
+    std::size_t initial_size_of_tuple_list{tuple_list.size()};
+    std::size_t initial_size_of_node_version_vec{};
+    if (node_version_vec != nullptr) {
+        initial_size_of_node_version_vec = node_version_vec->size();
+    }
+
+    /**
+      * For retry of failing optimistic verify, it must erase parts of 
+      * tuple_list and node vec. clear between initial_size... and current size.
+      * about tuple_list.
+      */
+    auto clean_up_tuple_list_nvc = [&tuple_list,
+                                    &node_version_vec](std::size_t isoftl,
+                                                       std::size_t isonvv) {
+        if (tuple_list.size() != isoftl) {
+            std::size_t erase_num = tuple_list.size() - isoftl;
+            tuple_list.erase(tuple_list.end() - erase_num, tuple_list.end());
+        }
+        // about node_version_vec
+        if (node_version_vec != nullptr) {
+            if (node_version_vec->size() != isonvv) {
+                std::size_t erase_num = node_version_vec->size() - isonvv;
+                node_version_vec->erase(node_version_vec->end() - erase_num,
+                                        node_version_vec->end());
+            }
+        }
+    };
+
 retry:
     if (root->get_version_deleted() || !root->get_version_root()) {
         return status::OK_RETRY_FROM_ROOT;
@@ -81,6 +113,13 @@ retry:
     node_version64_body check_v = std::get<tuple_v_index>(node_and_v);
 
     for (;;) {
+        // log size before scan_border
+        std::size_t initial_size_of_tuple_list_at_fb{tuple_list.size()};
+        std::size_t initial_size_of_node_version_vec_at_fb{};
+        if (node_version_vec != nullptr) {
+            initial_size_of_node_version_vec_at_fb = node_version_vec->size();
+        }
+
         // scan the border node
         check_status = scan_border<ValueType>(
                 &bn, l_key, l_end, r_key, r_end, tuple_list, check_v,
@@ -97,15 +136,21 @@ retry:
         if (check_status == status::OK_RETRY_AFTER_FB) {
             node_version64_body re_check_v = bn->get_stable_version();
             if (check_v.get_vsplit() != re_check_v.get_vsplit() ||
+                // retry from this b+ tree
                 re_check_v.get_deleted()) {
                 return status::OK_RETRY_AFTER_FB;
             }
             if (check_v.get_vinsert_delete() !=
                 re_check_v.get_vinsert_delete()) {
+                // retry from this border node
                 check_v = re_check_v;
+                clean_up_tuple_list_nvc(initial_size_of_tuple_list_at_fb,
+                                        initial_size_of_node_version_vec_at_fb);
                 continue;
             }
         } else if (check_status == status::OK_RETRY_FROM_ROOT) {
+            clean_up_tuple_list_nvc(initial_size_of_tuple_list,
+                                    initial_size_of_node_version_vec);
             goto retry; // NOLINT
         }
     }
@@ -269,6 +314,8 @@ retry:
                     scan(next_layer, arg_l_key, arg_l_end, arg_r_key, arg_r_end,
                          tuple_list, node_version_vec, full_key, max_size);
             if (check_status != status::OK) {
+                // failed. clean up tuple list and node vesion vec.
+                clean_up_tuple_list_nvc();
                 goto retry; // NOLINT
             }
         } else {
