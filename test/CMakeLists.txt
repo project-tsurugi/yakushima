@@ -26,6 +26,7 @@ file(GLOB TEST_SOURCES
         "delete/*.cpp"
         "delete_get_put_scan/*.cpp"
         "delete_put/*.cpp"
+        "tsurugi_issue/*.cpp"
         )
 
 register_tests(
