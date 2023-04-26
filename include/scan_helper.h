@@ -134,25 +134,30 @@ scan_border(border_node** const target, const std::string_view l_key,
     if (node_version_vec != nullptr) {
         initial_size_of_node_version_vec = node_version_vec->size();
     }
-retry:
     /**
       * For retry of failing optimistic verify, it must erase parts of 
       * tuple_list and node vec. clear between initial_size... and current size.
       * about tuple_list.
       */
-    if (tuple_list.size() != initial_size_of_tuple_list) {
-        std::size_t erase_num = tuple_list.size() - initial_size_of_tuple_list;
-        tuple_list.erase(tuple_list.end() - erase_num, tuple_list.end());
-    }
-    // about node_version_vec
-    if (node_version_vec != nullptr) {
-        if (node_version_vec->size() != initial_size_of_node_version_vec) {
+    auto clean_up_tuple_list_nvc = [&tuple_list, &node_version_vec,
+                                    initial_size_of_tuple_list,
+                                    initial_size_of_node_version_vec]() {
+        if (tuple_list.size() != initial_size_of_tuple_list) {
             std::size_t erase_num =
-                    node_version_vec->size() - initial_size_of_node_version_vec;
-            node_version_vec->erase(node_version_vec->end() - erase_num,
-                                    node_version_vec->end());
+                    tuple_list.size() - initial_size_of_tuple_list;
+            tuple_list.erase(tuple_list.end() - erase_num, tuple_list.end());
         }
-    }
+        // about node_version_vec
+        if (node_version_vec != nullptr) {
+            if (node_version_vec->size() != initial_size_of_node_version_vec) {
+                std::size_t erase_num = node_version_vec->size() -
+                                        initial_size_of_node_version_vec;
+                node_version_vec->erase(node_version_vec->end() - erase_num,
+                                        node_version_vec->end());
+            }
+        }
+    };
+retry:
 
     /**
      * This is used below loop for logging whether this scan catches some 
@@ -196,6 +201,10 @@ retry:
          * an early abort.
          */
         status check_status = scan_check_retry(bn, v_at_fb);
+        if (check_status != status::OK) {
+            // failed. clean up tuple list and node vesion vec.
+            clean_up_tuple_list_nvc();
+        }
         if (check_status == status::OK_RETRY_FROM_ROOT) {
             return status::OK_RETRY_FROM_ROOT;
         }
@@ -359,6 +368,10 @@ retry:
 
     // final check for atomicity
     status check_status = scan_check_retry(bn, v_at_fb);
+    if (check_status != status::OK) {
+        // failed. clean up tuple list and node vesion vec.
+        clean_up_tuple_list_nvc();
+    }
     if (check_status == status::OK_RETRY_FROM_ROOT) {
         return status::OK_RETRY_FROM_ROOT;
     }
