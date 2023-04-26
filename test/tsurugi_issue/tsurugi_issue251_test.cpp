@@ -36,21 +36,22 @@ TEST_F(tsurugi_issue251_test, 20230426_comment_ban) { // NOLINT
     ASSERT_EQ(status::OK, create_storage(st));
 
     std::atomic_bool finish_insert{false};
-    auto work_insert = [st, rec_num, &finish_insert]() {
+    auto work_insert = [st, &finish_insert]() { // NOLINT
         Token token{};
         ASSERT_EQ(status::OK, enter(token));
         for (int i = 0; i < rec_num; ++i) {
-            char buf[32];
-            sprintf(buf, "%012d", i);
+            char buf[32];             // NOLINT
+            sprintf(buf, "%012d", i); // NOLINT
             ASSERT_EQ(status::OK,
-                      put(token, st, std::string_view(buf), &i, sizeof(i)));
+                      put(token, st, std::string_view(buf), &i, // NOLINT
+                          sizeof(i)));
         }
         finish_insert = true;
         // cleanup
         ASSERT_EQ(status::OK, leave(token));
     };
 
-    auto work_scan = [st, rec_num, &finish_insert]() {
+    auto work_scan = [st, &finish_insert]() { // NOLINT
         Token token{};
         ASSERT_EQ(status::OK, enter(token));
         while (!finish_insert) {
