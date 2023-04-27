@@ -29,6 +29,7 @@
 
 // yakushima/bench/include
 #include "affinity.h"
+#include "memory.h"
 #include "random.h"
 #include "tsc.h"
 #include "zipf.h"
@@ -397,8 +398,8 @@ static void invoke_leader() try {
         }
         fin_res += res[i];
     }
-    LOG(INFO) << "throughput[ops/s]: " << fin_res / FLAGS_duration;
-
+    std::cout << "throughput[ops/s]: " << fin_res / FLAGS_duration << std::endl;
+    displayRusageRUMaxrss();
     LOG(INFO) << "[start] fin masstree.";
     std::chrono::system_clock::time_point c_start;
     std::chrono::system_clock::time_point c_end;
@@ -406,12 +407,13 @@ static void invoke_leader() try {
     fin();
     c_end = std::chrono::system_clock::now();
     LOG(INFO) << "[end] fin masstree.";
-    LOG(INFO) << "cleanup_time[ms]: "
+    std::cout << "cleanup_time[ms]: "
               << static_cast<double>(
                          std::chrono::duration_cast<std::chrono::microseconds>(
                                  c_end - c_start)
                                  .count() /
-                         1000.0);
+                         1000.0)
+              << std::endl;
 
 #ifdef PERFORMANCE_TOOLS
     performance_tools::counter_class sum{};
