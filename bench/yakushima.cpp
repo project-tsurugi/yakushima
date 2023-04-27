@@ -285,18 +285,18 @@ static void invoke_leader() try {
     alignas(CACHE_LINE_SIZE) bool quit = false;
     alignas(CACHE_LINE_SIZE) std::vector<std::size_t> res(FLAGS_thread);
 
-    std::cout << "[start] init masstree database." << std::endl;
+    LOG(INFO) << "[start] init masstree database.";
     init();
     create_storage(bench_storage);
-    std::cout << "[end] init masstree database." << std::endl;
+    LOG(INFO) << "[end] init masstree database.";
 
     std::cout << "[report] This experiments use ";
     if (FLAGS_instruction == "get" || FLAGS_instruction == "remove") {
         std::cout << FLAGS_instruction << std::endl;
         // build initial tree
-        std::cout << "[start] parallel build initial tree." << std::endl;
+        LOG(INFO) << "[start] parallel build initial tree.";
         parallel_build_tree();
-        std::cout << "[end] parallel build initial tree." << std::endl;
+        LOG(INFO) << "[end] parallel build initial tree.";
     } else if (FLAGS_instruction == "put") {
         std::cout << "put" << std::endl;
     } else {
@@ -322,18 +322,18 @@ static void invoke_leader() try {
 
     waitForReady(readys);
     storeReleaseN(start, true);
-    std::cout << "[start] measurement." << std::endl;
+    LOG(INFO) << "[start] measurement.";
     for (size_t i = 0; i < FLAGS_duration; ++i) { sleepMs(1000); }
-    std::cout << "[end] measurement." << std::endl;
+    LOG(INFO) << "[end] measurement.";
     storeReleaseN(quit, true);
-    std::cout << "[start] join worker threads." << std::endl;
+    LOG(INFO) << "[start] join worker threads.";
     for (auto& th : thv) { th.join(); }
-    std::cout << "[end] join worker threads." << std::endl;
+    LOG(INFO) << "[end] join worker threads.";
 
     /**
-   * get test : read records.
-   * put test : put records.
-   */
+      * get test : read records.
+      * put test : put records.
+      */
     std::uint64_t fin_res{0};
     for (std::uint64_t i = 0; i < FLAGS_thread; ++i) {
         if ((UINT64_MAX - fin_res) < res[i]) {
@@ -342,15 +342,15 @@ static void invoke_leader() try {
         }
         fin_res += res[i];
     }
-    std::cout << "throughput[ops/s]: " << fin_res / FLAGS_duration << std::endl;
+    LOG(INFO) << "throughput[ops/s]: " << fin_res / FLAGS_duration;
 
-    std::cout << "[start] fin masstree." << std::endl;
+    LOG(INFO) << "[start] fin masstree.";
     std::chrono::system_clock::time_point c_start;
     std::chrono::system_clock::time_point c_end;
     c_start = std::chrono::system_clock::now();
     fin();
     c_end = std::chrono::system_clock::now();
-    std::cout << "[end] fin masstree." << std::endl;
+    LOG(INFO) << "[end] fin masstree.";
     LOG(INFO) << "cleanup_time[ms]: "
               << static_cast<double>(
                          std::chrono::duration_cast<std::chrono::microseconds>(
