@@ -20,7 +20,7 @@ cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..
 ``` shell
 cd [/path/to/project_root]
 cd build-release/bench
-LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima
+LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench
 LD_PRELOAD=[/path/to/some memory allocator lib] ./malloc
 ```
 
@@ -46,7 +46,7 @@ LD_PRELOAD=[/path/to/some memory allocator lib] ./malloc
   + default : `1`
 * `-value_size`
   + This is the size of value which is of key-value.
-  + default : `4`
+  + default : `8`
   + Please set very small size if you want to check sharpness of parallel logic. Otherwise, if you want to check 
 
   the realistic performance, you should set appropriate size.
@@ -73,10 +73,10 @@ LD_PRELOAD=[/path/to/some memory allocator lib] ./malloc
   + get_skew : default : `0.0`
   + instruction : default : `get`
   + thread : `200`
-  + value_size : default : `4`
+  + value_size : default : `8`
 
 ```  shell
-LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima -duration 10 -get_initial_record 1000000 -thread 200
+LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench -duration 10 -get_initial_record 1000000 -thread 200
 ```
 
 * Put benchmark.
@@ -85,10 +85,10 @@ LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima -duration 10 -get_in
   + [unused] get_skew : default 
   + instruction : `put`
   + thread : `200`
-  + value_size : default : `4`
+  + value_size : default : `8`
 
 ``` shell
-LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima -instruction put -duration 10 -thread 200
+LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench -instruction put -duration 10 -thread 200
 ```
 
 ## malloc Example

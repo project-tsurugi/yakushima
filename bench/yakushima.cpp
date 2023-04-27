@@ -53,7 +53,7 @@ DEFINE_double(get_skew, 0.0, "access skew of get operations.");  // NOLINT
 DEFINE_string(instruction, "get",                                // NOLINT
               "put or get. The default is insert.");             // NOLINT
 DEFINE_uint64(thread, 1, "# worker threads.");                   // NOLINT
-DEFINE_uint32(value_size, 4, "value size");                      // NOLINT
+DEFINE_uint32(value_size, 8, "value size");                      // NOLINT
 
 std::string bench_storage{"1"}; // NOLINT
 
