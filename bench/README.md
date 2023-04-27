@@ -43,6 +43,10 @@ LD_PRELOAD=[/path/to/some memory allocator lib] ./malloc
   + This is the selection of benchmarking.
   + default : `get`
   + Please use `get` or `put`.
+* `-range_of_scan`
+  + Number of elements of range scan.
+  + default : `1000`
+  + Please use `scan`.
 * `-thread`
   + This is the number of worker threads.
   + default : `1`
@@ -70,7 +74,7 @@ LD_PRELOAD=[/path/to/some memory allocator lib] ./malloc
 ## yakushima Example
 
 * Get benchmark.
-  + duration : `10`
+  + duration : default : `3`
   + initial_record : `1000000`
   + get_skew : default : `0.0`
   + instruction : default : `get`
@@ -78,11 +82,23 @@ LD_PRELOAD=[/path/to/some memory allocator lib] ./malloc
   + value_size : default : `8`
 
 ```  shell
-LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench -duration 10 -initial_record 1000000 -thread 200
+LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench -initial_record 1000000 -thread 200
+```
+
+* Scan benchmark.
+  + duration : default : `3`
+  + initial_record : `1000000`
+  + get_skew : default : `0.0`
+  + instruction : `scan`
+  + thread : `200`
+  + value_size : default : `8`
+
+```  shell
+LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench -initial_record 1000000 -thread 200
 ```
 
 * Remove benchmark.
-  + duration : `10`
+  + duration : default : `3`
   + initial_record : `1000000`
   + get_skew : default : `0.0`
   + instruction : `remove`
@@ -90,11 +106,11 @@ LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench -duration 10 -
   + value_size : default : `8`
 
 ```  shell
-LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench -duration 10 -initial_record 1000000 -thread 200 -instruction remove
+LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench -initial_record 1000000 -thread 200 -instruction remove
 ``` 
 
 * Put benchmark.
-  + duration : `10`
+  + duration : default : `3`
   + [unused] initial_record : default
   + [unused] get_skew : default 
   + instruction : `put`
@@ -102,7 +118,7 @@ LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench -duration 10 -
   + value_size : default : `8`
 
 ``` shell
-LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench -instruction put -duration 10 -thread 200
+LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench -instruction put -thread 200
 ```
 
 ## malloc Example

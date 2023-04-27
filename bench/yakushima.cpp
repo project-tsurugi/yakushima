@@ -55,6 +55,9 @@ DEFINE_string(instruction, "get",                                // NOLINT
 DEFINE_uint64(thread, 1, "# worker threads.");                   // NOLINT
 DEFINE_uint32(value_size, 8, "value size");                      // NOLINT
 
+// unique for instruction
+DEFINE_uint64(range_of_scan, 1000, "# elements of range."); // NOLINT
+
 std::string bench_storage{"1"}; // NOLINT
 
 static void check_flags() {
@@ -64,6 +67,7 @@ static void check_flags() {
               << "get_skew :\t\t" << FLAGS_get_skew << "\n"
               << "instruction :\t\t" << FLAGS_instruction << "\n"
               << "thread :\t\t" << FLAGS_thread << "\n"
+              << "range_of_scan :\t\t" << FLAGS_range_of_scan << "\n"
               << "value_size :\t\t" << FLAGS_value_size << std::endl;
 
     // about thread
@@ -78,9 +82,10 @@ static void check_flags() {
 
     // about instruction
     if (FLAGS_instruction != "put" && FLAGS_instruction != "get" &&
-        FLAGS_instruction != "remove") {
-        LOG(FATAL) << "The instruction option must be put, remove or get. "
-                      "The default is get.";
+        FLAGS_instruction != "remove" && FLAGS_instruction != "scan") {
+        LOG(FATAL)
+                << "The instruction option must be put, remove, scan or get. "
+                   "The default is get.";
     }
 
     // about skew
@@ -89,9 +94,16 @@ static void check_flags() {
     }
     // about get / remove bench
     if (FLAGS_initial_record == 0 &&
-        (FLAGS_instruction == "get" || FLAGS_instruction == "remove")) {
-        LOG(FATAL)
-                << "It can't execute get / remove bench against 0 size table.";
+        (FLAGS_instruction == "get" || FLAGS_instruction == "remove" ||
+         FLAGS_instruction == "scan")) {
+        LOG(FATAL) << "It can't execute get / remove / scan bench against 0 "
+                      "size table.";
+    }
+
+    // about scan bench
+    if (FLAGS_range_of_scan > FLAGS_initial_record) {
+        LOG(FATAL) << "It can't execute larger range against entire. Please set"
+                      "less range than entire.";
     }
 }
 
@@ -184,6 +196,45 @@ void get_worker(const size_t thid, char& ready, const bool& start,
         if (get<char>(bench_storage, std::string_view(key), ret) !=
             status::OK) {
             LOG(ERROR) << "fatal error";
+        }
+        ++local_res;
+    }
+#ifdef PERFORMANCE_TOOLS
+    performance_tools::get_watch().set_point(1);
+#endif
+    leave(token);
+    res = local_res;
+}
+
+void scan_worker(const size_t thid, char& ready, const bool& start,
+                 const bool& quit, std::size_t& res) {
+    // init work
+    Xoroshiro128Plus rnd;
+    FastZipf zipf(&rnd, FLAGS_get_skew, FLAGS_initial_record);
+
+    // this function can be used in Linux environment only.
+#ifdef YAKUSHIMA_LINUX
+    set_thread_affinity(static_cast<const int>(thid));
+#endif
+
+    storeReleaseN(ready, 1);
+    while (!loadAcquireN(start)) _mm_pause();
+
+    Token token{};
+    while (enter(token) != status::OK) { _mm_pause(); }
+    std::uint64_t local_res{0};
+#ifdef PERFORMANCE_TOOLS
+    performance_tools::get_watch().set_point(0, thid);
+#endif
+    while (!loadAcquireN(quit)) {
+        std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{};
+        std::vector<std::pair<node_version64_body, node_version64*>> nv;
+        if (scan(bench_storage, "", scan_endpoint::INF, "", scan_endpoint::INF,
+                 tuple_list, &nv, FLAGS_range_of_scan) != status::OK) {
+            LOG(ERROR) << "fatal error";
+        }
+        if (tuple_list.size() != FLAGS_range_of_scan) {
+            LOG(FATAL) << "programming error: " << tuple_list.size();
         }
         ++local_res;
     }
@@ -291,7 +342,8 @@ static void invoke_leader() try {
     LOG(INFO) << "[end] init masstree database.";
 
     std::cout << "[report] This experiments use ";
-    if (FLAGS_instruction == "get" || FLAGS_instruction == "remove") {
+    if (FLAGS_instruction == "get" || FLAGS_instruction == "remove" ||
+        FLAGS_instruction == "scan") {
         std::cout << FLAGS_instruction << std::endl;
         // build initial tree
         LOG(INFO) << "[start] parallel build initial tree.";
@@ -314,6 +366,9 @@ static void invoke_leader() try {
                              std::ref(start), std::ref(quit), std::ref(res[i]));
         } else if (FLAGS_instruction == "remove") {
             thv.emplace_back(remove_worker, i, std::ref(readys[i]),
+                             std::ref(start), std::ref(quit), std::ref(res[i]));
+        } else if (FLAGS_instruction == "scan") {
+            thv.emplace_back(scan_worker, i, std::ref(readys[i]),
                              std::ref(start), std::ref(quit), std::ref(res[i]));
         } else {
             LOG(FATAL) << "invalid instruction type.";
