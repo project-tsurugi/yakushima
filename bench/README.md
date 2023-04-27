@@ -31,8 +31,10 @@ LD_PRELOAD=[/path/to/some memory allocator lib] ./malloc
 * `-duration`
   + This is experimental time [seconds].
   + default : `3`
-* `-get_initial_record`
-  + This is the number of initial key-values for get benchmarking.
+* `-initial_record`
+  + This is the number of initial key-values for get / remove benchmarking.
+  + note: remove performance is about larger than 553k ops / thread / sec. So
+  you should set very large initial_record at remove benchmark.
   + default : `1000`
 * `-get_skew`
   + This is the access zipf skew for get benchmarking.
@@ -69,19 +71,31 @@ LD_PRELOAD=[/path/to/some memory allocator lib] ./malloc
 
 * Get benchmark.
   + duration : `10`
-  + get_initial_record : `1000000`
+  + initial_record : `1000000`
   + get_skew : default : `0.0`
   + instruction : default : `get`
   + thread : `200`
   + value_size : default : `8`
 
 ```  shell
-LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench -duration 10 -get_initial_record 1000000 -thread 200
+LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench -duration 10 -initial_record 1000000 -thread 200
 ```
+
+* Remove benchmark.
+  + duration : `10`
+  + initial_record : `1000000`
+  + get_skew : default : `0.0`
+  + instruction : `remove`
+  + thread : `200`
+  + value_size : default : `8`
+
+```  shell
+LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench -duration 10 -initial_record 1000000 -thread 200 -instruction remove
+``` 
 
 * Put benchmark.
   + duration : `10`
-  + [unused] get_initial_record : default
+  + [unused] initial_record : default
   + [unused] get_skew : default 
   + instruction : `put`
   + thread : `200`
