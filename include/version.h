@@ -26,7 +26,7 @@ namespace yakushima {
  * so it can't declare default constructor. Therefore, it should use init function to
  * initialize before using this class object.
  */
-class node_version64_body {
+class alignas(sizeof(std::uint64_t)) node_version64_body {
 public:
     using vinsert_delete_type = std::uint32_t;
     using vsplit_type = std::uint32_t;
