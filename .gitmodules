@@ -1,6 +1,3 @@
 [submodule "third_party/googletest"]
 	path = third_party/googletest
 	url = https://github.com/google/googletest.git
-[submodule "third_party/sandbox-performance-tools"]
-	path = third_party/sandbox-performance-tools
-	url = git@github.com:project-tsurugi/sandbox-performance-tools.git
