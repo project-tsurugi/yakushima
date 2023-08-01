@@ -7,7 +7,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        container-tag: [ubuntu-20.04]
+        container-tag: [ubuntu-20.04, ubuntu-22.04]
     runs-on: [self-hosted, docker]
     timeout-minutes: 30
     container:
@@ -81,14 +81,14 @@ jobs:
         name: Clang-Tidy
         run: |
           python tools/bin/run-clang-tidy.py -quiet -export-fixes=build/clang-tidy-fix.yaml -p build -extra-arg=-Wno-unknown-warning-option -extra-arg=-fsized-deallocation -header-filter=$(pwd)'/(include|src|examples|bench)/.*\.h$' $(pwd)'/(src|examples|bench|test)/.*' 2>&1 | tee build/clang-tidy.log
-        if: matrix.container-tag != 'ubuntu-18.04'
+        if: matrix.container-tag == 'ubuntu-22.04'
 
       - id: Doxygen
         name: Doxygen
         run: |
           cd build
           make doxygen 2> >(tee doxygen-error.log)
-        if: matrix.container-tag != 'ubuntu-18.04'
+        if: matrix.container-tag == 'ubuntu-22.04'
 
       - id: Generate_Annotations
         name: Generate_Annotations
