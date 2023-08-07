@@ -91,7 +91,7 @@ TEST_F(multi_thread_delete_1m_key_test, 1m_key) {         // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, st, std::string_view(k));
+                    status ret = remove(token, st, k);
                     if (ret != status::OK) {
                         LOG(FATAL) << "thid: " << th_id << ", "
                                    << ret; // output log

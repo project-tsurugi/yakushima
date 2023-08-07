@@ -53,8 +53,8 @@ TEST_F(put_test, put_to_root_border_split) { // NOLINT
     std::array<std::string, ary_size> k{};
     std::array<std::string, ary_size> v{};
     for (std::size_t i = 0; i < ary_size; ++i) {
-        k.at(i).assign(1, 'a' + i);
-        v.at(i).assign(1, 'a' + i);
+        k.at(i).assign(1, 'a' + i); // NOLINT
+        v.at(i).assign(1, 'a' + i); // NOLINT
     }
     for (std::size_t i = 0; i < ary_size; ++i) {
         ASSERT_EQ(status::OK,

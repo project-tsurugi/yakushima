@@ -30,12 +30,14 @@ llvm-*,\
 -llvm-header-guard,\
 -llvm-namespace-comment,\
 misc-*,\
+-misc-no-recursion,\
 -misc-unused-parameters,\
 modernize-*,\
 -modernize-use-trailing-return-type,\
 performance-*,\
 readability-*,\
 -readability-braces-around-statements,\
+-readability-function-cognitive-complexity,\
 -readability-identifier-length,\
 -readability-named-parameter,\
 -readability-magic-numbers,\

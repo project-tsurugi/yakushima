@@ -255,8 +255,8 @@ TEST_F(kt, test7) { // NOLINT
     std::array<std::string, ary_size> k{};
     std::array<std::string, ary_size> v{};
     for (std::size_t i = 0; i < ary_size; ++i) {
-        k.at(i).assign(1, 'a' + i);
-        v.at(i).assign(1, 'a' + i);
+        k.at(i).assign(1, 'a' + i); // NOLINT
+        v.at(i).assign(1, 'a' + i); // NOLINT
     }
     for (std::size_t i = 0; i < ary_size; ++i) {
         ASSERT_EQ(status::OK, put(token, test_storage_name, k.at(i),
@@ -284,8 +284,8 @@ TEST_F(kt, test8) { // NOLINT
         constexpr std::size_t ary_size = key_slice_length + 1;
         std::vector<std::pair<std::string, std::string>> kv; // NOLINT
         for (std::size_t i = 0; i < ary_size; ++i) {
-            kv.emplace_back(std::make_pair(std::string(1, 'a' + i),
-                                           std::string(1, 'a' + i)));
+            kv.emplace_back(std::make_pair(std::string(1, 'a' + i),   // NOLINT
+                                           std::string(1, 'a' + i))); // NOLINT
         }
         std::random_device seed_gen{};
         std::mt19937 engine(seed_gen());
@@ -322,8 +322,8 @@ TEST_F(kt, test9) { // NOLINT
     std::array<std::string, ary_size> k; // NOLINT
     std::array<std::string, ary_size> v; // NOLINT
     for (std::size_t i = 0; i < ary_size; ++i) {
-        k.at(i).assign(1, i);
-        v.at(i).assign(1, i);
+        k.at(i).assign(1, i); // NOLINT
+        v.at(i).assign(1, i); // NOLINT
     }
     for (std::size_t i = 0; i < ary_size; ++i) {
         ASSERT_EQ(status::OK, put(token, test_storage_name, k.at(i),
@@ -444,8 +444,8 @@ TEST_F(kt, test10) { // NOLINT
         std::vector<std::pair<std::string, std::string>> kv; // NOLINT
         kv.reserve(ary_size);
         for (std::size_t i = 0; i < ary_size; ++i) {
-            kv.emplace_back(
-                    std::make_pair(std::string(1, i), std::string(1, i)));
+            kv.emplace_back(std::make_pair(std::string(1, i),   // NOLINT
+                                           std::string(1, i))); // NOLINT
         }
         std::random_device seed_gen;
         std::mt19937 engine(seed_gen());

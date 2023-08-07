@@ -16,6 +16,7 @@
 
 #include <xmmintrin.h>
 
+#include <algorithm>
 #include <cstring>
 #include <memory>
 #include <thread>
@@ -61,10 +62,8 @@ static void check_flags() {
 }
 
 static bool isReady(const std::vector<char>& readys) {
-    for (const char& b : readys) {
-        if (loadAcquireN(b) == 0) { return false; }
-    }
-    return true;
+    return std::all_of(readys.begin(), readys.end(),
+                       [](char b) { return b != 0; });
 }
 
 static void waitForReady(const std::vector<char>& readys) {

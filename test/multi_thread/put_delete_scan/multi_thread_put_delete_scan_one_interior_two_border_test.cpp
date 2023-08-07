@@ -52,7 +52,7 @@ TEST_F(mtpdst, one_interior) { // NOLINT
                                   ? (ary_size / max_thread) * (th_id + 1)
                                   : ary_size);
                      ++i) {
-                    kv.emplace_back(std::make_pair(std::string(1, i),
+                    kv.emplace_back(std::make_pair(std::string(1, i), // NOLINT
                                                    std::to_string(i)));
                 }
 
@@ -176,7 +176,7 @@ TEST_F(mtpdst, one_interior_shuffle) { // NOLINT
                                   ? (ary_size / max_thread) * (th_id + 1)
                                   : ary_size);
                      ++i) {
-                    kv.emplace_back(std::make_pair(std::string(1, i),
+                    kv.emplace_back(std::make_pair(std::string(1, i), // NOLINT
                                                    std::to_string(i)));
                 }
 

@@ -33,7 +33,7 @@ public:
     static void return_room() { destroy_threads_num_ -= 1; }
 
 private:
-    static inline std::atomic<std::size_t> destroy_threads_num_{0};
+    static inline std::atomic<std::size_t> destroy_threads_num_{0}; // NOLINT
 };
 
 } // namespace yakushima

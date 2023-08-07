@@ -38,7 +38,7 @@ private:
 };
 
 std::string test_storage_name{"1"}; // NOLINT
-std::mutex debug_mtx;
+std::mutex debug_mtx;               // NOLINT
 
 TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
        many_interior) {                                 // NOLINT
@@ -70,12 +70,13 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
                                   : ary_size);
                      ++i) {
                     if (i <= INT8_MAX) {
-                        kv.emplace_back(std::make_pair(std::string(1, i),
-                                                       std::to_string(i)));
+                        kv.emplace_back(
+                                std::make_pair(std::string(1, i), // NOLINT
+                                               std::to_string(i)));
                     } else {
                         kv.emplace_back(std::make_pair(
                                 std::string(i / INT8_MAX, INT8_MAX) +
-                                        std::string(1, i % INT8_MAX),
+                                        std::string(1, i % INT8_MAX), // NOLINT
                                 std::to_string(i)));
                     }
                 }
@@ -210,12 +211,13 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
                                              : ary_size);
                      ++i) {
                     if (i <= INT8_MAX) {
-                        kv.emplace_back(std::make_pair(std::string(1, i),
-                                                       std::to_string(i)));
+                        kv.emplace_back(
+                                std::make_pair(std::string(1, i), // NOLINT
+                                               std::to_string(i)));
                     } else {
                         kv.emplace_back(std::make_pair(
                                 std::string(i / INT8_MAX, INT8_MAX) +
-                                        std::string(1, i % INT8_MAX),
+                                        std::string(1, i % INT8_MAX), // NOLINT
                                 std::to_string(i)));
                     }
                 }

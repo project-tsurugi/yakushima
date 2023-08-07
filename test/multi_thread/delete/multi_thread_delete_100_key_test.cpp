@@ -90,8 +90,7 @@ TEST_F(multi_thread_delete_100_key_test, ordered_100_key) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, test_storage_name,
-                                        std::string_view(k));
+                    status ret = remove(token, test_storage_name, k);
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -167,8 +166,7 @@ TEST_F(multi_thread_delete_100_key_test, reverse_100_key) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, test_storage_name,
-                                        std::string_view(k));
+                    status ret = remove(token, test_storage_name, k);
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();

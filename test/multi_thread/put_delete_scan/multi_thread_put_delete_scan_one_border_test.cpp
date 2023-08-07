@@ -76,11 +76,11 @@ TEST_F(mtpdst, one_border) { // NOLINT
                     std::string_view right{};
                     if (std::get<0>(kv.front()).size() >
                         std::get<0>(kv.back()).size()) {
-                        left = std::string_view(std::get<0>(kv.back()));
-                        right = std::string_view(std::get<0>(kv.front()));
+                        left = std::get<0>(kv.back());
+                        right = std::get<0>(kv.front());
                     } else {
-                        left = std::string_view(std::get<0>(kv.front()));
-                        right = std::string_view(std::get<0>(kv.back()));
+                        left = std::get<0>(kv.front());
+                        right = std::get<0>(kv.back());
                     }
                     ASSERT_EQ(status::OK,
                               scan<char>(test_storage_name, left,
@@ -205,11 +205,11 @@ TEST_F(mtpdst, one_border_shuffle) { // NOLINT
                     std::string_view right{};
                     if (std::get<0>(kv.front()).size() >
                         std::get<0>(kv.back()).size()) {
-                        left = std::string_view(std::get<0>(kv.back()));
-                        right = std::string_view(std::get<0>(kv.front()));
+                        left = std::get<0>(kv.back());
+                        right = std::get<0>(kv.front());
                     } else {
-                        left = std::string_view(std::get<0>(kv.front()));
-                        right = std::string_view(std::get<0>(kv.back()));
+                        left = std::get<0>(kv.front());
+                        right = std::get<0>(kv.back());
                     }
                     ASSERT_EQ(status::OK,
                               scan<char>(test_storage_name, left,

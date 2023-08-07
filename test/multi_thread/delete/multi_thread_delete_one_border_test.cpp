@@ -94,8 +94,7 @@ TEST_F(multi_thread_delete_one_border_test, one_border) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, test_storage_name,
-                                        std::string_view(k));
+                    status ret = remove(token, test_storage_name, k);
                     if (ret != status::OK) {
                         EXPECT_EQ(ret, status::OK); // output log
                         std::abort();
@@ -179,8 +178,7 @@ TEST_F(multi_thread_delete_one_border_test, one_border_shuffle) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, test_storage_name,
-                                        std::string_view(k));
+                    status ret = remove(token, test_storage_name, k);
                     if (ret != status::OK) {
                         EXPECT_EQ(ret, status::OK); // output log
                         std::abort();
@@ -255,8 +253,7 @@ TEST_F(multi_thread_delete_one_border_test, test3) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, test_storage_name,
-                                        std::string_view(k));
+                    status ret = remove(token, test_storage_name, k);
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -333,8 +330,7 @@ TEST_F(multi_thread_delete_one_border_test, test4) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, test_storage_name,
-                                        std::string_view(k));
+                    status ret = remove(token, test_storage_name, k);
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();

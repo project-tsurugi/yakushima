@@ -216,7 +216,7 @@ TEST_F(mtpdt, one_border_random) { // NOLINT
         struct S {
             static void work(std::size_t th_id) {
                 // data generation
-                std::string kv = std::string(1, 'a' + th_id);
+                std::string kv = std::string(1, 'a' + th_id); // NOLINT
 
                 Token token{};
                 while (enter(token) != status::OK) { _mm_pause(); }

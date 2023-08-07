@@ -55,13 +55,14 @@ TEST_F(mtpdst, one_interior) { // NOLINT
                                   : ary_size);
                      ++i) {
                     if (i <= INT8_MAX) {
-                        kv.emplace_back(std::make_pair(std::string(1, i),
-                                                       std::to_string(i)));
+                        kv.emplace_back(
+                                std::make_pair(std::string(1, i), // NOLINT
+                                               std::to_string(i)));
                     } else {
                         kv.emplace_back(std::make_pair(
                                 std::string(i / INT8_MAX,
                                             static_cast<char>(INT8_MAX)) +
-                                        std::string(1, i - INT8_MAX),
+                                        std::string(1, i - INT8_MAX), // NOLINT
                                 std::to_string(i)));
                     }
                 }

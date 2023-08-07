@@ -49,8 +49,9 @@ TEST_F(mtpt, one_interior) { // NOLINT
                                   ? (ary_size / max_thread) * (th_id + 1)
                                   : ary_size);
                      ++i) {
-                    kv.emplace_back(std::make_pair(std::string(1, 'a' + i),
-                                                   std::to_string(i)));
+                    kv.emplace_back(
+                            std::make_pair(std::string(1, 'a' + i), // NOLINT
+                                           std::to_string(i)));
                 }
 
                 Token token{};
@@ -118,8 +119,9 @@ TEST_F(mtpt, one_interior_shuffle) { // NOLINT
                                   ? (ary_size / max_thread) * (th_id + 1)
                                   : ary_size);
                      ++i) {
-                    kv.emplace_back(std::make_pair(std::string(1, 'a' + i),
-                                                   std::to_string(i)));
+                    kv.emplace_back(
+                            std::make_pair(std::string(1, 'a' + i), // NOLINT
+                                           std::to_string(i)));
                 }
 
                 std::random_device seed_gen;
