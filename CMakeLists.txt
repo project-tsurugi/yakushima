@@ -37,13 +37,65 @@ endif()
 # for logging
 find_package(Boost COMPONENTS filesystem)
 
+include(GNUInstallDirs)
 include(CompileOptions)
 include(Tests)
+include(CMakePackageConfigHelpers)
 
 # for ctest
 if (BUILD_TESTS)
   enable_testing()
 endif ()
+
+set(export_name "yakushima")
+set(package_name "yakushima")
+
+add_library(yakushima INTERFACE)
+
+target_include_directories(yakushima
+    INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${export_name}>
+)
+
+install(
+    TARGETS
+        yakushima
+    EXPORT
+        ${export_name}
+)
+
+install(
+    DIRECTORY include/
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${export_name}/yakushima/include"
+    COMPONENT Development
+    FILES_MATCHING PATTERN "*.h"
+)
+
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/${package_name}-config.cmake
+    @ONLY
+)
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/${package_name}-config-version.cmake"
+    COMPATIBILITY SameMajorVersion
+)
+
+install(
+    FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/${package_name}-config.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/${package_name}-config-version.cmake
+    DESTINATION
+        ${CMAKE_INSTALL_LIBDIR}/cmake/${package_name}
+)
+
+install(
+    EXPORT ${package_name}
+    FILE ${package_name}-targets.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${package_name}
+)
 
 add_subdirectory(bench)
 add_subdirectory(third_party)
