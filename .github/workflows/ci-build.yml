@@ -7,11 +7,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        container-tag: [ubuntu-20.04, ubuntu-22.04]
+        os: [ubuntu-20.04, ubuntu-22.04]
     runs-on: [self-hosted, docker]
+    permissions:
+      checks: write
     timeout-minutes: 30
     container:
-      image:  ghcr.io/project-tsurugi/oltp-sandbox:${{ matrix.container-tag }}
+      image: ghcr.io/project-tsurugi/oltp-sandbox:${{ matrix.os }}
       credentials:
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GHCR_PAT }}
@@ -21,45 +23,31 @@ jobs:
       run:
         shell: bash
     env:
-      CCACHE_DIR: ${{ vars.ccache_dir }}
+      CCACHE_CONFIGPATH: ${{ vars.ccache_dir }}/ccache.conf
+      CCACHE_DIR: ${{ vars.ccache_dir }}/${{ matrix.os }}
 
     steps:
-      - id: Checkout
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v3
         with:
-          submodules: recursive
+          submodules: true
           token: ${{ secrets.GHA_PAT }}
 
-      - id: Checkout_Actions
-        name: Checkout_Actions
-        uses: actions/checkout@v3
-        with:
-          repository: project-tsurugi/tsurugi-github-actions
-          path: .github/actions
-          ref: master
-          submodules: recursive
-          token: ${{ secrets.GHA_PAT }}
-
-      - id: CMake_Build_Debug
-        name: CMake_Build_Debug
+      - name: CMake_Build_Debug
         run: |
           mkdir build
           cd build
-          cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER_LAUNCHER=${{ vars.compiler_launcher }} -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DFORCE_INSTALL_RPATH=ON -DCMAKE_INSTALL_PREFIX=${GITHUB_WORKSPACE}/.local -DPERFORMANCE_TOOLS=OFF ..
-          cmake --build . --target all --clean-first -- -j
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DFORCE_INSTALL_RPATH=ON -DCMAKE_INSTALL_PREFIX=${GITHUB_WORKSPACE}/.local -DPERFORMANCE_TOOLS=OFF ..
+          cmake --build . --target all --clean-first
 
-      - id: CMake_Build_Release
-        name: CMake_Build_Release
+      - name: CMake_Build_Release
         run: |
           mkdir build_release
           cd build_release
-          cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER_LAUNCHER=${{ vars.compiler_launcher }} -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DFORCE_INSTALL_RPATH=ON -DCMAKE_INSTALL_PREFIX=${GITHUB_WORKSPACE}/.local -DPERFORMANCE_TOOLS=OFF ..
-          cmake --build . --target all --clean-first -- -j
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DFORCE_INSTALL_RPATH=ON -DCMAKE_INSTALL_PREFIX=${GITHUB_WORKSPACE}/.local -DPERFORMANCE_TOOLS=OFF ..
+          cmake --build . --target all --clean-first
 
-      - id: CTest_Debug
-        name: CTest_Debug
-        continue-on-error: false
+      - name: CTest_Debug
         env:
           GTEST_OUTPUT: xml
           ASAN_OPTIONS: detect_stack_use_after_return=true
@@ -67,9 +55,7 @@ jobs:
           cd build
           ctest --verbose --timeout 100 -j 100
 
-      - id: CTest_Release
-        name: CTest_Release
-        continue-on-error: false
+      - name: CTest_Release
         env:
           GTEST_OUTPUT: xml
           ASAN_OPTIONS: detect_stack_use_after_return=true
@@ -77,36 +63,53 @@ jobs:
           cd build_release
           ctest --verbose --timeout 100 -j 100
 
-      - id: Clang-Tidy
-        name: Clang-Tidy
-        run: |
-          python tools/bin/run-clang-tidy.py -quiet -export-fixes=build/clang-tidy-fix.yaml -p build -extra-arg=-Wno-unknown-warning-option -extra-arg=-fsized-deallocation -header-filter=$(pwd)'/(include|src|examples|bench)/.*\.h$' $(pwd)'/(src|examples|bench|test)/.*' 2>&1 | awk '!a[$0]++{print > "build/clang-tidy.log"}'
-        if: matrix.container-tag == 'ubuntu-22.04'
-
-      - id: Doxygen
-        name: Doxygen
-        run: |
-          cd build
-          make doxygen 2> >(tee doxygen-error.log)
-        if: matrix.container-tag == 'ubuntu-22.04'
-
-      - id: Generate_Annotations
-        name: Generate_Annotations
-        uses: ./.github/actions/tsurugi-annotations-action
+      - name: Verify
+        uses: project-tsurugi/tsurugi-annotations-action@v1
         if: always()
         with:
           matrix: ${{ toJson(matrix) }}
 
-      - id: Notify_Slack
-        name: Notify_Slack
-        uses: ./.github/actions/tsurugi-slack-action
-        if: always() && (github.event.pull_request.draft == false) && (contains(github.ref, '/tags/') || contains(github.ref, '/pull/') || contains(github.ref, '/heads/master'))
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          MATRIX_CONTEXT: ${{ toJson(matrix) }}
+  Analysis:
+    runs-on: [self-hosted, docker]
+    permissions:
+      checks: write
+    timeout-minutes: 30
+    container:
+      image: ghcr.io/project-tsurugi/oltp-sandbox:ubuntu-22.04
+      credentials:
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GHCR_PAT }}
+      volumes:
+        - ${{ vars.ccache_dir }}:${{ vars.ccache_dir }}
+    defaults:
+      run:
+        shell: bash
+    env:
+      CCACHE_CONFIGPATH: ${{ vars.ccache_dir }}/ccache.conf
+      CCACHE_DIR: ${{ vars.ccache_dir }}/ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
         with:
-          kind: 'job-result'
-          channel: 'tsurugi-build'
-          status: ${{ job.status }}
-          step_context: ${{ toJson(steps) }}
-          username: ${{ github.workflow }}
+          submodules: true
+          token: ${{ secrets.GHA_PAT }}
+
+      - name: CMake_Generate
+        run: |
+          mkdir build
+          cd build
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DFORCE_INSTALL_RPATH=ON -DCMAKE_INSTALL_PREFIX=${GITHUB_WORKSPACE}/.local -DPERFORMANCE_TOOLS=OFF ..
+
+      - name: Clang-Tidy
+        run: |
+          python tools/bin/run-clang-tidy.py -quiet -export-fixes=build/clang-tidy-fix.yaml -p build -extra-arg=-Wno-unknown-warning-option -extra-arg=-fsized-deallocation -header-filter=$(pwd)'/(include|src|examples|bench)/.*\.h$' $(pwd)'/(src|examples|bench|test)/.*' 2>&1 | awk '!a[$0]++{print > "build/clang-tidy.log"}'
+
+      - name: Doxygen
+        run: |
+          cd build
+          ninja doxygen 2> >(tee doxygen-error.log)
+
+      - name: Verify
+        uses: project-tsurugi/tsurugi-annotations-action@v1
+        if: always()
