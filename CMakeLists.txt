@@ -8,6 +8,7 @@ project(yakushima
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
+option(BUILD_BENCHMARK "Build benchmark programs" ON)
 option(BUILD_TESTS "Build test programs" ON)
 option(BUILD_DOCUMENTS "Build documents" ON)
 
@@ -97,8 +98,11 @@ install(
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${package_name}
 )
 
-add_subdirectory(bench)
 add_subdirectory(third_party)
+
+if (BUILD_BENCHMARK)
+    add_subdirectory(bench)
+endif ()
 
 if (BUILD_TESTS)
   add_subdirectory(test)
