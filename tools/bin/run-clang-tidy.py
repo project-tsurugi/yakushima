@@ -223,6 +223,9 @@ def main():
                       'command line.')
   parser.add_argument('-quiet', action='store_true',
                       help='Run clang-tidy in quiet mode')
+  parser.add_argument('-exclude',
+                      action='append', default=[],
+                      help='excluding target files (regex on path)')
   args = parser.parse_args()
 
   db_path = 'compile_commands.json'
@@ -261,6 +264,11 @@ def main():
   # Build up a big regexy filter from all command line arguments.
   file_name_re = re.compile('|'.join(args.files))
 
+  if args.exclude:
+    exclude_name_re = re.compile('|'.join(args.exclude))
+  else:
+    exclude_name_re = re.compile('^$') # never much to any paths
+
   return_code = 0
   try:
     # Spin up a bunch of tidy-launching threads.
@@ -276,7 +284,7 @@ def main():
 
     # Fill the queue with files.
     for name in files:
-      if file_name_re.search(name):
+      if file_name_re.search(name) and not exclude_name_re.search(name):
         task_queue.put(name)
 
     # Wait for all threads to be done.
