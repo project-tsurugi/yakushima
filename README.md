@@ -1,10 +1,15 @@
-# yakushima - Data structure (Concurrent Tree).
+# yakushima - Concurrent data structure (Concurrent Tree).
+
+* In-memory key value store
+* concurrent tree based on Masstree
+* Easy to use due to Header only libirary.
 
 ## Requirements
 
 * CMake `>= 3.10`
 * C++ Compiler `>= C++17`
-* build related libararies - on Ubuntu, you can install with following command:
+* build related libararies - on Ubuntu, you can install with following command.
+Please check in advance whether ubuntu.deps is correct.:
 
 ```
 sudo apt update -y && sudo apt install -y $(cat build_tools/ubuntu.deps)
@@ -35,6 +40,7 @@ available options:
 default : `ON`
 * `-DBUILD_DOCUMENTS=OFF` : never build documents by doxygen<br>
 default : `ON`
+* `-DCMAKE_INSTALL_PREFIX=/path/to/yakushima/installed`
 * `-DFORMAT_FILES_WITH_CLANG_FORMAT_BEFORE_EACH_BUILD=ON` : use formatting for source files<br>
 default : `OFF`
 * for debugging only<br>
