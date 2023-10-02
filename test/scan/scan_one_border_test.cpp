@@ -257,9 +257,8 @@ TEST_F(st, scan_multiple_same_null_char_key_1) { // NOLINT
             tuple_list{}; // NOLINT
     constexpr std::size_t v_index = 1;
     for (std::size_t i = 0; i < ary_size; ++i) {
-        scan<char>(test_storage_name, "", scan_endpoint::INF,
-                   std::string_view(k.at(i)), scan_endpoint::INCLUSIVE,
-                   tuple_list);
+        scan<char>(test_storage_name, "", scan_endpoint::INF, k.at(i),
+                   scan_endpoint::INCLUSIVE, tuple_list);
         for (std::size_t j = 0; j < i + 1; ++j) {
             ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)),
                              v.at(j).data(), v.at(j).size()),
@@ -269,9 +268,8 @@ TEST_F(st, scan_multiple_same_null_char_key_1) { // NOLINT
 
     for (std::size_t i = ary_size - 1; i > 1; --i) {
         std::vector<std::pair<node_version64_body, node_version64*>> nv;
-        scan<char>(test_storage_name, std::string_view(k.at(i)),
-                   scan_endpoint::INCLUSIVE, "", scan_endpoint::INF, tuple_list,
-                   &nv);
+        scan<char>(test_storage_name, k.at(i), scan_endpoint::INCLUSIVE, "",
+                   scan_endpoint::INF, tuple_list, &nv);
         ASSERT_EQ(tuple_list.size(), ary_size - i);
         ASSERT_EQ(tuple_list.size(), nv.size());
         for (std::size_t j = i; j < ary_size; ++j) {

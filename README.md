@@ -36,6 +36,8 @@ ninja
 ```
 
 available options:
+* `-DBUILD_BENCHMARK=OFF`
+   * Never build benchmark programs (default: `ON`)
 * `-DBUILD_TESTS=OFF` : never build test programs<br>
 default : `ON`
 * `-DBUILD_DOCUMENTS=OFF` : never build documents by doxygen<br>
@@ -56,7 +58,7 @@ default : `OFF`
   * `-DPERFORMANCE_TOOLS=ON` : enable tooling to measure benchmark performance.<br>
   default : `OFF`
 
-You can use one sanitizer from 
+You can use one sanitizer from
  * address for AddressSanitizer
  * leak for LeakSanitizer
  * thread for ThreadSanitizer

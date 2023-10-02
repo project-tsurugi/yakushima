@@ -69,7 +69,8 @@ TEST_F(multi_thread_delete_200_key_test, 200_key) { // NOLINT
                                   ? (ary_size / max_thread) * (th_id + 1)
                                   : ary_size);
                      ++i) {
-                    kv.emplace_back(std::string(1, i), std::to_string(i));
+                    kv.emplace_back(std::string(1, i), // NOLINT
+                                    std::to_string(i));
                 }
 
                 Token token{nullptr};
@@ -94,8 +95,7 @@ TEST_F(multi_thread_delete_200_key_test, 200_key) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, test_storage_name,
-                                        std::string_view(k));
+                    status ret = remove(token, test_storage_name, k);
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -151,7 +151,8 @@ TEST_F(multi_thread_delete_200_key_test, 200_key_shuffle) { // NOLINT
                                   ? (ary_size / max_thread) * (th_id + 1)
                                   : ary_size);
                      ++i) {
-                    kv.emplace_back(std::string(1, i), std::to_string(i));
+                    kv.emplace_back(std::string(1, i), // NOLINT
+                                    std::to_string(i));
                 }
 
                 std::random_device seed_gen;

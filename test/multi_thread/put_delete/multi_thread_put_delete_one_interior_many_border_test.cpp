@@ -55,7 +55,7 @@ TEST_F(mtpdt, one_interior_many_border_shuffle) { // NOLINT
                                   ? (ary_size / max_thread) * (th_id + 1)
                                   : ary_size);
                      ++i) {
-                    kv.emplace_back(std::make_pair(std::string(1, i),
+                    kv.emplace_back(std::make_pair(std::string(1, i), // NOLINT
                                                    std::to_string(i)));
                 }
 
@@ -147,9 +147,10 @@ TEST_F(mtpdt, second_layer_one_interior_many_border_shuffle) { // NOLINT
                                   ? (ary_size / max_thread) * (th_id + 1)
                                   : ary_size);
                      ++i) {
-                    kv.emplace_back(std::make_pair(std::string(8, INT8_MAX) +
-                                                           std::string(1, i),
-                                                   std::to_string(i)));
+                    kv.emplace_back(
+                            std::make_pair(std::string(8, INT8_MAX) +
+                                                   std::string(1, i), // NOLINT
+                                           std::to_string(i)));
                 }
 
                 std::random_device seed_gen;

@@ -196,8 +196,8 @@ TEST_F(dt, one_interi_two_bor_shuffle) { // NOLINT
         constexpr std::size_t ary_size = key_slice_length + 1;
         std::vector<std::tuple<std::string, std::string>> kv; // NOLINT
         for (std::size_t i = 0; i < ary_size; ++i) {
-            kv.emplace_back(
-                    std::make_tuple(std::string(1, i), std::string(1, i)));
+            kv.emplace_back(std::make_tuple(std::string(1, i),   // NOLINT
+                                            std::string(1, i))); // NOLINT
         }
         std::random_device seed_gen;
         std::mt19937 engine(seed_gen());
@@ -397,8 +397,8 @@ TEST_F(dt, many) { // NOLINT
         std::vector<std::tuple<std::string, std::string>> kv; // NOLINT
         kv.reserve(ary_size);
         for (std::size_t i = 0; i < ary_size; ++i) {
-            kv.emplace_back(
-                    std::make_tuple(std::string(1, i), std::string(1, i)));
+            kv.emplace_back(std::make_tuple(std::string(1, i),   // NOLINT
+                                            std::string(1, i))); // NOLINT
         }
 
         for (std::size_t i = 0; i < ary_size; ++i) {

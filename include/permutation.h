@@ -128,7 +128,7 @@ public:
         // increment key number
         std::size_t cnk = per_body & cnk_mask;
 #ifndef NDEBUG
-        if (cnk >= pow(2, cnk_bit_size) - 1) {
+        if (cnk >= pow(2, cnk_bit_size) - 1) { // NOLINT
             LOG(ERROR) << log_location_prefix;
         }
 #endif
@@ -207,7 +207,7 @@ public:
 
         // rearrange
         std::uint64_t new_body(0);
-        for (auto itr = ar.rbegin() + (key_slice_length - cnk);
+        for (auto itr = ar.rbegin() + (key_slice_length - cnk); // NOLINT
              itr != ar.rend(); ++itr) { // NOLINT : order to use "auto *itr"
             new_body |= std::get<key_pos>(*itr);
             new_body <<= pkey_bit_size;

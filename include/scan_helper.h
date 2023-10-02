@@ -83,7 +83,8 @@ scan(base_node* const root, const std::string_view l_key,
         if (node_version_vec != nullptr) {
             if (node_version_vec->size() != isonvv) {
                 std::size_t erase_num = node_version_vec->size() - isonvv;
-                node_version_vec->erase(node_version_vec->end() - erase_num,
+                node_version_vec->erase(node_version_vec->end() - // NOLINT
+                                                erase_num,        // NOLINT
                                         node_version_vec->end());
             }
         }
@@ -97,7 +98,7 @@ retry:
     std::tuple<border_node*, node_version64_body> node_and_v;
     constexpr std::size_t tuple_node_index = 0;
     constexpr std::size_t tuple_v_index = 1;
-    status check_status;
+    status check_status{};
     key_slice_type ks{0};
     key_length_type kl = l_key.size(); // NOLINT
     if (l_key.size() > sizeof(key_slice_type)) {
@@ -197,7 +198,8 @@ scan_border(border_node** const target, const std::string_view l_key,
             if (node_version_vec->size() != initial_size_of_node_version_vec) {
                 std::size_t erase_num = node_version_vec->size() -
                                         initial_size_of_node_version_vec;
-                node_version_vec->erase(node_version_vec->end() - erase_num,
+                node_version_vec->erase(node_version_vec->end() - // NOLINT
+                                                erase_num,        // NOLINT
                                         node_version_vec->end());
             }
         }
@@ -258,7 +260,7 @@ retry:
         }
         if (kl > sizeof(key_slice_type)) {
             std::string_view arg_l_key;
-            scan_endpoint arg_l_end;
+            scan_endpoint arg_l_end{};
             if (l_end == scan_endpoint::INF) {
                 arg_l_key = "";
                 arg_l_end = scan_endpoint::INF;
@@ -289,7 +291,7 @@ retry:
                 }
             }
             std::string_view arg_r_key;
-            scan_endpoint arg_r_end;
+            scan_endpoint arg_r_end{};
             if (r_end == scan_endpoint::INF) {
                 arg_r_key = "";
                 arg_r_end = scan_endpoint::INF;

@@ -47,7 +47,7 @@ TEST_F(mtpt, many_interior) {            // NOLINT
                                   ? (ary_size / max_thread) * (th_id + 1)
                                   : ary_size);
                      ++i) {
-                    kv.emplace_back(std::make_pair(std::string(1, i),
+                    kv.emplace_back(std::make_pair(std::string(1, i), // NOLINT
                                                    std::to_string(i)));
                 }
 
@@ -56,8 +56,8 @@ TEST_F(mtpt, many_interior) {            // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(token, test_storage_name,
-                                     std::string_view(k), v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(),
+                                     v.size());
                     if (ret != status::OK) {
                         ASSERT_EQ(ret, status::OK);
                         std::abort();
@@ -75,7 +75,7 @@ TEST_F(mtpt, many_interior) {            // NOLINT
         for (auto&& th : thv) { th.join(); }
         thv.clear();
 
-        std::string k(1, ary_size - 1);
+        std::string k(1, ary_size - 1); // NOLINT
         std::vector<std::tuple<std::string, char*, std::size_t>>
                 tuple_list{}; // NOLINT
         scan<char>(test_storage_name, "", scan_endpoint::INF, k,
@@ -119,7 +119,7 @@ TEST_F(mtpt, many_interior_shuffle) {    // NOLINT
                                   ? (ary_size / max_thread) * (th_id + 1)
                                   : ary_size);
                      ++i) {
-                    kv.emplace_back(std::make_pair(std::string(1, i),
+                    kv.emplace_back(std::make_pair(std::string(1, i), // NOLINT
                                                    std::to_string(i)));
                 }
 
@@ -132,8 +132,8 @@ TEST_F(mtpt, many_interior_shuffle) {    // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = put(token, test_storage_name,
-                                     std::string_view(k), v.data(), v.size());
+                    status ret = put(token, test_storage_name, k, v.data(),
+                                     v.size());
                     if (ret != status::OK) {
                         ASSERT_EQ(ret, status::OK);
                         std::abort();
@@ -151,7 +151,7 @@ TEST_F(mtpt, many_interior_shuffle) {    // NOLINT
         for (auto&& th : thv) { th.join(); }
         thv.clear();
 
-        std::string k(1, ary_size - 1);
+        std::string k(1, ary_size - 1); // NOLINT
         std::vector<std::tuple<std::string, char*, std::size_t>>
                 tuple_list{}; // NOLINT
         scan<char>(test_storage_name, "", scan_endpoint::INF, k,

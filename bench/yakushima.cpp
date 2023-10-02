@@ -109,10 +109,8 @@ static void check_flags() {
 }
 
 static bool isReady(const std::vector<char>& readys) {
-    for (const char& b : readys) {
-        if (loadAcquireN(b) == 0) return false;
-    }
-    return true;
+    return std::all_of(readys.begin(), readys.end(),
+                       [](char b) { return b != 0; });
 }
 
 static void waitForReady(const std::vector<char>& readys) {
@@ -131,8 +129,7 @@ void parallel_build_tree() {
                 std::string key{
                         static_cast<char*>(p),
                         sizeof(std::uint64_t)}; // sizeof(std::size_t) points to loop variable.
-                put(token, bench_storage, std::string_view(key), value.data(),
-                    value.size());
+                put(token, bench_storage, key, value.data(), value.size());
             }
             leave(token);
         }
@@ -194,8 +191,7 @@ void get_worker(const size_t thid, char& ready, const bool& start,
         void* p = (&keynm);
         std::string key{static_cast<char*>(p), sizeof(std::uint64_t)};
         std::pair<char*, std::size_t> ret{};
-        if (get<char>(bench_storage, std::string_view(key), ret) !=
-            status::OK) {
+        if (get<char>(bench_storage, key, ret) != status::OK) {
             LOG(ERROR) << "fatal error";
         }
         ++local_res;
@@ -270,7 +266,7 @@ void remove_worker(const size_t thid, char& ready, const bool& start,
         std::string key{reinterpret_cast<char*>(&i), // NOLINT
                         sizeof(std::uint64_t)};      // NOLINT
         try {
-            auto rc = remove(token, bench_storage, std::string_view(key));
+            auto rc = remove(token, bench_storage, key);
             if (rc != status::OK) { LOG(FATAL) << "unexpected error."; }
         } catch (std::bad_alloc&) {
             LOG(FATAL) << "bad_alloc. Please set less duration.";
@@ -313,8 +309,7 @@ void put_worker(const size_t thid, char& ready, const bool& start,
         std::string key{reinterpret_cast<char*>(&i), // NOLINT
                         sizeof(std::uint64_t)};      // NOLINT
         try {
-            put(token, bench_storage, std::string_view(key), value.data(),
-                value.size());
+            put(token, bench_storage, key, value.data(), value.size());
         } catch (std::bad_alloc&) {
             LOG(FATAL) << "bad_alloc. Please set less duration.";
         }
@@ -409,8 +404,8 @@ static void invoke_leader() try {
     LOG(INFO) << "[end] fin masstree.";
     std::cout << "cleanup_time[ms]: "
               << static_cast<double>(
-                         std::chrono::duration_cast<std::chrono::microseconds>(
-                                 c_end - c_start)
+                         std::chrono::duration_cast< // NOLINT
+                                 std::chrono::microseconds>(c_end - c_start)
                                  .count() /
                          1000.0)
               << std::endl;

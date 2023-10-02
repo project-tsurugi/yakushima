@@ -47,10 +47,10 @@ TEST_F(multi_thread_delete_two_border_test, test5) { // NOLINT
     std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
     std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
     for (std::size_t i = 0; i < ary_size / 2; ++i) {
-        kv1.emplace_back(std::string(1, i), std::to_string(i));
+        kv1.emplace_back(std::string(1, i), std::to_string(i)); // NOLINT
     }
     for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
-        kv2.emplace_back(std::string(1, i), std::to_string(i));
+        kv2.emplace_back(std::string(1, i), std::to_string(i)); // NOLINT
     }
 
 #ifndef NDEBUG
@@ -88,8 +88,7 @@ TEST_F(multi_thread_delete_two_border_test, test5) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, test_storage_name,
-                                        std::string_view(k));
+                    status ret = remove(token, test_storage_name, k);
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -122,10 +121,10 @@ TEST_F(multi_thread_delete_two_border_test, test6) { // NOLINT
     std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
     std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
     for (std::size_t i = 0; i < ary_size / 2; ++i) {
-        kv1.emplace_back(std::string(1, i), std::to_string(i));
+        kv1.emplace_back(std::string(1, i), std::to_string(i)); // NOLINT
     }
     for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
-        kv2.emplace_back(std::string(1, i), std::to_string(i));
+        kv2.emplace_back(std::string(1, i), std::to_string(i)); // NOLINT
     }
     std::random_device seed_gen;
     std::mt19937 engine(seed_gen());
@@ -165,8 +164,7 @@ TEST_F(multi_thread_delete_two_border_test, test6) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, test_storage_name,
-                                        std::string_view(k));
+                    status ret = remove(token, test_storage_name, k);
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -199,10 +197,10 @@ TEST_F(multi_thread_delete_two_border_test, test7) { // NOLINT
     std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
     std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
     for (std::size_t i = 0; i < ary_size / 2; ++i) {
-        kv1.emplace_back(std::string(1, i), std::to_string(i));
+        kv1.emplace_back(std::string(1, i), std::to_string(i)); // NOLINT
     }
     for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
-        kv2.emplace_back(std::string(1, i), std::to_string(i));
+        kv2.emplace_back(std::string(1, i), std::to_string(i)); // NOLINT
     }
 
 #ifndef NDEBUG
@@ -240,8 +238,7 @@ TEST_F(multi_thread_delete_two_border_test, test7) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    status ret = remove(token, test_storage_name,
-                                        std::string_view(k));
+                    status ret = remove(token, test_storage_name, k);
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
@@ -274,10 +271,10 @@ TEST_F(multi_thread_delete_two_border_test, test8) { // NOLINT
     std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
     std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT
     for (std::size_t i = 0; i < ary_size / 2; ++i) {
-        kv1.emplace_back(std::string(1, i), std::to_string(i));
+        kv1.emplace_back(std::string(1, i), std::to_string(i)); // NOLINT
     }
     for (std::size_t i = ary_size / 2; i < ary_size; ++i) {
-        kv2.emplace_back(std::string(1, i), std::to_string(i));
+        kv2.emplace_back(std::string(1, i), std::to_string(i)); // NOLINT
     }
 
     std::random_device seed_gen;
