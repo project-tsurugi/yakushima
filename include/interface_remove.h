@@ -65,14 +65,17 @@ retry_find_border:
     constexpr std::size_t tuple_node_index = 0;
     constexpr std::size_t tuple_v_index = 1;
     border_node* target_border = std::get<tuple_node_index>(node_and_v);
-#ifndef NDEBUG
+    node_version64_body v_at_fb = std::get<tuple_v_index>(node_and_v);
+
     // check target_border is not nullptr
     if (target_border == nullptr) {
-        LOG(ERROR) << log_location_prefix << "root: " << root
-                   << ", key_slice: " << key_slice
-                   << ", key_length: " << key_length
-                   << ", special_status: " << special_status;
-        return status::ERR_FATAL;
+        // TODO
+        /**
+         * This code path is not expected to be reached. However, sometimes 
+         * this code path is reached. You may need to make appropriate use of 
+         * compiler fences.
+        */
+        goto retry_from_root; // NOLINT
     }
     // check target_border is border node.
     if (typeid(*target_border) != typeid(border_node)) {
@@ -80,8 +83,7 @@ retry_find_border:
                    << "find_border return not border node.";
         return status::ERR_FATAL;
     }
-#endif
-    node_version64_body v_at_fb = std::get<tuple_v_index>(node_and_v);
+
 retry_fetch_lv:
     node_version64_body v_at_fetch_lv{};
     std::size_t lv_pos = 0;

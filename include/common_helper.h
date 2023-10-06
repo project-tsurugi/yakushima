@@ -30,7 +30,6 @@ find_border(base_node* const root, const key_slice_type key_slice,
             const key_length_type key_slice_length, status& special_status) {
     special_status = status::OK;
 retry:
-#ifndef NDEBUG
     if (root == nullptr) {
         LOG(ERROR) << log_location_prefix << "find_border: root: " << root
                    << ", key_slice: " << key_slice
@@ -39,7 +38,6 @@ retry:
         // if special status is ok, it is just after called.
         // if special status is warn, it is just after retry one.
     }
-#endif
 
     base_node* n = root;
     node_version64_body v = n->get_stable_version();
@@ -49,14 +47,13 @@ retry:
     }
     if (v.get_deleted()) {
         // root && deleted node.
-#ifndef NDEBUG
         if (n == nullptr) {
             LOG(ERROR) << log_location_prefix << "find_border: root: " << root
                        << ", key_slice: " << key_slice
                        << ", key_slice_length: " << key_slice_length
-                       << ", special_status: " << special_status;
+                       << ", special_status: " << special_status
+                       << ", version: " << v;
         }
-#endif
         return std::make_tuple(dynamic_cast<border_node*>(n), v);
     }
     /**
@@ -79,14 +76,12 @@ retry:
         }
         n = n_child;
     }
-#ifndef NDEBUG
     if (n == nullptr) {
         LOG(ERROR) << log_location_prefix << "find_border: root: " << root
                    << ", key_slice: " << key_slice
                    << ", key_slice_length: " << key_slice_length
                    << ", special_status: " << special_status;
     }
-#endif
     return std::make_tuple(dynamic_cast<border_node*>(n), v);
 }
 
