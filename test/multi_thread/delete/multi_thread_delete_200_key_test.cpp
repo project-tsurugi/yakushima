@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <array>
+#include <limits>
 #include <mutex>
 #include <random>
 #include <thread>
@@ -23,6 +24,7 @@ public:
     static void call_once_f() {
         google::InitGoogleLogging("yakushima-test-multi_thread-delete_multi_"
                                   "thread_delete_200_key_test");
+        FLAGS_stderrthreshold = 0;
     }
 
     void SetUp() override {
@@ -69,8 +71,16 @@ TEST_F(multi_thread_delete_200_key_test, 200_key) { // NOLINT
                                   ? (ary_size / max_thread) * (th_id + 1)
                                   : ary_size);
                      ++i) {
-                    kv.emplace_back(std::string(1, i), // NOLINT
-                                    std::to_string(i));
+                    char d_1 = 0;
+                    char d_0 = 0;
+                    if (i > std::numeric_limits<char>::max()) {
+                        d_1 = i / std::numeric_limits<char>::max(); // NOLINT
+                        d_0 = i % std::numeric_limits<char>::max(); // NOLINT
+                    } else {
+                        d_0 = i; // NOLINT
+                    }
+                    std::string key = std::string(1, d_1) + std::string(1, d_0);
+                    kv.emplace_back(key, std::to_string(i));
                 }
 
                 Token token{nullptr};

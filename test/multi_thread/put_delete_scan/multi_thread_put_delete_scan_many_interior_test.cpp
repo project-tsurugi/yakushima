@@ -75,9 +75,9 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
                                                std::to_string(i)));
                     } else {
                         kv.emplace_back(std::make_pair(
-                                std::string(i / INT8_MAX, INT8_MAX) +
+                                std::string(i / INT8_MAX, INT8_MAX) + // NOLINT
                                         std::string(1, i % INT8_MAX), // NOLINT
-                                std::to_string(i)));
+                                std::to_string(i)));                  // NOLINT
                     }
                 }
 
