@@ -39,7 +39,7 @@ TEST_F(garbage_collection, gc) { // NOLINT
                               created_ptr, std::align_val_t(8)));
     ASSERT_EQ(status::OK, remove(token, test_storage_name, k));
     Epoch epo{epoch_management::get_epoch()};
-    LOG(INFO) << log_location_prefix << "epoch is " << epo;
+    LOG(INFO) << "epoch is " << epo;
     ASSERT_EQ(status::OK, leave(token));
     while (epoch_management::get_epoch() - epo < 10) {
         /**
