@@ -20,7 +20,7 @@ sudo apt update -y && sudo apt install -y $(cat build_tools/ubuntu.deps)
 git submodule update --init --recursive
 ```
 
-## Docerfile
+## Dockerfile
 ```dockerfile
 FROM ubuntu:18.04
 RUN sudo apt update -y && sudo apt install -y $(cat build_tools/ubuntu.deps)
