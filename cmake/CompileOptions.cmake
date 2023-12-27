@@ -12,7 +12,7 @@ endif ()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   #do nothing for gcc
-elseif (CMAKE_CXX_COMPILER_ID_MATCHES "^(Clang|AppleClang)$")
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "^(Clang|AppleClang)$")
   set(sanitizers "${sanitizers},nullability")
 else ()
   message(FATAL_ERROR "unsupported compiler ${CMAKE_CXX_COMPILER_ID}")
