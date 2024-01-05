@@ -73,7 +73,8 @@ TEST_F(multi_thread_delete_200_key_test, 200_key) { // NOLINT
                      ++i) {
                     char d_1 = 0;
                     char d_0 = 0;
-                    if (i > std::numeric_limits<char>::max()) {
+                    if (i > static_cast<std::size_t>(
+                                    std::numeric_limits<char>::max())) {
                         d_1 = i / std::numeric_limits<char>::max(); // NOLINT
                         d_0 = i % std::numeric_limits<char>::max(); // NOLINT
                     } else {
