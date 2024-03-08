@@ -91,6 +91,32 @@ TEST_F(put_test, one_key) { // NOLINT
     ASSERT_EQ(leave(token), status::OK);
 }
 
+TEST_F(put_test, one_key_len9) { // NOLINT
+    tree_instance* ti{};
+    find_storage(st, &ti);
+    Token token{};
+    ASSERT_EQ(enter(token), status::OK);
+    // test
+    std::string k(9, '0');
+    std::string v{"v"};
+    yakushima::node_version64* nvp{};
+    char* tmp_created_value_ptr{};
+    ASSERT_EQ(status::OK,
+              put(token, st, k, v.data(), v.size(), &tmp_created_value_ptr,
+                  static_cast<value_align_type>(alignof(char)), true, &nvp));
+
+    // verify
+    auto* n = ti->load_root_ptr();
+    ASSERT_EQ(typeid(*n), typeid(border_node)); // NOLINT
+    auto* nvp_first_border_node = n->get_version_ptr();
+    ASSERT_EQ(nvp, nvp_first_border_node);
+    auto* n_second_border_node =
+            dynamic_cast<border_node*>(n)->get_lv_at(0)->get_next_layer();
+    ASSERT_NE(nvp, n_second_border_node->get_version_ptr());
+
+    ASSERT_EQ(leave(token), status::OK);
+}
+
 TEST_F(put_test, one_key_twice_unique_rest_true) { // NOLINT
     tree_instance* ti{};
     find_storage(st, &ti);
