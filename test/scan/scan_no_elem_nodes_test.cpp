@@ -12,25 +12,48 @@ using namespace yakushima;
 
 namespace yakushima::testing {
 
-std::string test_storage_name{"1"}; // NOLINT
+std::string st{"1"}; // NOLINT
 
-class st : public ::testing::Test {
+class scan_no_elem_nodes_test : public ::testing::Test {
     void SetUp() override {
         init();
-        create_storage(test_storage_name);
+        create_storage(st);
     }
 
     void TearDown() override { fin(); }
 };
 
-TEST_F(st, scan_three_border_one_border) { // NOLINT
+TEST_F(scan_no_elem_nodes_test, scan_no_elem_storages) { // NOLINT
+    // prepare
+    Token token{};
+    ASSERT_EQ(enter(token), status::OK);
+
+    // test
+    std::vector<std::tuple<std::string, char*, std::size_t>> tup{}; // NOLINT
+    std::vector<std::pair<node_version64_body, node_version64*>> nv;
+    ASSERT_EQ(status::OK, scan<char>(st, "", scan_endpoint::INF, "",
+                                     scan_endpoint::INF, tup, &nv));
+
+    ASSERT_EQ(tup.size(), 0);
+    ASSERT_EQ(nv.size(), 1);
+    tree_instance* ti{};
+    find_storage(st, &ti);
+    auto* n = ti->load_root_ptr();
+    auto* nvp = n->get_version_ptr();
+    ASSERT_EQ(nvp, std::get<1>(*nv.begin()));
+
+    // cleanup
+    ASSERT_EQ(leave(token), status::OK);
+}
+
+TEST_F(scan_no_elem_nodes_test, scan_three_border_one_border) { // NOLINT
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     std::string v{"v"};
     for (char i = 0; i <= 25; ++i) { // NOLINT
         char c = i;
-        ASSERT_EQ(status::OK, put(token, test_storage_name,
-                                  std::string_view(&c, 1), v.data(), v.size()));
+        ASSERT_EQ(status::OK,
+                  put(token, st, std::string_view(&c, 1), v.data(), v.size()));
     }
     /**
    * now
@@ -42,13 +65,12 @@ TEST_F(st, scan_three_border_one_border) { // NOLINT
    */
     std::vector<std::tuple<std::string, char*, std::size_t>> tup{}; // NOLINT
     std::vector<std::pair<node_version64_body, node_version64*>> nv;
-    ASSERT_EQ(status::OK, scan<char>(test_storage_name, "", scan_endpoint::INF,
-                                     "", scan_endpoint::INF, tup, &nv));
+    ASSERT_EQ(status::OK, scan<char>(st, "", scan_endpoint::INF, "",
+                                     scan_endpoint::INF, tup, &nv));
     auto delete_range = [&token](char begin, char end) {
         for (char i = begin; i <= end; ++i) {
             char c = i;
-            ASSERT_EQ(status::OK, remove(token, test_storage_name,
-                                         std::string_view(&c, 1)));
+            ASSERT_EQ(status::OK, remove(token, st, std::string_view(&c, 1)));
         }
     };
     delete_range(1, 7);   // NOLINT
@@ -65,7 +87,7 @@ TEST_F(st, scan_three_border_one_border) { // NOLINT
     char begin = 1; // NOLINT
     char end = 24;  // NOLINT
     ASSERT_EQ(status::OK,
-              scan<char>(test_storage_name, std::string_view(&begin, 1),
+              scan<char>(st, std::string_view(&begin, 1),
                          scan_endpoint::INCLUSIVE, std::string_view(&end, 1),
                          scan_endpoint::INCLUSIVE, tup, &nv));
     ASSERT_EQ(tup.size(), 7); // NOLINT
