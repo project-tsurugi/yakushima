@@ -36,13 +36,15 @@ static void display_border(std::stringstream& ss, border_node* n,
         std::string key{""};
         if (kl > 0) {
             if (kl > sizeof(key_slice_type)) {
-                key = std::string(reinterpret_cast<char*>(&ks), sizeof(key_slice_type)); // NOLINT
+                key = std::string(reinterpret_cast<char*>(&ks),
+                                  sizeof(key_slice_type)); // NOLINT
             } else {
                 key = std::string(reinterpret_cast<char*>(&ks), kl); // NOLINT
             }
         }
         ss << "((" << key_prefix + key << ","
-           << std::to_string(n->get_key_length_at(index) + key_prefix.size()) << "),";
+           << std::to_string(n->get_key_length_at(index) + key_prefix.size())
+           << "),";
         if (kl > sizeof(key_slice_type)) {
             ss << n->get_lv_at(index)->get_next_layer();
         } else {
@@ -55,7 +57,8 @@ static void display_border(std::stringstream& ss, border_node* n,
                     memcpy(value_str.data(), val_ptr, val_len);
                 }
             } else { // not inline opt len > sizeof(void*)
-                value_str = std::string(reinterpret_cast<char*>(val_ptr),val_len);
+                value_str =
+                        std::string(reinterpret_cast<char*>(val_ptr), val_len);
             }
             ss << value_str;
         }
@@ -73,9 +76,11 @@ static void display_border(std::stringstream& ss, border_node* n,
             std::string key{""};
             if (kl > 0) {
                 if (kl > sizeof(key_slice_type)) {
-                    key = std::string(reinterpret_cast<char*>(&ks), sizeof(key_slice_type)); // NOLINT
+                    key = std::string(reinterpret_cast<char*>(&ks),
+                                      sizeof(key_slice_type)); // NOLINT
                 } else {
-                    key = std::string(reinterpret_cast<char*>(&ks), kl); // NOLINT
+                    key = std::string(reinterpret_cast<char*>(&ks),
+                                      kl); // NOLINT
                 }
             }
             display_node(ss, next_layer, key_prefix + key);
@@ -83,8 +88,7 @@ static void display_border(std::stringstream& ss, border_node* n,
     }
 }
 
-static void display_interior(std::stringstream& ss,
-                             interior_node* n,
+static void display_interior(std::stringstream& ss, interior_node* n,
                              std::string key_prefix) {
     ss << "interior node, " << n << "\n";
     ss << "version_ptr " << n->get_version_ptr() << "\n";
