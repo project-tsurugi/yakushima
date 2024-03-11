@@ -20,10 +20,10 @@ namespace yakushima {
 
 // forward declaration
 static void display_node(std::stringstream& ss, base_node* n,
-                         std::string key_prefix);
+                         std::string& key_prefix);
 
 static void display_border(std::stringstream& ss, border_node* n,
-                           std::string key_prefix) {
+                           std::string& key_prefix) {
     ss << "border node, " << n << "\n";
     ss << "version_ptr " << n->get_version_ptr() << "\n";
     ss << "((key,key_len),value):";
@@ -33,11 +33,11 @@ static void display_border(std::stringstream& ss, border_node* n,
         value* value_ptr{n->get_lv_at(index)->get_value()};
         key_slice_type ks = n->get_key_slice_at(index);
         key_length_type kl = n->get_key_length_at(index);
-        std::string key{""};
+        std::string key{};
         if (kl > 0) {
             if (kl > sizeof(key_slice_type)) {
-                key = std::string(reinterpret_cast<char*>(&ks),
-                                  sizeof(key_slice_type)); // NOLINT
+                key = std::string(reinterpret_cast<char*>(&ks), // NOLINT
+                                  sizeof(key_slice_type));
             } else {
                 key = std::string(reinterpret_cast<char*>(&ks), kl); // NOLINT
             }
@@ -48,7 +48,7 @@ static void display_border(std::stringstream& ss, border_node* n,
         if (kl > sizeof(key_slice_type)) {
             ss << n->get_lv_at(index)->get_next_layer();
         } else {
-            std::string value_str{""};
+            std::string value_str{};
             void* val_ptr = value::get_body(value_ptr);
             auto val_len = value::get_len(value_ptr);
             if (val_len <= sizeof(void*)) { // inline opt
@@ -58,7 +58,8 @@ static void display_border(std::stringstream& ss, border_node* n,
                 }
             } else { // not inline opt len > sizeof(void*)
                 value_str =
-                        std::string(reinterpret_cast<char*>(val_ptr), val_len);
+                        std::string(reinterpret_cast<char*>(val_ptr), // NOLINT
+                                    val_len);
             }
             ss << value_str;
         }
@@ -73,29 +74,30 @@ static void display_border(std::stringstream& ss, border_node* n,
         if (n->get_key_length_at(index) > sizeof(key_slice_type)) {
             key_slice_type ks = n->get_key_slice_at(index);
             key_length_type kl = n->get_key_length_at(index);
-            std::string key{""};
+            std::string key{};
             if (kl > 0) {
                 if (kl > sizeof(key_slice_type)) {
-                    key = std::string(reinterpret_cast<char*>(&ks),
-                                      sizeof(key_slice_type)); // NOLINT
+                    key = std::string(reinterpret_cast<char*>(&ks), // NOLINT
+                                      sizeof(key_slice_type));
                 } else {
-                    key = std::string(reinterpret_cast<char*>(&ks),
-                                      kl); // NOLINT
+                    key = std::string(reinterpret_cast<char*>(&ks), // NOLINT
+                                      kl);
                 }
             }
-            display_node(ss, next_layer, key_prefix + key);
+            std::string new_prefix{key_prefix + key};
+            display_node(ss, next_layer, new_prefix);
         }
     }
 }
 
 static void display_interior(std::stringstream& ss, interior_node* n,
-                             std::string key_prefix) {
+                             std::string& key_prefix) {
     ss << "interior node, " << n << "\n";
     ss << "version_ptr " << n->get_version_ptr() << "\n";
     for (std::size_t i = 0; i < n->get_n_keys(); ++i) {
         key_slice_type ks = n->get_key_slice_at(i);
         key_length_type kl = n->get_key_length_at(i);
-        std::string key{""};
+        std::string key{};
         if (kl > 0) {
             key = std::string(reinterpret_cast<char*>(&ks), kl); // NOLINT
         }
@@ -108,7 +110,7 @@ static void display_interior(std::stringstream& ss, interior_node* n,
 }
 
 static void display_node(std::stringstream& ss, base_node* n,
-                         std::string key_prefix) {
+                         std::string& key_prefix) {
     auto* ver = n->get_version_ptr();
     auto verb = ver->get_stable_version();
     if (verb.get_border()) {
@@ -124,7 +126,8 @@ static void display_tree_instance(std::stringstream& ss, tree_instance* ti) {
         ss << "null\n";
         return;
     }
-    display_node(ss, n, "");
+    std::string key_prefix{};
+    display_node(ss, n, key_prefix);
 }
 
 // begin - forward declaration
@@ -153,7 +156,6 @@ static void display_tree_instance(std::stringstream& ss, tree_instance* ti) {
     }
 
     LOG(INFO) << ss.str();
-    return;
 }
 
 [[maybe_unused]] static void display() {
