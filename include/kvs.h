@@ -8,6 +8,7 @@
 #include <tuple>
 
 #include "base_node.h"
+#include "interface_display.h"
 #include "interface_destroy.h"
 #include "interface_get.h"
 #include "interface_helper.h"
@@ -29,6 +30,11 @@ namespace yakushima {
  * @brief Delete all tree from the root, release all heap objects, and join epoch thread.
  */
 [[maybe_unused]] static void fin(); // NOLINT
+
+/**
+ * @brief Display tree information. This is not thread safe.
+ */
+[[maybe_unused]] static void display(); // NOLINT
 
 /**
  * @brief release all heap objects and clean up.
