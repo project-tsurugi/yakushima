@@ -1,6 +1,7 @@
 /**
  * @file value.h
  */
+#pragma once
 
 #include "atomic_wrapper.h"
 #include "scheme.h"
