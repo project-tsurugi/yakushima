@@ -290,7 +290,6 @@ static void border_split(tree_instance* ti, border_node* const border,
      * before the split. The pointer is exchanged for a new parent interior node.
      */
         auto* pb = dynamic_cast<border_node*>(p);
-        pb->set_version_inserting_deleting(true);
         interior_node* pi{};
         create_interior_parent_of_border<interior_node, border_node>(
                 border, new_border, &pi);

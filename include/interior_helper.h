@@ -148,7 +148,6 @@ interior_split(tree_instance* ti, interior_node* const interior,
     }
 #endif
     if (p->get_version_border()) {
-        p->set_version_inserting_deleting(true);
         auto* pb = dynamic_cast<border_node*>(p);
         base_node* new_p{};
         create_interior_parent_of_interior<interior_node, border_node>(
