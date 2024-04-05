@@ -17,8 +17,16 @@
 namespace yakushima {
 
 template<class ValueType>
-[[maybe_unused]] static status get(tree_instance* ti, std::string_view key_view,
-                                   std::pair<ValueType*, std::size_t>& out) {
+[[maybe_unused]] static status
+get(tree_instance* ti, std::string_view key_view,
+    std::pair<ValueType*, std::size_t>& out,
+    std::pair<node_version64_body, node_version64*>* checked_version =
+            nullptr) {
+    // init
+    if (checked_version != nullptr) {
+        checked_version->second = nullptr;
+    }
+
 retry_from_root:
     base_node* root = ti->load_root_ptr();
     if (root == nullptr) { return status::WARN_NOT_EXIST; }
@@ -78,7 +86,13 @@ retry_fetch_lv:
      */
         goto retry_from_root; // NOLINT
     }
-    if (lv_ptr == nullptr) { return status::WARN_NOT_EXIST; }
+    if (lv_ptr == nullptr) {
+        if (checked_version != nullptr) {
+            checked_version->first = v_at_fetch_lv;
+            checked_version->second = target_border->get_version_ptr();
+        }
+        return status::WARN_NOT_EXIST;
+    }
 
     if (target_border->get_key_length_at(lv_pos) <= sizeof(key_slice_type)) {
         value* vp = lv_ptr->get_value();
@@ -114,14 +128,16 @@ retry_fetch_lv:
 }
 
 template<class ValueType>
-[[maybe_unused]] static status get(std::string_view storage_name,
-                                   std::string_view key_view,
-                                   std::pair<ValueType*, std::size_t>& out) {
+[[maybe_unused]] static status
+get(std::string_view storage_name, std::string_view key_view,
+    std::pair<ValueType*, std::size_t>& out,
+    std::pair<node_version64_body, node_version64*>* checked_version =
+            nullptr) {
     tree_instance* ti{};
     if (status::OK != storage::find_storage(storage_name, &ti)) {
         return status::WARN_STORAGE_NOT_EXIST;
     }
-    return get<ValueType>(ti, key_view, out);
+    return get<ValueType>(ti, key_view, out, checked_version);
 }
 
 } // namespace yakushima

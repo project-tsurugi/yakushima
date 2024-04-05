@@ -140,6 +140,10 @@ list_storages(std::vector<std::pair<std::string, tree_instance*>>& out) {
  * @param[in] storage_name The key_view of storage name.
  * @param[in] key_view The key_view of key-value.
  * @param[out] out The result about pointer to value and value size.
+ * @param[out] checked_version The version information at Status::WARN_NOT_EXIST. 
+ * If you set non-nullptr, yakushima write there. If not, yakushima write nothing. 
+ * This is for phantom avoidance. If transaction engine did point read and dind't find entry, 
+ * it can't read verify but if there is a masstree node, it can do node verify.
  * @return std::status::OK success
  * @return status::WARN_NOT_EXIST The target storage of this operation exists, 
  * but the target entry of the storage does not exist.
@@ -147,9 +151,10 @@ list_storages(std::vector<std::pair<std::string, tree_instance*>>& out) {
  * does not exist.
  */
 template<class ValueType>
-[[maybe_unused]] static status get(std::string_view storage_name, // NOLINT
-                                   std::string_view key_view,
-                                   std::pair<ValueType*, std::size_t>& out);
+[[maybe_unused]] static status
+get(std::string_view storage_name, // NOLINT
+    std::string_view key_view, std::pair<ValueType*, std::size_t>& out,
+    std::pair<node_version64_body, node_version64*>* checked_version);
 
 /**
  * @biref Put the value with given @a key_view.
