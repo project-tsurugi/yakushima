@@ -15,6 +15,7 @@
 #include "interface_put.h"
 #include "interface_remove.h"
 #include "interface_scan.h"
+#include "interface_touch.h"
 #include "storage.h"
 #include "storage_impl.h"
 
@@ -210,6 +211,18 @@ put(Token token, std::string_view storage_name, // NOLINT
 [[maybe_unused]] static status remove(Token token, // NOLINT
                                       std::string_view storage_name,
                                       std::string_view key_view);
+
+/**
+ * @param[in] key_view The key_view of key-value.
+ * @return status::OK success
+ * @return status::OK_ROOT_IS_NULL No existing tree.
+ * @return status::OK_NOT_FOUND The target storage exists, but the target
+ * entry does not exist.
+ * @return status::WARN_STORAGE_NOT_EXIST The target storage of this operation
+ * does not exist.
+ */
+[[maybe_unused]] static status touch(std::string_view storage_name, // NOLINT
+                                     std::string_view key_view);
 
 /**
  * TODO : add new 3 modes : try-mode : 1 trial : wait-mode : try until success : mid-mode
