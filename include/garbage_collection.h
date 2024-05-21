@@ -33,7 +33,7 @@ public:
 
         while (!node_container_.empty()) {
             std::tuple<Epoch, base_node*> elem;
-            while (!node_container_.try_pop(elem)) continue;
+            if (!node_container_.try_pop(elem)) { continue; }
             delete std::get<gc_target_index>(elem); // NOLINT
         }
 
@@ -48,7 +48,7 @@ public:
 
         while (!value_container_.empty()) {
             std::tuple<Epoch, void*, std::size_t, std::align_val_t> elem;
-            while (!value_container_.try_pop(elem)) continue;
+            if (!value_container_.try_pop(elem)) { continue; }
             ::operator delete(std::get<gc_target_index>(elem),
                               std::get<gc_target_size_index>(elem),
                               std::get<gc_target_align_index>(elem));
@@ -87,7 +87,7 @@ public:
         // for container
         while (!node_container_.empty()) {
             std::tuple<Epoch, base_node*> elem;
-            while (!node_container_.try_pop(elem)) continue;
+            if (!node_container_.try_pop(elem)) { continue; }
             if (std::get<gc_epoch_index>(elem) >= gc_epoch) {
                 cache_node_container_ = elem;
                 return;
