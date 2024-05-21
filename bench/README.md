@@ -10,23 +10,24 @@ you should also build some high performance memory allocator (ex. jemalloc) to a
 
 ``` shell
 cd [/path/to/project_root]
-mkdir build-release
-cd build-release
+mkdir build_release
+cd build_release
 cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..
+ninja
 ```
 
 ## Running
 
 ``` shell
 cd [/path/to/project_root]
-cd build-release/bench
+cd build_release/bench
 LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench
-LD_PRELOAD=[/path/to/some memory allocator lib] ./malloc
+LD_PRELOAD=[/path/to/some memory allocator lib] ./malloc_bench
 ```
 
 ### note : If you don't use a high performance memory allocator, heap memory contention may result in poor performance
 
-## yakushima : Available options
+## `yakushima_bench` : Available options
 
 * `-duration`
   + This is experimental time [seconds].
@@ -42,7 +43,7 @@ LD_PRELOAD=[/path/to/some memory allocator lib] ./malloc
 * `-instruction`
   + This is the selection of benchmarking.
   + default : `get`
-  + Please use `get` or `put`.
+  + Please use `get`, `put`, `scan`, or `remove`.
 * `-range_of_scan`
   + Number of elements of range scan.
   + default : `1000`
@@ -53,11 +54,11 @@ LD_PRELOAD=[/path/to/some memory allocator lib] ./malloc
 * `-value_size`
   + This is the size of value which is of key-value.
   + default : `8`
-  + Please set very small size if you want to check sharpness of parallel logic. Otherwise, if you want to check 
+  + Please set very small size if you want to check sharpness of parallel logic. Otherwise, if you want to check
 
   the realistic performance, you should set appropriate size.
 
-## malloc : Available options
+## `malloc_bench` : Available options
 
 * `-alloc_size`
   + Memory allocation size for bench.
@@ -69,9 +70,7 @@ LD_PRELOAD=[/path/to/some memory allocator lib] ./malloc
   + This is the number of worker threads.
   + default : `1`
 
-  
-
-## yakushima Example
+## `yakushima_bench` : Example
 
 * Get benchmark.
   + duration : default : `3`
@@ -90,6 +89,7 @@ LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench -initial_recor
   + initial_record : `1000000`
   + get_skew : default : `0.0`
   + instruction : `scan`
+  + range_of_scan : `1000` (Use default value)
   + thread : `200`
   + value_size : default : `8`
 
@@ -107,12 +107,12 @@ LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench -initial_recor
 
 ```  shell
 LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench -initial_record 1000000 -thread 200 -instruction remove
-``` 
+```
 
 * Put benchmark.
   + duration : default : `3`
   + [unused] initial_record : default
-  + [unused] get_skew : default 
+  + [unused] get_skew : default
   + instruction : `put`
   + thread : `200`
   + value_size : default : `8`
@@ -121,7 +121,7 @@ LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench -initial_recor
 LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench -instruction put -thread 200
 ```
 
-## malloc Example
+## `malloc_bench` : Example
 
 * benchmark.
   + alloc_size : `1000`
@@ -129,5 +129,5 @@ LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench -instruction p
   + thread : `224`
 
 ``` shell
-LD_PRELOAD=[/path/to/some memory allocator lib] ./malloc -alloc_size 1000 -duration 10 -thread 224
+LD_PRELOAD=[/path/to/some memory allocator lib] ./malloc_bench -alloc_size 1000 -duration 10 -thread 224
 ```
