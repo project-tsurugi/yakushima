@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 tsurugi project.
+ * Copyright 2019-2024 tsurugi project.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 #include <chrono>
 #include <thread>
 #include <vector>
+#include <boost/config/helper_macros.hpp>
 
 // yakushima
 #include "kvs.h"
@@ -53,7 +54,7 @@ DEFINE_uint64(initial_record, 1000,                              // NOLINT
 DEFINE_double(get_skew, 0.0, "access skew of get operations.");  // NOLINT
 DEFINE_string(instruction, "get",                                // NOLINT
               "put or get. The default is insert.");             // NOLINT
-DEFINE_uint64(thread, 1, "# worker threads.");                   // NOLINT
+DEFINE_uint64(thread, 1, "# worker threads. max: " BOOST_STRINGIZE(YAKUSHIMA_MAX_PARALLEL_SESSIONS));
 DEFINE_uint32(value_size, 8, "value size");                      // NOLINT
 
 // unique for instruction
@@ -74,6 +75,9 @@ static void check_flags() {
     // about thread
     if (FLAGS_thread == 0) {
         LOG(FATAL) << "Number of threads must be larger than 0.";
+    }
+    if (FLAGS_thread > YAKUSHIMA_MAX_PARALLEL_SESSIONS) {
+        LOG(FATAL) << "Number of threads is too big, max: " << YAKUSHIMA_MAX_PARALLEL_SESSIONS;
     }
 
     // about duration
