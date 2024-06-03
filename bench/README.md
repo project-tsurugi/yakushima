@@ -94,7 +94,7 @@ LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench -initial_recor
   + value_size : default : `8`
 
 ```  shell
-LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench -initial_record 1000000 -thread 200
+LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench -initial_record 1000000 -thread 200 -instruction scan
 ```
 
 * Remove benchmark.
