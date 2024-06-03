@@ -51,6 +51,7 @@ LD_PRELOAD=[/path/to/some memory allocator lib] ./malloc_bench
 * `-thread`
   + This is the number of worker threads.
   + default : `1`
+  + the max number can change by invoking cmake with `-DYAKUSHIMA_MAX_PARALLEL_SESSIONS=<num>`.
 * `-value_size`
   + This is the size of value which is of key-value.
   + default : `8`
@@ -94,7 +95,7 @@ LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench -initial_recor
   + value_size : default : `8`
 
 ```  shell
-LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench -initial_record 1000000 -thread 200
+LD_PRELOAD=[/path/to/some memory allocator lib] ./yakushima_bench -initial_record 1000000 -thread 200 -instruction scan
 ```
 
 * Remove benchmark.
