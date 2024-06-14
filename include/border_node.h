@@ -345,8 +345,8 @@ public:
         node_version64_body v = get_stable_version();
         for (;;) {
             /**
-       * It loads cnk atomically by get_cnk func.
-       */
+             * It loads cnk atomically by get_cnk func.
+             */
             permutation perm{permutation_.get_body()};
             std::size_t cnk = perm.get_cnk();
             link_or_value* ret_lv{nullptr};

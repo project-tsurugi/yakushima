@@ -32,24 +32,24 @@ public:
                 if (verify) break;
                 sleepMs(1);
                 /**
-         * Suppose the user misuses and calls fin () without leave (token).
-         * When the calculation process in this loop is executed,
-         * there is no way to escape from the loop, so the following line is required.
-         */
+                 * Suppose the user misuses and calls fin () without leave (token).
+                 * When the calculation process in this loop is executed,
+                 * there is no way to escape from the loop, so the following line is required.
+                 */
                 if (kEpochThreadEnd.load(std::memory_order_acquire)) break;
             }
             epoch_management::epoch_inc();
 
             /**
-       * attention : type of epoch is uint64_t
-       */
+             * attention : type of epoch is uint64_t
+             */
             Epoch min_epoch(UINT64_MAX);
             for (auto&& elem : thread_info_table::get_thread_info_table()) {
                 Epoch itr_epoch = elem.get_begin_epoch();
                 if (itr_epoch != 0) {
                     /**
-           * itr_epoch is valid.
-           */
+                     * itr_epoch is valid.
+                     */
                     min_epoch = std::min(min_epoch, itr_epoch);
                 }
             }

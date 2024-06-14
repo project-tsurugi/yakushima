@@ -25,9 +25,9 @@ class alignas(CACHE_LINE_SIZE) interior_node final // NOLINT
     : public base_node {                           // NOLINT
 public:
     /**
-   * @details The structure is "ptr, key, ptr, key, ..., ptr".
-   * So the child_length is key_slice_length plus 1.
-   */
+     * @details The structure is "ptr, key, ptr, key, ..., ptr".
+     * So the child_length is key_slice_length plus 1.
+     */
     static constexpr std::size_t child_length = key_slice_length + 1;
     using n_keys_body_type = std::uint8_t;
     using n_keys_type = std::atomic<n_keys_body_type>;
@@ -35,14 +35,14 @@ public:
     ~interior_node() override{}; // NOLINT
 
     /**
-   * @pre There is a child which is the same to @a child.
-   * @post If the number of children is 1, It asks caller to make the child to root and
-   * delete this node. Therefore, it place the-only-one child to position 0.
-   * @details Delete operation on the element matching @a child.
-   * @param[in] token
-   * @param[in] child
-   * @param[in] lock_list
-   */
+     * @pre There is a child which is the same to @a child.
+     * @post If the number of children is 1, It asks caller to make the child to root and
+     * delete this node. Therefore, it place the-only-one child to position 0.
+     * @details Delete operation on the element matching @a child.
+     * @param[in] token
+     * @param[in] child
+     * @param[in] lock_list
+     */
     template<class border_node>
     void delete_of(Token token, tree_instance* ti, base_node* const child) {
         set_version_inserting_deleting(true);
@@ -109,9 +109,9 @@ public:
     }
 
     /**
-   * @brief release all heap objects and clean up.
-   * @pre This function is called by single thread.
-   */
+     * @brief release all heap objects and clean up.
+     * @pre This function is called by single thread.
+     */
     status destroy() override {
         std::vector<std::thread> th_vc;
         th_vc.reserve(n_keys_ + 1);
@@ -135,8 +135,8 @@ public:
     }
 
     /**
-   * @details display function for analysis and debug.
-   */
+     * @details display function for analysis and debug.
+     */
     void display() override {
         display_base();
 
@@ -240,11 +240,11 @@ public:
     }
 
     /**
-   * @pre It already acquired lock of this node.
-   * @pre This interior node is not full.
-   * @details insert @a child and fix @a children.
-   * @param child new inserted child.
-   */
+     * @pre It already acquired lock of this node.
+     * @pre This interior node is not full.
+     * @details insert @a child and fix @a children.
+     * @param child new inserted child.
+     */
     template<class border_node>
     void insert(base_node* const child,
                 const std::pair<key_slice_type, key_length_type> pivot_key) {
@@ -313,10 +313,10 @@ public:
     }
 
     /**
-   * @pre It already acquired lock of this node.
-   * @param start_pos
-   * @param shift_size
-   */
+     * @pre It already acquired lock of this node.
+     * @param start_pos
+     * @param shift_size
+     */
     void shift_left_children(const std::size_t start_pos,
                              const std::size_t shift_size) {
         for (std::size_t i = start_pos; i < child_length; ++i) {
@@ -325,11 +325,11 @@ public:
     }
 
     /**
-   * @pre It already acquired lock of this node.
-   * It is not full-interior node.
-   * @param start_pos
-   * @param shift_size
-   */
+     * @pre It already acquired lock of this node.
+     * It is not full-interior node.
+     * @param start_pos
+     * @param shift_size
+     */
     void shift_right_children(const std::size_t start_pos) {
         std::size_t n_key = get_n_keys();
         for (std::size_t i = n_key + 1; i > start_pos; --i) {

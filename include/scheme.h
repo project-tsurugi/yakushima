@@ -39,67 +39,67 @@ using memory_usage_stack =
 
 enum class status : std::int32_t {
     /**
-   * @brief Warning of mistaking usage.
-   */
+     * @brief Warning of mistaking usage.
+     */
     WARN_BAD_USAGE,
     WARN_CONCURRENT_OPERATIONS,
     WARN_EXIST,
     WARN_NOT_EXIST,
     /**
-   * @brief warning
-   */
+     * @brief warning
+     */
     WARN_INVALID_TOKEN,
     /**
-   * @brief Warning
-   * @details The find_border function tells that it must retry from root of all tree.
-   */
+     * @brief Warning
+     * @details The find_border function tells that it must retry from root of all tree.
+     */
     WARN_RETRY_FROM_ROOT_OF_ALL,
     /**
-   * @brief warning
-   * @details The target storage of operations is not found.
-   */
+     * @brief warning
+     * @details The target storage of operations is not found.
+     */
     WARN_STORAGE_NOT_EXIST,
     /**
-   * @brief Warning
-   * @details (assign_gc_info) The maximum number of sessions is already up and running.
-   */
+     * @brief Warning
+     * @details (assign_gc_info) The maximum number of sessions is already up and running.
+     */
     WARN_MAX_SESSIONS,
     /**
-   * @brief Warning
-   * @details Masstree originally has a unique key constraint.
-   * todo (optional): This constraint is removed.
-   */
+     * @brief Warning
+     * @details Masstree originally has a unique key constraint.
+     * todo (optional): This constraint is removed.
+     */
     WARN_UNIQUE_RESTRICTION,
     /**
-   * @brief success status
-   */
+     * @brief success status
+     */
     OK,
     /**
-   * @brief (destroy) It destroys existing all trees.
-   */
+     * @brief (destroy) It destroys existing all trees.
+     */
     OK_DESTROY_ALL,
     /**
-   * @brief (destroy) It destroys xxx.
-   */
+     * @brief (destroy) It destroys xxx.
+     */
     OK_DESTROY_BORDER,
     /**
-   * @brief (destroy) It destroys xxx.
-   */
+     * @brief (destroy) It destroys xxx.
+     */
     OK_DESTROY_INTERIOR,
     /**
-   * @brief Warning
-   * @details (get/delete) No corresponding value in this storage engine.
-   */
+     * @brief Warning
+     * @details (get/delete) No corresponding value in this storage engine.
+     */
     OK_NOT_FOUND,
     OK_RETRY_FETCH_LV,
     OK_RETRY_AFTER_FB,
     OK_RETRY_FROM_ROOT,
     OK_ROOT_IS_DELETED,
     /**
-   * @brief
-   * (destroy) Root is nullptr and it could not destroy.
-   * (remove) No existing tree.
-   */
+     * @brief
+     * (destroy) Root is nullptr and it could not destroy.
+     * (remove) No existing tree.
+     */
     OK_ROOT_IS_NULL,
     OK_SCAN_CONTINUE,
     OK_SCAN_END,
@@ -112,8 +112,8 @@ enum class status : std::int32_t {
      */
     ERR_FATAL,
     /**
-   * @brief root is not both interior and border.
-   */
+     * @brief root is not both interior and border.
+     */
     ERR_UNKNOWN_ROOT,
 };
 
@@ -186,16 +186,16 @@ inline std::ostream& operator<<(std::ostream& out, const status value) {
  */
 enum class scan_endpoint : char {
     /**
-   * @details Excludes those that match the key specified for the endpoint.
-   */
+     * @details Excludes those that match the key specified for the endpoint.
+     */
     EXCLUSIVE,
     /**
-   * @details Includes those that match the key specified for the endpoint.
-   */
+     * @details Includes those that match the key specified for the endpoint.
+     */
     INCLUSIVE,
     /**
-   * @details Do not limit the endpoints.
-   */
+     * @details Do not limit the endpoints.
+     */
     INF,
 };
 

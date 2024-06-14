@@ -74,26 +74,26 @@ static void create_interior_parent_of_border(border_node* const left,
     left->set_version_root(false);
     right->set_version_root(false);
     /**
-   * create a new interior node p with children n, n'
-   */
+     * create a new interior node p with children n, n'
+     */
     auto ni = new interior_node(); // NOLINT
     ni->init_interior();
     ni->set_version_root(true);
     ni->set_version_inserting_deleting(true);
     ni->lock();
     /**
-   * process base node members
-   */
+     * process base node members
+     */
     ni->set_key(0, right->get_key_slice_at(0), right->get_key_length_at(0));
     /**
-   * process interior node members
-   */
+     * process interior node members
+     */
     ni->set_child_at(0, left);
     ni->set_child_at(1, right);
     ni->n_keys_increment();
     /**
-   * release interior parent to global.
-   */
+     * release interior parent to global.
+     */
     left->set_parent(ni);
     right->set_parent(ni);
     *new_parent = ni;
@@ -282,13 +282,13 @@ static void border_split(tree_instance* ti, border_node* const border,
 
     if (p->get_version_border()) {
         /**
-     * parent is border node.
-     * The old border node which is before this split was root of the some layer.
-     * So it creates new interior nodes in the layer and insert its interior pointer
-     * to the (parent) border node.
-     * attention : The parent border node had this border node as one of the next_layer
-     * before the split. The pointer is exchanged for a new parent interior node.
-     */
+         * parent is border node.
+         * The old border node which is before this split was root of the some layer.
+         * So it creates new interior nodes in the layer and insert its interior pointer
+         * to the (parent) border node.
+         * attention : The parent border node had this border node as one of the next_layer
+         * before the split. The pointer is exchanged for a new parent interior node.
+         */
         auto* pb = dynamic_cast<border_node*>(p);
         interior_node* pi{};
         create_interior_parent_of_border<interior_node, border_node>(
@@ -303,8 +303,8 @@ static void border_split(tree_instance* ti, border_node* const border,
         return;
     }
     /**
-   * parent is interior node.
-   */
+     * parent is interior node.
+     */
 #ifndef NDEBUG
     if (p->get_version_deleted()) { LOG(ERROR) << log_location_prefix; }
 #endif
@@ -315,8 +315,8 @@ static void border_split(tree_instance* ti, border_node* const border,
     new_border->version_unlock();
     if (pi->get_n_keys() == key_slice_length) {
         /**
-     * interior full case, it splits and inserts.
-     */
+         * interior full case, it splits and inserts.
+         */
         interior_split<interior_node, border_node>(
                 ti, pi, reinterpret_cast<base_node*>(new_border), // NOLINT
                 std::make_pair(new_border->get_key_slice_at(0),
@@ -324,8 +324,8 @@ static void border_split(tree_instance* ti, border_node* const border,
         return;
     }
     /**
-   * interior not-full case, it inserts.
-   */
+     * interior not-full case, it inserts.
+     */
     new_border->set_parent(pi);
     pi->template insert<border_node>(
             new_border, std::make_pair(new_border->get_key_slice_at(0),

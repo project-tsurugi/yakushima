@@ -16,10 +16,10 @@ namespace yakushima {
 class alignas(CACHE_LINE_SIZE) thread_info {
 public:
     /**
-   * @details Take the right to assign this gc_info.
-   * @return true success.
-   * @return false fail.
-   */
+     * @details Take the right to assign this gc_info.
+     * @return true success.
+     * @return false fail.
+     */
     bool gain_the_right() {
         bool expected(running_.load(std::memory_order_acquire));
         for (;;) {
@@ -52,9 +52,9 @@ public:
 
 private:
     /**
-   * @details This is updated by worker and is read by leader. If the value is 0, 
-   * it is invalid.
-   */
+     * @details This is updated by worker and is read by leader. If the value is 0, 
+     * it is invalid.
+     */
     std::atomic<Epoch> begin_epoch_{0};
     std::atomic<bool> running_{false};
     garbage_collection gc_info_;

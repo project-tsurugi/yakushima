@@ -55,10 +55,10 @@ void storeRelease(type* ptr, type* val) {
 template<typename type>
 bool weakCompareExchange(type* ptr, type* expected, type* desired) {
     /**
-   * Built-in Function: bool __atomic_compare_exchange_n
-   * (type *ptr, type *expected, type desired, bool weak, int success_memorder, int
-   * failure_memorder)
-   */
+     * Built-in Function: bool __atomic_compare_exchange_n
+     * (type *ptr, type *expected, type desired, bool weak, int success_memorder, int
+     * failure_memorder)
+     */
     return __atomic_compare_exchange_n(ptr, expected, *desired, true, // NOLINT
                                        __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE);
 }

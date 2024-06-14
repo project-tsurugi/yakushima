@@ -67,14 +67,14 @@ public:
     }
 
     /**
-   * A virtual function is defined because It wants to distinguish the children class of
-   * the contents by using polymorphism. So this function is pure virtual function.
-   */
+     * A virtual function is defined because It wants to distinguish the children class of
+     * the contents by using polymorphism. So this function is pure virtual function.
+     */
     virtual status destroy() = 0;
 
     /**
-   * @details display function for analysis and debug.
-   */
+     * @details display function for analysis and debug.
+     */
     virtual void display() = 0;
 
     /**
@@ -165,9 +165,9 @@ public:
     }
 
     /**
-   * @details init at @a pos as position.
-   * @param[in] pos This is a position (index) to be initialized.
-   */
+     * @details init at @a pos as position.
+     * @param[in] pos This is a position (index) to be initialized.
+     */
     void init_base(const std::size_t pos) { set_key(pos, 0, 0); }
 
     [[maybe_unused]] void init_base_member_range(const std::size_t start) {
@@ -177,15 +177,15 @@ public:
     }
 
     /**
-   * @brief It locks this node.
-   * @pre It didn't lock by myself.
-   * @return void
-   */
+     * @brief It locks this node.
+     * @pre It didn't lock by myself.
+     * @return void
+     */
     void lock() { version_.lock(); }
 
     /**
-   * @pre This function is called by split.
-   */
+     * @pre This function is called by split.
+     */
     [[nodiscard]] base_node* lock_parent() const {
         base_node* p = get_parent();
         for (;;) {
@@ -267,10 +267,10 @@ public:
     }
 
     /**
-   * @brief It unlocks this node.
-   * @pre This node was already locked.
-   * @return void
-   */
+     * @brief It unlocks this node.
+     * @pre This node was already locked.
+     * @return void
+     */
     void version_unlock() { version_.unlock(); }
 
     [[maybe_unused]] void version_atomic_inc_vinsert() {

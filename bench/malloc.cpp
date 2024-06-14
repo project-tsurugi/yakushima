@@ -78,23 +78,23 @@ void worker(const size_t thid, char& ready, const bool& start, const bool& quit,
 #endif
 
     /**
-   * tools used in experiments.
-   */
+     * tools used in experiments.
+     */
     std::uint64_t local_res{0};
 
     /**
-   * initialize source array.
-   */
+     * initialize source array.
+     */
     std::unique_ptr<char[]> own_str(new char[FLAGS_alloc_size]); // NOLINT
     /**
-   * c-style array NOLINT reasons : It wants to decide array size after compile. So it
-   * wants to use c-style array.
-   */
+     * c-style array NOLINT reasons : It wants to decide array size after compile. So it
+     * wants to use c-style array.
+     */
     for (std::size_t i = 0; i < FLAGS_alloc_size; ++i) {
         /**
-     * thid means that it creates unique str among thread.
-     * If you use more threads than CHAR_MAX, rewrite this part.
-     */
+         * thid means that it creates unique str among thread.
+         * If you use more threads than CHAR_MAX, rewrite this part.
+         */
         own_str.get()[i] = static_cast<char>(thid);
     }
 

@@ -185,16 +185,16 @@ static_assert(sizeof(node_version64_body) == 8);
 class node_version64 {
 public:
     /**
-   * @details Basically, it should use this default constructor to use init func.
-   * Of course, it can use this class without default constructor if it use init
-   * function().
-   */
+     * @details Basically, it should use this default constructor to use init func.
+     * Of course, it can use this class without default constructor if it use init
+     * function().
+     */
     node_version64() : body_{} {}
 
     /**
-   * @details This is atomic increment.
-   * If you use "setter(getter + 1)", that is not atomic increment.
-   */
+     * @details This is atomic increment.
+     * If you use "setter(getter + 1)", that is not atomic increment.
+     */
     void atomic_inc_vinsert() {
         node_version64_body expected(get_body());
         node_version64_body desired{};
@@ -280,14 +280,14 @@ public:
     }
 
     /**
-   * @details display function for analysis and debug.
-   */
+     * @details display function for analysis and debug.
+     */
     void display() const { get_body().display(); }
 
     /**
-   * @details This function locks atomically.
-   * @return void
-   */
+     * @details This function locks atomically.
+     * @return void
+     */
     void lock() {
         node_version64_body expected{};
         node_version64_body desired{};
@@ -327,11 +327,11 @@ public:
         for (;;) {
             node_version64_body sv = get_body();
             /**
-       * In the original paper, lock is not checked.
-       * However, if the lock is acquired, the member of that node can be changed.
-       * Even if the locked version is immutable, the members read at that time may be
-       * broken. Therefore, you have to check the lock.
-       */
+             * In the original paper, lock is not checked.
+             * However, if the lock is acquired, the member of that node can be changed.
+             * Even if the locked version is immutable, the members read at that time may be
+             * broken. Therefore, you have to check the lock.
+             */
             if (!sv.get_inserting_deleting() && !sv.get_locked() &&
                 !sv.get_splitting()) {
                 return sv;
@@ -350,8 +350,8 @@ public:
     }
 
     /**
-   * @pre This function is called by only single thread.
-   */
+     * @pre This function is called by only single thread.
+     */
     void init() { set_body(node_version64_body()); }
 
     void set_body(const node_version64_body newv) {
@@ -359,9 +359,9 @@ public:
     }
 
     /**
-   * @details This function unlocks @a atomically.
-   * @pre The caller already succeeded acquiring lock.
-   */
+     * @details This function unlocks @a atomically.
+     * @pre The caller already succeeded acquiring lock.
+     */
     void unlock() {
         node_version64_body expected(get_body());
         node_version64_body desired{};
