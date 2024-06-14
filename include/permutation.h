@@ -28,8 +28,8 @@ namespace yakushima {
 class permutation {
 public:
     /**
-   * cnk ... current number of keys.
-   */
+     * cnk ... current number of keys.
+     */
     static constexpr std::size_t cnk_mask = 0b1111;
     static constexpr std::size_t cnk_bit_size = 4; // bits
     static constexpr std::size_t pkey_bit_size =
@@ -40,8 +40,8 @@ public:
     explicit permutation(const std::uint64_t body) : body_{body} {}
 
     /**
-   * @brief decrement key number.
-   */
+     * @brief decrement key number.
+     */
     void dec_key_num() {
         std::uint64_t per_body(body_.load(std::memory_order_acquire));
         // decrement key number
@@ -121,8 +121,8 @@ public:
     }
 
     /**
-   * @brief increment key number.
-   */
+     * @brief increment key number.
+     */
     void inc_key_num() {
         std::uint64_t per_body(body_.load(std::memory_order_acquire));
         // increment key number
@@ -167,8 +167,8 @@ public:
     }
 
     /**
-   * @brief for split
-   */
+     * @brief for split
+     */
     void split_dest(std::size_t num) {
         std::uint64_t body{0};
         for (std::size_t i = 1; i < num; ++i) {
@@ -179,11 +179,11 @@ public:
     }
 
     /**
-   * @pre @a key_slice and @a key_length is array whose size is equal or less than cnk of
-   * permutation. If it ignores, it may occur seg-v error.
-   * @param key_slice
-   * @param key_length
-   */
+     * @pre @a key_slice and @a key_length is array whose size is equal or less than cnk of
+     * permutation. If it ignores, it may occur seg-v error.
+     * @param key_slice
+     * @param key_length
+     */
     void
     rearrange(const std::array<key_slice_type, key_slice_length>& key_slice,
               const std::array<key_length_type, key_slice_length>& key_length) {
@@ -200,9 +200,9 @@ public:
             ar.at(i) = {{key_slice.at(i), key_length.at(i)}, i};
         }
         /**
-     * sort based on key_slice and key_length for dictionary order.
-     * So <key_slice_type, key_length_type, ...>
-     */
+         * sort based on key_slice and key_length for dictionary order.
+         * So <key_slice_type, key_length_type, ...>
+         */
         std::sort(ar.begin(), ar.begin() + cnk);
 
         // rearrange

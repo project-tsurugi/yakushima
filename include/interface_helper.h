@@ -22,8 +22,8 @@ namespace yakushima {
 
 [[maybe_unused]] static void init() {
     /**
-   * initialize thread information table (kThreadInfoTable)
-   */
+     * initialize thread information table (kThreadInfoTable)
+     */
     thread_info_table::init();
     epoch_manager::invoke_epoch_thread();
     epoch_manager::invoke_gc_thread();

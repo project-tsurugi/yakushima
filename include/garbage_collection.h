@@ -19,10 +19,10 @@ namespace yakushima {
 class garbage_collection {
 public:
     /**
-   * @tparam interior_node
-   * @tparam border_node
-   * @attention Use a template class so that the dependency does not cycle.
-   */
+     * @tparam interior_node
+     * @tparam border_node
+     * @attention Use a template class so that the dependency does not cycle.
+     */
     template<class interior_node, class border_node>
     void fin() {
         // for cache
@@ -56,10 +56,10 @@ public:
     }
 
     /**
-   * @tparam interior_node
-   * @tparam border_node
-   * @attention Use a template class so that the dependency does not cycle.
-   */
+     * @tparam interior_node
+     * @tparam border_node
+     * @attention Use a template class so that the dependency does not cycle.
+     */
     template<class interior_node, class border_node>
     void gc() {
         gc_node<interior_node, border_node>();
@@ -67,10 +67,10 @@ public:
     }
 
     /**
-   * @tparam interior_node
-   * @tparam border_node
-   * @attention Use a template class so that the dependency does not cycle.
-   */
+     * @tparam interior_node
+     * @tparam border_node
+     * @attention Use a template class so that the dependency does not cycle.
+     */
     template<class interior_node, class border_node>
     void gc_node() {
         Epoch gc_epoch = get_gc_epoch();

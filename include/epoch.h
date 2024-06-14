@@ -18,8 +18,8 @@ public:
 
 private:
     /**
-   * @todo consider wrap around. Wrap around after 23,397,696,694 days.
-   */
+     * @todo consider wrap around. Wrap around after 23,397,696,694 days.
+     */
     static inline std::atomic<Epoch> epoch_{1}; // NOLINT
 };
 

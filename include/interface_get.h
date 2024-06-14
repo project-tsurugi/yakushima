@@ -60,9 +60,9 @@ retry_find_border:
             find_border(root, key_slice, key_slice_length, special_status);
     if (special_status == status::WARN_RETRY_FROM_ROOT_OF_ALL) {
         /**
-     * @a root is the root node of the some layer, but it was deleted.
-     * So it must retry from root of the all tree.
-     */
+         * @a root is the root node of the some layer, but it was deleted.
+         * So it must retry from root of the all tree.
+         */
         goto retry_from_root; // NOLINT
     }
     constexpr std::size_t tuple_node_index = 0;
@@ -81,9 +81,9 @@ retry_fetch_lv:
     if (v_at_fetch_lv.get_vsplit() != v_at_fb.get_vsplit() ||
         (v_at_fetch_lv.get_deleted() && !v_at_fetch_lv.get_root())) {
         /**
-     * The correct border was changed between atomically fetching border node and
-     * atomically fetching lv.
-     */
+         * The correct border was changed between atomically fetching border node and
+         * atomically fetching lv.
+         */
         goto retry_from_root; // NOLINT
     }
     if (lv_ptr == nullptr) {

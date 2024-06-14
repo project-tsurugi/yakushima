@@ -35,18 +35,18 @@ static void create_interior_parent_of_interior(
     ni->set_version_inserting_deleting(true);
     ni->lock();
     /**
-   * process base members
-   */
+     * process base members
+     */
     ni->set_key(0, pivot_key.first, pivot_key.second);
     /**
-   * process interior node members
-   */
+     * process interior node members
+     */
     ni->n_keys_increment();
     ni->set_child_at(0, left);
     ni->set_child_at(1, right);
     /**
-   * release interior parent to global
-   */
+     * release interior parent to global
+     */
     left->set_parent(ni);
     right->set_parent(ni);
     *new_parent = ni;
@@ -68,12 +68,12 @@ interior_split(tree_instance* ti, interior_node* const interior,
     new_interior->init_interior();
 
     /**
-   * new interior is initially locked.
-   */
+     * new interior is initially locked.
+     */
     new_interior->set_version(interior->get_version());
     /**
-   * split keys among n and n'
-   */
+     * split keys among n and n'
+     */
     key_slice_type pivot_key_pos = key_slice_length / 2;
     std::size_t split_children_points = pivot_key_pos + 1;
     interior->move_key_to_base_range(new_interior, split_children_points);
@@ -90,8 +90,8 @@ interior_split(tree_instance* ti, interior_node* const interior,
     interior->set_key(pivot_key_pos, 0, 0);
 
     /**
-   * It inserts child_node.
-   */
+     * It inserts child_node.
+     */
 
     key_slice_type key_slice{inserting_key.first};
     key_length_type key_length{inserting_key.second};
@@ -124,24 +124,24 @@ interior_split(tree_instance* ti, interior_node* const interior,
         }
 #endif
         /**
-     * The disappearance of the parent node may have made this node the root node in
-     * parallel. It cares in below function.
-     */
+         * The disappearance of the parent node may have made this node the root node in
+         * parallel. It cares in below function.
+         */
         create_interior_parent_of_interior<interior_node, border_node>(
                 interior, new_interior, std::make_pair(pivot_key, pivot_length),
                 &p);
         interior->version_unlock();
         new_interior->version_unlock();
         /**
-     * p became new root.
-     */
+         * p became new root.
+         */
         ti->store_root_ptr(p);
         p->version_unlock();
         return;
     }
     /**
-   * p exists.
-   */
+     * p exists.
+     */
 #ifndef NDEBUG
     if (p->get_version_deleted() || p != interior->get_parent()) {
         LOG(ERROR) << log_location_prefix;
@@ -168,15 +168,15 @@ interior_split(tree_instance* ti, interior_node* const interior,
     new_interior->version_unlock();
     if (pi->get_n_keys() == key_slice_length) {
         /**
-     * parent interior full case.
-     */
+         * parent interior full case.
+         */
         interior_split<interior_node, border_node>(
                 ti, pi, new_interior, std::make_pair(pivot_key, pivot_length));
         return;
     }
     /**
-   * parent interior not-full case
-   */
+     * parent interior not-full case
+     */
     pi->template insert<border_node>(new_interior,
                                      std::make_pair(pivot_key, pivot_length));
     pi->version_unlock();

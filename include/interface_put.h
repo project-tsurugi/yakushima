@@ -224,8 +224,8 @@ retry_fetch_lv:
         }
     }
     /**
-        * Here, lv_ptr has some next_layer.
-        */
+      * Here, lv_ptr has some next_layer.
+      */
     root = lv_ptr->get_next_layer();
     /**
       * check whether border is still correct.
