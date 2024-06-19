@@ -4,6 +4,7 @@
 
 #include <xmmintrin.h>
 
+#include <algorithm>
 #include <future>
 
 #include "gtest/gtest.h"
@@ -113,6 +114,37 @@ TEST_F(vt, vsplit) { // NOLINT
                                dynamic_cast<interior_node*>(ti->load_root_ptr())
                                        ->get_child_at(0))
                                ->get_version_vsplit());
+    fin();
+}
+
+TEST_F(vt, increment_version) { // NOLINT
+    init();
+    create_storage(test_storage_name);
+    tree_instance* ti{};
+    find_storage(test_storage_name, &ti);
+    std::string k{"k"};
+    std::string v{"v"};
+
+    // setup any tree structure
+    Token token{};
+    while (status::OK != enter(token)) { _mm_pause(); }
+    ASSERT_EQ(status::OK, put(token, test_storage_name, "0", v.data(), v.size()));
+    ASSERT_EQ(status::OK, put(token, test_storage_name, k, v.data(), v.size()));
+    leave(token);
+
+    std::vector<std::pair<node_version64_body, node_version64*>> nvp{};
+    std::vector<std::tuple<std::string, char*, std::size_t>> scan_res{};
+    auto changed = [&nvp]{
+        return std::any_of(nvp.begin(), nvp.end(), [](auto p){
+            return p.first.get_vinsert_delete() != p.second->get_vinsert_delete();
+        }); };
+    ASSERT_EQ(status::OK,
+              scan(test_storage_name, k, scan_endpoint::INCLUSIVE, k,
+                   scan_endpoint::INCLUSIVE, scan_res, &nvp));
+    ASSERT_NE(nvp.size(), 0);
+    ASSERT_FALSE(changed()); // no change
+    ASSERT_EQ(status::OK, increment_version(test_storage_name, k));
+    ASSERT_TRUE(changed()); // changed
     fin();
 }
 
