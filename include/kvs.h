@@ -12,10 +12,10 @@
 #include "interface_display.h"
 #include "interface_get.h"
 #include "interface_helper.h"
+#include "interface_increment_version.h"
 #include "interface_put.h"
 #include "interface_remove.h"
 #include "interface_scan.h"
-#include "interface_touch.h"
 #include "storage.h"
 #include "storage_impl.h"
 
@@ -221,8 +221,8 @@ put(Token token, std::string_view storage_name, // NOLINT
  * @return status::WARN_STORAGE_NOT_EXIST The target storage of this operation
  * does not exist.
  */
-[[maybe_unused]] static status touch(std::string_view storage_name, // NOLINT
-                                     std::string_view key_view);
+[[maybe_unused]] static status increment_version(std::string_view storage_name, // NOLINT
+                                                 std::string_view key_view);
 
 /**
  * TODO : add new 3 modes : try-mode : 1 trial : wait-mode : try until success : mid-mode

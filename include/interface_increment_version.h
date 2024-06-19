@@ -1,5 +1,5 @@
 /**
- * @file interface_touch.h
+ * @file interface_increment_version.h
  */
 
 #pragma once
@@ -18,8 +18,8 @@ namespace yakushima {
 // begin - forward declaration
 // end - forward declaration
 
-[[maybe_unused]] static status touch(tree_instance* ti, // NOLINT
-                                      std::string_view key_view) {
+[[maybe_unused]] static status increment_version(tree_instance* ti, // NOLINT
+                                                 std::string_view key_view) {
 retry_from_root:
     base_node* root = ti->load_root_ptr();
     if (root == nullptr) {
@@ -167,12 +167,12 @@ retry_fetch_lv:
     goto retry_find_border; // NOLINT
 }
 
-[[maybe_unused]] static status touch(std::string_view storage_name, // NOLINT
-                                     std::string_view key_view) {
+[[maybe_unused]] static status increment_version(std::string_view storage_name, // NOLINT
+                                                 std::string_view key_view) {
     tree_instance* ti{};
     status ret{storage::find_storage(storage_name, &ti)};
     if (status::OK != ret) { return status::WARN_STORAGE_NOT_EXIST; }
-    return touch(ti, key_view);
+    return increment_version(ti, key_view);
 }
 
 } // namespace yakushima
