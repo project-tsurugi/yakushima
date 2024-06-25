@@ -85,6 +85,7 @@ mem_usage(std::string_view storage_name); // NOLINT
  * @param [in] storage_name
  * @param [out] found_storage output parameter to pass tree_instance information. If this
  * is nullptr (by default argument), this function simply note the existence of target.
+ * The address obtained here can be safely accessed until the storage is deleted_storage.
  * @attention Do not treat DDL operations in parallel with DML operations.
  * create_storage / delete_storage can be processed in parallel.
  * At least one of these and find_storage / list_storage cannot work in parallel.
@@ -100,6 +101,7 @@ find_storage(std::string_view storage_name,
 /**
  * @brief List existing storage
  * @param [out] out output parameter to pass list of existing storage.
+ * The address obtained here can be safely accessed until the storage is deleted_storage.
  * @attention Do not treat DDL operations in parallel with DML opeartions.
  * create_storage / delete_storage can be processed in parallel.
  * At least one of these and find_storage / list_storage cannot work in parallel.
@@ -140,10 +142,12 @@ list_storages(std::vector<std::pair<std::string, tree_instance*>>& out) {
  * @param[in] storage_name The key_view of storage name.
  * @param[in] key_view The key_view of key-value.
  * @param[out] out The result about pointer to value and value size.
+ * The address obtained here can be accessed safely until the Token entered at the time of address acquisition leaves.
  * @param[out] checked_version The version information at Status::WARN_NOT_EXIST. 
  * If you set non-nullptr, yakushima write there. If not, yakushima write nothing. 
  * This is for phantom avoidance. If transaction engine did point read and dind't find entry, 
  * it can't read verify but if there is a masstree node, it can do node verify.
+ * The address obtained here can be accessed safely until the Token entered at the time of address acquisition leaves.
  * @return std::status::OK success
  * @return status::WARN_NOT_EXIST The target storage of this operation exists, 
  * but the target entry of the storage does not exist.
@@ -169,8 +173,10 @@ get(std::string_view storage_name, // NOLINT
  * @param[in] storage_name todo write
  * @param[in] key_view The key_view of key-value.
  * @param[in] value_ptr The pointer to given value.
+ * The address obtained here can be accessed safely until the Token entered at the time of address acquisition leaves.
  * @param[out] created_value_ptr The pointer to created value in yakushima. Default is @a
  * nullptr.
+ * The address obtained here can be accessed safely until the Token entered at the time of address acquisition leaves.
  * @param[in] arg_value_length The length of value object. Default is @a
  * sizeof(ValueType).
  * @param[in] value_align The alignment information of value object. Default is @a
@@ -181,6 +187,7 @@ get(std::string_view storage_name, // NOLINT
  * node. It may be used to find out difference of the version between some 
  * operations. Default is @a nullptr. If split occurs due to this insert, this
  *  point to old border node.
+ * The address obtained here can be accessed safely until the Token entered at the time of address acquisition leaves.
  * @return status::OK success.
  * @return status::WARN_UNIQUE_RESTRICTION The key-value whose key is same to given key
  * already exists.
@@ -233,12 +240,14 @@ put(Token token, std::string_view storage_name, // NOLINT
  * And ignore @a r_key.
  * @param[out] tuple_list A set with a key, a pointer to value, and size of 
  * value as a result of this function.
+ * The address obtained here can be accessed safely until the Token entered at the time of address acquisition leaves.
  * @param[out] node_version_vec Default is nullptr. The set of node_version for
  * transaction processing (protection of phantom problems). If you don't use 
  * yakushima for transaction processing, you don't have to use this argument. 
  * If you want high performance and don't have to use this argument, you should 
  * specify nullptr. If this argument is nullptr, it will not collect 
  * node_version.
+ * The address obtained here can be accessed safely until the Token entered at the time of address acquisition leaves.
  * @param [out] max_size Default is 0. If this argument is 0, it will not use 
  * this argument. This argument limits the number of results. If you later use 
  * node_version_vec to guarantee atomicity, you can split the atomic scan. 
