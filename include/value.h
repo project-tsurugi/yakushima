@@ -12,7 +12,7 @@ class value {
 public:
     /**
      * @brief Create a new value instance with dynamic memory allocation.
-     * 
+     *
      * @param[in] in_ptr The source address of a new value.
      * @param[in] v_len The length of a new value.
      * @param[in] v_align The alignment size of a new value.
@@ -51,10 +51,10 @@ public:
 
     /**
      * @brief Release the given value pointer.
-     * 
+     *
      * This function computes the actual size and alignment of the given value to
      * release the allocated memory correctly.
-     * 
+     *
      * @param[in] val The value pointer to be deleted.
      */
     static void delete_value(value* val) {
@@ -122,7 +122,7 @@ public:
 
     /**
      * @brief Set the flag for deletion off.
-     * 
+     *
      * @param[in] val The target value pointer.
      */
     static void remove_delete_flag(value* val) {
@@ -133,13 +133,13 @@ public:
 private:
     /**
      * @brief A flag for indicating that the next layer exists.
-     * 
+     *
      */
     static constexpr uintptr_t kValPtrFlag = 0b01UL << 62UL;
 
     /**
      * @brief Internal constructor for setting header information.
-     * 
+     *
      * @param[in] v_len The length of a new value.
      * @param[in] v_align The alignment size of a new value.
      */
@@ -163,7 +163,7 @@ private:
 
     /**
      * @brief The alignment size of the contained value.
-     * 
+     *
      * Note that the minimum alignment is 8 bytes to retain the header region.
      */
     std::uint16_t align_{0};

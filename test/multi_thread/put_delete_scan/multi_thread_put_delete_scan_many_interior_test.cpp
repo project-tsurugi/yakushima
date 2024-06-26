@@ -43,7 +43,7 @@ std::mutex debug_mtx;               // NOLINT
 TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
        many_interior) {                                 // NOLINT
     /**
-      * concurrent put/delete/scan in the state between none to many split of 
+      * concurrent put/delete/scan in the state between none to many split of
       * interior.
       */
 
@@ -190,7 +190,7 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
 TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
        many_interior_shuffle) {                         // NOLINT
     /**
-      * concurrent put/delete/scan in the state between none to many split of 
+      * concurrent put/delete/scan in the state between none to many split of
       * interior with shuffle.
       */
 

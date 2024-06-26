@@ -52,7 +52,7 @@ public:
 
 private:
     /**
-     * @details This is updated by worker and is read by leader. If the value is 0, 
+     * @details This is updated by worker and is read by leader. If the value is 0,
      * it is invalid.
      */
     std::atomic<Epoch> begin_epoch_{0};

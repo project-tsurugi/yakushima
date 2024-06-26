@@ -143,15 +143,15 @@ list_storages(std::vector<std::pair<std::string, tree_instance*>>& out) {
  * @param[in] key_view The key_view of key-value.
  * @param[out] out The result about pointer to value and value size.
  * The address obtained here can be accessed safely until the Token entered at the time of address acquisition leaves.
- * @param[out] checked_version The version information at Status::WARN_NOT_EXIST. 
- * If you set non-nullptr, yakushima write there. If not, yakushima write nothing. 
- * This is for phantom avoidance. If transaction engine did point read and dind't find entry, 
+ * @param[out] checked_version The version information at Status::WARN_NOT_EXIST.
+ * If you set non-nullptr, yakushima write there. If not, yakushima write nothing.
+ * This is for phantom avoidance. If transaction engine did point read and dind't find entry,
  * it can't read verify but if there is a masstree node, it can do node verify.
  * The address obtained here can be accessed safely until the Token entered at the time of address acquisition leaves.
  * @return std::status::OK success
- * @return status::WARN_NOT_EXIST The target storage of this operation exists, 
+ * @return status::WARN_NOT_EXIST The target storage of this operation exists,
  * but the target entry of the storage does not exist.
- * @return status::WARN_STORAGE_NOT_EXIST The target storage of this operation 
+ * @return status::WARN_STORAGE_NOT_EXIST The target storage of this operation
  * does not exist.
  */
 template<class ValueType>
@@ -183,15 +183,15 @@ get(std::string_view storage_name, // NOLINT
  * static_cast<value_align_type>(alignof(ValueType)).
  * @param[in] unique_restriction If this is true, you can't put same key. If you
  * update key, you should execute remove and put.
- * @param[out] inserted_node_version_ptr The pointer to version of the inserted 
- * node. It may be used to find out difference of the version between some 
+ * @param[out] inserted_node_version_ptr The pointer to version of the inserted
+ * node. It may be used to find out difference of the version between some
  * operations. Default is @a nullptr. If split occurs due to this insert, this
  *  point to old border node.
  * The address obtained here can be accessed safely until the Token entered at the time of address acquisition leaves.
  * @return status::OK success.
  * @return status::WARN_UNIQUE_RESTRICTION The key-value whose key is same to given key
  * already exists.
- * @return status::WARN_STORAGE_NOT_EXIST The target storage of this operation 
+ * @return status::WARN_STORAGE_NOT_EXIST The target storage of this operation
  * does not exist.
  */
 template<class ValueType>
@@ -209,9 +209,9 @@ put(Token token, std::string_view storage_name, // NOLINT
  * @param[in] key_view The key_view of key-value.
  * @return status::OK success
  * @return status::OK_ROOT_IS_NULL No existing tree.
- * @return status::OK_NOT_FOUND The target storage exists, but the target 
+ * @return status::OK_NOT_FOUND The target storage exists, but the target
  * entry does not exist.
- * @return status::WARN_STORAGE_NOT_EXIST The target storage of this operation 
+ * @return status::WARN_STORAGE_NOT_EXIST The target storage of this operation
  * does not exist.
  */
 [[maybe_unused]] static status remove(Token token, // NOLINT
@@ -224,45 +224,45 @@ put(Token token, std::string_view storage_name, // NOLINT
  */
 /**
  * @brief scan range between @a l_key and @a r_key.
- * @tparam ValueType The returned pointer is cast to the given type information 
+ * @tparam ValueType The returned pointer is cast to the given type information
  * before it is returned.
  * @param[in] l_key An argument that specifies the left endpoint.
- * @param[in] l_end If this argument is scan_endpoint::EXCLUSIVE, the interval 
- * does not include the endpoint. If this argument is scan_endpoint::INCLUSIVE, 
- * the interval contains the endpoint. If this is scan_endpoint::INF, there is 
+ * @param[in] l_end If this argument is scan_endpoint::EXCLUSIVE, the interval
+ * does not include the endpoint. If this argument is scan_endpoint::INCLUSIVE,
+ * the interval contains the endpoint. If this is scan_endpoint::INF, there is
  * no limit on the interval in left direction. And ignore @a l_key.
  * @param[in] r_key An argument that specifies the right endpoint.
  * @note If r_key <l_key is specified in dictionary order, nothing will be hit.
- * @param[in] r_end If this argument is scan_endpoint :: EXCLUSIVE, the 
- * interval does not include the endpoint. If this argument is 
- * scan_endpoint::INCLUSIVE, the interval contains the endpoint. If this is 
- * scan_endpoint::INF, there is no limit on the interval in right direction. 
+ * @param[in] r_end If this argument is scan_endpoint :: EXCLUSIVE, the
+ * interval does not include the endpoint. If this argument is
+ * scan_endpoint::INCLUSIVE, the interval contains the endpoint. If this is
+ * scan_endpoint::INF, there is no limit on the interval in right direction.
  * And ignore @a r_key.
- * @param[out] tuple_list A set with a key, a pointer to value, and size of 
+ * @param[out] tuple_list A set with a key, a pointer to value, and size of
  * value as a result of this function.
  * The address obtained here can be accessed safely until the Token entered at the time of address acquisition leaves.
  * @param[out] node_version_vec Default is nullptr. The set of node_version for
- * transaction processing (protection of phantom problems). If you don't use 
- * yakushima for transaction processing, you don't have to use this argument. 
- * If you want high performance and don't have to use this argument, you should 
- * specify nullptr. If this argument is nullptr, it will not collect 
+ * transaction processing (protection of phantom problems). If you don't use
+ * yakushima for transaction processing, you don't have to use this argument.
+ * If you want high performance and don't have to use this argument, you should
+ * specify nullptr. If this argument is nullptr, it will not collect
  * node_version.
  * The address obtained here can be accessed safely until the Token entered at the time of address acquisition leaves.
- * @param [out] max_size Default is 0. If this argument is 0, it will not use 
- * this argument. This argument limits the number of results. If you later use 
- * node_version_vec to guarantee atomicity, you can split the atomic scan. 
- * Suppose you want to scan with A: C, assuming the order A <B <C. You can 
- * perform an atomic scan by scanning the range A: B, B: C and using 
- * node_version_vec to make sure the values ​​are not overwritten. This advantage 
- * is effective when the right end point is unknown but you want to scan to a 
+ * @param [out] max_size Default is 0. If this argument is 0, it will not use
+ * this argument. This argument limits the number of results. If you later use
+ * node_version_vec to guarantee atomicity, you can split the atomic scan.
+ * Suppose you want to scan with A: C, assuming the order A <B <C. You can
+ * perform an atomic scan by scanning the range A: B, B: C and using
+ * node_version_vec to make sure the values ​​are not overwritten. This advantage
+ * is effective when the right end point is unknown but you want to scan to a
  * specific value.
  * @return Status::ERR_BAD_USAGE The arguments is invalid. In the case1: you use
  * same l_key and r_key and one of the endpoint is exclusive. case2: one of the
- * endpoint use null key but the string size is not zero like 
+ * endpoint use null key but the string size is not zero like
  * std::string_view{nullptr, non-zero-value}.
  * @return status::OK success.
  * @return Status::OK_ROOT_IS_NULL success and root is null.
- * @return status::WARN_STORAGE_NOT_EXIST The target storage of this operation 
+ * @return status::WARN_STORAGE_NOT_EXIST The target storage of this operation
  * does not exist.
  */
 template<class ValueType>

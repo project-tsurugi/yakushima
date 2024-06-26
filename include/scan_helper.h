@@ -68,7 +68,7 @@ scan(base_node* const root, const std::string_view l_key,
     }
 
     /**
-      * For retry of failing optimistic verify, it must erase parts of 
+      * For retry of failing optimistic verify, it must erase parts of
       * tuple_list and node vec. clear between initial_size... and current size.
       * about tuple_list.
       */
@@ -181,7 +181,7 @@ scan_border(border_node** const target, const std::string_view l_key,
         initial_size_of_node_version_vec = node_version_vec->size();
     }
     /**
-      * For retry of failing optimistic verify, it must erase parts of 
+      * For retry of failing optimistic verify, it must erase parts of
       * tuple_list and node vec. clear between initial_size... and current size.
       * about tuple_list.
       */
@@ -207,7 +207,7 @@ scan_border(border_node** const target, const std::string_view l_key,
 retry:
 
     /**
-     * This is used below loop for logging whether this scan catches some 
+     * This is used below loop for logging whether this scan catches some
      * elements in this node.
      */
     bool tuple_pushed_num{false};
@@ -234,7 +234,7 @@ retry:
                     reinterpret_cast<char*>(&ks), // NOLINT
                     kl < sizeof(key_slice_type) ? kl : sizeof(key_slice_type));
             /**
-             * If the key is complete (kl < sizeof(key_slice_type)), the key 
+             * If the key is complete (kl < sizeof(key_slice_type)), the key
              * slice must be copied by the size of key length.
              * Otherwise, sizeof key_slice_type.
              */
@@ -244,7 +244,7 @@ retry:
         base_node* next_layer = lv->get_next_layer();
         node_version64* node_version_ptr = bn->get_version_ptr();
         /**
-         * This verification may seem verbose, but it can also be considered 
+         * This verification may seem verbose, but it can also be considered
          * an early abort.
          */
         status check_status = scan_check_retry(bn, v_at_fb);
@@ -329,13 +329,13 @@ retry:
                         value::get_len(vp)));
                 if (node_version_vec != nullptr) {
                     /**
-                      * note: 
+                      * note:
                       * std::get<1>(node_version_vec.back()) != node_version_ptr
-                      * Adding this can reduce redundant emplace_back. However, 
-                      * the correspondence between the value of the scan result 
-                      * and the pointer to the node version becomes unknown, 
-                      * making it impossible to perform node verify according 
-                      * to the actual situation read by the transaction 
+                      * Adding this can reduce redundant emplace_back. However,
+                      * the correspondence between the value of the scan result
+                      * and the pointer to the node version becomes unknown,
+                      * making it impossible to perform node verify according
+                      * to the actual situation read by the transaction
                       * execution engine.
                       */
                     node_version_vec->emplace_back(
@@ -388,8 +388,8 @@ retry:
             // pass right endpoint.
             if (!tuple_pushed_num && node_version_vec != nullptr) {
                 /**
-                  * Since it is a rightmost node included in the range, it is 
-                  * included in the phantom verification. However, there were 
+                  * Since it is a rightmost node included in the range, it is
+                  * included in the phantom verification. However, there were
                   * no elements included in the range.
                   */
                 node_version_vec->emplace_back(
@@ -403,8 +403,8 @@ retry:
 
     if (!tuple_pushed_num && node_version_vec != nullptr) {
         /**
-          * Since it is a leftmost node included in the range, it is included 
-          * in the phantom verification. However, there were no elements 
+          * Since it is a leftmost node included in the range, it is included
+          * in the phantom verification. However, there were no elements
           * included in the range.
           */
         node_version_vec->emplace_back(

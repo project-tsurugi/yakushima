@@ -36,7 +36,7 @@ std::string test_storage_name{"1"}; // NOLINT
 
 TEST_F(mtpdt, two_layer_two_border) { // NOLINT
     /**
-      * multiple put same null char key whose length is different each other 
+      * multiple put same null char key whose length is different each other
       * against multiple border, which is across some layer.
       */
     constexpr std::size_t ary_size = 15;
@@ -398,7 +398,7 @@ TEST_F(mtpdt, // NOLINT
 TEST_F(mtpdt, // NOLINT
        concurrent_put_delete_between_none_and_interior_in_first_layer) { // NOLINT
     /**
-      * The number of puts that can be split only once and the deletes are 
+      * The number of puts that can be split only once and the deletes are
       * repeated in multiple threads. Use shuffled data.
       */
     constexpr std::size_t ary_size = key_slice_length + 1;

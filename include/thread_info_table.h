@@ -15,10 +15,10 @@ class thread_info_table {
 public:
     /**
      * @brief Allocates a free session.
-     * @param[out] token If the return value of the function is status::OK, 
+     * @param[out] token If the return value of the function is status::OK,
      * then the token is the acquired session.
      * @return status::OK success.
-     * @return status::WARN_MAX_SESSIONS The maximum number of sessions is already up 
+     * @return status::WARN_MAX_SESSIONS The maximum number of sessions is already up
      * and running.
      */
     static status assign_thread_info(Token& token) {
@@ -66,7 +66,7 @@ public:
 
     /**
      * @brief initialize thread_info_table_.
-     * @pre global epoch is not yet functional because it assigns 0 to begin_epoch as 
+     * @pre global epoch is not yet functional because it assigns 0 to begin_epoch as
      * the initial value.
      * @return void
      */
@@ -78,11 +78,11 @@ public:
     }
 
     /**
-     * @details When @a token points to an invalid memory location, an error occurs 
-     * if @a token is referenced. 
-     * To avoid this, it scans the table. 
+     * @details When @a token points to an invalid memory location, an error occurs
+     * if @a token is referenced.
+     * To avoid this, it scans the table.
      * So if @token is invalid one, return status::WARN_INVALID_TOKEN.
-     * @tparam interior_node Class information is given at compile time to eliminate 
+     * @tparam interior_node Class information is given at compile time to eliminate
      * the dependency between header files.
      * @tparam border_node Class information is given at compile time to eliminate the
      * dependency between header files.

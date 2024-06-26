@@ -108,7 +108,7 @@ enum class status : std::int32_t {
     ERR_BOUNDARY,
     /**
      * @brief fatal error
-     * 
+     *
      */
     ERR_FATAL,
     /**

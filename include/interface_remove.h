@@ -71,8 +71,8 @@ retry_find_border:
     if (target_border == nullptr) {
         // TODO
         /**
-         * This code path is not expected to be reached. However, sometimes 
-         * this code path is reached. You may need to make appropriate use of 
+         * This code path is not expected to be reached. However, sometimes
+         * this code path is reached. You may need to make appropriate use of
          * compiler fences.
         */
         goto retry_from_root; // NOLINT
@@ -95,7 +95,7 @@ retry_fetch_lv:
     if (v_at_fetch_lv.get_vsplit() != v_at_fb.get_vsplit() ||
         (v_at_fetch_lv.get_deleted() && !v_at_fetch_lv.get_root())) {
         /**
-          * It may be change the correct border between atomically fetching border node 
+          * It may be change the correct border between atomically fetching border node
           * and atomically fetching lv.
           */
         goto retry_from_root; // NOLINT

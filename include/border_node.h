@@ -46,7 +46,7 @@ public:
                 ti->get_gc_info().push_value_container(
                         {ti->get_begin_epoch(), v_ptr, v_len, v_align});
                 /**
-                  * clear for preventing heap use after free by reference of 
+                  * clear for preventing heap use after free by reference of
                   * need_delete
                  */
                 lv_.at(pos).init_lv();
@@ -221,7 +221,7 @@ public:
 
     /**
      * @brief Collect the memory usage of this partial tree.
-     * 
+     *
      * @param level the level of this node in the tree.
      * @param mem_stat the stack of memory usage for each level.
      */

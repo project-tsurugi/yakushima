@@ -42,7 +42,7 @@ std::string test_storage_name{"1"}; // NOLINT
 
 TEST_F(mtpdgt, two_border_null_key) { // NOLINT
     /**
-      * multiple put/delete/get same null char key whose length is different 
+      * multiple put/delete/get same null char key whose length is different
       * each other against multiple border, which is across some layer.
       */
     constexpr std::size_t ary_size = 15;

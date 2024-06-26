@@ -72,7 +72,7 @@ TEST_F(st, scan_multiple_same_null_char_key_2) { // NOLINT
 
 TEST_F(st, scan_against_1_interior_some_border) { // NOLINT
     /**
-      * scan against the structure which it has interior node as root, and the 
+      * scan against the structure which it has interior node as root, and the
       * interior has some border nodes as children.
       */
     Token token{};
@@ -108,16 +108,16 @@ TEST_F(st, scan_against_1_interior_some_border) { // NOLINT
 
 TEST_F(st, scan_against_1_interior_2_interior_some_border) { // NOLINT
     /**
-      * scan against the structure which it has interior node as root, root has 
-      * two interior nodes as children, and each of children has some border 
+      * scan against the structure which it has interior node as root, root has
+      * two interior nodes as children, and each of children has some border
       * nodes as children.
       */
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     /**
-      * first border split occurs at inserting_deleting (key_slice_length + 1) 
-      * times. after first border split, split occurs at inserting_deleting 
-      * (key_slice_length / 2 + 1) times. first interior split occurs at 
+      * first border split occurs at inserting_deleting (key_slice_length + 1)
+      * times. after first border split, split occurs at inserting_deleting
+      * (key_slice_length / 2 + 1) times. first interior split occurs at
       * splitting interior_node::child_length times.
       */
     constexpr std::size_t ary_size =

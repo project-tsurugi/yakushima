@@ -79,7 +79,7 @@ public:
 
     /**
      * @brief Collect the memory usage of this partial tree.
-     * 
+     *
      * @param level the level of this node in the tree.
      * @param mem_stat the stack of memory usage for each level.
      */
