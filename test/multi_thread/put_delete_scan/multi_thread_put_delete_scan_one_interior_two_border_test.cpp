@@ -24,9 +24,9 @@ std::string test_storage_name{"1"}; // NOLINT
 
 TEST_F(mtpdst, one_interior) { // NOLINT
     /**
-   * The number of puts that can be split only once and the deletes are repeated in
-   * multiple threads.
-   */
+     * The number of puts that can be split only once and the deletes are repeated in
+     * multiple threads.
+     */
     constexpr std::size_t ary_size = key_slice_length + 1;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
@@ -148,9 +148,9 @@ TEST_F(mtpdst, one_interior) { // NOLINT
 
 TEST_F(mtpdst, one_interior_shuffle) { // NOLINT
     /**
-   * The number of puts that can be split only once and the deletes are repeated in
-   * multiple threads. Use shuffled data.
-   */
+     * The number of puts that can be split only once and the deletes are repeated in
+     * multiple threads. Use shuffled data.
+     */
     constexpr std::size_t ary_size = key_slice_length + 1;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {

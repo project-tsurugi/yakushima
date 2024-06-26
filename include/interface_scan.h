@@ -23,23 +23,23 @@ scan(tree_instance* ti, std::string_view l_key, scan_endpoint l_end,
              node_version_vec,
      std::size_t max_size) {
     /**
-      * Prohibition : std::string_view{nullptr, non-zero value}.
-      */
+     * Prohibition : std::string_view{nullptr, non-zero value}.
+     */
     if ((l_key.data() == nullptr && !l_key.empty()) ||
         (r_key.data() == nullptr && !r_key.empty())) {
         return status::ERR_BAD_USAGE;
     }
 
     /**
-      * Case of l_key == r_key.
-      * 1 : l_key == r_key && (
-      * (l_end == scan_endpoint::INCLUSIVE || r_end == scan_endpoint::INCLUSIVE) ||
-      * (l_end == scan_endpoint::INCLUSIVE || r_end == scan_endpoint::INF) ||
-      * (l_end == scan_endpoint::INF || r_end == scan_endpoint::INCLUSIVE) ||
-      * )
-      * , only one point that matches the endpoint can be scanned.
-      * 2 : l_key == r_key &&  l_end == r_end == scan_endpoint::INF, all range.
-      */
+     * Case of l_key == r_key.
+     * 1 : l_key == r_key && (
+     * (l_end == scan_endpoint::INCLUSIVE || r_end == scan_endpoint::INCLUSIVE) ||
+     * (l_end == scan_endpoint::INCLUSIVE || r_end == scan_endpoint::INF) ||
+     * (l_end == scan_endpoint::INF || r_end == scan_endpoint::INCLUSIVE) ||
+     * )
+     * , only one point that matches the endpoint can be scanned.
+     * 2 : l_key == r_key &&  l_end == r_end == scan_endpoint::INF, all range.
+     */
     if (l_key == r_key && (l_end == scan_endpoint::EXCLUSIVE ||
                            r_end == scan_endpoint::EXCLUSIVE)) {
         return status::ERR_BAD_USAGE;
@@ -60,8 +60,8 @@ retry_from_root:
     std::string_view traverse_key_view{l_key};
 
     /**
-      * prepare key_slice
-      */
+     * prepare key_slice
+     */
     key_slice_type key_slice(0);
     auto key_slice_length =
             static_cast<key_length_type>(traverse_key_view.size());
@@ -74,16 +74,16 @@ retry_from_root:
         }
     }
     /**
-      * traverse tree to border node.
-      */
+     * traverse tree to border node.
+     */
     status check_status{status::OK};
     std::tuple<border_node*, node_version64_body> node_and_v =
             find_border(root, key_slice, key_slice_length, check_status);
     if (check_status == status::WARN_RETRY_FROM_ROOT_OF_ALL) {
         /**
-          * @a root is the root node of the some layer, but it was deleted.
-          * So it must retry from root of the all tree.
-          */
+         * @a root is the root node of the some layer, but it was deleted.
+         * So it must retry from root of the all tree.
+         */
         goto retry_from_root; // NOLINT
     }
     constexpr std::size_t tuple_node_index = 0;
@@ -116,7 +116,7 @@ retry_from_root:
 
         /**
          * fail. It will clear all tuple and node information after goto.
-        */
+         */
         if (check_status == status::OK_RETRY_FROM_ROOT) {
             goto retry_from_root; // NOLINT
         } else {

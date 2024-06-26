@@ -56,13 +56,13 @@ TEST_F(scan_no_elem_nodes_test, scan_three_border_one_border) { // NOLINT
                   put(token, st, std::string_view(&c, 1), v.data(), v.size()));
     }
     /**
-   * now
-   * A:  0,  1,  2,  3,  4,  5,  6,  7,
-   * B:  8,  9, 10, 11, 12, 13, 14, 15,
-   * C: 16, 17, 18, 19, 20, 21, 22, 23, 24, 25
-   * branch of A and B is 8
-   * branch of B and C is 16
-   */
+     * now
+     * A:  0,  1,  2,  3,  4,  5,  6,  7,
+     * B:  8,  9, 10, 11, 12, 13, 14, 15,
+     * C: 16, 17, 18, 19, 20, 21, 22, 23, 24, 25
+     * branch of A and B is 8
+     * branch of B and C is 16
+     */
     std::vector<std::tuple<std::string, char*, std::size_t>> tup{}; // NOLINT
     std::vector<std::pair<node_version64_body, node_version64*>> nv;
     ASSERT_EQ(status::OK, scan<char>(st, "", scan_endpoint::INF, "",
@@ -77,13 +77,13 @@ TEST_F(scan_no_elem_nodes_test, scan_three_border_one_border) { // NOLINT
     delete_range(15, 15); // NOLINT
     delete_range(16, 24); // NOLINT
     /**
-   * now
-   * A:  0,
-   * B:  8, 9, 10, 11, 12, 13, 14,
-   * C:  25
-   * branch of A and B is 8
-   * branch of B and C is 16
-   */
+     * now
+     * A:  0,
+     * B:  8, 9, 10, 11, 12, 13, 14,
+     * C:  25
+     * branch of A and B is 8
+     * branch of B and C is 16
+     */
     char begin = 1; // NOLINT
     char end = 24;  // NOLINT
     ASSERT_EQ(status::OK,

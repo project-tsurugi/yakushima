@@ -25,8 +25,8 @@ std::string test_storage_name{"1"}; // NOLINT
 
 TEST_F(mtpdt, many_interior) { // NOLINT
     /**
-   * concurrent put/delete in the state between none to many split of interior.
-   */
+     * concurrent put/delete in the state between none to many split of interior.
+     */
 
     constexpr std::size_t ary_size =
             interior_node::child_length * key_slice_length * 1.4;

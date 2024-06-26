@@ -24,9 +24,9 @@ std::string test_storage_name{"1"}; // NOLINT
 
 TEST_F(mtpdst, two_border) { // NOLINT
     /**
-   * multiple put/delete/scan same null char key whose length is different each other
-   * against multiple border, which is across some layer.
-   */
+     * multiple put/delete/scan same null char key whose length is different each other
+     * against multiple border, which is across some layer.
+     */
     constexpr std::size_t ary_size = 15;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {

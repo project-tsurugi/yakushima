@@ -16,9 +16,9 @@ TEST_F(bnt, constructor) { // NOLINT
     node_version64 ver;
     ver.init();
     /**
-   * base_node class is abstract class, so it can not declare object as base_node type.
-   * Instead of that, it uses border_node.
-   */
+     * base_node class is abstract class, so it can not declare object as base_node type.
+     * Instead of that, it uses border_node.
+     */
     border_node bn;
     ASSERT_EQ(bn.get_version(), ver.get_body());
     ASSERT_EQ(bn.get_parent(), nullptr);
@@ -29,9 +29,9 @@ TEST_F(bnt, constructor) { // NOLINT
 
 TEST_F(bnt, typeSize) { // NOLINT
     /**
-   * kvs.h uses the argument (sizeof(key_slice_type)) as 8 at
-   * std::string_view::remove_suffix function.
-   */
+     * kvs.h uses the argument (sizeof(key_slice_type)) as 8 at
+     * std::string_view::remove_suffix function.
+     */
     ASSERT_EQ(sizeof(key_slice_type), 8);
 }
 

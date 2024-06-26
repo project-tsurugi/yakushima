@@ -386,9 +386,9 @@ static void invoke_leader() try {
     LOG(INFO) << "[end] join worker threads.";
 
     /**
-      * get test : read records.
-      * put test : put records.
-      */
+     * get test : read records.
+     * put test : put records.
+     */
     std::uint64_t fin_res{0};
     for (std::uint64_t i = 0; i < FLAGS_thread; ++i) {
         if ((UINT64_MAX - fin_res) < res[i]) {

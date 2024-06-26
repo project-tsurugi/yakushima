@@ -25,9 +25,9 @@ std::string test_storage_name{"1"}; // NOLINT
 
 TEST_F(mtpdgt, one_border_null_key) { // NOLINT
     /**
-   * concurrent put/delete/get same null char key slices and different key length to
-   * single border by multi threads.
-   */
+     * concurrent put/delete/get same null char key slices and different key length to
+     * single border by multi threads.
+     */
     constexpr std::size_t ary_size = 9;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
@@ -121,8 +121,8 @@ TEST_F(mtpdgt, one_border_null_key) { // NOLINT
 
 TEST_F(mtpdgt, one_border_null_key_shuffle) { // NOLINT
     /**
-   * test1 variant which is the test using shuffle order data.
-   */
+     * test1 variant which is the test using shuffle order data.
+     */
 
     constexpr std::size_t ary_size = 9;
     std::size_t th_nm{};

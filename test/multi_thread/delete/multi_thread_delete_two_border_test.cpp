@@ -39,9 +39,9 @@ std::string test_storage_name{"1"}; // NOLINT
 
 TEST_F(multi_thread_delete_two_border_test, test5) { // NOLINT
     /**
-   * Initial state : multi threads put until first split of border.
-   * Concurrent remove against initial state.
-   */
+     * Initial state : multi threads put until first split of border.
+     * Concurrent remove against initial state.
+     */
 
     constexpr std::size_t ary_size = key_slice_length + 1;
     std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
@@ -113,9 +113,9 @@ TEST_F(multi_thread_delete_two_border_test, test5) { // NOLINT
 
 TEST_F(multi_thread_delete_two_border_test, test6) { // NOLINT
     /**
-      * Initial state : multi threads put until first split of border, which is
-      * using shuffled data. Concurrent remove against initial state.
-      */
+     * Initial state : multi threads put until first split of border, which is
+     * using shuffled data. Concurrent remove against initial state.
+     */
 
     constexpr std::size_t ary_size = key_slice_length + 1;
     std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
@@ -189,9 +189,9 @@ TEST_F(multi_thread_delete_two_border_test, test6) { // NOLINT
 
 TEST_F(multi_thread_delete_two_border_test, test7) { // NOLINT
     /**
-      * Initial state : multi threads put between first split of border and
-      * first split of interior. Concurrent remove against initial state.
-      */
+     * Initial state : multi threads put between first split of border and
+     * first split of interior. Concurrent remove against initial state.
+     */
 
     constexpr std::size_t ary_size = 100;
     std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
@@ -263,10 +263,10 @@ TEST_F(multi_thread_delete_two_border_test, test7) { // NOLINT
 
 TEST_F(multi_thread_delete_two_border_test, test8) { // NOLINT
     /**
-      * Initial state : multi threads put between first split of border and
-      * first split of interior, which is using shuffled data. Concurrent
-      * remove against initial state.
-      */
+     * Initial state : multi threads put between first split of border and
+     * first split of interior, which is using shuffled data. Concurrent
+     * remove against initial state.
+     */
     constexpr std::size_t ary_size = 100;
     std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
     std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT

@@ -72,9 +72,9 @@ TEST_F(st, scan_multiple_same_null_char_key_2) { // NOLINT
 
 TEST_F(st, scan_against_1_interior_some_border) { // NOLINT
     /**
-      * scan against the structure which it has interior node as root, and the
-      * interior has some border nodes as children.
-      */
+     * scan against the structure which it has interior node as root, and the
+     * interior has some border nodes as children.
+     */
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     constexpr std::size_t ary_size = key_slice_length + 1;
@@ -108,18 +108,18 @@ TEST_F(st, scan_against_1_interior_some_border) { // NOLINT
 
 TEST_F(st, scan_against_1_interior_2_interior_some_border) { // NOLINT
     /**
-      * scan against the structure which it has interior node as root, root has
-      * two interior nodes as children, and each of children has some border
-      * nodes as children.
-      */
+     * scan against the structure which it has interior node as root, root has
+     * two interior nodes as children, and each of children has some border
+     * nodes as children.
+     */
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     /**
-      * first border split occurs at inserting_deleting (key_slice_length + 1)
-      * times. after first border split, split occurs at inserting_deleting
-      * (key_slice_length / 2 + 1) times. first interior split occurs at
-      * splitting interior_node::child_length times.
-      */
+     * first border split occurs at inserting_deleting (key_slice_length + 1)
+     * times. after first border split, split occurs at inserting_deleting
+     * (key_slice_length / 2 + 1) times. first interior split occurs at
+     * splitting interior_node::child_length times.
+     */
     constexpr std::size_t ary_size =
             key_slice_length + 1 +
             (key_slice_length / 2 + 1) * (interior_node::child_length - 1);
@@ -153,8 +153,8 @@ TEST_F(st, scan_against_1_interior_2_interior_some_border) { // NOLINT
 
 TEST_F(st, scan_with_prefix_for_2_layers) { // NOLINT
     /**
-   * Scan with prefix for 2 layers.
-   */
+     * Scan with prefix for 2 layers.
+     */
     std::string k("T6\000\200\000\000\n\200\000\000\001", 11); // NOLINT
     std::string end("T6\001", 3);                              // NOLINT
     std::string v("bbb");                                      // NOLINT

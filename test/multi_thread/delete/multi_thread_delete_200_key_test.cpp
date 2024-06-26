@@ -42,9 +42,9 @@ std::string test_storage_name{"1"}; // NOLINT
 
 TEST_F(multi_thread_delete_200_key_test, 200_key) { // NOLINT
     /**
-      * Concurrent put 200 key.
-      * Concurrent remove 200 key.
-      */
+     * Concurrent put 200 key.
+     * Concurrent remove 200 key.
+     */
     constexpr std::size_t ary_size = 200;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
@@ -132,10 +132,10 @@ TEST_F(multi_thread_delete_200_key_test, 200_key) { // NOLINT
 
 TEST_F(multi_thread_delete_200_key_test, 200_key_shuffle) { // NOLINT
     /**
-      * Concurrent put 200 key.
-      * Concurrent remove 200 key.
-      * Shuffle data.
-      */
+     * Concurrent put 200 key.
+     * Concurrent remove 200 key.
+     * Shuffle data.
+     */
     constexpr std::size_t ary_size = 200;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {

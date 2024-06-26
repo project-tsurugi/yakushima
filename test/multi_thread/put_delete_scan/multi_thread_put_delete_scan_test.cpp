@@ -25,8 +25,8 @@ std::string test_storage_name{"1"}; // NOLINT
 
 TEST_F(mtpdst, many_layer) { // NOLINT
     /**
-   * multi-layer put-delete-scan test.
-   */
+     * multi-layer put-delete-scan test.
+     */
     constexpr std::size_t ary_size =
             interior_node::child_length * key_slice_length * 10;
     std::size_t th_nm{};

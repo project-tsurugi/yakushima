@@ -37,8 +37,8 @@ TEST_F(st, scan_at_non_existing_stoarge) { // NOLINT
 
 TEST_F(st, basic_usage) { // NOLINT
     /**
-   * basic usage
-   */
+     * basic usage
+     */
     std::string k("k");
     std::string v("v");
     Token token{};

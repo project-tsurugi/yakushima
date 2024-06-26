@@ -43,9 +43,9 @@ std::mutex debug_mtx;               // NOLINT
 TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
        many_interior) {                                 // NOLINT
     /**
-      * concurrent put/delete/scan in the state between none to many split of
-      * interior.
-      */
+     * concurrent put/delete/scan in the state between none to many split of
+     * interior.
+     */
 
     constexpr std::size_t ary_size =
             interior_node::child_length * key_slice_length * 1.4;
@@ -190,9 +190,9 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
 TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
        many_interior_shuffle) {                         // NOLINT
     /**
-      * concurrent put/delete/scan in the state between none to many split of
-      * interior with shuffle.
-      */
+     * concurrent put/delete/scan in the state between none to many split of
+     * interior with shuffle.
+     */
 
     constexpr std::size_t ary_size =
             interior_node::child_length * key_slice_length * 1.4;

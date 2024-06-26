@@ -41,8 +41,8 @@ private:
 
 TEST_F(mtpdgt, many_layer_many_interior_many_border) { // NOLINT
     /**
-      * multi-layer put-delete-get test.
-      */
+     * multi-layer put-delete-get test.
+     */
     constexpr std::size_t ary_size =
             interior_node::child_length * key_slice_length * 10;
     std::size_t th_nm{};

@@ -39,10 +39,10 @@ std::string test_storage_name{"1"}; // NOLINT
 
 TEST_F(multi_thread_delete_one_border_test, one_border) { // NOLINT
     /**
-      * Initial state : multi threads put same null char key slices and
-      * different key length to multiple border. Concurrent remove against
-      * initial state.
-      */
+     * Initial state : multi threads put same null char key slices and
+     * different key length to multiple border. Concurrent remove against
+     * initial state.
+     */
     constexpr std::size_t ary_size = 9;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
@@ -119,10 +119,10 @@ TEST_F(multi_thread_delete_one_border_test, one_border) { // NOLINT
 
 TEST_F(multi_thread_delete_one_border_test, one_border_shuffle) { // NOLINT
     /**
-      * Initial state : multi threads put same null char key slices and
-      * different key length to multiple border, which is using shuffled data.
-      * Concurrent remove against initial state.
-      */
+     * Initial state : multi threads put same null char key slices and
+     * different key length to multiple border, which is using shuffled data.
+     * Concurrent remove against initial state.
+     */
     constexpr std::size_t ary_size = 9;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
@@ -203,10 +203,10 @@ TEST_F(multi_thread_delete_one_border_test, one_border_shuffle) { // NOLINT
 
 TEST_F(multi_thread_delete_one_border_test, test3) { // NOLINT
     /**
-      * Initial state : multi threads put same null char key slices and
-      * different key length to single border. Concurrent remove against
-      * initial state.
-      */
+     * Initial state : multi threads put same null char key slices and
+     * different key length to single border. Concurrent remove against
+     * initial state.
+     */
 
     constexpr std::size_t ary_size = 15;
     std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
@@ -278,10 +278,10 @@ TEST_F(multi_thread_delete_one_border_test, test3) { // NOLINT
 
 TEST_F(multi_thread_delete_one_border_test, test4) { // NOLINT
     /**
-      * Initial state : multi threads put same null char key slices and
-      * different key length to single border, which is using shuffled data.
-      * Concurrent remove against initial state.
-      */
+     * Initial state : multi threads put same null char key slices and
+     * different key length to single border, which is using shuffled data.
+     * Concurrent remove against initial state.
+     */
 
     constexpr std::size_t ary_size = 15;
     std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT

@@ -47,7 +47,7 @@ inline status scan_check_retry(border_node* const bn,
 
 /**
  * scan for some try nodes which is not root.
-*/
+ */
 template<class ValueType>
 static status
 scan(base_node* const root, const std::string_view l_key,
@@ -60,7 +60,7 @@ scan(base_node* const root, const std::string_view l_key,
     /**
      * Log size before scanning this node.
      * This must be before retry label for retry at find border.
-    */
+     */
     std::size_t initial_size_of_tuple_list{tuple_list.size()};
     std::size_t initial_size_of_node_version_vec{};
     if (node_version_vec != nullptr) {
@@ -68,10 +68,10 @@ scan(base_node* const root, const std::string_view l_key,
     }
 
     /**
-      * For retry of failing optimistic verify, it must erase parts of
-      * tuple_list and node vec. clear between initial_size... and current size.
-      * about tuple_list.
-      */
+     * For retry of failing optimistic verify, it must erase parts of
+     * tuple_list and node vec. clear between initial_size... and current size.
+     * about tuple_list.
+     */
     auto clean_up_tuple_list_nvc = [&tuple_list,
                                     &node_version_vec](std::size_t isoftl,
                                                        std::size_t isonvv) {
@@ -133,7 +133,7 @@ retry:
         /**
          * fail. it doesn't need to clear tuple and node information because
          * caller of this will do.
-        */
+         */
         if (check_status == status::OK_RETRY_AFTER_FB) {
             node_version64_body re_check_v = bn->get_stable_version();
             if (check_v.get_vsplit() != re_check_v.get_vsplit() ||
@@ -159,7 +159,7 @@ retry:
 
 /**
  * scan for some leafnode of b+tree.
-*/
+ */
 template<class ValueType>
 static status
 scan_border(border_node** const target, const std::string_view l_key,
@@ -174,17 +174,17 @@ scan_border(border_node** const target, const std::string_view l_key,
     /**
      * Log size before scanning this node.
      * This must be before retry label for retry at find border.
-    */
+     */
     std::size_t initial_size_of_tuple_list{tuple_list.size()};
     std::size_t initial_size_of_node_version_vec{};
     if (node_version_vec != nullptr) {
         initial_size_of_node_version_vec = node_version_vec->size();
     }
     /**
-      * For retry of failing optimistic verify, it must erase parts of
-      * tuple_list and node vec. clear between initial_size... and current size.
-      * about tuple_list.
-      */
+     * For retry of failing optimistic verify, it must erase parts of
+     * tuple_list and node vec. clear between initial_size... and current size.
+     * about tuple_list.
+     */
     auto clean_up_tuple_list_nvc = [&tuple_list, &node_version_vec,
                                     initial_size_of_tuple_list,
                                     initial_size_of_node_version_vec]() {
@@ -329,15 +329,15 @@ retry:
                         value::get_len(vp)));
                 if (node_version_vec != nullptr) {
                     /**
-                      * note:
-                      * std::get<1>(node_version_vec.back()) != node_version_ptr
-                      * Adding this can reduce redundant emplace_back. However,
-                      * the correspondence between the value of the scan result
-                      * and the pointer to the node version becomes unknown,
-                      * making it impossible to perform node verify according
-                      * to the actual situation read by the transaction
-                      * execution engine.
-                      */
+                     * note:
+                     * std::get<1>(node_version_vec.back()) != node_version_ptr
+                     * Adding this can reduce redundant emplace_back. However,
+                     * the correspondence between the value of the scan result
+                     * and the pointer to the node version becomes unknown,
+                     * making it impossible to perform node verify according
+                     * to the actual situation read by the transaction
+                     * execution engine.
+                     */
                     node_version_vec->emplace_back(
                             std::make_pair(v_at_fb, node_version_ptr));
                 }
@@ -388,10 +388,10 @@ retry:
             // pass right endpoint.
             if (!tuple_pushed_num && node_version_vec != nullptr) {
                 /**
-                  * Since it is a rightmost node included in the range, it is
-                  * included in the phantom verification. However, there were
-                  * no elements included in the range.
-                  */
+                 * Since it is a rightmost node included in the range, it is
+                 * included in the phantom verification. However, there were
+                 * no elements included in the range.
+                 */
                 node_version_vec->emplace_back(
                         std::make_pair(v_at_fb, bn->get_version_ptr()));
             }
@@ -403,10 +403,10 @@ retry:
 
     if (!tuple_pushed_num && node_version_vec != nullptr) {
         /**
-          * Since it is a leftmost node included in the range, it is included
-          * in the phantom verification. However, there were no elements
-          * included in the range.
-          */
+         * Since it is a leftmost node included in the range, it is included
+         * in the phantom verification. However, there were no elements
+         * included in the range.
+         */
         node_version_vec->emplace_back(
                 std::make_pair(v_at_fb, bn->get_version_ptr()));
     }

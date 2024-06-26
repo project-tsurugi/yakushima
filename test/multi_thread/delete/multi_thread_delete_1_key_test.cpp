@@ -41,9 +41,9 @@ std::string st{"1"}; // NOLINT
 
 TEST_F(multi_thread_delete_1_key_test, 1_key) { // NOLINT
     /**
-      * Concurrent put 1 key.
-      * Concurrent remove 1 key.
-      */
+     * Concurrent put 1 key.
+     * Concurrent remove 1 key.
+     */
     static constexpr std::size_t th_nm{10};
 
 #ifndef NDEBUG

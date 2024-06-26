@@ -40,8 +40,8 @@ std::string test_storage_name{"1"}; // NOLINT
 
 TEST_F(mtpdt, multi_layer_many_interior_shuffle) { // NOLINT
     /**
-   * multi-layer put-delete test.
-   */
+     * multi-layer put-delete test.
+     */
 
     constexpr std::size_t ary_size =
             interior_node::child_length * key_slice_length * 10;

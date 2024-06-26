@@ -56,8 +56,8 @@ TEST_F(dt, single_remove) { // NOLINT
     tree_instance* ti{};
     find_storage(test_storage_name, &ti);
     /**
-   * put one key-value
-   */
+     * put one key-value
+     */
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     std::string k("a");

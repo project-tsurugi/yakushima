@@ -32,8 +32,8 @@ TEST_F(kt, one_value) { // NOLINT
     ASSERT_EQ(enter(token), status::OK);
 
     /**
-      * put one key-value: value is char type.
-      */
+     * put one key-value: value is char type.
+     */
     std::string k("a");
     std::string v("b");
     ASSERT_EQ(put(token, test_storage_name, k, v.data(), v.size()), status::OK);
@@ -43,8 +43,8 @@ TEST_F(kt, one_value) { // NOLINT
     ASSERT_EQ(std::get<1>(tuple), v.size());
     ASSERT_EQ(memcmp(std::get<0>(tuple), v.data(), v.size()), 0);
     /**
-      * put one key-value: value is pointer type.
-      */
+     * put one key-value: value is pointer type.
+     */
     k = "b";
     std::string* v_ptr{&v};
     ASSERT_EQ(put(token, test_storage_name, k, (&v_ptr), sizeof(std::string*)),
@@ -64,8 +64,8 @@ TEST_F(kt, one_value) { // NOLINT
 
 TEST_F(kt, one_key) { // NOLINT
     /**
-      * put one key-value
-      */
+     * put one key-value
+     */
     std::string k("a");
     std::string v("v-a");
     Token token{};
@@ -90,9 +90,9 @@ TEST_F(kt, one_key) { // NOLINT
     ASSERT_EQ(memcmp(std::get<0>(tuple), v.data(), v.size()), 0);
 
     /**
-      * put one key-value : one key is initialized by number.
-      * Test zero.
-      */
+     * put one key-value : one key is initialized by number.
+     * Test zero.
+     */
     std::uint64_t base_num{0};
     std::string key_buf{};
     key_buf = std::string{reinterpret_cast<char*>(&base_num), // NOLINT
@@ -103,9 +103,9 @@ TEST_F(kt, one_key) { // NOLINT
     ASSERT_EQ(memcmp(std::get<0>(tuple), v.data(), v.size()), 0);
 
     /**
-      * put one key-value : one key is initialized by number.
-      * Test five.
-      */
+     * put one key-value : one key is initialized by number.
+     * Test five.
+     */
     base_num = 5;
     key_buf = std::string{reinterpret_cast<char*>(&base_num), // NOLINT
                           sizeof(base_num)};                  // NOLINT
@@ -115,9 +115,9 @@ TEST_F(kt, one_key) { // NOLINT
     ASSERT_EQ(memcmp(std::get<0>(tuple), v.data(), v.size()), 0);
 
     /**
-      * put one key-value : one key is initialized by number and padding of 0.
-      * Test five.
-      */
+     * put one key-value : one key is initialized by number and padding of 0.
+     * Test five.
+     */
     std::string padding(56, '0');
     ASSERT_EQ(put(token, test_storage_name, padding + key_buf, v.data(),
                   v.size()),
@@ -131,8 +131,8 @@ TEST_F(kt, one_key) { // NOLINT
 
 TEST_F(kt, one_key_twice_by_different_value) { // NOLINT
     /**
-   * put one key twice
-   */
+     * put one key twice
+     */
     std::string k{"k"};
     std::string v{"v"};
     Token token{};
@@ -154,8 +154,8 @@ TEST_F(kt, one_key_twice_by_different_value) { // NOLINT
 
 TEST_F(kt, one_key_third_by_different_value) { // NOLINT
     /**
-   * put one key twice
-   */
+     * put one key twice
+     */
     std::string k{"k"};
     std::string v{"v"};
     Token token{};
@@ -186,8 +186,8 @@ TEST_F(kt, one_key_third_by_different_value) { // NOLINT
 
 TEST_F(kt, one_key_long_value) { // NOLINT
     /**
-   * put one key-long_value
-   */
+     * put one key-long_value
+     */
     tree_instance* ti{};
     find_storage(test_storage_name, &ti);
     ASSERT_NE(ti->load_root_ptr(), nullptr);

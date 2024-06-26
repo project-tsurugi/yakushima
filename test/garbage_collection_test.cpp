@@ -43,8 +43,8 @@ TEST_F(garbage_collection, gc) { // NOLINT
     ASSERT_EQ(status::OK, leave(token));
     while (epoch_management::get_epoch() - epo < 10) {
         /**
-     * Put enough sleep and let the background thread gc.
-     */
+         * Put enough sleep and let the background thread gc.
+         */
         _mm_pause();
     }
     LOG(INFO) << "final epoch is " << epoch_management::get_epoch();

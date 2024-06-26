@@ -45,9 +45,9 @@ TEST_F(multi_thread_delete_1m_key_test, DISABLED_1m_key) { // NOLINT
 TEST_F(multi_thread_delete_1m_key_test, 1m_key) {         // NOLINT
 #endif
     /**
-      * Concurrent put 1m key.
-      * Concurrent remove 1m key.
-      */
+     * Concurrent put 1m key.
+     * Concurrent remove 1m key.
+     */
     constexpr std::size_t ary_size = 1000000;
     std::size_t th_nm{std::thread::hardware_concurrency()};
 
@@ -122,10 +122,10 @@ TEST_F(multi_thread_delete_1m_key_test, DISABLED_1m_key_shuffle) { // NOLINT
 TEST_F(multi_thread_delete_1m_key_test, 1m_key_shuffle) { // NOLINT
 #endif
     /**
-      * Concurrent put 1m key.
-      * Concurrent remove 1m key.
-      * Shuffle data.
-      */
+     * Concurrent put 1m key.
+     * Concurrent remove 1m key.
+     * Shuffle data.
+     */
     constexpr std::size_t ary_size = 1000000;
     std::size_t th_nm{std::thread::hardware_concurrency()};
 

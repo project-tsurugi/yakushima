@@ -28,12 +28,12 @@ public:
     ~border_node() override {} // NOLINT
 
     /**
-      * @pre This function is called by delete_of function.
-      * @details delete the key-value corresponding to @a pos as position.
-      * @param[in] rank
-      * @param[in] pos The position of being deleted.
-      * @param[in] target_is_value
-      */
+     * @pre This function is called by delete_of function.
+     * @details delete the key-value corresponding to @a pos as position.
+     * @param[in] rank
+     * @param[in] pos The position of being deleted.
+     * @param[in] target_is_value
+     */
     void delete_at(Token token, const std::size_t rank, const std::size_t pos,
                    const bool target_is_value) {
         auto* ti = reinterpret_cast<thread_info*>(token); // NOLINT
@@ -46,8 +46,8 @@ public:
                 ti->get_gc_info().push_value_container(
                         {ti->get_begin_epoch(), v_ptr, v_len, v_align});
                 /**
-                  * clear for preventing heap use after free by reference of
-                  * need_delete
+                 * clear for preventing heap use after free by reference of
+                 * need_delete
                  */
                 lv_.at(pos).init_lv();
             }
@@ -59,11 +59,11 @@ public:
     }
 
     /**
-      * @pre There is a lv which points to @a child.
-      * @details Delete operation on the element matching @a child.
-      * @param[in] token
-      * @param[in] child
-      */
+     * @pre There is a lv which points to @a child.
+     * @details Delete operation on the element matching @a child.
+     * @param[in] token
+     * @param[in] child
+     */
     void delete_of(Token token, tree_instance* ti, base_node* const child) {
         std::size_t cnk = get_permutation_cnk();
         for (std::size_t i = 0; i < cnk; ++i) {
@@ -79,8 +79,8 @@ public:
     }
 
     /**
-      * @brief release all heap objects and clean up.
-      */
+     * @brief release all heap objects and clean up.
+     */
     status destroy() override {
         std::size_t cnk = get_permutation_cnk();
         std::vector<std::thread> th_vc;
@@ -110,16 +110,16 @@ public:
     }
 
     /**
-      * @pre
-      * This border node was already locked by caller.
-      * This function is called by remove func.
-      * The key-value corresponding to @a key_slice and @a key_length exists in this node.
-      * @details delete value corresponding to @a key_slice and @a key_length
-      * @param[in] token
-      * @param[in] key_slice The key slice of key-value.
-      * @param[in] key_slice_length The @a key_slice length.
-      * @param[in] target_is_value
-      */
+     * @pre
+     * This border node was already locked by caller.
+     * This function is called by remove func.
+     * The key-value corresponding to @a key_slice and @a key_length exists in this node.
+     * @details delete value corresponding to @a key_slice and @a key_length
+     * @param[in] token
+     * @param[in] key_slice The key slice of key-value.
+     * @param[in] key_slice_length The @a key_slice length.
+     * @param[in] target_is_value
+     */
     template<bool target_is_value>
     void delete_of(Token token, tree_instance* ti,
                    const key_slice_type key_slice,
@@ -127,8 +127,8 @@ public:
         // past: delete is treated to increment vinsert counter.
         //set_version_inserting_deleting(true);
         /**
-          * find position.
-          */
+         * find position.
+         */
         std::size_t cnk = get_permutation_cnk();
         for (std::size_t i = 0; i < cnk; ++i) {
             std::size_t index = permutation_.get_index_of_rank(i);
@@ -145,8 +145,8 @@ public:
                     }
 
                     /**
-                      * After this delete operation, this border node is empty.
-                      */
+                     * After this delete operation, this border node is empty.
+                     */
                 retry_prev_lock:
                     border_node* prev = get_prev();
                     if (prev != nullptr) {
@@ -165,8 +165,8 @@ public:
                         get_next()->set_prev(nullptr);
                     }
                     /**
-                      * lock order is next to prev and lower to higher.
-                      */
+                     * lock order is next to prev and lower to higher.
+                     */
                     base_node* pn = lock_parent();
                     if (pn == nullptr) {
                         //ti->store_root_ptr(nullptr);
@@ -175,10 +175,10 @@ public:
                         return;
                     }
                     /**
-                      * This node has parent node, so this must not be root.
-                      * note: Including relation of parent-child is
-                      * border-border.
-                      */
+                     * This node has parent node, so this must not be root.
+                     * note: Including relation of parent-child is
+                     * border-border.
+                     */
                     set_version_root(false);
                     version_unlock();
                     if (pn->get_version_border()) {
@@ -199,16 +199,16 @@ public:
             }
         }
         /**
-          * unreachable.
-          */
+         * unreachable.
+         */
         LOG(ERROR) << log_location_prefix
                    << ", deleted: " << get_version_deleted()
                    << ", is root: " << get_version_root();
     }
 
     /**
-      * @details display function for analysis and debug.
-      */
+     * @details display function for analysis and debug.
+     */
     void display() override {
         display_base();
         cout << "border_node::display" << endl;
@@ -243,11 +243,11 @@ public:
     }
 
     /**
-      * @post It is necessary for the caller to verify whether the extraction is appropriate.
-      * @param[out] next_layers
-      * @attention layers are stored in ascending order.
-      * @return
-      */
+     * @post It is necessary for the caller to verify whether the extraction is appropriate.
+     * @param[out] next_layers
+     * @attention layers are stored in ascending order.
+     * @return
+     */
     [[maybe_unused]] void
     get_all_next_layer(std::vector<base_node*>& next_layers) {
         next_layers.clear();
@@ -265,21 +265,21 @@ public:
     }
 
     /**
-      * @details Find link_or_value element whose next_layer is the same as @a next_layer of
-      * the argument.
-      * @pre Executor has lock of this node. There is always a lv that points to a pointer
-      * given as an argument.
-      * @param[in] next_layer
-      * @return link_or_value*
-      */
+     * @details Find link_or_value element whose next_layer is the same as @a next_layer of
+     * the argument.
+     * @pre Executor has lock of this node. There is always a lv that points to a pointer
+     * given as an argument.
+     * @param[in] next_layer
+     * @return link_or_value*
+     */
     [[maybe_unused]] [[nodiscard]] link_or_value*
     get_lv(base_node* const next_layer) {
         for (std::size_t i = 0; i < key_slice_length; ++i) {
             if (lv_.at(i).get_next_layer() == next_layer) { return &lv_.at(i); }
         }
         /**
-          * unreachable point.
-          */
+         * unreachable point.
+         */
         LOG(ERROR) << log_location_prefix;
         return nullptr;
     }
@@ -329,15 +329,15 @@ public:
     }
 
     /**
-      * @attention This function must not be called with locking of this node. Because
-      * this function executes get_stable_version and it waits own (lock-holder)
-      * infinitely.
-      * @param[in] key_slice
-      * @param[in] key_length
-      * @param[out] stable_v  the stable version which is at atomically fetching lv.
-      * @param[out] lv_pos
-      * @return
-      */
+     * @attention This function must not be called with locking of this node. Because
+     * this function executes get_stable_version and it waits own (lock-holder)
+     * infinitely.
+     * @param[in] key_slice
+     * @param[in] key_length
+     * @param[out] stable_v  the stable version which is at atomically fetching lv.
+     * @param[out] lv_pos
+     * @return
+     */
     [[nodiscard]] link_or_value* get_lv_of(const key_slice_type key_slice,
                                            const key_length_type key_length,
                                            node_version64_body& stable_v,
@@ -392,8 +392,8 @@ public:
     get_lv_of_without_lock(const key_slice_type key_slice,
                            const key_length_type key_length) {
         /**
-          * It loads cnk atomically by get_cnk func.
-          */
+         * It loads cnk atomically by get_cnk func.
+         */
         permutation perm{permutation_.get_body()};
         std::size_t cnk = perm.get_cnk();
         link_or_value* ret_lv{nullptr};
@@ -451,26 +451,26 @@ public:
     }
 
     /**
-      * @details init at @a pos as position.
-      * @param[in] pos This is a position (index) to be initialized.
-      */
+     * @details init at @a pos as position.
+     * @param[in] pos This is a position (index) to be initialized.
+     */
     void init_border(const std::size_t pos) {
         init_base(pos);
         lv_.at(pos).init_lv();
     }
 
     /**
-      * @pre This function is called by put function.
-      * @pre @a arg_value_length is divisible by sizeof( @a ValueType ).
-      * @pre This function can not be called for updating existing nodes.
-      * @pre If this function is used for node creation, link after set because
-      * set function does not execute lock function.
-      * @details This function inits border node by using arguments.
-      * @param[in] key_view
-      * @param[in] new_value
-      * @param[out] created_value_ptr The pointer to created value in yakushima.
-      * @param[in] root is the root node of the layer.
-      */
+     * @pre This function is called by put function.
+     * @pre @a arg_value_length is divisible by sizeof( @a ValueType ).
+     * @pre This function can not be called for updating existing nodes.
+     * @pre If this function is used for node creation, link after set because
+     * set function does not execute lock function.
+     * @details This function inits border node by using arguments.
+     * @param[in] key_view
+     * @param[in] new_value
+     * @param[out] created_value_ptr The pointer to created value in yakushima.
+     * @param[in] root is the root node of the layer.
+     */
     template<class ValueType>
     void init_border(std::string_view key_view, value* new_value,
                      ValueType** const created_value_ptr, const bool root) {
@@ -487,41 +487,41 @@ public:
     }
 
     /**
-      * @pre It already locked this node.
-      * @param[in] index
-      * @param[in] key_view
-      * @param[in] value_ptr
-      * @param[out] created_value_ptr
-      * @param[in] arg_value_length
-      * @param[in] value_align
-      * @param[in] rank
-      */
+     * @pre It already locked this node.
+     * @param[in] index
+     * @param[in] key_view
+     * @param[in] value_ptr
+     * @param[out] created_value_ptr
+     * @param[in] arg_value_length
+     * @param[in] value_align
+     * @param[in] rank
+     */
     void insert_lv_at(const std::size_t index, std::string_view key_view,
                       value* new_value, void** const created_value_ptr,
                       const std::size_t rank) {
         /**
-          * attention: key_slice must be initialized to 0.
-          * If key_view.size() is smaller than sizeof(key_slice_type),
-          * it is not possible to update the whole key_slice object with memcpy.
-          * It is possible that undefined values may remain from initialization.
-          */
+         * attention: key_slice must be initialized to 0.
+         * If key_view.size() is smaller than sizeof(key_slice_type),
+         * it is not possible to update the whole key_slice object with memcpy.
+         * It is possible that undefined values may remain from initialization.
+         */
         key_slice_type key_slice(0);
         if (key_view.size() > sizeof(key_slice_type)) {
             /**
-              * Create multiple border nodes.
-              */
+             * Create multiple border nodes.
+             */
             memcpy(&key_slice, key_view.data(), sizeof(key_slice_type));
             set_key_slice_at(index, key_slice);
             /**
-              * You only need to know that it is 8 bytes or more. If it is
-              * stored obediently, key_length_type must be a large size type.
-              */
+             * You only need to know that it is 8 bytes or more. If it is
+             * stored obediently, key_length_type must be a large size type.
+             */
             set_key_length_at(index, sizeof(key_slice_type) + 1);
             border_node* next_layer_border = new border_node(); // NOLINT
             key_view.remove_prefix(sizeof(key_slice_type));
             /**
-              * attention: next_layer_border is the root of next layer.
-              */
+             * attention: next_layer_border is the root of next layer.
+             */
             next_layer_border->init_border(key_view, new_value,
                                            created_value_ptr, true);
             next_layer_border->set_parent(this);
@@ -548,20 +548,20 @@ public:
     }
 
     /**
-      * @pre This is called by split process.
-      * @param index
-      * @param nlv
-      */
+     * @pre This is called by split process.
+     * @param index
+     * @param nlv
+     */
     void set_lv(const std::size_t index, link_or_value* const nlv) {
         lv_.at(index).set(nlv);
     }
 
     /**
-      * @brief set value to link_or_value.
-      * @param[in] index todo write
-      * @param[in] new_value todo write
-      * @param[out] created_value_ptr todo write
-      */
+     * @brief set value to link_or_value.
+     * @param[in] index todo write
+     * @param[in] new_value todo write
+     * @param[out] created_value_ptr todo write
+     */
     void set_lv_value(const std::size_t index, value* new_value,
                       void** const created_value_ptr) {
         lv_.at(index).set_value(new_value, created_value_ptr);

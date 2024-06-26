@@ -297,8 +297,8 @@ public:
         for (auto i = start; i < child_length; ++i) {
             right_interior->set_child_at(i - start, get_child_at(i));
             /**
-       * right interiror is new parent of get_child_at(i). // NOLINT
-       */
+             * right interiror is new parent of get_child_at(i). // NOLINT
+             */
             get_child_at(i)->set_parent(right_interior);
             set_child_at(i, nullptr);
         }
@@ -349,8 +349,8 @@ public:
             }
         }
         /**
-          * unreachable point.
-          */
+         * unreachable point.
+         */
         LOG(ERROR) << log_location_prefix << "unreachable path";
     }
 

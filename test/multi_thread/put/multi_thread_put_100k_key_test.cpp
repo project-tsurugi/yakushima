@@ -45,8 +45,8 @@ TEST_F(multi_thread_put_100k_key_test, DISABLED_100k_key) { // NOLINT
 TEST_F(multi_thread_put_100k_key_test, 100k_key) {         // NOLINT
 #endif
     /**
-      * Concurrent put 100k key.
-      */
+     * Concurrent put 100k key.
+     */
     constexpr std::size_t ary_size = 100000;
     std::size_t th_nm{std::thread::hardware_concurrency()};
 
@@ -103,9 +103,9 @@ TEST_F(multi_thread_put_100k_key_test, DISABLED_100k_key_shuffle) { // NOLINT
 TEST_F(multi_thread_put_100k_key_test, 100k_key_shuffle) { // NOLINT
 #endif
     /**
-      * Concurrent put 100k key.
-      * Shuffle data.
-      */
+     * Concurrent put 100k key.
+     * Shuffle data.
+     */
     constexpr std::size_t ary_size = 1000000;
     std::size_t th_nm{std::thread::hardware_concurrency()};
 

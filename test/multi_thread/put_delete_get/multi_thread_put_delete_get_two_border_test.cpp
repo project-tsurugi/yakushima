@@ -42,9 +42,9 @@ std::string test_storage_name{"1"}; // NOLINT
 
 TEST_F(mtpdgt, two_border_null_key) { // NOLINT
     /**
-      * multiple put/delete/get same null char key whose length is different
-      * each other against multiple border, which is across some layer.
-      */
+     * multiple put/delete/get same null char key whose length is different
+     * each other against multiple border, which is across some layer.
+     */
     constexpr std::size_t ary_size = 15;
     std::size_t th_nm{15};
 
@@ -137,8 +137,8 @@ TEST_F(mtpdgt, two_border_null_key) { // NOLINT
 
 TEST_F(mtpdgt, two_border_null_key_shuffle) { // NOLINT
     /**
-      * test3 variant which is the test using shuffle order data.
-      */
+     * test3 variant which is the test using shuffle order data.
+     */
     constexpr std::size_t ary_size = 15;
     std::size_t th_nm{15};
 

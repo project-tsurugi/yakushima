@@ -24,16 +24,16 @@ retry_from_root:
     base_node* root = ti->load_root_ptr();
     if (root == nullptr) {
         /**
-          * root is nullptr
-          */
+         * root is nullptr
+         */
         return status::OK_ROOT_IS_NULL;
     }
 
     std::string_view traverse_key_view{key_view};
 retry_find_border:
     /**
-      * prepare key_slice
-      */
+     * prepare key_slice
+     */
     key_slice_type key_slice = 0;
     key_length_type key_length{};
     if (traverse_key_view.size() > sizeof(key_slice_type)) {
@@ -47,8 +47,8 @@ retry_find_border:
         key_length = traverse_key_view.size();
     }
     /**
-      * traverse tree to border node.
-      */
+     * traverse tree to border node.
+     */
     status special_status{status::OK};
     if (root == nullptr) {
         LOG(ERROR) << log_location_prefix << "unexpected process.";
@@ -57,9 +57,9 @@ retry_find_border:
             find_border(root, key_slice, key_length, special_status);
     if (special_status == status::WARN_RETRY_FROM_ROOT_OF_ALL) {
         /**
-          * @a root is the root node of the some layer, but it was deleted.
-          * So it must retry from root of the all tree.
-          */
+         * @a root is the root node of the some layer, but it was deleted.
+         * So it must retry from root of the all tree.
+         */
         goto retry_from_root; // NOLINT
     }
     constexpr std::size_t tuple_node_index = 0;
@@ -74,7 +74,7 @@ retry_find_border:
          * This code path is not expected to be reached. However, sometimes
          * this code path is reached. You may need to make appropriate use of
          * compiler fences.
-        */
+         */
         goto retry_from_root; // NOLINT
     }
     // check target_border is border node.
@@ -90,14 +90,14 @@ retry_fetch_lv:
     link_or_value* lv_ptr = target_border->get_lv_of(key_slice, key_length,
                                                      v_at_fetch_lv, lv_pos);
     /**
-      * check whether it should delete against this node.
-      */
+     * check whether it should delete against this node.
+     */
     if (v_at_fetch_lv.get_vsplit() != v_at_fb.get_vsplit() ||
         (v_at_fetch_lv.get_deleted() && !v_at_fetch_lv.get_root())) {
         /**
-          * It may be change the correct border between atomically fetching border node
-          * and atomically fetching lv.
-          */
+         * It may be change the correct border between atomically fetching border node
+         * and atomically fetching lv.
+         */
         goto retry_from_root; // NOLINT
     }
     // the target node is correct
@@ -115,9 +115,9 @@ retry_fetch_lv:
     }
 
     /**
-      * Here, lv_ptr != nullptr.
-      * If lv_ptr has some value && final_slice
-      */
+     * Here, lv_ptr != nullptr.
+     * If lv_ptr has some value && final_slice
+     */
     if (target_border->get_key_length_at(lv_pos) <= sizeof(key_slice_type)) {
         target_border->lock();
         node_version64_body final_check = target_border->get_version();

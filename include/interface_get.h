@@ -34,8 +34,8 @@ retry_from_root:
 
 retry_find_border:
     /**
-      * prepare key_slice
-      */
+     * prepare key_slice
+     */
     key_slice_type key_slice(0);
     key_length_type key_slice_length{};
     if (traverse_key_view.size() > sizeof(key_slice_type)) {
@@ -50,8 +50,8 @@ retry_find_border:
     }
 
     /**
-      * traverse tree to border node.
-      */
+     * traverse tree to border node.
+     */
     status special_status{status::OK};
     if (root == nullptr) {
         LOG(ERROR) << log_location_prefix << "unexpected process.";
@@ -76,8 +76,8 @@ retry_fetch_lv:
             key_slice, key_slice_length, v_at_fetch_lv, lv_pos);
 
     /**
-      * check whether it should get from this node.
-      */
+     * check whether it should get from this node.
+     */
     if (v_at_fetch_lv.get_vsplit() != v_at_fb.get_vsplit() ||
         (v_at_fetch_lv.get_deleted() && !v_at_fetch_lv.get_root())) {
         /**

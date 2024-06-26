@@ -25,9 +25,9 @@ std::string test_storage_name{"1"}; // NOLINT
 
 TEST_F(mtpdt, one_border) { // NOLINT
     /**
-   * concurrent put/delete same null char key slices and different key length to single
-   * border by multi threads.
-   */
+     * concurrent put/delete same null char key slices and different key length to single
+     * border by multi threads.
+     */
     constexpr std::size_t ary_size = 9;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
@@ -111,9 +111,9 @@ TEST_F(mtpdt, one_border) { // NOLINT
 
 TEST_F(mtpdt, one_border_shuffle) { // NOLINT
     /**
-      * concurrent put/delete same null char key slices and different key
-      * length by shuffled order to single border by multi threads.
-      */
+     * concurrent put/delete same null char key slices and different key
+     * length by shuffled order to single border by multi threads.
+     */
     constexpr std::size_t ary_size = 9;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
@@ -201,9 +201,9 @@ TEST_F(mtpdt, one_border_shuffle) { // NOLINT
 
 TEST_F(mtpdt, one_border_random) { // NOLINT
     /**
-      * concurrent put/delete different char key slices to single border by
-      * multi threads.
-      */
+     * concurrent put/delete different char key slices to single border by
+     * multi threads.
+     */
     std::size_t th_nm{15};
 
 #ifndef NDEBUG

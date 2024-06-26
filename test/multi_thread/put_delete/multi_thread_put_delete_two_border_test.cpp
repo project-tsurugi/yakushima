@@ -36,9 +36,9 @@ std::string test_storage_name{"1"}; // NOLINT
 
 TEST_F(mtpdt, two_layer_two_border) { // NOLINT
     /**
-      * multiple put same null char key whose length is different each other
-      * against multiple border, which is across some layer.
-      */
+     * multiple put same null char key whose length is different each other
+     * against multiple border, which is across some layer.
+     */
     constexpr std::size_t ary_size = 15;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
@@ -122,9 +122,9 @@ TEST_F(mtpdt, two_layer_two_border) { // NOLINT
 
 TEST_F(mtpdt, two_layer_two_border_shuffle) { // NOLINT
     /**
-   * multiple put same null char key whose length is different each other against multiple
-   * border, which is across some layer. use shuffle data.
-   */
+     * multiple put same null char key whose length is different each other against multiple
+     * border, which is across some layer. use shuffle data.
+     */
     constexpr std::size_t ary_size = 15;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
@@ -211,9 +211,9 @@ TEST_F(mtpdt, two_layer_two_border_shuffle) { // NOLINT
 
 TEST_F(mtpdt, concurrent_put_delete_between_none_and_interior) { // NOLINT
     /**
-   * The number of puts that can be split border only once and the deletes are repeated in
-   * multiple threads.
-   */
+     * The number of puts that can be split border only once and the deletes are repeated in
+     * multiple threads.
+     */
     constexpr std::size_t ary_size = key_slice_length + 1;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
@@ -298,9 +298,9 @@ TEST_F(mtpdt, concurrent_put_delete_between_none_and_interior) { // NOLINT
 TEST_F(mtpdt, // NOLINT
        concurrent_put_delete_between_none_and_interior_in_second_layer) { // NOLINT
     /**
-   * The number of puts that can be split only once and the deletes are repeated in
-   * multiple threads. This situations in second layer.
-   */
+     * The number of puts that can be split only once and the deletes are repeated in
+     * multiple threads. This situations in second layer.
+     */
 
     constexpr std::size_t ary_size = key_slice_length + 1;
     std::size_t th_nm{};
@@ -398,9 +398,9 @@ TEST_F(mtpdt, // NOLINT
 TEST_F(mtpdt, // NOLINT
        concurrent_put_delete_between_none_and_interior_in_first_layer) { // NOLINT
     /**
-      * The number of puts that can be split only once and the deletes are
-      * repeated in multiple threads. Use shuffled data.
-      */
+     * The number of puts that can be split only once and the deletes are
+     * repeated in multiple threads. Use shuffled data.
+     */
     constexpr std::size_t ary_size = key_slice_length + 1;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {
@@ -489,9 +489,9 @@ TEST_F( // NOLINT
         mtpdt,
         concurrent_put_delete_between_none_and_interior_in_second_layer_with_shuffle) { // NOLINT
     /**
-   * The number of puts that can be split only once and the deletes are repeated in
-   * multiple threads. Use shuffled data.
-   */
+     * The number of puts that can be split only once and the deletes are repeated in
+     * multiple threads. Use shuffled data.
+     */
     constexpr std::size_t ary_size = key_slice_length + 1;
     std::size_t th_nm{};
     if (ary_size > std::thread::hardware_concurrency()) {

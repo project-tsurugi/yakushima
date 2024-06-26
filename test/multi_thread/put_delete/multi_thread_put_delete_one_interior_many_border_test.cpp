@@ -25,9 +25,9 @@ std::string test_storage_name{"1"}; // NOLINT
 
 TEST_F(mtpdt, one_interior_many_border_shuffle) { // NOLINT
     /**
-   * concurrent put/delete in the state between none to split of interior, which is using
-   * shuffled data.
-   */
+     * concurrent put/delete in the state between none to split of interior, which is using
+     * shuffled data.
+     */
 
     constexpr std::size_t ary_size =
             interior_node::child_length * key_slice_length / 2;
@@ -118,9 +118,9 @@ TEST_F(mtpdt, one_interior_many_border_shuffle) { // NOLINT
 
 TEST_F(mtpdt, second_layer_one_interior_many_border_shuffle) { // NOLINT
     /**
-   * concurrent put/delete in the state between none to split of interior, which is using
-   * shuffled data.
-   */
+     * concurrent put/delete in the state between none to split of interior, which is using
+     * shuffled data.
+     */
     constexpr std::size_t ary_size =
             interior_node::child_length * key_slice_length / 2;
     std::size_t th_nm{};

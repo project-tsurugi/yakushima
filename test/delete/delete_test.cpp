@@ -42,9 +42,9 @@ TEST_F(dt, one_border) { // NOLINT
                   put(token, test_storage_name, std::string_view(k.at(i)),
                       v.at(i).data(), v.at(i).size()));
         /**
-          * There are 9 key which has the same slice and the different length.
-          * key length == 0, same_slice and length is 1, 2, ..., 8.
-          */
+         * There are 9 key which has the same slice and the different length.
+         * key length == 0, same_slice and length is 1, 2, ..., 8.
+         */
     }
     for (std::size_t i = 0; i < ary_size; ++i) {
         ASSERT_EQ(status::OK, remove(token, test_storage_name, k.at(i)));
@@ -114,8 +114,8 @@ TEST_F(dt, two_border) { // NOLINT
         ASSERT_EQ(status::OK, remove(token, test_storage_name, k.at(i)));
         auto* bn = dynamic_cast<border_node*>(ti->load_root_ptr());
         /**
-          * here, tree has two layer constituted by two border node.
-          */
+         * here, tree has two layer constituted by two border node.
+         */
         if (i != ary_size - 1) {
             ASSERT_EQ(bn->get_permutation_cnk(), 10 - i - 1);
         }
@@ -233,10 +233,10 @@ TEST_F(dt, two_interi) { // NOLINT
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     /**
-   * first border split occurs at inserting_deleting (key_slice_length + 1) times.
-   * after first border split, split occurs at inserting_deleting (key_slice_length / 2 +
-   * 1) times. first interior split occurs at splitting interior_node::child_length times.
-   */
+     * first border split occurs at inserting_deleting (key_slice_length + 1) times.
+     * after first border split, split occurs at inserting_deleting (key_slice_length / 2 +
+     * 1) times. first interior split occurs at splitting interior_node::child_length times.
+     */
     constexpr std::size_t ary_size =
             key_slice_length + 1 +
             (key_slice_length / 2 + 1) * (interior_node::child_length - 1);
@@ -252,14 +252,14 @@ TEST_F(dt, two_interi) { // NOLINT
                                   v.at(i).data(), v.at(i).size()));
         if (i == key_slice_length - 1) {
             /**
-       * root is full-border.
-       */
+             * root is full-border.
+             */
             auto* n = ti->load_root_ptr();
             ASSERT_EQ(typeid(*n), typeid(border_node)); // NOLINT
         } else if (i == key_slice_length) {
             /**
-       * split and insert.
-       */
+             * split and insert.
+             */
             auto* n = ti->load_root_ptr();
             ASSERT_EQ(typeid(*n), typeid(interior_node)); // NOLINT
             ASSERT_EQ(dynamic_cast<border_node*>(
@@ -274,9 +274,9 @@ TEST_F(dt, two_interi) { // NOLINT
                       8);
         } else if (i == key_slice_length + (key_slice_length / 2)) {
             /**
-       * root is interior, root has 2 children, child[0] of root has 8 keys and child[1]
-       * of root has 15 keys.
-       */
+             * root is interior, root has 2 children, child[0] of root has 8 keys and child[1]
+             * of root has 15 keys.
+             */
             ASSERT_EQ(dynamic_cast<interior_node*>(ti->load_root_ptr())
                               ->get_n_keys(),
                       1);
@@ -292,8 +292,8 @@ TEST_F(dt, two_interi) { // NOLINT
                       15);
         } else if (i == key_slice_length + (key_slice_length / 2) + 1) {
             /**
-       * root is interior, root has 3 children, child[0-2] of root has 8 keys.
-       */
+             * root is interior, root has 3 children, child[0-2] of root has 8 keys.
+             */
             ASSERT_EQ(dynamic_cast<border_node*>(
                               dynamic_cast<interior_node*>(ti->load_root_ptr())
                                       ->get_child_at(0))
@@ -314,9 +314,9 @@ TEST_F(dt, two_interi) { // NOLINT
                                                    (key_slice_length - 1)) &&
                    (i - key_slice_length) % ((key_slice_length / 2 + 1)) == 0) {
             /**
-       * When it puts (key_slice_length / 2) keys, the root interior node has
-       * (i-base_node::key_slice _length) / (key_slice_length / 2);
-       */
+             * When it puts (key_slice_length / 2) keys, the root interior node has
+             * (i-base_node::key_slice _length) / (key_slice_length / 2);
+             */
             ASSERT_EQ(dynamic_cast<interior_node*>(ti->load_root_ptr())
                               ->get_n_keys(),
                       (i - key_slice_length) / (key_slice_length / 2 + 1) + 1);
@@ -331,29 +331,29 @@ TEST_F(dt, two_interi) { // NOLINT
 
     auto* in = dynamic_cast<interior_node*>(ti->load_root_ptr());
     /**
-   * root is interior.
-   */
+     * root is interior.
+     */
     ASSERT_EQ(in->get_version_border(), false);
     auto* child_of_root = dynamic_cast<interior_node*>(in->get_child_at(0));
     /**
-   * child of root[0] is interior.
-   */
+     * child of root[0] is interior.
+     */
     ASSERT_EQ(child_of_root->get_version_border(), false);
     child_of_root = dynamic_cast<interior_node*>(in->get_child_at(1));
     /**
-   * child of root[1] is interior.
-   */
+     * child of root[1] is interior.
+     */
     ASSERT_EQ(child_of_root->get_version_border(), false);
     auto* child_child_of_root =
             dynamic_cast<border_node*>(child_of_root->get_child_at(0));
     /**
-   * child of child of root[0] is border.
-   */
+     * child of child of root[0] is border.
+     */
     ASSERT_EQ(child_child_of_root->get_version_border(), true);
 
     /**
-   * deletion phase
-   */
+     * deletion phase
+     */
     constexpr std::size_t n_in_bn = key_slice_length / 2 + 1;
 
     ASSERT_EQ(n_in_bn - 1,

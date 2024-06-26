@@ -39,8 +39,8 @@ std::string st{"1"}; // NOLINT
 
 TEST_F(multi_thread_delete_10_key_test, ordered_10_key) { // NOLINT
     /**
-      * Concurrent remove against 10 key.
-      */
+     * Concurrent remove against 10 key.
+     */
 
     constexpr std::size_t ary_size = 10;
     std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
@@ -114,8 +114,8 @@ TEST_F(multi_thread_delete_10_key_test, ordered_10_key) { // NOLINT
 
 TEST_F(multi_thread_delete_10_key_test, reverse_10_key) { // NOLINT
     /**
-      * Concurrent remove against 100 key.
-      */
+     * Concurrent remove against 100 key.
+     */
 
     constexpr std::size_t ary_size = 10;
     std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
@@ -189,8 +189,8 @@ TEST_F(multi_thread_delete_10_key_test, reverse_10_key) { // NOLINT
 
 TEST_F(multi_thread_delete_10_key_test, shuffled_10_key) { // NOLINT
     /**
-      * Concurrent remove against 100 key.
-      */
+     * Concurrent remove against 100 key.
+     */
     constexpr std::size_t ary_size = 10;
     std::vector<std::tuple<std::string, std::string>> kv1{}; // NOLINT
     std::vector<std::tuple<std::string, std::string>> kv2{}; // NOLINT

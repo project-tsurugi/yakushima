@@ -25,8 +25,8 @@ class st : public ::testing::Test {
 
 TEST_F(st, scan_against_single_put_null_key_to_one_border) { // NOLINT
     /**
-      * put one key-value null key
-      */
+     * put one key-value null key
+     */
     std::string k;
     std::string v("v");
     Token token{};
@@ -69,8 +69,8 @@ TEST_F(st, scan_against_single_put_null_key_to_one_border) { // NOLINT
 
 TEST_F(st, scan_against_single_put_non_null_key_to_one_border) { // NOLINT
     /**
-      * put one key-value non-null key
-      */
+     * put one key-value non-null key
+     */
     std::string k("k");
     std::string v("v");
     Token token{};
@@ -237,9 +237,9 @@ TEST_F(st, scan_against_single_put_non_null_key_to_one_border) { // NOLINT
 
 TEST_F(st, scan_multiple_same_null_char_key_1) { // NOLINT
     /**
-   * scan against multiple put same null char key whose length is different each other
-   * against single border node.
-   */
+     * scan against multiple put same null char key whose length is different each other
+     * against single border node.
+     */
     Token token{};
     ASSERT_EQ(enter(token), status::OK);
     constexpr std::size_t ary_size = 8;

@@ -48,8 +48,8 @@ public:
     }
 
     /**
-   * @details display function for analysis and debug.
-   */
+     * @details display function for analysis and debug.
+     */
     void display() const {
         std::cout << "node_version64_body::display" << std::endl;
         std::cout << "locked : " << get_locked() << std::endl;
