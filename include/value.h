@@ -132,8 +132,7 @@ public:
 
 private:
     /**
-     * @brief A flag for indicating that the next layer exists.
-     *
+     * @brief A flag for indicating that the value pointer is actually a pointer (i.e. not inlined).
      */
     static constexpr uintptr_t kValPtrFlag = 0b01UL << 62UL;
 
