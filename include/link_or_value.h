@@ -137,10 +137,11 @@ public:
     }
 
     /**
-     * @brief todo : write documents much.
-     * @param[in] new_value todo write
-     * @param[out] created_value_ptr todo write
-     * @param[out] old_value todo write
+     * @brief set the new value and release the old value if needed
+     * @param[in] new_value the new value to be set
+     * @param[out] created_value_ptr output parameter filled with the created value pointer
+     * @param[out] old_value output parameter filled with the old value pointer. If caller receives non-null pointer,
+     * it transfers ownership and caller is responsible for deleting the old value pointer.
      */
     void set_value(value* new_value, void** const created_value_ptr,
                    value** old_value = nullptr) {
@@ -174,13 +175,11 @@ public:
 private:
     /**
      * @brief A flag for indicating that the next layer exists.
-     *
      */
     static constexpr uintptr_t kChildFlag = 0b10UL << 62UL;
 
     /**
-     * @brief A flag for indicating that the next layer exists.
-     *
+     * @brief A flag for indicating that the value pointer is actually a pointer (i.e. not inlined).
      */
     static constexpr uintptr_t kValPtrFlag = 0b01UL << 62UL;
 

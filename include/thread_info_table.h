@@ -78,17 +78,12 @@ public:
     }
 
     /**
-     * @details When @a token points to an invalid memory location, an error occurs
-     * if @a token is referenced.
-     * To avoid this, it scans the table.
-     * So if @token is invalid one, return status::WARN_INVALID_TOKEN.
      * @tparam interior_node Class information is given at compile time to eliminate
      * the dependency between header files.
      * @tparam border_node Class information is given at compile time to eliminate the
      * dependency between header files.
-     * @param[in] token Session information.
+     * @param[in] token Session information. The behavior is undefined if the @a token is invalid.
      * @return status::OK success.
-     * @return status::WARN_INVALID_TOKEN The @a token of the argument was invalid.
      */
     template<class interior_node, class border_node>
     static status leave_thread_info(Token token) {
