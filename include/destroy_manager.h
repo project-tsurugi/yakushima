@@ -14,7 +14,7 @@ public:
         std::size_t expected{
                 destroy_threads_num_.load(std::memory_order_acquire)};
         for (;;) {
-            if (expected >= std::thread::hardware_concurrency()) {
+            if (expected >= hardware_concurrency_) {
                 return false;
             }
             std::size_t desired = expected + 1;
@@ -34,6 +34,7 @@ public:
 
 private:
     static inline std::atomic<std::size_t> destroy_threads_num_{0}; // NOLINT
+    static inline std::size_t hardware_concurrency_{std::thread::hardware_concurrency()}; // NOLINT
 };
 
 } // namespace yakushima
