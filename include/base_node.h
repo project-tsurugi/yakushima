@@ -17,6 +17,9 @@
 
 namespace yakushima {
 
+class destroy_manager;
+class destroy_barrier;
+
 class base_node { // NOLINT
 public:
     class key_tuple {
@@ -69,8 +72,10 @@ public:
     /**
      * A virtual function is defined because It wants to distinguish the children class of
      * the contents by using polymorphism. So this function is pure virtual function.
+     * @param destroy_manager the manager of the destroy operation.
+     * @param destroy_barrier the barrier that control the job finish.
      */
-    virtual status destroy() = 0;
+    virtual status destroy(destroy_manager&, destroy_barrier&) = 0;
 
     /**
      * @details display function for analysis and debug.

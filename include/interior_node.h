@@ -24,6 +24,7 @@ namespace yakushima {
 class alignas(CACHE_LINE_SIZE) interior_node final // NOLINT
     : public base_node {                           // NOLINT
 public:
+
     /**
      * @details The structure is "ptr, key, ptr, key, ..., ptr".
      * So the child_length is key_slice_length plus 1.
@@ -112,25 +113,21 @@ public:
      * @brief release all heap objects and clean up.
      * @pre This function is called by single thread.
      */
-    status destroy() override {
-        std::vector<std::thread> th_vc;
-        th_vc.reserve(n_keys_ + 1);
+    status destroy(destroy_manager& manager, destroy_barrier&) override {
+        std::vector<std::unique_ptr<destroy_barrier>> barriers{};
         for (auto i = 0; i < n_keys_ + 1; ++i) {
-            auto process = [this, i] {
-                get_child_at(i)->destroy();
+            barriers.emplace_back(std::make_unique<destroy_barrier>());
+            destroy_barrier& barrier_2nd = *barriers.back();
+            barrier_2nd.begin();
+            manager.put([this, i, &manager, &barrier_2nd](){
+                get_child_at(i)->destroy(manager, barrier_2nd);
                 delete get_child_at(i); // NOLINT
-            };
-            if (destroy_manager::check_room()) {
-                th_vc.emplace_back(process);
-            } else {
-                process();
-            }
+                barrier_2nd.end();
+            });
         }
-        for (auto&& th : th_vc) {
-            th.join();
-            destroy_manager::return_room();
+        for(auto&& e: barriers) {
+            e->wait();
         }
-
         return status::OK_DESTROY_INTERIOR;
     }
 

@@ -34,9 +34,9 @@ public:
     /**
      * @details release heap objects.
      */
-    void destroy() {
+    void destroy(destroy_manager& manager, destroy_barrier& barrier) {
         if (auto* child = get_next_layer(); child != nullptr) {
-            child->destroy();
+            child->destroy(manager, barrier);
             delete child; // NOLINT
         } else if (auto* v = get_value(); v != nullptr) {
             if (value::need_delete(v)) { value::delete_value(v); }

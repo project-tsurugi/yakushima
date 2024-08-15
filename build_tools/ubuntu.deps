@@ -13,3 +13,4 @@ libgoogle-glog-dev
 libspdlog-dev
 libtbb-dev
 ninja-build
+libboost-fiber-dev

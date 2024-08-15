@@ -11,6 +11,30 @@
 
 namespace yakushima {
 
+class thread_manager {
+public:
+    static bool check_room() {
+        std::size_t expected{
+            threads_num_.load(std::memory_order_acquire)};
+        for (;;) {
+            if (expected >= std::thread::hardware_concurrency()) {
+                return false;
+            }
+            std::size_t desired = expected + 1;
+            if (threads_num_.compare_exchange_weak(
+                    expected, desired, std::memory_order_release,
+                    std::memory_order_acquire)) {
+                return true;
+            }
+        }
+    }
+
+    static void return_room() { threads_num_ -= 1; }
+
+private:
+    inline static std::atomic<std::size_t> threads_num_{0};  // NOLINT
+};
+
 class thread_info_table {
 public:
     /**
@@ -38,9 +62,9 @@ public:
         for (auto&& elem : thread_info_table_) {
             auto process = [&elem](bool do_rr) {
                 elem.get_gc_info().fin<interior_node, border_node>();
-                if (do_rr) { destroy_manager::return_room(); }
+                if (do_rr) { thread_manager::return_room(); }
             };
-            if (destroy_manager::check_room()) {
+            if (thread_manager::check_room()) {
                 th_vc.emplace_back(process, true);
             } else {
                 process(false);
