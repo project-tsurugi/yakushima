@@ -23,37 +23,31 @@ namespace yakushima {
             tuple_list;
     scan(storage::get_storages(), "", scan_endpoint::INF, "",
          scan_endpoint::INF, tuple_list, nullptr, 0);
-    std::vector<std::unique_ptr<destroy_barrier>> barriers{};
+    destroy_barrier barrier{};
     for (auto&& elem : tuple_list) {
         base_node* root = std::get<1>(elem)->load_root_ptr();
         if (root == nullptr) { continue; }
-        barriers.emplace_back(std::make_unique<destroy_barrier>([root, elem](){
+        if (elem != tuple_list.back()) {
+            barrier.begin();
+            manager.put([root, elem, &manager, &barrier](){
+                root->destroy(manager);
+                delete root; // NOLINT
+                std::get<1>(elem)->store_root_ptr(nullptr);
+                barrier.end();
+            });
+        } else {
+            root->destroy(manager);
             delete root; // NOLINT
             std::get<1>(elem)->store_root_ptr(nullptr);
-        }));
-        destroy_barrier& barrier = *barriers.back();
-        barrier.begin();
-        manager.put([root, elem, &manager, &barrier](){
-            root->destroy(manager, barrier);
-            barrier.end();
-        });
+        }
     }
-    for(auto&& e: barriers) {
-        e->wait();
-    }
+    barrier.wait();
 
     base_node* tables_root = storage::get_storages()->load_root_ptr();
     if (tables_root != nullptr) {
-        destroy_barrier barrier([tables_root](){
-            delete tables_root; // NOLINT
-            storage::get_storages()->store_root_ptr(nullptr);
-        });
-        barrier.begin();
-        manager.put([tables_root, &manager, &barrier](){
-            tables_root->destroy(manager, barrier);
-            barrier.end();
-        });
-        barrier.wait();
+        tables_root->destroy(manager);
+        delete tables_root; // NOLINT
+        storage::get_storages()->store_root_ptr(nullptr);
     }
     return status::OK_DESTROY_ALL;
 }

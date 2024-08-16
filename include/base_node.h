@@ -18,7 +18,6 @@
 namespace yakushima {
 
 class destroy_manager;
-class destroy_barrier;
 
 class base_node { // NOLINT
 public:
@@ -75,7 +74,7 @@ public:
      * @param destroy_manager the manager of the destroy operation.
      * @param destroy_barrier the barrier that control the job finish.
      */
-    virtual status destroy(destroy_manager&, destroy_barrier&) = 0;
+    virtual status destroy(destroy_manager&) = 0;
 
     /**
      * @details display function for analysis and debug.

@@ -11,6 +11,9 @@
 #include <mutex>
 #include <condition_variable>
 
+#include <boost/fiber/all.hpp>
+#include <boost/fiber/detail/thread_barrier.hpp>
+
 namespace yakushima {
 
 class destroy_barrier {
@@ -21,12 +24,7 @@ public:
     }
     void wait() {
         std::unique_lock<std::mutex> lock(mtx_);
-        while(true) {
-            if (job_count_ == 0) {
-                return;
-            }
-            cond_.wait(lock, [this](){ return job_count_ == 0; });
-        }
+        cond_.wait(lock, [this](){ return 0 == job_count_; });
     }
     void begin() {
         job_count_++;
@@ -43,17 +41,19 @@ private:
     std::function<void(void)> cleanup_;
     std::atomic_uint job_count_{};
     mutable std::mutex mtx_{};
-    mutable std::condition_variable cond_{};
+    mutable boost::fibers::condition_variable_any cond_{};
 };
 
 class destroy_manager {
 public:
+    constexpr static size_t max_threads = 4;
     explicit destroy_manager(bool inactive) : inactive_(inactive) {
         if (!inactive_) {
-            std::size_t max = std::thread::hardware_concurrency();
-            if (max > 1) {
-                threads_.reserve(max);
-                for (std::size_t i = 0; i < max; i++) {
+            num_threads_ = std::thread::hardware_concurrency() < max_threads ? std::thread::hardware_concurrency() : max_threads;
+            boost::fibers::use_scheduling_algorithm< boost::fibers::algo::work_stealing >(num_threads_);
+            if (num_threads_ > 1) {
+                threads_.reserve(num_threads_ - 1);
+                for (std::size_t i = 0; i < num_threads_ - 1; i++) {
                     threads_.emplace_back(std::thread(std::ref(*this)));
                 }
             } else {
@@ -68,6 +68,7 @@ public:
             {
                 std::unique_lock<std::mutex> lock(mtx_);
                 finished_.store(true);
+                lock.unlock();
                 cond_.notify_all();
             }
             for( auto&& e: threads_) {
@@ -86,34 +87,33 @@ public:
             f();
             return;
         }
-        std::unique_lock<std::mutex> lock(mtx_);
-        works_.emplace_back(f);
-        cond_.notify_one();
+        boost::fibers::fiber([this, f](){
+            fiber_count_++;
+            f();
+            if ( 0 == --fiber_count_) {
+                std::unique_lock<std::mutex> lock(mtx_);
+                if ( 0 == --fiber_count_) {
+                    lock.unlock();
+                    cond_.notify_all();
+                }
+            }
+        }).detach();
     }
 
     void operator()() {
-        while (true) {
-            std::unique_lock<std::mutex> lock(mtx_);
-            cond_.wait(lock, [this](){ return !works_.empty() || finished_.load(); });
-            if (works_.empty() && finished_.load()) {
-                return;
-            }
-            if (!works_.empty()) {
-                auto f = works_.front();
-                works_.pop_front();
-                lock.unlock();
-                f();
-            }
-        }
+        boost::fibers::use_scheduling_algorithm< boost::fibers::algo::work_stealing >(num_threads_);
+        std::unique_lock<std::mutex> lock(mtx_);
+        cond_.wait(lock, [this](){ return 0 == fiber_count_.load() && finished_.load(); });
     }
 
 private:
     bool inactive_;
     mutable std::mutex mtx_{};
-    mutable std::condition_variable cond_{};
+    mutable boost::fibers::condition_variable_any cond_{};
     std::vector<std::thread> threads_{};
-    std::deque<std::function<void(void)>> works_{};
     std::atomic_bool finished_{};
+    std::atomic_uint fiber_count_{0};
+    std::size_t num_threads_{};
 };
 
 } // namespace yakushima

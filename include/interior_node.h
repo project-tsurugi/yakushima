@@ -113,21 +113,22 @@ public:
      * @brief release all heap objects and clean up.
      * @pre This function is called by single thread.
      */
-    status destroy(destroy_manager& manager, destroy_barrier&) override {
-        std::vector<std::unique_ptr<destroy_barrier>> barriers{};
+    status destroy(destroy_manager& manager) override {
+        destroy_barrier barrier{};
         for (auto i = 0; i < n_keys_ + 1; ++i) {
-            barriers.emplace_back(std::make_unique<destroy_barrier>());
-            destroy_barrier& barrier_2nd = *barriers.back();
-            barrier_2nd.begin();
-            manager.put([this, i, &manager, &barrier_2nd](){
-                get_child_at(i)->destroy(manager, barrier_2nd);
+            if (i < n_keys_) {
+                barrier.begin();
+                manager.put([this, i, &manager, &barrier](){
+                    get_child_at(i)->destroy(manager);
+                    delete get_child_at(i); // NOLINT
+                    barrier.end();
+                });
+            } else {
+                get_child_at(i)->destroy(manager);
                 delete get_child_at(i); // NOLINT
-                barrier_2nd.end();
-            });
+            }
         }
-        for(auto&& e: barriers) {
-            e->wait();
-        }
+        barrier.wait();
         return status::OK_DESTROY_INTERIOR;
     }
 

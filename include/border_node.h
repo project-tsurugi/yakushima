@@ -81,28 +81,28 @@ public:
     /**
      * @brief release all heap objects and clean up.
      */
-    status destroy(destroy_manager& manager, destroy_barrier& barrier) override {
+    status destroy(destroy_manager& manager) override {
         std::size_t cnk = get_permutation_cnk();
-        std::vector<std::unique_ptr<destroy_barrier>> barriers{};
+        destroy_barrier barrier{};
         for (std::size_t i = 0; i < cnk; ++i) {
             // living link or value
             std::size_t index = permutation_.get_index_of_rank(i);
             if (lv_.at(index).get_next_layer() != nullptr) {
-                barriers.emplace_back(std::make_unique<destroy_barrier>());
-                destroy_barrier& barrier_2nd = *barriers.back();
-                barrier_2nd.begin();
-                manager.put([this, index, &manager, &barrier_2nd](){
-                    lv_.at(index).destroy(manager, barrier_2nd);
-                    barrier_2nd.end();
-                });
+                if (i < (cnk - 1)) {
+                    barrier.begin();
+                    manager.put([this, index, &manager, &barrier](){
+                        lv_.at(index).destroy(manager);
+                        barrier.end();
+                    });
+                } else {
+                    lv_.at(index).destroy(manager);
+                }
             } else {
                 // not some layer, not considering parallel
-                lv_.at(index).destroy(manager, barrier);
+                lv_.at(index).destroy(manager);
             }
         }
-        for(auto&& e: barriers) {
-            e->wait();
-        }
+        barrier.wait();
         return status::OK_DESTROY_BORDER;
     }
 

@@ -54,9 +54,8 @@ root_nullptr:
             if (ti->cas_root_ptr(&expected, &desired)) { return status::OK; }
             if (expected != nullptr) {
                 destroy_manager manager{true};  // inactive destroy_manager
-                destroy_barrier barrier{};
                 // root is not nullptr;
-                new_border->destroy(manager, barrier);
+                new_border->destroy(manager);
                 delete new_border; // NOLINT
                 break;
             }
