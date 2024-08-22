@@ -63,10 +63,14 @@ status storage::delete_storage(std::string_view storage_name) { // NOLINT
     if (ret_st == status::OK) {
         base_node* tables_root = ret.first->load_root_ptr();
         if (tables_root != nullptr) {
-            destroy_manager manager{true};  // inactive destroy_manager
-            tables_root->destroy(manager);
-            delete tables_root; // NOLINT
-            ret.first->store_root_ptr(nullptr);
+            manager m{1};  // inactive destroy_manager
+            barrier b{m};
+            m.push(b, [&ret, tables_root, &m, &b](){
+                tables_root->destroy(m, b);
+                delete tables_root; // NOLINT
+                ret.first->store_root_ptr(nullptr);
+            });
+            b.wait();
         }
         leave(token);
         return status::OK;

@@ -81,28 +81,46 @@ public:
     /**
      * @brief release all heap objects and clean up.
      */
-    status destroy(destroy_manager& manager) override {
+    status destroy(manager& m, barrier &p) override {
+        barrier b{m, p};
         std::size_t cnk = get_permutation_cnk();
-        destroy_barrier barrier{};
         for (std::size_t i = 0; i < cnk; ++i) {
             // living link or value
             std::size_t index = permutation_.get_index_of_rank(i);
             if (lv_.at(index).get_next_layer() != nullptr) {
-                if (i < (cnk - 1)) {
-                    barrier.begin();
-                    manager.put([this, index, &manager, &barrier](){
-                        lv_.at(index).destroy(manager);
-                        barrier.end();
-                    });
-                } else {
-                    lv_.at(index).destroy(manager);
-                }
+                // has some layer, considering parallel
+                m.push(b, [this, index, &m, &b](){
+                    // cleanup process
+                    lv_.at(index).destroy(m, b);
+                });
             } else {
                 // not some layer, not considering parallel
-                lv_.at(index).destroy(manager);
+                lv_.at(index).destroy(m, b);
             }
         }
-        barrier.wait();
+        b.wait();
+
+        return status::OK_DESTROY_BORDER;
+    }
+    status destroy(manager& m) override {
+        barrier b{m};
+        std::size_t cnk = get_permutation_cnk();
+        for (std::size_t i = 0; i < cnk; ++i) {
+            // living link or value
+            std::size_t index = permutation_.get_index_of_rank(i);
+            if (lv_.at(index).get_next_layer() != nullptr) {
+                // has some layer, considering parallel
+                m.push(b, [this, index, &m, &b](){
+                    // cleanup process
+                    lv_.at(index).destroy(m, b);
+                });
+            } else {
+                // not some layer, not considering parallel
+                lv_.at(index).destroy(m, b);
+            }
+        }
+        b.wait();
+
         return status::OK_DESTROY_BORDER;
     }
 

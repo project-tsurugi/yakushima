@@ -53,10 +53,14 @@ root_nullptr:
             base_node* desired{dynamic_cast<base_node*>(new_border)};
             if (ti->cas_root_ptr(&expected, &desired)) { return status::OK; }
             if (expected != nullptr) {
-                destroy_manager manager{true};  // inactive destroy_manager
-                // root is not nullptr;
-                new_border->destroy(manager);
-                delete new_border; // NOLINT
+                manager m{1};
+                barrier b{m};
+                m.push(b, [new_border, &m, &b](){
+                    // root is not nullptr;
+                    new_border->destroy(m, b);
+                    delete new_border; // NOLINT
+                });
+                b.wait();
                 break;
             }
             // root is nullptr.
