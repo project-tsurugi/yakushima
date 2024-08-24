@@ -113,22 +113,14 @@ public:
      * @brief release all heap objects and clean up.
      * @pre This function is called by single thread.
      */
-    status destroy(manager& m, barrier& p) override {
+    status destroy(manager* m) override {
+        return destroy(m, nullptr);
+    }
+    status destroy(manager* m, barrier* p) override {
         barrier b{m, p};
         for (auto i = 0; i < n_keys_ + 1; ++i) {
-            m.push(b, [this, i, &m, &b](){
-                get_child_at(i)->destroy(m, b);
-                delete get_child_at(i); // NOLINT
-            });
-        }
-        b.wait();
-        return status::OK_DESTROY_INTERIOR;
-    }
-    status destroy(manager& m) override {
-        barrier b{m};
-        for (auto i = 0; i < n_keys_ + 1; ++i) {
-            m.push(b, [this, i, &m, &b](){
-                get_child_at(i)->destroy(m, b);
+            b.push([this, i, m, &b](){
+                get_child_at(i)->destroy(m, &b);
                 delete get_child_at(i); // NOLINT
             });
         }

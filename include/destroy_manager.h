@@ -3,16 +3,14 @@
  */
 #pragma once
 
-#include <atomic>
 #include <thread>
-#include <vector>
-#include <deque>
+#include <map>
 #include <functional>
+#include <atomic>
+#include <deque>
 #include <mutex>
 #include <condition_variable>
-
-#include <boost/fiber/all.hpp>
-#include <boost/fiber/detail/thread_barrier.hpp>
+#include <chrono>
 
 namespace yakushima {
 
@@ -22,20 +20,21 @@ public:
 
     class alignas(CACHE_LINE_SIZE) barrier {
       public:
-        barrier(manager& m) : manager_(m), worker_(manager_.get_worker()), parent_(nullptr) {
-        }
-        barrier(manager& m, barrier& b) : manager_(m), worker_(manager_.get_worker()), parent_(&b) {
-        }
+        explicit barrier(manager* m) : barrier(m, nullptr) {}
+        barrier(manager* m, barrier* b) : manager_(m), worker_(manager_->current_worker()), parent_(b) {}
 
-        void fork() {
-            forks_++;
+        void push(std::function<void(void)>&& func) {
+            fork();
+            manager_->next_worker()->push(this, std::move(func));
         }
         void join() {
-            joins_++;
+            auto s = status_.fetch_sub(1) - 1;
             if (parent_) {
-                worker_->notify();
+                if (s == WAITING) {
+                    worker_->push(this);
+                }
             } else {
-                if (ready()) {
+                if (s == 0) {
                     std::unique_lock<std::mutex> lock(mtx_);
                     cond_.notify_one();
                 }
@@ -43,47 +42,29 @@ public:
         }
         void wait() {
             if (parent_) {
-                manager_.get_worker()->push(this);
-                base_fiber_ = std::move(worker_fiber_).resume();
-                if (forks_ != joins_) {
-                    std::abort();
+                if (status_.fetch_add(WAITING) != 0) {
+                    worker_->dispatch(this);
                 }
             } else {
                 std::unique_lock<std::mutex> lock(mtx_);
-                cond_.wait(lock, [this](){ return forks_ == joins_; });
-                lock.unlock();
+                cond_.wait(lock, [this](){ return status_.load() == 0; });
             }
         }
-        bool ready() {
-            return forks_.load() == joins_.load();
-        }
-        boost::context::fiber fiber() {
-            return std::move(base_fiber_);
-        }
 
-    private:
-        manager& manager_;
+      private:
+        manager* manager_;
         worker* worker_;
         barrier* parent_;
 
-        std::atomic_uint forks_{0};
-        std::atomic_uint joins_{0};
+        std::atomic_uint status_{0};
+        static constexpr uint WAITING = 0x80000000;
 
-        // for the first thread
+        // for the source thread
         std::mutex mtx_{};
         std::condition_variable cond_{};
 
-        boost::context::fiber base_fiber_{};
-        boost::context::fiber worker_fiber_{
-            [this](boost::context::fiber && f) {
-                base_fiber_ = std::move(f);
-                manager_.dispatch();
-                return std::move(f);
-            }
-        };
-        void fork(const std::function<void(void)> f) {
-            forks_++;
-            manager_.push(*this, f);
+        inline void fork() {
+            status_.fetch_add(1);
         }
 
         friend class manager;
@@ -92,97 +73,72 @@ public:
 
     class alignas(CACHE_LINE_SIZE) worker {
     public:
-        worker() = delete;
-        explicit worker(std::size_t id) : id_(id) {}
+        worker() = default;
 
         void operator()() {
-            worker_fiber_ = std::move(worker_fiber_).resume();
+            dispatch();
         }
 
-    private:
-        std::size_t id_;
-        std::deque<boost::context::fiber> fibers_{};
-        std::deque<barrier*> barriers_{};
+      private:
+        std::deque<std::pair<barrier*, std::function<void(void)>>> tasks_{};
+        std::deque<barrier*> completed_barriers_{};
 
-        // for termination
         std::mutex mtx_{};
         std::condition_variable cond_{};
         bool terminate_{};
-        barrier* current_barrier_{};
 
-        boost::context::fiber base_fiber_{};
-        boost::context::fiber worker_fiber_{
-            [this](boost::context::fiber && f) {
-                base_fiber_ = std::move(f);
-                dispatch();
-                return std::move(f);
-            }
-        };
-
-        void push(boost::context::fiber&& f) {
-            std::unique_lock<std::mutex> lock(mtx_);
-            fibers_.emplace_back(std::move(f));
-            lock.unlock();
-            notify();
-        }
-        void push(barrier* b) {
-            std::unique_lock<std::mutex> lock(mtx_);
-            barriers_.emplace_front(b);
-        }
-        void dispatch() {
+        void dispatch(barrier* b = nullptr) {
             while (true) {
                 std::unique_lock<std::mutex> lock(mtx_);
                 cond_.wait(lock, [this](){ return has_work() || terminate_; });
                 lock.unlock();
                 if (terminate_) {
-                    base_fiber_ = std::move(base_fiber_).resume();
+                    return;
                 }
-                if (!barriers_.empty()) {
-                    barrier* b{};
+                if (!tasks_.empty()) {
                     std::unique_lock<std::mutex> lock(mtx_);
-                    for (auto it = barriers_.begin(); it != barriers_.end(); it++) {
-                        if ((*it)->ready()) {
-                            b = *it;
-                            barriers_.erase(it);
-                            break;
+                    auto& task = tasks_.front();
+                    barrier* task_barrier= task.first;
+                    auto task_func = task.second;
+                    tasks_.pop_front();
+                    lock.unlock();
+                    task_func();
+                    task_barrier->join();
+                }
+                if (!completed_barriers_.empty()) {
+                    std::unique_lock<std::mutex> lock(mtx_);
+                    for (auto it = completed_barriers_.begin(); it != completed_barriers_.end(); it++) {
+                        if (b == *it) {
+                            completed_barriers_.erase(it);
+                            return;
                         }
                     }
-                    lock.unlock();
-                    if (b) {
-                        worker_fiber_ = std::move(b->fiber()).resume();
-                    }
-                }
-                if (!fibers_.empty()) {
-                    std::unique_lock<std::mutex> lock(mtx_);
-                    auto f = std::move(fibers_.front());
-                    fibers_.pop_front();
-                    lock.unlock();
-                    f = std::move(f).resume();
                 }
             }
         }
-        void notify() {
+
+        void push(barrier* b, std::function<void(void)>&& func) {
             std::unique_lock<std::mutex> lock(mtx_);
+            tasks_.emplace_front(std::make_pair(b, func));
             cond_.notify_one();
         }
+        void push(barrier* b) {
+            std::unique_lock<std::mutex> lock(mtx_);
+            completed_barriers_.emplace_front(b);
+            cond_.notify_one();
+        }
+
         bool terminate() {
             if (has_work()) {
                 return false;
             }
             terminate_ = true;
-            notify();
+            std::unique_lock<std::mutex> lock(mtx_);
+            cond_.notify_one();
             return true;
         }
         bool has_work() {
-            if (!fibers_.empty()) {
-                return true;
-            }
-            for (auto it = barriers_.begin(); it != barriers_.end(); it++) {
-                if ((*it)->ready()) {
-                    return true;
-                }
-            }
-            return false;
+            return !tasks_.empty() || !completed_barriers_.empty();
         }
 
         friend class manager;
@@ -191,6 +147,13 @@ public:
 
 // manager
     manager() = delete;
+    explicit manager(std::size_t size) : size_{size} {
+        for (std::size_t i = 0; i < size_; i++) {
+            workers_.emplace_back(std::make_unique<worker>());
+            threads_.emplace_back(std::thread(std::ref(*workers_.back())));
+            indexes_.insert(std::make_pair(threads_.back().get_id(), i));
+        }
+    }
     ~manager() {
         for (auto&& w: workers_) {
             while(!w->terminate());
@@ -199,34 +162,16 @@ public:
             t.join();
         }
     }
-    explicit manager(std::size_t size) : size_{size} {
-        for (std::size_t i = 0; i < size_; i++) {
-            workers_.emplace_back(std::make_unique<worker>(i));
-            threads_.emplace_back(std::thread(std::ref(*workers_.back())));
-            indexes_.insert(std::make_pair(threads_.back().get_id(), i));
-        }
+
+    manager(manager const&) = delete;
+    manager(manager&&) = delete;
+    manager& operator = (manager const&) = delete;
+    manager& operator = (manager&&) = delete;
+
+    worker* next_worker() {
+        return workers_.at((index_.fetch_add(1)) % size_).get();
     }
-    void push(barrier& b, const std::function<void(void)> func) {
-        auto i = index_.load();
-        while(true) {
-            if (index_.compare_exchange_strong(i, (i < (size_ - 1)) ? (i + 1) : 0)) {
-                break;
-            }
-        }
-        b.fork();
-        auto& w = workers_.at(i);
-        w->push(boost::context::fiber{
-                [&b, func](boost::context::fiber && f) {
-                    func();
-                    b.join();
-                    return std::move(f);
-                }}
-        );
-    }
-    void dispatch() {
-        workers_.at(indexes_.at(std::this_thread::get_id()))->dispatch();
-    }
-    worker* get_worker() {
+    worker* current_worker() {
         if( auto it = indexes_.find(std::this_thread::get_id()); it != indexes_.end()) {
             return workers_.at(it->second).get();
         }

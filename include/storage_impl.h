@@ -64,13 +64,9 @@ status storage::delete_storage(std::string_view storage_name) { // NOLINT
         base_node* tables_root = ret.first->load_root_ptr();
         if (tables_root != nullptr) {
             manager m{1};  // inactive destroy_manager
-            barrier b{m};
-            m.push(b, [&ret, tables_root, &m, &b](){
-                tables_root->destroy(m, b);
-                delete tables_root; // NOLINT
-                ret.first->store_root_ptr(nullptr);
-            });
-            b.wait();
+            tables_root->destroy(&m);
+            delete tables_root; // NOLINT
+            ret.first->store_root_ptr(nullptr);
         }
         leave(token);
         return status::OK;
