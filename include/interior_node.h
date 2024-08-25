@@ -114,13 +114,10 @@ public:
      * @pre This function is called by single thread.
      */
     status destroy(manager* m) override {
-        return destroy(m, nullptr);
-    }
-    status destroy(manager* m, barrier* p) override {
-        barrier b{m, p};
+        barrier b{m};
         for (auto i = 0; i < n_keys_ + 1; ++i) {
-            b.push([this, i, m, &b](){
-                get_child_at(i)->destroy(m, &b);
+            b.push([this, i, m](){
+                get_child_at(i)->destroy(m);
                 delete get_child_at(i); // NOLINT
             });
         }

@@ -74,7 +74,6 @@ public:
      * @param destroy_barrier the barrier that control the job finish.
      */
     virtual status destroy(manager*) = 0;
-    virtual status destroy(manager*, barrier*) = 0;
 
     /**
      * @details display function for analysis and debug.

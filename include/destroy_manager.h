@@ -20,8 +20,7 @@ public:
 
     class alignas(CACHE_LINE_SIZE) barrier {
       public:
-        explicit barrier(manager* m) : barrier(m, nullptr) {}
-        barrier(manager* m, barrier* b) : manager_(m), worker_(manager_->current_worker()), parent_(b) {}
+        explicit barrier(manager* m) : manager_(m), worker_(manager_->current_worker()) {}
 
         void push(std::function<void(void)>&& func) {
             fork();
@@ -29,39 +28,23 @@ public:
         }
         void join() {
             auto s = status_.fetch_sub(1) - 1;
-            if (parent_) {
-                if (s == WAITING) {
-                    worker_->push(this);
-                }
-            } else {
-                if (s == 0) {
-                    std::unique_lock<std::mutex> lock(mtx_);
-                    cond_.notify_one();
-                }
+            if (s == WAITING) {
+                worker_->push(this);
             }
         }
         void wait() {
-            if (parent_) {
-                if (status_.fetch_add(WAITING) != 0) {
-                    worker_->dispatch(this);
-                }
-            } else {
-                std::unique_lock<std::mutex> lock(mtx_);
-                cond_.wait(lock, [this](){ return status_.load() == 0; });
+            if (status_.fetch_add(WAITING) != 0) {
+                if (!worker_) { std::abort(); }
+                worker_->dispatch(this);
             }
         }
 
-      private:
+    private:
         manager* manager_;
         worker* worker_;
-        barrier* parent_;
 
         std::atomic_uint status_{0};
         static constexpr uint WAITING = 0x80000000;
-
-        // for the source thread
-        std::mutex mtx_{};
-        std::condition_variable cond_{};
 
         inline void fork() {
             status_.fetch_add(1);
@@ -79,7 +62,7 @@ public:
             dispatch();
         }
 
-      private:
+    private:
         std::deque<std::pair<barrier*, std::function<void(void)>>> tasks_{};
         std::deque<barrier*> completed_barriers_{};
 
@@ -146,13 +129,16 @@ public:
     };
 
 // manager
-    manager() = delete;
+    manager() : manager(std::thread::hardware_concurrency() - 1) {};
     explicit manager(std::size_t size) : size_{size} {
         for (std::size_t i = 0; i < size_; i++) {
             workers_.emplace_back(std::make_unique<worker>());
             threads_.emplace_back(std::thread(std::ref(*workers_.back())));
             indexes_.insert(std::make_pair(threads_.back().get_id(), i));
         }
+        workers_.emplace_back(std::make_unique<worker>());
+        indexes_.insert(std::make_pair(std::this_thread::get_id(), size_));
+        size_++;
     }
     ~manager() {
         for (auto&& w: workers_) {

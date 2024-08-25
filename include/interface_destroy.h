@@ -17,8 +17,7 @@
 namespace yakushima {
 
 [[maybe_unused]] static status destroy() {
-//    manager m{std::thread::hardware_concurrency()};
-    manager m{2};
+    manager m{};
     if (storage::get_storages()->empty()) { return status::OK_ROOT_IS_NULL; }
     std::vector<std::tuple<std::string, tree_instance*, std::size_t>>
             tuple_list;
@@ -27,7 +26,7 @@ namespace yakushima {
     for (auto&& elem : tuple_list) {
         base_node* root = std::get<1>(elem)->load_root_ptr();
         if (root == nullptr) { continue; }
-        root->destroy(&m, nullptr);
+        root->destroy(&m);
         delete root; // NOLINT
         std::get<1>(elem)->store_root_ptr(nullptr);
     }

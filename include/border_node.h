@@ -82,23 +82,20 @@ public:
      * @brief release all heap objects and clean up.
      */
     status destroy(manager* m) override {
-        return destroy(m, nullptr);
-    }
-    status destroy(manager* m, barrier* p) override {
-        barrier b{m, p};
+        barrier b{m};
         std::size_t cnk = get_permutation_cnk();
         for (std::size_t i = 0; i < cnk; ++i) {
             // living link or value
             std::size_t index = permutation_.get_index_of_rank(i);
             if (lv_.at(index).get_next_layer() != nullptr) {
                 // has some layer, considering parallel
-                b.push([this, index, m, &b](){
+                b.push([this, index, m](){
                     // cleanup process
-                    lv_.at(index).destroy(m, &b);
+                    lv_.at(index).destroy(m);
                 });
             } else {
                 // not some layer, not considering parallel
-                lv_.at(index).destroy(m, &b);
+                lv_.at(index).destroy(m);
             }
         }
         b.wait();
