@@ -20,11 +20,17 @@ public:
 
     class alignas(CACHE_LINE_SIZE) barrier {
       public:
-        explicit barrier(manager* m) : manager_(m), worker_(manager_->current_worker()) {}
+        explicit barrier(manager* m) : manager_(m), worker_(manager_->get_worker()) {
+        }
 
         void push(std::function<void(void)>&& func) {
             fork();
-            manager_->next_worker()->push(this, std::move(func));
+            auto* next_worker = manager_->next_worker();
+            if (next_worker->has_room()) {
+                next_worker->push(this, std::move(func));
+            } else {
+                worker_->push(this, std::move(func));
+            }
         }
         void join() {
             auto s = status_.fetch_sub(1) - 1;
@@ -33,8 +39,10 @@ public:
             }
         }
         void wait() {
-            if (status_.fetch_add(WAITING) != 0) {
+            if (auto s = status_.fetch_add(WAITING); s != 0) {
                 if (!worker_) { std::abort(); }
+                if (dispatched_) { std::abort(); }
+                dispatched_ = true;
                 worker_->dispatch(this);
             }
         }
@@ -42,6 +50,7 @@ public:
     private:
         manager* manager_;
         worker* worker_;
+        bool dispatched_{false};
 
         std::atomic_uint status_{0};
         static constexpr uint WAITING = 0x80000000;
@@ -68,15 +77,35 @@ public:
 
         std::mutex mtx_{};
         std::condition_variable cond_{};
+        std::size_t nest_{};
+        bool waiting_{};
         bool terminate_{};
 
+        static constexpr std::size_t NEST_HARD_LIMIT = 64;
+        static constexpr std::size_t NEST_SOFT_LIMIT = 32;
+
         void dispatch(barrier* b = nullptr) {
+            nest_++;
             while (true) {
                 std::unique_lock<std::mutex> lock(mtx_);
-                cond_.wait(lock, [this](){ return has_work() || terminate_; });
+                if (!has_work() && !terminate_) {
+                    waiting_ = true;
+                    cond_.wait(lock, [this](){ return has_work() || terminate_; });
+                    waiting_ = false;
+                }
                 lock.unlock();
                 if (terminate_) {
                     return;
+                }
+                if (!completed_barriers_.empty()) {
+                    std::unique_lock<std::mutex> lock(mtx_);
+                    for (auto it = completed_barriers_.begin(); it != completed_barriers_.end(); it++) {
+                        if (b == *it) {
+                            completed_barriers_.erase(it);
+                            nest_++;
+                            return;
+                        }
+                    }
                 }
                 if (!tasks_.empty()) {
                     std::unique_lock<std::mutex> lock(mtx_);
@@ -88,21 +117,12 @@ public:
                     task_func();
                     task_barrier->join();
                 }
-                if (!completed_barriers_.empty()) {
-                    std::unique_lock<std::mutex> lock(mtx_);
-                    for (auto it = completed_barriers_.begin(); it != completed_barriers_.end(); it++) {
-                        if (b == *it) {
-                            completed_barriers_.erase(it);
-                            return;
-                        }
-                    }
-                }
             }
         }
 
         void push(barrier* b, std::function<void(void)>&& func) {
             std::unique_lock<std::mutex> lock(mtx_);
-            tasks_.emplace_front(std::make_pair(b, func));
+            tasks_.emplace_front(std::make_pair(b, std::move(func)));
             cond_.notify_one();
         }
         void push(barrier* b) {
@@ -111,6 +131,15 @@ public:
             cond_.notify_one();
         }
 
+        [[nodiscard]] bool has_room() const {
+            if (nest_ >= NEST_HARD_LIMIT) {
+                return false;
+            }
+            if (nest_ < NEST_SOFT_LIMIT) {
+                return true;
+            }
+            return waiting_;
+        }
         bool terminate() {
             if (has_work()) {
                 return false;
@@ -129,7 +158,7 @@ public:
     };
 
 // manager
-    manager() : manager(std::thread::hardware_concurrency() - 1) {};
+    manager() : manager((std::thread::hardware_concurrency() / 2) - 1) {};  // FIXME how to obtain the number of CPU core
     explicit manager(std::size_t size) : size_{size} {
         for (std::size_t i = 0; i < size_; i++) {
             workers_.emplace_back(std::make_unique<worker>());
@@ -157,8 +186,8 @@ public:
     worker* next_worker() {
         return workers_.at((index_.fetch_add(1)) % size_).get();
     }
-    worker* current_worker() {
-        if( auto it = indexes_.find(std::this_thread::get_id()); it != indexes_.end()) {
+    worker* get_worker(std::thread::id id = std::this_thread::get_id()) {
+        if( auto it = indexes_.find(id); it != indexes_.end()) {
             return workers_.at(it->second).get();
         }
         return nullptr;
