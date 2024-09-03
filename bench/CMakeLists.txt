@@ -27,6 +27,7 @@ target_link_libraries(yakushima_bench
         PRIVATE ${tbb_prefix}tbb
         PRIVATE ${tbb_prefix}tbbmalloc
         PRIVATE ${tbb_prefix}tbbmalloc_proxy
+        PRIVATE Boost::thread
         )
 
 if (PERFORMANCE_TOOLS)
@@ -56,6 +57,7 @@ target_link_libraries(malloc_bench
         PRIVATE glog::glog
         PRIVATE Threads::Threads
         PRIVATE gflags::gflags
+        PRIVATE Boost::thread
         )
 
 target_include_directories(malloc_bench

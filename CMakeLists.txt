@@ -37,7 +37,7 @@ if(PERFORMANCE_TOOLS)
     find_package(performance-tools REQUIRED)
 endif()
 # for logging
-find_package(Boost COMPONENTS filesystem)
+find_package(Boost COMPONENTS filesystem thread)
 
 include(GNUInstallDirs)
 include(CompileOptions)

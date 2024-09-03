@@ -45,5 +45,6 @@ register_tests(
           PRIVATE ${tbb_prefix}tbb
           PRIVATE ${tbb_prefix}tbbmalloc
           PRIVATE ${tbb_prefix}tbbmalloc_proxy
+          PRIVATE Boost::thread
         SOURCES ${TEST_SOURCES}
 )

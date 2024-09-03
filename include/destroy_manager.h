@@ -12,6 +12,8 @@
 #include <condition_variable>
 #include <chrono>
 
+#include <boost/thread.hpp>
+
 namespace yakushima {
 
 class alignas(CACHE_LINE_SIZE) manager {
@@ -158,7 +160,7 @@ public:
     };
 
 // manager
-    manager() : manager((std::thread::hardware_concurrency() / 2) - 1) {};  // FIXME how to obtain the number of CPU core
+    manager() : manager(boost::thread::physical_concurrency() - 1) {};  // FIXME how to obtain the number of CPU core
     explicit manager(std::size_t size) : size_{size} {
         for (std::size_t i = 0; i < size_; i++) {
             workers_.emplace_back(std::make_unique<worker>());
