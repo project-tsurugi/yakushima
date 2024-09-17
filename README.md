@@ -87,7 +87,7 @@ Dump the coverage information into html files with the following steps:
 ```
 cd build
 mkdir gcovr-html
-GCOVR_COMMON_OPTION='-e ../third_party/ -e ../test/'
+GCOVR_COMMON_OPTION='-e ../third_party -e ../test -e ../bench'
 gcovr  -r .. --html --html-details  ${GCOVR_COMMON_OPTION} -o gcovr-html/yakushima-gcovr.html
 ```
 Open gcovr-html/yakushima-gcovr.html to see the coverage report.
