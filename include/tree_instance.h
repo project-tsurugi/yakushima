@@ -9,7 +9,7 @@
 
 namespace yakushima {
 
-class tree_instance {
+class alignas(CACHE_LINE_SIZE) tree_instance {
 public:
     bool cas_root_ptr(base_node** expected, base_node** desired) {
         return weakCompareExchange(&root_, expected, desired);
