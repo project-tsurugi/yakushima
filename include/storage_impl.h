@@ -87,8 +87,8 @@ status storage::list_storages(
         std::vector<std::pair<std::string, tree_instance*>>& out) { // NOLINT
     out.clear();
     std::vector<std::tuple<std::string, tree_instance*>> tuple_list;
-    scan_root(get_storages(), "", scan_endpoint::INF, "", scan_endpoint::INF,
-              tuple_list, nullptr, 0);
+    scan_root<tree_instance, false>(
+            get_storages(), "", scan_endpoint::INF, "", scan_endpoint::INF, tuple_list, nullptr, 0);
     if (tuple_list.empty()) { return status::WARN_NOT_EXIST; }
     out.reserve(tuple_list.size());
     for (auto&& elem : tuple_list) {
