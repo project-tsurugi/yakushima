@@ -18,8 +18,7 @@ namespace yakushima {
 
 [[maybe_unused]] static status destroy() {
     if (storage::get_storages()->empty()) { return status::OK_ROOT_IS_NULL; }
-    std::vector<std::tuple<std::string, tree_instance*, std::size_t>>
-            tuple_list;
+    std::vector<std::tuple<std::string, tree_instance*>> tuple_list;
     scan_root(storage::get_storages(), "", scan_endpoint::INF, "",
               scan_endpoint::INF, tuple_list, nullptr, 0);
     for (auto&& elem : tuple_list) {
