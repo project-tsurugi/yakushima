@@ -240,6 +240,7 @@ put(Token token, std::string_view storage_name, // NOLINT
  * And ignore @a r_key.
  * @param[out] tuple_list A set with a key, a pointer to value, and size of
  * value as a result of this function.
+ * If you need no size information, you can omit it from the type of tuple.
  * The address obtained here can be accessed safely until the Token entered at the time of address acquisition leaves.
  * @param[out] node_version_vec Default is nullptr. The set of node_version for
  * transaction processing (protection of phantom problems). If you don't use
