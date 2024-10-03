@@ -126,9 +126,31 @@ retry_from_root:
     }
 }
 
+template<class ValueType>
+[[maybe_unused]] static status
+scan_root(tree_instance* ti, std::string_view l_key, scan_endpoint l_end,
+          std::string_view r_key, scan_endpoint r_end,
+          std::vector<std::tuple<std::string, ValueType*, std::size_t>>& tuple_list,
+          std::vector<std::pair<node_version64_body, node_version64*>>*
+                  node_version_vec,
+          std::size_t max_size) {
+    return scan_root<ValueType, true>(ti, l_key, l_end, r_key, r_end, tuple_list, node_version_vec, max_size);
+}
+
+template<class ValueType>
+[[maybe_unused]] static status
+scan_root(tree_instance* ti, std::string_view l_key, scan_endpoint l_end,
+          std::string_view r_key, scan_endpoint r_end,
+          std::vector<std::tuple<std::string, ValueType*>>& tuple_list,
+          std::vector<std::pair<node_version64_body, node_version64*>>*
+                  node_version_vec,
+          std::size_t max_size) {
+    return scan_root<ValueType, false>(ti, l_key, l_end, r_key, r_end, tuple_list, node_version_vec, max_size);
+}
+
 template<class ValueType, bool NeedSize = true>
 [[maybe_unused]] static status
-scan(std::string_view storage_name, std::string_view l_key, // NOLINT
+scan_(std::string_view storage_name, std::string_view l_key,
      scan_endpoint l_end, std::string_view r_key, scan_endpoint r_end,
      scan_result_t<ValueType, NeedSize>& tuple_list,
      std::vector<std::pair<node_version64_body, node_version64*>>*
@@ -140,6 +162,28 @@ scan(std::string_view storage_name, std::string_view l_key, // NOLINT
         return status::WARN_STORAGE_NOT_EXIST;
     }
     return scan_root<ValueType, NeedSize>(ti, l_key, l_end, r_key, r_end, tuple_list, node_version_vec, max_size);
+}
+
+template<class ValueType>
+[[maybe_unused]] static status
+scan(std::string_view storage_name, std::string_view l_key, // NOLINT
+     scan_endpoint l_end, std::string_view r_key, scan_endpoint r_end,
+     std::vector<std::tuple<std::string, ValueType*, std::size_t>>& tuple_list,
+     std::vector<std::pair<node_version64_body, node_version64*>>*
+             node_version_vec = nullptr,
+     std::size_t max_size = 0) {
+    return scan_<ValueType, true>(storage_name, l_key, l_end, r_key, r_end, tuple_list, node_version_vec, max_size);
+}
+
+template<class ValueType>
+[[maybe_unused]] static status
+scan(std::string_view storage_name, std::string_view l_key, // NOLINT
+     scan_endpoint l_end, std::string_view r_key, scan_endpoint r_end,
+     std::vector<std::tuple<std::string, ValueType*>>& tuple_list,
+     std::vector<std::pair<node_version64_body, node_version64*>>*
+             node_version_vec = nullptr,
+     std::size_t max_size = 0) {
+    return scan_<ValueType, false>(storage_name, l_key, l_end, r_key, r_end, tuple_list, node_version_vec, max_size);
 }
 
 } // namespace yakushima

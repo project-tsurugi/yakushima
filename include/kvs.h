@@ -274,4 +274,13 @@ scan(std::string_view storage_name, std::string_view l_key, // NOLINT
              node_version_vec,
      std::size_t max_size);
 
+template<class ValueType>
+[[maybe_unused]] static status
+scan(std::string_view storage_name, std::string_view l_key, // NOLINT
+     scan_endpoint l_end, std::string_view r_key, scan_endpoint r_end,
+     std::vector<std::tuple<std::string, ValueType*>>& tuple_list,
+     std::vector<std::pair<node_version64_body, node_version64*>>*
+             node_version_vec,
+     std::size_t max_size);
+
 } // namespace yakushima
