@@ -50,13 +50,13 @@ inline status scan_check_retry(border_node* const bn,
  */
 template<class ValueType>
 static status
-scan(base_node* const root, const std::string_view l_key,
-     const scan_endpoint l_end, const std::string_view r_key,
-     const scan_endpoint r_end,
-     std::vector<std::tuple<std::string, ValueType*, std::size_t>>& tuple_list,
-     std::vector<std::pair<node_version64_body, node_version64*>>* const
-             node_version_vec,
-     const std::string& key_prefix, const std::size_t max_size) {
+scan_node(base_node* const root, const std::string_view l_key,
+          const scan_endpoint l_end, const std::string_view r_key,
+          const scan_endpoint r_end,
+          std::vector<std::tuple<std::string, ValueType*, std::size_t>>& tuple_list,
+          std::vector<std::pair<node_version64_body, node_version64*>>* const
+                  node_version_vec,
+          const std::string& key_prefix, const std::size_t max_size) {
     /**
      * Log size before scanning this node.
      * This must be before retry label for retry at find border.
@@ -312,9 +312,9 @@ retry:
                     arg_r_end = scan_endpoint::INF;
                 }
             }
-            check_status =
-                    scan(next_layer, arg_l_key, arg_l_end, arg_r_key, arg_r_end,
-                         tuple_list, node_version_vec, full_key, max_size);
+            check_status = scan_node(
+                    next_layer, arg_l_key, arg_l_end, arg_r_key, arg_r_end,
+                    tuple_list, node_version_vec, full_key, max_size);
             if (check_status != status::OK) {
                 // failed. clean up tuple list and node vesion vec.
                 clean_up_tuple_list_nvc();
