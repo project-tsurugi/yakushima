@@ -14,11 +14,11 @@
 
 namespace yakushima {
 
-template<class ValueType, bool NeedSize = true>
+template<class ValueType, bool NeedSize, bool NeedKey>
 [[maybe_unused]] static status
 scan_root(tree_instance* ti, std::string_view l_key, scan_endpoint l_end,
           std::string_view r_key, scan_endpoint r_end,
-          scan_result_t<ValueType, NeedSize>& tuple_list,
+          scan_result_t<ValueType, NeedSize, NeedKey>& tuple_list,
           std::vector<std::pair<node_version64_body, node_version64*>>*
                   node_version_vec,
           std::size_t max_size) {
@@ -105,7 +105,7 @@ retry_from_root:
         }
 
         // scan
-        check_status = scan_border<ValueType, NeedSize>(
+        check_status = scan_border<ValueType, NeedSize, NeedKey>(
                 &target_border, traverse_key_view, l_end, r_key, r_end,
                 tuple_list, std::get<tuple_v_index>(node_and_v),
                 node_version_vec, key_prefix, max_size);
@@ -126,11 +126,11 @@ retry_from_root:
     }
 }
 
-template<class ValueType, bool NeedSize = true>
+template<class ValueType, bool NeedSize, bool NeedKey>
 [[maybe_unused]] static status
 scan_(std::string_view storage_name, std::string_view l_key,
      scan_endpoint l_end, std::string_view r_key, scan_endpoint r_end,
-     scan_result_t<ValueType, NeedSize>& tuple_list,
+     scan_result_t<ValueType, NeedSize, NeedKey>& tuple_list,
      std::vector<std::pair<node_version64_body, node_version64*>>*
              node_version_vec = nullptr,
      std::size_t max_size = 0) {
@@ -139,7 +139,8 @@ scan_(std::string_view storage_name, std::string_view l_key,
     if (storage::find_storage(storage_name, &ti) != status::OK) {
         return status::WARN_STORAGE_NOT_EXIST;
     }
-    return scan_root<ValueType, NeedSize>(ti, l_key, l_end, r_key, r_end, tuple_list, node_version_vec, max_size);
+    return scan_root<ValueType, NeedSize, NeedKey>(
+            ti, l_key, l_end, r_key, r_end, tuple_list, node_version_vec, max_size);
 }
 
 template<class ValueType>
@@ -150,7 +151,8 @@ scan(std::string_view storage_name, std::string_view l_key, // NOLINT
      std::vector<std::pair<node_version64_body, node_version64*>>*
              node_version_vec = nullptr,
      std::size_t max_size = 0) {
-    return scan_<ValueType, true>(storage_name, l_key, l_end, r_key, r_end, tuple_list, node_version_vec, max_size);
+    return scan_<ValueType, true, true>(
+            storage_name, l_key, l_end, r_key, r_end, tuple_list, node_version_vec, max_size);
 }
 
 template<class ValueType>
@@ -161,7 +163,20 @@ scan(std::string_view storage_name, std::string_view l_key, // NOLINT
      std::vector<std::pair<node_version64_body, node_version64*>>*
              node_version_vec = nullptr,
      std::size_t max_size = 0) {
-    return scan_<ValueType, false>(storage_name, l_key, l_end, r_key, r_end, tuple_list, node_version_vec, max_size);
+    return scan_<ValueType, false, true>(
+            storage_name, l_key, l_end, r_key, r_end, tuple_list, node_version_vec, max_size);
+}
+
+template<class ValueType>
+[[maybe_unused]] static status
+scan(std::string_view storage_name, std::string_view l_key, // NOLINT
+     scan_endpoint l_end, std::string_view r_key, scan_endpoint r_end,
+     std::vector<ValueType*>& tuple_list,
+     std::vector<std::pair<node_version64_body, node_version64*>>*
+             node_version_vec = nullptr,
+     std::size_t max_size = 0) {
+    return scan_<ValueType, false, false>(
+            storage_name, l_key, l_end, r_key, r_end, tuple_list, node_version_vec, max_size);
 }
 
 } // namespace yakushima

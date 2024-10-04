@@ -12,21 +12,28 @@
 
 namespace yakushima {
 
-template<class ValueType, bool NeedSize>
+template<class ValueType, bool NeedSize, bool NeedKey>
 using scan_result_elem = typename std::conditional_t<
-        NeedSize,
-        std::tuple<std::string, ValueType*, std::size_t>,
-        std::tuple<std::string, ValueType*>>;
+        NeedKey,
+        std::conditional_t<
+                NeedSize,
+                std::tuple<std::string, ValueType*, std::size_t>,
+                std::tuple<std::string, ValueType*>>,
+        std::conditional_t<
+                NeedSize,
+                std::tuple<ValueType*, std::size_t>,
+                ValueType*>
+        >;
 
-template<class ValueType, bool NeedSize>
-using scan_result_t = std::vector<scan_result_elem<ValueType, NeedSize>>;
+template<class ValueType, bool NeedSize, bool NeedKey>
+using scan_result_t = std::vector<scan_result_elem<ValueType, NeedSize, NeedKey>>;
 
 // forward declaration
-template<class ValueType, bool NeedSize>
+template<class ValueType, bool NeedSize, bool NeedKey>
 static status
 scan_border(border_node** target, std::string_view l_key, scan_endpoint l_end,
             std::string_view r_key, scan_endpoint r_end,
-            scan_result_t<ValueType, NeedSize>& tuple_list,
+            scan_result_t<ValueType, NeedSize, NeedKey>& tuple_list,
             node_version64_body& v_at_fb,
             std::vector<std::tuple<std::string, node_version64_body,
                                    node_version64*>>* node_version_vec,
@@ -56,12 +63,12 @@ inline status scan_check_retry(border_node* const bn,
 /**
  * scan for some try nodes which is not root.
  */
-template<class ValueType, bool NeedSize = true>
+template<class ValueType, bool NeedSize, bool NeedKey>
 static status
 scan_node(base_node* const root, const std::string_view l_key,
           const scan_endpoint l_end, const std::string_view r_key,
           const scan_endpoint r_end,
-          scan_result_t<ValueType, NeedSize>& tuple_list,
+          scan_result_t<ValueType, NeedSize, NeedKey>& tuple_list,
           std::vector<std::pair<node_version64_body, node_version64*>>* const
                   node_version_vec,
           const std::string& key_prefix, const std::size_t max_size) {
@@ -130,7 +137,7 @@ retry:
         }
 
         // scan the border node
-        check_status = scan_border<ValueType, NeedSize>(
+        check_status = scan_border<ValueType, NeedSize, NeedKey>(
                 &bn, l_key, l_end, r_key, r_end, tuple_list, check_v,
                 node_version_vec, key_prefix, max_size);
 
@@ -168,12 +175,12 @@ retry:
 /**
  * scan for some leafnode of b+tree.
  */
-template<class ValueType, bool NeedSize = true>
+template<class ValueType, bool NeedSize, bool NeedKey>
 static status
 scan_border(border_node** const target, const std::string_view l_key,
             const scan_endpoint l_end, const std::string_view r_key,
             const scan_endpoint r_end,
-            scan_result_t<ValueType, NeedSize>& tuple_list,
+            scan_result_t<ValueType, NeedSize, NeedKey>& tuple_list,
             node_version64_body& v_at_fb,
             std::vector<std::pair<node_version64_body, node_version64*>>* const
                     node_version_vec,
@@ -319,7 +326,7 @@ retry:
                     arg_r_end = scan_endpoint::INF;
                 }
             }
-            check_status = scan_node<ValueType, NeedSize>(
+            check_status = scan_node<ValueType, NeedSize, NeedKey>(
                     next_layer, arg_l_key, arg_l_end, arg_r_key, arg_r_end,
                     tuple_list, node_version_vec, full_key, max_size);
             if (check_status != status::OK) {
@@ -331,13 +338,22 @@ retry:
             auto in_range = [&full_key, &tuple_list, &vp, &node_version_vec,
                              &v_at_fb, &node_version_ptr, &tuple_pushed_num,
                              max_size]() {
-                if constexpr (NeedSize) {
+                if constexpr (NeedSize && NeedKey) {
                     tuple_list.emplace_back(std::make_tuple(
                             full_key, static_cast<ValueType*>(value::get_body(vp)),
                             value::get_len(vp)));
-                } else {
+                } else if constexpr (NeedKey) {
                     tuple_list.emplace_back(std::make_tuple(
                             full_key, static_cast<ValueType*>(value::get_body(vp))));
+                } else if constexpr (NeedSize) {
+                    (void)full_key; // cannot use [[maybe_unused]] for lambda capture
+                    tuple_list.emplace_back(std::make_tuple(
+                            static_cast<ValueType*>(value::get_body(vp)),
+                            value::get_len(vp)));
+                } else {
+                    (void)full_key; // cannot use [[maybe_unused]] for lambda capture
+                    tuple_list.emplace_back(
+                            static_cast<ValueType*>(value::get_body(vp)));
                 }
                 if (node_version_vec != nullptr) {
                     /**
