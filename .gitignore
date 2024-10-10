@@ -313,3 +313,5 @@ build/
 build_release/
 build_relwithdebinfo/
 .vscode/
+
+/build-*
