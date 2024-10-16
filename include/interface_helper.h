@@ -5,7 +5,6 @@
 #pragma once
 
 #include "interface_scan.h"
-#include "kvs.h"
 #include "manager_thread.h"
 #include "storage.h"
 
