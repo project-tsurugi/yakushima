@@ -22,7 +22,7 @@ git submodule update --init --recursive
 
 ## Dockerfile
 ```dockerfile
-FROM ubuntu:18.04
+FROM ubuntu:22.04
 RUN sudo apt update -y && sudo apt install -y $(cat build_tools/ubuntu.deps)
 ```
 
