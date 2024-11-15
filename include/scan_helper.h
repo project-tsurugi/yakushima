@@ -320,6 +320,9 @@ retry:
                 clean_up_tuple_list_nvc();
                 goto retry; // NOLINT
             }
+            if (max_size != 0 && tuple_list.size() >= max_size) {
+                return status::OK_SCAN_END;
+            }
         } else {
             auto in_range = [&full_key, &tuple_list, &vp, &node_version_vec,
                              &v_at_fb, &node_version_ptr, &tuple_pushed_num,
