@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <cstring>
 #include <functional>
@@ -30,8 +31,7 @@ public:
             if (r.key_length_ == 0) { return false; }
             if (key_length_ == 0) { return true; }
             int ret = memcmp(&key_slice_, &r.key_slice_,
-                             key_length_ < r.key_length_ ? key_length_
-                                                         : r.key_length_);
+                             std::min(key_length_, r.key_length_));
             if (ret < 0) { return true; }
             if (ret == 0) { return key_length_ < r.key_length_; }
             return false;
