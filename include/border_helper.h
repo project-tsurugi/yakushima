@@ -227,12 +227,7 @@ static void border_split(tree_instance* ti, border_node* const border,
     }
     int ret_memcmp{
             memcmp(&key_slice, &new_border->get_key_slice_ref().at(0),
-                   (key_length > sizeof(key_slice_type) &&
-                    new_border->get_key_length_at(0) > sizeof(key_slice_type))
-                           ? sizeof(key_slice_type)
-                   : key_length < new_border->get_key_length_at(0)
-                           ? key_length
-                           : new_border->get_key_length_at(0))};
+                   std::min<std::size_t>({sizeof(key_slice_type), key_length, new_border->get_key_length_at(0)}))};
     if (key_length == 0 || // definitely
         ret_memcmp < 0 ||  // smaller than front of new border node
         (ret_memcmp == 0 && key_length < new_border->get_key_length_at(0)) ||

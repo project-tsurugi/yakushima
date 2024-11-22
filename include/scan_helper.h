@@ -241,7 +241,7 @@ retry:
             // gen full key from log and this key slice
             full_key.append(
                     reinterpret_cast<char*>(&ks), // NOLINT
-                    kl < sizeof(key_slice_type) ? kl : sizeof(key_slice_type));
+                    std::min<std::size_t>(kl, sizeof(key_slice_type)));
             /**
              * If the key is complete (kl < sizeof(key_slice_type)), the key
              * slice must be copied by the size of key length.
@@ -276,9 +276,7 @@ retry:
             } else {
                 key_slice_type l_key_slice{0};
                 memcpy(&l_key_slice, l_key.data(),
-                       l_key.size() < sizeof(key_slice_type)
-                               ? l_key.size()
-                               : sizeof(key_slice_type));
+                       std::min(l_key.size(), sizeof(key_slice_type)));
                 // check left point
                 int ret_cmp = memcmp(&l_key_slice, &ks, sizeof(key_slice_type));
                 if (ret_cmp < 0) {
@@ -306,9 +304,7 @@ retry:
                 arg_r_end = scan_endpoint::INF;
             } else {
                 int ret_cmp = memcmp(r_key.data(), full_key.data(),
-                                     r_key.size() < full_key.size()
-                                             ? r_key.size()
-                                             : full_key.size());
+                                     std::min(r_key.size(), full_key.size()));
                 if (ret_cmp < 0) { return status::OK_SCAN_END; }
                 if (ret_cmp == 0) {
                     if (r_key.size() <= full_key.size()) {
@@ -369,9 +365,7 @@ retry:
                 key_slice_type l_key_slice{0};
                 if (!l_key.empty()) {
                     memcpy(&l_key_slice, l_key.data(),
-                           l_key.size() < sizeof(key_slice_type)
-                                   ? l_key.size()
-                                   : sizeof(key_slice_type));
+                           std::min(l_key.size(), sizeof(key_slice_type)));
                 }
                 int l_cmp = memcmp(&l_key_slice, &ks, sizeof(key_slice_type));
                 if (l_cmp > 0 ||
@@ -388,8 +382,7 @@ retry:
             }
             int r_cmp =
                     memcmp(r_key.data(), full_key.data(),
-                           r_key.size() < full_key.size() ? r_key.size()
-                                                          : full_key.size());
+                           std::min(r_key.size(), full_key.size()));
             if (r_cmp > 0 ||
                 (r_cmp == 0 && (r_key.size() > full_key.size() ||
                                 (r_key.size() == full_key.size() &&
