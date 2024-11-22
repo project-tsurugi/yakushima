@@ -27,8 +27,8 @@ public:
             : key_slice_(slice), key_length_(length) {}
 
         bool operator<(const key_tuple& r) const {
-            if (key_length_ == 0) { return true; }
             if (r.key_length_ == 0) { return false; }
+            if (key_length_ == 0) { return true; }
             int ret = memcmp(&key_slice_, &r.key_slice_,
                              key_length_ < r.key_length_ ? key_length_
                                                          : r.key_length_);
