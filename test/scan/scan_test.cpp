@@ -207,6 +207,29 @@ TEST_F(st, scan_with_prefix_for_2_layers_2) { // NOLINT
     ASSERT_EQ(leave(token), status::OK);
 }
 
+TEST_F(st, scan_with_prefix_for_2_layers_3) { // NOLINT
+    using namespace std::literals;
+    //         <-  1 -><-  2 ->
+    auto k1 = "12345666aaaaaaa"sv;
+    auto lk = "1234567"sv;
+    auto k2 = "1234567\0"sv;
+    auto k3 = "1234567\0a"sv;
+    auto rk = "1234568"sv;
+    std::string v("bbb"); // NOLINT
+    Token token{};
+    ASSERT_EQ(enter(token), status::OK);
+    ASSERT_EQ(put(token, test_storage_name, k1, v.data(), v.size()), status::OK);
+    ASSERT_EQ(put(token, test_storage_name, k2, v.data(), v.size()), status::OK);
+    ASSERT_EQ(put(token, test_storage_name, k3, v.data(), v.size()), status::OK);
+    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{};
+    ASSERT_EQ(status::OK, scan(test_storage_name, lk, scan_endpoint::EXCLUSIVE,
+                               rk, scan_endpoint::EXCLUSIVE, tuple_list));
+    ASSERT_EQ(tuple_list.size(), 2);
+    ASSERT_EQ(std::get<0>(tuple_list.at(0)), k2);
+
+    ASSERT_EQ(leave(token), status::OK);
+}
+
 TEST_F(st, scan_with_same_prefix_25char_26diff_27to33same_34diff) { // NOLINT
     std::string r1("CUSTOMER0\x00\x80\x00\x00\x00\x00\x00\x00\x01\x80\x00\x00"
                    "\x00\x00\x00"
