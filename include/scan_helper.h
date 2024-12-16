@@ -56,7 +56,7 @@ scan(base_node* const root, const std::string_view l_key,
      std::vector<std::tuple<std::string, ValueType*, std::size_t>>& tuple_list,
      std::vector<std::pair<node_version64_body, node_version64*>>* const
              node_version_vec,
-     const std::string& key_prefix, const std::size_t max_size) {
+     const std::string& key_prefix, const std::size_t max_size, bool right_to_left) {
     /**
      * Log size before scanning this node.
      * This must be before retry label for retry at find border.
@@ -106,6 +106,12 @@ retry:
     } else {
         if (!l_key.empty()) { memcpy(&ks, l_key.data(), l_key.size()); }
     }
+    if(right_to_left) {
+        // assuming r_end == scan_endpoint::INF
+        // put maximum value of key_slice
+        ks = ~key_slice_type{0};
+        kl = sizeof(key_slice_type);
+    }
     node_and_v = find_border(root, ks, kl, check_status);
     if (check_status == status::WARN_RETRY_FROM_ROOT_OF_ALL) {
         return status::OK_RETRY_AFTER_FB;
@@ -124,7 +130,7 @@ retry:
         // scan the border node
         check_status = scan_border<ValueType>(
                 &bn, l_key, l_end, r_key, r_end, tuple_list, check_v,
-                node_version_vec, key_prefix, max_size);
+                node_version_vec, key_prefix, max_size, right_to_left);
 
         // check rc, success
         if (check_status == status::OK_SCAN_END) { return status::OK; }
@@ -170,7 +176,7 @@ scan_border(border_node** const target, const std::string_view l_key,
             node_version64_body& v_at_fb,
             std::vector<std::pair<node_version64_body, node_version64*>>* const
                     node_version_vec,
-            const std::string& key_prefix, const std::size_t max_size) {
+            const std::string& key_prefix, const std::size_t max_size, bool right_to_left) {
     /**
      * Log size before scanning this node.
      * This must be before retry label for retry at find border.
@@ -215,16 +221,19 @@ retry:
     border_node* bn = *target;
     /**
      * next node pointer must be logged before optimistic verify.
+     * When right_to_left is true, we stop at the first border node and don't use this.
+     * TODO When we extend reverse scan for multiple entries, we need get_prev() here.
      */
     border_node* next = bn->get_next();
+
     /**
      * get permutation at once.
      * After scan border, optimistic verify support this is atomic.
      */
     permutation perm(bn->get_permutation().get_body());
     // check all elements in border node.
-    for (std::size_t i = 0; i < perm.get_cnk(); ++i) {
-        std::size_t index = perm.get_index_of_rank(i);
+    for (std::size_t i = 0, n = perm.get_cnk(); i < n; ++i) {
+        std::size_t index = perm.get_index_of_rank(right_to_left ? n-i-1 : i);
         key_slice_type ks = bn->get_key_slice_at(index);
         key_length_type kl = bn->get_key_length_at(index);
         std::string full_key{key_prefix};
@@ -314,7 +323,7 @@ retry:
             }
             check_status =
                     scan(next_layer, arg_l_key, arg_l_end, arg_r_key, arg_r_end,
-                         tuple_list, node_version_vec, full_key, max_size);
+                         tuple_list, node_version_vec, full_key, max_size, right_to_left);
             if (check_status != status::OK) {
                 // failed. clean up tuple list and node vesion vec.
                 clean_up_tuple_list_nvc();

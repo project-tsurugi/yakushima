@@ -19,9 +19,10 @@ template<class ValueType>
 scan(tree_instance* ti, std::string_view l_key, scan_endpoint l_end,
      std::string_view r_key, scan_endpoint r_end,
      std::vector<std::tuple<std::string, ValueType*, std::size_t>>& tuple_list,
-     std::vector<std::pair<node_version64_body, node_version64*>>*
-             node_version_vec,
-     std::size_t max_size) {
+     std::vector<std::pair<node_version64_body, node_version64*>>* node_version_vec,
+     std::size_t max_size,
+     bool right_to_left = false) {
+
     /**
      * Prohibition : std::string_view{nullptr, non-zero value}.
      */
@@ -42,6 +43,13 @@ scan(tree_instance* ti, std::string_view l_key, scan_endpoint l_end,
      */
     if (l_key == r_key && (l_end == scan_endpoint::EXCLUSIVE ||
                            r_end == scan_endpoint::EXCLUSIVE)) {
+        return status::ERR_BAD_USAGE;
+    }
+
+    /**
+     * currently right_to_left is restricted to unbounded scan with max_size == 1
+     */
+    if (right_to_left && (r_end != scan_endpoint::INF || max_size != 1)) {
         return status::ERR_BAD_USAGE;
     }
 
@@ -72,6 +80,12 @@ retry_from_root:
             memcpy(&key_slice, traverse_key_view.data(),
                    traverse_key_view.size());
         }
+    }
+    if(right_to_left) {
+        // assuming r_end == scan_endpoint::INF
+        // put maximum value of key_slice
+        key_slice = ~key_slice_type{0};
+        key_slice_length = sizeof(key_slice_type);
     }
     /**
      * traverse tree to border node.
@@ -108,7 +122,7 @@ retry_from_root:
         check_status = scan_border<ValueType>(
                 &target_border, traverse_key_view, l_end, r_key, r_end,
                 tuple_list, std::get<tuple_v_index>(node_and_v),
-                node_version_vec, key_prefix, max_size);
+                node_version_vec, key_prefix, max_size, right_to_left);
 
         // check rc, success
         if (check_status == status::OK_SCAN_END) { return status::OK; }
@@ -133,14 +147,15 @@ scan(std::string_view storage_name, std::string_view l_key, // NOLINT
      std::vector<std::tuple<std::string, ValueType*, std::size_t>>& tuple_list,
      std::vector<std::pair<node_version64_body, node_version64*>>*
              node_version_vec = nullptr,
-     std::size_t max_size = 0) {
+     std::size_t max_size = 0,
+     bool right_to_left = false) {
     // check storage
     tree_instance* ti{};
     if (storage::find_storage(storage_name, &ti) != status::OK) {
         return status::WARN_STORAGE_NOT_EXIST;
     }
     return scan(ti, l_key, l_end, r_key, r_end, tuple_list, node_version_vec,
-                max_size);
+                max_size, right_to_left);
 }
 
 } // namespace yakushima
