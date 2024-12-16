@@ -81,7 +81,7 @@ retry_from_root:
                    traverse_key_view.size());
         }
     }
-    if(right_to_left) {
+    if (right_to_left) {
         // assuming r_end == scan_endpoint::INF
         // put maximum value of key_slice
         key_slice = ~key_slice_type{0};

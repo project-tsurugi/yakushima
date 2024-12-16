@@ -106,7 +106,7 @@ retry:
     } else {
         if (!l_key.empty()) { memcpy(&ks, l_key.data(), l_key.size()); }
     }
-    if(right_to_left) {
+    if (right_to_left) {
         // assuming r_end == scan_endpoint::INF
         // put maximum value of key_slice
         ks = ~key_slice_type{0};
