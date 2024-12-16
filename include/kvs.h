@@ -256,6 +256,10 @@ put(Token token, std::string_view storage_name, // NOLINT
  * node_version_vec to make sure the values ​​are not overwritten. This advantage
  * is effective when the right end point is unknown but you want to scan to a
  * specific value.
+ * @param[in] right_to_left If this argument is true, the scan is performed from right end.
+ * When this is set to true, current implementation has following limitation: 1. max_size must be 1 so that at most
+ * one entry is hit and returned as scan result 2. r_end must be scan_endpoint::INF so that the scan is performed from
+ * unbounded right end. Status::ERR_BAD_USAGE is returned if these conditions are not met.
  * @return Status::ERR_BAD_USAGE The arguments is invalid. In the case1: you use
  * same l_key and r_key and one of the endpoint is exclusive. case2: one of the
  * endpoint use null key but the string size is not zero like
@@ -272,6 +276,7 @@ scan(std::string_view storage_name, std::string_view l_key, // NOLINT
      std::vector<std::tuple<std::string, ValueType*, std::size_t>>& tuple_list,
      std::vector<std::pair<node_version64_body, node_version64*>>*
              node_version_vec,
-     std::size_t max_size);
+     std::size_t max_size,
+     bool right_to_left);
 
 } // namespace yakushima
