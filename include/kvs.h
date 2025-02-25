@@ -241,7 +241,7 @@ put(Token token, std::string_view storage_name, // NOLINT
  * conditions are satisfied.
  * - `r_key` < `l_key` and neither `l_end` nor `r_end` is scan_endpoint::INF
  * - `l_key` equals to `r_key` and either `l_end` or `r_end` is scan_endpoint::EXCLUSIVE
- k - `r_key` is empty string and `r_end` is scan_endpoint::EXCLUSIVE
+ * - `r_key` is empty string and `r_end` is scan_endpoint::EXCLUSIVE
  * @param[out] tuple_list A set with a key, a pointer to value, and size of
  * value as a result of this function.
  * The address obtained here can be accessed safely until the Token entered at the time of address acquisition leaves.
