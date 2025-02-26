@@ -230,17 +230,18 @@ put(Token token, std::string_view storage_name, // NOLINT
  * @param[in] l_end If this argument is scan_endpoint::EXCLUSIVE, the interval
  * does not include the endpoint. If this argument is scan_endpoint::INCLUSIVE,
  * the interval contains the endpoint. If this is scan_endpoint::INF, there is
- * no limit on the interval in left direction.
+ * no limit on the interval in left direction and `l_key` is ignored.
  * @param[in] r_key An argument that specifies the right endpoint.
  * @param[in] r_end If this argument is scan_endpoint::EXCLUSIVE, the interval
  * does not include the endpoint. If this argument is scan_endpoint::INCLUSIVE,
  * the interval contains the endpoint. If this is scan_endpoint::INF, there is
- * no limit on the interval in right direction.
+ * no limit on the interval in right direction and `r_key` is ignored.
  * @note The interval defined by `l_key`, `l_end`, `r_key`, and `r_end` must represent a valid range
  * and otherwise an error (Status::ERR_BAD_USAGE) will be returned. A range is invalid if any of the following
  * conditions are satisfied.
- * - `r_key` < `l_key` and neither `l_end` nor `r_end` is scan_endpoint::INF
- * - `l_key` equals to `r_key` and either `l_end` or `r_end` is scan_endpoint::EXCLUSIVE
+ * - neither `l_end` nor `r_end` is scan_endpoint::INF and `r_key` < `l_key`
+ * - neither `l_end` nor `r_end` is scan_endpoint::INF and `l_key` == `r_key` and either `l_end` or `r_end`
+ * is scan_endpoint::EXCLUSIVE
  * - `r_key` is empty string and `r_end` is scan_endpoint::EXCLUSIVE
  * @param[out] tuple_list A set with a key, a pointer to value, and size of
  * value as a result of this function.
@@ -264,9 +265,7 @@ put(Token token, std::string_view storage_name, // NOLINT
  * When this is set to true, current implementation has following limitation: 1. max_size must be 1 so that at most
  * one entry is hit and returned as scan result 2. r_end must be scan_endpoint::INF so that the scan is performed from
  * unbounded right end. Status::ERR_BAD_USAGE is returned if these conditions are not met.
- * @return Status::ERR_BAD_USAGE The input argument or the range given by the arguments are invalid (see note above.)
- * This includes the case where one of the endpoints uses scan_endpoint::INF and the corresponding key is not null
- * (i.e. different from default constructed std::string_view.)
+ * @return Status::ERR_BAD_USAGE The input argument or the range given by the arguments is invalid (see note above.)
  * @return status::OK success.
  * @return Status::OK_ROOT_IS_NULL success and root is null.
  * @return status::WARN_STORAGE_NOT_EXIST The target storage of this operation
