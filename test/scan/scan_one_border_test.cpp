@@ -188,7 +188,7 @@ TEST_F(st, scan_against_single_put_non_null_key_to_one_border) { // NOLINT
               scan<char>(test_storage_name, k, scan_endpoint::EXCLUSIVE, "",
                          scan_endpoint::EXCLUSIVE, tup_lis, &nv));
     ASSERT_EQ(verify_no_exist(), true);
-    // "k" inf, "k" exc
+    // "k" inf, "k" inf
     ASSERT_EQ(status::OK, scan<char>(test_storage_name, k, scan_endpoint::INF,
                                      k, scan_endpoint::INF, tup_lis, &nv));
     ASSERT_EQ(verify_exist(), true);
@@ -201,7 +201,7 @@ TEST_F(st, scan_against_single_put_non_null_key_to_one_border) { // NOLINT
     ASSERT_EQ(status::ERR_BAD_USAGE,
               scan<char>(test_storage_name, k, scan_endpoint::INF, k,
                          scan_endpoint::EXCLUSIVE, tup_lis, &nv));
-    // "k" inf, "k" inf
+    // "k" inc, "k" inf
     ASSERT_EQ(status::OK,
               scan<char>(test_storage_name, k, scan_endpoint::INCLUSIVE, k,
                          scan_endpoint::INF, tup_lis, &nv));
