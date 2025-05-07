@@ -46,6 +46,11 @@ if (ENABLE_JEMALLOC)
 endif ()
 
 function(set_compile_options target_name)
-  target_compile_options(${target_name}
-  PRIVATE -Wall -Wextra -Werror)
+  if (BUILD_STRICT)
+    target_compile_options(${target_name}
+      PRIVATE -Wall -Wextra -Werror)
+  else()
+    target_compile_options(${target_name}
+      PRIVATE -Wall -Wextra)
+  endif()
 endfunction(set_compile_options)
