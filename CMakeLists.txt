@@ -12,6 +12,7 @@ option(BUILD_BENCHMARK "Build benchmark programs" ON)
 option(BUILD_TESTS "Build test programs" ON)
 option(BUILD_DOCUMENTS "Build documents" ON)
 option(BUILD_ONLY_WD_TEST "Build only working directory about test for dev" OFF)
+option(BUILD_STRICT "build with option strictly determine of success" ON)
 
 option(ENABLE_SANITIZER "enable sanitizer on debug build" ON)
 option(ENABLE_UB_SANITIZER "enable undefined behavior sanitizer on debug build" ON)

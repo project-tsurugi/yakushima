@@ -42,6 +42,8 @@ available options:
 default : `ON`
 * `-DBUILD_DOCUMENTS=OFF` : never build documents by doxygen<br>
 default : `ON`
+* `-DBUILD_STRICT=OFF` - don't treat compile warnings as build errors<br>
+default : `ON`
 * `-DCMAKE_INSTALL_PREFIX=/path/to/yakushima/installed`
 * `-DFORMAT_FILES_WITH_CLANG_FORMAT_BEFORE_EACH_BUILD=ON` : use formatting for source files<br>
 default : `OFF`
