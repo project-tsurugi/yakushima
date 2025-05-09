@@ -83,6 +83,9 @@ TEST_F(scan_reverse_test, scan_results_zero) { // NOLINT
 }
 
 TEST_F(scan_reverse_test, long_key_scan) { // NOLINT
+#ifdef __clang__
+    GTEST_SKIP() << "FIXME: clang Debug build may exceed max stack size";
+#endif
     // prepare
     Token s{};
     ASSERT_EQ(status::OK, enter(s));

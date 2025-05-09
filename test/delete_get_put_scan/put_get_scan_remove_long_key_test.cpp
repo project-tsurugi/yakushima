@@ -37,6 +37,9 @@ private:
 
 TEST_F(put_get_scan_remove_long_key_test, put_get) { // NOLINT
                                                      // prepare
+#ifdef __clang__
+    GTEST_SKIP() << "FIXME: clang Debug build may exceed max stack size";
+#endif
     Token s{};
     ASSERT_EQ(status::OK, enter(s));
     std::string st{"test"};
