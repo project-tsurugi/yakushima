@@ -86,9 +86,10 @@ TEST_F(st, basic_usage) { // NOLINT
     ASSERT_EQ(status::ERR_BAD_USAGE,
               scan<char>(test_storage_name, "", scan_endpoint::EXCLUSIVE, "",
                          scan_endpoint::INCLUSIVE, tup_lis, &nv));
-    ASSERT_EQ(status::ERR_BAD_USAGE,
+    ASSERT_EQ(status::OK,
               scan<char>(test_storage_name, "", scan_endpoint::EXCLUSIVE, "",
                          scan_endpoint::INF, tup_lis, &nv));
+    ASSERT_EQ(true, verify());
     ASSERT_EQ(status::ERR_BAD_USAGE,
               scan<char>(test_storage_name, "", scan_endpoint::INF, "",
                          scan_endpoint::EXCLUSIVE, tup_lis, &nv));

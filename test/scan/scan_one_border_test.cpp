@@ -144,51 +144,46 @@ TEST_F(st, scan_against_single_put_non_null_key_to_one_border) { // NOLINT
               scan<char>(test_storage_name, "", scan_endpoint::INCLUSIVE, k,
                          scan_endpoint::EXCLUSIVE, tup_lis, &nv));
     ASSERT_EQ(verify_no_exist(), true);
-    // "k" inf, "" exc
-    ASSERT_EQ(status::OK,
-              scan<char>(test_storage_name, k, scan_endpoint::INF, "",
-                         scan_endpoint::EXCLUSIVE, tup_lis, &nv));
-    ASSERT_EQ(verify_no_exist(), true);
+    // "k" inf, "" inf
+    ASSERT_EQ(status::OK, scan<char>(test_storage_name, k, scan_endpoint::INF,
+                                     "", scan_endpoint::INF, tup_lis, &nv));
+    ASSERT_EQ(verify_exist(), true);
     // "k" inf, "" inc
     ASSERT_EQ(status::OK,
               scan<char>(test_storage_name, k, scan_endpoint::INF, "",
                          scan_endpoint::INCLUSIVE, tup_lis, &nv));
     ASSERT_EQ(verify_no_exist(), true);
-    // "k" inf, "" inf
-    ASSERT_EQ(status::OK, scan<char>(test_storage_name, k, scan_endpoint::INF,
-                                     "", scan_endpoint::INF, tup_lis, &nv));
-    ASSERT_EQ(verify_exist(), true);
+    // "k" inf, "" exc
+    ASSERT_EQ(status::ERR_BAD_USAGE,
+              scan<char>(test_storage_name, k, scan_endpoint::INF, "",
+                         scan_endpoint::EXCLUSIVE, tup_lis, &nv));
     // "k" inc, "" inf
     ASSERT_EQ(status::OK,
               scan<char>(test_storage_name, k, scan_endpoint::INCLUSIVE, "",
                          scan_endpoint::INF, tup_lis, &nv));
     ASSERT_EQ(verify_exist(), true);
     // "k" inc, "" inc
-    ASSERT_EQ(status::OK,
+    ASSERT_EQ(status::ERR_BAD_USAGE,
               scan<char>(test_storage_name, k, scan_endpoint::INCLUSIVE, "",
                          scan_endpoint::INCLUSIVE, tup_lis, &nv));
-    ASSERT_EQ(verify_no_exist(), true);
     // "k" inc, "" exc
-    ASSERT_EQ(status::OK,
+    ASSERT_EQ(status::ERR_BAD_USAGE,
               scan<char>(test_storage_name, k, scan_endpoint::INCLUSIVE, "",
                          scan_endpoint::EXCLUSIVE, tup_lis, &nv));
-    ASSERT_EQ(verify_no_exist(), true);
     // "k" exc, "" inf
     ASSERT_EQ(status::OK,
               scan<char>(test_storage_name, k, scan_endpoint::EXCLUSIVE, "",
                          scan_endpoint::INF, tup_lis, &nv));
     ASSERT_EQ(verify_no_exist(), true);
     // "k" exc, "" inc
-    ASSERT_EQ(status::OK,
+    ASSERT_EQ(status::ERR_BAD_USAGE,
               scan<char>(test_storage_name, k, scan_endpoint::EXCLUSIVE, "",
                          scan_endpoint::INCLUSIVE, tup_lis, &nv));
-    ASSERT_EQ(verify_no_exist(), true);
     // "k" exc, "" exc
-    ASSERT_EQ(status::OK,
+    ASSERT_EQ(status::ERR_BAD_USAGE,
               scan<char>(test_storage_name, k, scan_endpoint::EXCLUSIVE, "",
                          scan_endpoint::EXCLUSIVE, tup_lis, &nv));
-    ASSERT_EQ(verify_no_exist(), true);
-    // "k" inf, "k" exc
+    // "k" inf, "k" inf
     ASSERT_EQ(status::OK, scan<char>(test_storage_name, k, scan_endpoint::INF,
                                      k, scan_endpoint::INF, tup_lis, &nv));
     ASSERT_EQ(verify_exist(), true);
@@ -198,10 +193,11 @@ TEST_F(st, scan_against_single_put_non_null_key_to_one_border) { // NOLINT
                          scan_endpoint::INCLUSIVE, tup_lis, &nv));
     ASSERT_EQ(verify_exist(), true);
     // "k" inf, "k" exc
-    ASSERT_EQ(status::ERR_BAD_USAGE,
+    ASSERT_EQ(status::OK,
               scan<char>(test_storage_name, k, scan_endpoint::INF, k,
                          scan_endpoint::EXCLUSIVE, tup_lis, &nv));
-    // "k" inf, "k" inf
+    ASSERT_EQ(verify_no_exist(), true);
+    // "k" inc, "k" inf
     ASSERT_EQ(status::OK,
               scan<char>(test_storage_name, k, scan_endpoint::INCLUSIVE, k,
                          scan_endpoint::INF, tup_lis, &nv));
@@ -215,23 +211,19 @@ TEST_F(st, scan_against_single_put_non_null_key_to_one_border) { // NOLINT
     ASSERT_EQ(status::ERR_BAD_USAGE,
               scan<char>(test_storage_name, k, scan_endpoint::INCLUSIVE, k,
                          scan_endpoint::EXCLUSIVE, tup_lis, &nv));
-    // "k" inc, "k" inf
+    // "k" exc, "k" inf
     ASSERT_EQ(status::OK,
-              scan<char>(test_storage_name, k, scan_endpoint::INCLUSIVE, k,
-                         scan_endpoint::INF, tup_lis, &nv));
-    ASSERT_EQ(verify_exist(), true);
-    // "k" exc, "k" exc
-    ASSERT_EQ(status::ERR_BAD_USAGE,
               scan<char>(test_storage_name, k, scan_endpoint::EXCLUSIVE, k,
-                         scan_endpoint::EXCLUSIVE, tup_lis, &nv));
+                         scan_endpoint::INF, tup_lis, &nv));
+    ASSERT_EQ(verify_no_exist(), true);
     // "k" exc, "k" inc
     ASSERT_EQ(status::ERR_BAD_USAGE,
               scan<char>(test_storage_name, k, scan_endpoint::EXCLUSIVE, k,
                          scan_endpoint::INCLUSIVE, tup_lis, &nv));
-    // "k" exc, "k" inf
+    // "k" exc, "k" exc
     ASSERT_EQ(status::ERR_BAD_USAGE,
               scan<char>(test_storage_name, k, scan_endpoint::EXCLUSIVE, k,
-                         scan_endpoint::INF, tup_lis, &nv));
+                         scan_endpoint::EXCLUSIVE, tup_lis, &nv));
     ASSERT_EQ(leave(token), status::OK);
 }
 

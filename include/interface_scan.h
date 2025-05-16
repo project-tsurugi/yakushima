@@ -14,6 +14,28 @@
 
 namespace yakushima {
 
+static status
+check_empty_scan_range(const std::string_view l_key, const scan_endpoint l_end,
+                       const std::string_view r_key, const scan_endpoint r_end) {
+    if (r_end == scan_endpoint::INF) {
+        return status::OK; // if right end is inf, not empty
+    }
+    if (l_end == scan_endpoint::INF) {
+        // if left end is inf, not empty in most cases
+        if (r_end == scan_endpoint::EXCLUSIVE && r_key.empty()) {
+            return status::ERR_BAD_USAGE; // the only exception
+        }
+        return status::OK;
+    }
+    int cmp_key = l_key.compare(r_key);
+    if (cmp_key < 0) { return status::OK; } // if left is less, not empty
+    if (cmp_key > 0) { return status::ERR_BAD_USAGE; } // if left is greater, invalid range
+    // l_key == r_key
+    return (l_end == scan_endpoint::INCLUSIVE && r_end == scan_endpoint::INCLUSIVE)
+            ? status::OK // single point, not empty
+            : status::ERR_BAD_USAGE; // empty
+}
+
 template<class ValueType>
 [[maybe_unused]] static status
 scan(tree_instance* ti, std::string_view l_key, scan_endpoint l_end,
@@ -31,19 +53,8 @@ scan(tree_instance* ti, std::string_view l_key, scan_endpoint l_end,
         return status::ERR_BAD_USAGE;
     }
 
-    /**
-     * Case of l_key == r_key.
-     * 1 : l_key == r_key && (
-     * (l_end == scan_endpoint::INCLUSIVE || r_end == scan_endpoint::INCLUSIVE) ||
-     * (l_end == scan_endpoint::INCLUSIVE || r_end == scan_endpoint::INF) ||
-     * (l_end == scan_endpoint::INF || r_end == scan_endpoint::INCLUSIVE) ||
-     * )
-     * , only one point that matches the endpoint can be scanned.
-     * 2 : l_key == r_key &&  l_end == r_end == scan_endpoint::INF, all range.
-     */
-    if (l_key == r_key && (l_end == scan_endpoint::EXCLUSIVE ||
-                           r_end == scan_endpoint::EXCLUSIVE)) {
-        return status::ERR_BAD_USAGE;
+    if (auto rc = check_empty_scan_range(l_key, l_end, r_key, r_end); rc != status::OK) {
+        return rc;
     }
 
     /**
