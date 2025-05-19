@@ -29,12 +29,14 @@ TEST_F(ct, memcmp) { // NOLINT
     ASSERT_EQ(memcmp(k1.data(), k2.data(), 0), 0);
 }
 
-TEST_F(ct, key_tuple) {
+TEST_F(ct, key_tuple) { // NOLINT
     // regular case
-    char d1[8] = { 0x31, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-    char d2[8] = { 0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-    std::uint64_t ud1 = *reinterpret_cast<std::uint64_t*>(d1);
-    std::uint64_t ud2 = *reinterpret_cast<std::uint64_t*>(d2);
+    char s1[8] = { 0x31, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }; // NOLINT
+    char s2[8] = { 0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }; // NOLINT
+    std::uint64_t ud1 = 0;
+    std::uint64_t ud2 = 0;
+    memcpy(&ud1, s1, 8);
+    memcpy(&ud2, s2, 8);
     ASSERT_LT(base_node::key_tuple(ud1, 1), base_node::key_tuple(ud2, 1));
     ASSERT_LT(base_node::key_tuple(ud1, 1), base_node::key_tuple(ud2, 2));
     ASSERT_LT(base_node::key_tuple(ud1, 2), base_node::key_tuple(ud2, 1));
