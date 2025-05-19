@@ -187,8 +187,8 @@ public:
             n_keys_body_type n_key = get_n_keys();
             ret_child = nullptr;
             for (auto i = 0; i < n_key; ++i) {
-                std::size_t comp_length = std::min<std::size_t>({sizeof(key_slice_type), key_length, get_key_length_at(i)});
-                int ret_memcmp = memcmp(&key_slice, &get_key_slice_ref().at(i), comp_length);
+                int ret_memcmp = memcmp(&key_slice, &get_key_slice_ref().at(i),
+                                        std::min<std::size_t>({sizeof(key_slice_type), key_length, get_key_length_at(i)}));
                 if (ret_memcmp < 0 ||
                     (ret_memcmp == 0 && key_length < get_key_length_at(i))) {
                     /**
@@ -250,9 +250,9 @@ public:
         key_length_type key_length{pivot_key.second};
         n_keys_body_type n_key = get_n_keys();
         for (auto i = 0; i < n_key; ++i) {
-            std::size_t comp_length = std::min<std::size_t>({sizeof(key_slice_type), key_length, get_key_length_at(i)});
             int ret_memcmp =
-                    memcmp(&key_slice, &get_key_slice_ref().at(i), comp_length);
+                    memcmp(&key_slice, &get_key_slice_ref().at(i),
+                           std::min<std::size_t>({sizeof(key_slice_type), key_length, get_key_length_at(i)}));
             if (ret_memcmp < 0 ||
                 (ret_memcmp == 0 && key_length < get_key_length_at(i))) {
                 if (i == 0) { // insert to child[0] or child[1].

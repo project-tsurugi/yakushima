@@ -100,8 +100,7 @@ interior_split(tree_instance* ti, interior_node* const interior,
         LOG(ERROR) << log_location_prefix;
     }
 #endif
-    std::size_t comp_length = std::min<std::size_t>({sizeof(key_slice_type), key_length, pivot_length});
-    int ret_memcmp = memcmp(&key_slice, &pivot_key, comp_length);
+    int ret_memcmp = memcmp(&key_slice, &pivot_key, std::min<std::size_t>({sizeof(key_slice_type), key_length, pivot_length}));
     if (ret_memcmp < 0 || (ret_memcmp == 0 && key_length < pivot_length)) {
         child_node->set_parent(interior);
         interior->template insert<border_node>(child_node, inserting_key);
