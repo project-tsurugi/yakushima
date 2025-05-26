@@ -2,6 +2,7 @@
  * @file compare_test.cpp
  */
 
+#include <algorithm>
 #include <array>
 
 #include "base_node.h"
