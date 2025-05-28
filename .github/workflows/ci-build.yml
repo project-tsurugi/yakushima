@@ -75,7 +75,7 @@ jobs:
       checks: write
     timeout-minutes: 30
     container:
-      image: ghcr.io/project-tsurugi/tsurugi-ci:ubuntu-22.04
+      image: ghcr.io/project-tsurugi/tsurugi-ci:almalinux-latest
       volumes:
         - ${{ vars.ccache_dir }}:${{ vars.ccache_dir }}
     defaults:
@@ -83,7 +83,9 @@ jobs:
         shell: bash
     env:
       CCACHE_CONFIGPATH: ${{ vars.ccache_dir }}/ccache.conf
-      CCACHE_DIR: ${{ vars.ccache_dir }}/ubuntu-22.04
+      CCACHE_DIR: ${{ vars.ccache_dir }}/almalinux-latest
+      CC: clang
+      CXX: clang++
 
     steps:
       - name: Checkout
@@ -91,15 +93,16 @@ jobs:
         with:
           submodules: true
 
-      - name: CMake_Generate
+      - name: CMake_Build
         run: |
           mkdir build
           cd build
-          cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_INSTALL_PREFIX=${GITHUB_WORKSPACE}/.local -DPERFORMANCE_TOOLS=OFF ${{ inputs.cmake_build_option }} ..
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DBUILD_BENCHMARK=ON -DBUILD_TESTS=ON -DBUILD_STRICT=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_INSTALL_PREFIX=${GITHUB_WORKSPACE}/.local -DPERFORMANCE_TOOLS=OFF ${{ inputs.cmake_build_option }} ..
+          cmake --build . --target all --clean-first
 
       - name: Clang-Tidy
         run: |
-          python tools/bin/run-clang-tidy.py -quiet -export-fixes=build/clang-tidy-fix.yaml -p build -extra-arg=-Wno-unknown-warning-option -extra-arg=-fsized-deallocation -header-filter=$(pwd)'/(include|src|examples|bench)/.*\.h$' $(pwd)'/(src|examples|bench|test)/.*' 2>&1 | awk '!a[$0]++{print > "build/clang-tidy.log"}'
+          python3 tools/bin/run-clang-tidy.py -quiet -export-fixes=build/clang-tidy-fix.yaml -p build -extra-arg=-Wno-unknown-warning-option -extra-arg=-fsized-deallocation -header-filter=$(pwd)'/(include|src|examples|bench)/.*\.h$' $(pwd)'/(src|examples|bench|test)/.*' 2>&1 | awk '!a[$0]++{print > "build/clang-tidy.log"}'
 
       - name: Doxygen
         run: |
