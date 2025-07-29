@@ -78,7 +78,7 @@ public:
 
     void display() const {
         std::bitset<64> bs{get_body()};
-        std::cout << " perm : " << bs << std::endl;
+        std::cout << " perm : " << bs << "\n";
     }
 
     [[nodiscard]] std::size_t get_empty_slot() const {

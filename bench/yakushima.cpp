@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 tsurugi project.
+ * Copyright 2019-2025 Project Tsurugi.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

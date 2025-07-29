@@ -49,20 +49,20 @@ public:
      */
     void display() const {
         if (auto* child = get_next_layer(); child != nullptr) {
-            std::cout << "need_delete_value_ : " << false << std::endl;
-            std::cout << "next_layer_ : " << child << std::endl;
-            std::cout << "v_or_vp_ : " << nullptr << std::endl;
-            std::cout << "value_length_ : " << 0 << std::endl;
-            std::cout << "value_align_ : " << 0 << std::endl;
+            std::cout << "need_delete_value_ : " << false << "\n"
+                         "next_layer_ : " << child << "\n"
+                         "v_or_vp_ : " << nullptr << "\n"
+                         "value_length_ : " << 0 << "\n"
+                         "value_align_ : " << 0 << "\n";
         } else if (auto* v = get_value(); v != nullptr) {
             const auto del_flag = value::need_delete(v);
             const auto v_align = static_cast<std::size_t>(
                     std::get<2>(value::get_gc_info(v)));
-            std::cout << "need_delete_value_ : " << del_flag << std::endl;
-            std::cout << "next_layer_ : " << nullptr << std::endl;
-            std::cout << "v_or_vp_ : " << value::get_body(v) << std::endl;
-            std::cout << "value_length_ : " << value::get_len(v) << std::endl;
-            std::cout << "value_align_ : " << v_align << std::endl;
+            std::cout << "need_delete_value_ : " << del_flag << "\n"
+                         "next_layer_ : " << nullptr << "\n"
+                         "v_or_vp_ : " << value::get_body(v) << "\n"
+                         "value_length_ : " << value::get_len(v) << "\n"
+                         "value_align_ : " << v_align << "\n";
         }
     }
 

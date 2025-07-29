@@ -140,12 +140,12 @@ public:
     void display() override {
         display_base();
 
-        std::cout << "interior_node::display" << std::endl;
-        std::cout << "nkeys_ : " << std::to_string(get_n_keys()) << std::endl;
+        std::cout << "interior_node::display\n";
+        std::cout << "nkeys_ : " << std::to_string(get_n_keys()) << "\n";
         for (std::size_t i = 0; i <= get_n_keys(); ++i) {
-            std::cout << "child : " << i << " : " << get_child_at(i)
-                      << std::endl;
+            std::cout << "child : " << i << " : " << get_child_at(i) << "\n";
         }
+        std::cout << std::flush;
     }
 
     /**

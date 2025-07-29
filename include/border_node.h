@@ -211,12 +211,12 @@ public:
      */
     void display() override {
         display_base();
-        cout << "border_node::display" << endl;
+        cout << "border_node::display\n";
         permutation_.display();
         for (std::size_t i = 0; i < get_permutation_cnk(); ++i) {
             lv_.at(i).display();
         }
-        cout << "next : " << get_next() << endl;
+        cout << "next : " << get_next() << endl; // NOLINT(*-endl)
     }
 
     /**
