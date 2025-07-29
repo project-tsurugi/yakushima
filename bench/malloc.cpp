@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 tsurugi project.
+ * Copyright 2019-2025 Project Tsurugi.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -129,21 +129,20 @@ static void invoke_leader() {
 
     waitForReady(readys);
     storeReleaseN(start, true);
-    std::cout << "[start] measurement." << std::endl;
+    std::cout << "[start] measurement." << std::endl; // NOLINT(*-avoid-endl)
     for (size_t i = 0; i < FLAGS_duration; ++i) { sleepMs(1000); }
-    std::cout << "[end] measurement." << std::endl;
+    std::cout << "[end] measurement.\n";
     storeReleaseN(quit, true);
-    std::cout << "[start] join worker threads." << std::endl;
+    std::cout << "[start] join worker threads." << std::endl; // NOLINT(*-avoid-endl)
     for (auto& th : thv) th.join();
-    std::cout << "[end] join worker threads." << std::endl;
+    std::cout << "[end] join worker threads." << std::endl; // NOLINT(*-avoid-endl)
 
     std::uint64_t fin_res{0};
     for (std::uint64_t i = 0; i < FLAGS_thread; ++i) {
         if ((UINT64_MAX - fin_res) < res[i]) {
             std::cout << __FILE__ << " : " << __LINE__
                       << " : experimental setting is bad, which leads to "
-                         "overflow."
-                      << std::endl;
+                         "overflow.\n";
             exit(1);
         }
         fin_res += res[i];
