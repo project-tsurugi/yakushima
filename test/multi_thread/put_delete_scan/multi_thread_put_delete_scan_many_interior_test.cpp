@@ -4,8 +4,10 @@
 
 #include <algorithm>
 #include <array>
+#include <iomanip>
 #include <mutex>
 #include <random>
+#include <sstream>
 #include <thread>
 
 #include "kvs.h"
@@ -40,6 +42,19 @@ private:
 std::string test_storage_name{"1"}; // NOLINT
 std::mutex debug_mtx;               // NOLINT
 
+static std::string hexstr(const std::string& str) {
+    std::ostringstream ss{};
+    ss << std::hex;
+    bool first{true};
+    for (auto c : str) {
+        if (first) { first = false; }
+        else { ss << '-'; }
+        ss << std::setw(2) << std::setfill('0')
+           << static_cast<unsigned int>(static_cast<unsigned char>(c));
+    }
+    return ss.str();
+}
+
 TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
        many_interior) {                                 // NOLINT
     /**
@@ -49,12 +64,7 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
 
     constexpr std::size_t ary_size =
             interior_node::child_length * key_slice_length * 1.4;
-    std::size_t th_nm{};
-    if (ary_size > std::thread::hardware_concurrency()) {
-        th_nm = std::thread::hardware_concurrency();
-    } else {
-        th_nm = ary_size;
-    }
+    std::size_t th_nm{std::min<std::size_t>(ary_size, std::thread::hardware_concurrency())};
 
     for (std::size_t h = 0; h < 1; ++h) {
         create_storage(test_storage_name);
@@ -123,15 +133,16 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
                     std::string check_key = std::get<0>(*tuple_list.begin());
                     for (auto itr = tuple_list.begin() + 1;
                          itr != tuple_list.end(); ++itr) { // NOLINT
-                        if (check_key == std::get<0>(*itr)) {
-                            std::unique_lock lk{debug_mtx};
+                        if (check_key >= std::get<0>(*itr)) {
+                            std::unique_lock lk{debug_mtx}; // why need this???
                             LOG(INFO) << "it found duplicate. thread " << th_id;
                             for (auto itr_2 = tuple_list.begin(); // NOLINT
                                  itr_2 != tuple_list.end(); ++itr_2) {
                                 LOG(INFO) << "th_id:" << th_id << ", size:"
                                           << std::get<0>(*itr_2).size()
-                                          << ", key:" << std::get<0>(*itr_2);
+                                          << ", key:" << hexstr(std::get<0>(*itr_2));
                             }
+                            ASSERT_LT(check_key, std::get<0>(*itr));
                             LOG(FATAL);
                         }
                         check_key = std::get<0>(*itr);
