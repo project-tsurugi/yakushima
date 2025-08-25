@@ -65,6 +65,7 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
     constexpr std::size_t ary_size =
             interior_node::child_length * key_slice_length * 1.4;
     std::size_t th_nm{std::min<std::size_t>(ary_size, std::thread::hardware_concurrency())};
+    LOG(INFO) << "process " << ary_size << " nodes by " << th_nm << " threads";
 
     for (std::size_t h = 0; h < 1; ++h) {
         create_storage(test_storage_name);
@@ -142,6 +143,7 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
                                           << std::get<0>(*itr_2).size()
                                           << ", key:" << hexstr(std::get<0>(*itr_2));
                             }
+                            display(); // it's not thread-safe, but something is already broken
                             ASSERT_LT(check_key, std::get<0>(*itr));
                             LOG(FATAL);
                         }
