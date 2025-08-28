@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <iomanip>
 #include <sstream>
 
 #include "border_node.h"
@@ -21,6 +22,19 @@ namespace yakushima {
 // forward declaration
 static void display_node(std::stringstream& ss, base_node* n,
                          std::string& key_prefix);
+
+static std::string hexstr(const std::string& str) {
+    std::ostringstream ss{};
+    ss << std::hex;
+    bool first{true};
+    for (auto c : str) {
+        if (first) { first = false; }
+        else { ss << '-'; }
+        ss << std::setw(2) << std::setfill('0')
+           << static_cast<unsigned int>(static_cast<unsigned char>(c));
+    }
+    return ss.str();
+}
 
 static void display_border(std::stringstream& ss, border_node* n,
                            std::string& key_prefix) {
@@ -41,6 +55,7 @@ static void display_border(std::stringstream& ss, border_node* n,
             } else {
                 key = std::string(reinterpret_cast<char*>(&ks), kl); // NOLINT
             }
+            key = hexstr(key);
         }
         ss << "((" << key_prefix + key << ","
            << std::to_string(n->get_key_length_at(index) + key_prefix.size())
@@ -88,7 +103,7 @@ static void display_border(std::stringstream& ss, border_node* n,
                                       kl);
                 }
             }
-            std::string new_prefix{key_prefix + key};
+            std::string new_prefix{key_prefix + hexstr(key) + "-"};
             display_node(ss, next_layer, new_prefix);
         }
     }
@@ -103,7 +118,7 @@ static void display_interior(std::stringstream& ss, interior_node* n,
         key_length_type kl = n->get_key_length_at(i);
         std::string key{};
         if (kl > 0) {
-            key = std::string(reinterpret_cast<char*>(&ks), kl); // NOLINT
+            key = hexstr(std::string(reinterpret_cast<char*>(&ks), kl)); // NOLINT
         }
         ss << n->get_child_at(i) << "," << key_prefix + key << ",";
     }
