@@ -272,6 +272,7 @@ static void border_split(tree_instance* ti, border_node* const border,
         new_border->version_unlock();
         ti->store_root_ptr(p);
         p->version_unlock();
+LOG(INFO) << "split root b:" << border << " p:" << p << " nb:" << new_border;
         return;
     }
 
@@ -299,6 +300,7 @@ static void border_split(tree_instance* ti, border_node* const border,
         link_or_value* lv = pb->get_lv(border);
         lv->set_next_layer(pi);
         p->version_unlock();
+LOG(INFO) << "split b:" << border << " pi:" << pi << " pb:" << pb << " nb:" << new_border;
         return;
     }
     /**
@@ -308,6 +310,7 @@ static void border_split(tree_instance* ti, border_node* const border,
     if (p->get_version_deleted()) { LOG(ERROR) << log_location_prefix; }
 #endif
     auto* pi = dynamic_cast<interior_node*>(p);
+LOG(INFO) << "split b:" << border << " p:" << pi << " nb:" << new_border;
     border->set_version_root(false);
     new_border->set_version_root(false);
     border->version_unlock();
