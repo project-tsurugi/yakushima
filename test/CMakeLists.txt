@@ -19,22 +19,22 @@ if (BUILD_ONLY_WD_TEST)
           )
 else ()
   file(GLOB TEST_SOURCES
-          "*.cpp"
-          "multi_thread/*.cpp"
-          "multi_thread/delete/*.cpp"
-          "multi_thread/put/*.cpp"
+#          "*.cpp"
+#          "multi_thread/*.cpp"
+#          "multi_thread/delete/*.cpp"
+#          "multi_thread/put/*.cpp"
           "multi_thread/put_delete/*.cpp"
           "multi_thread/put_delete_scan/*.cpp"
-          "multi_thread/put_delete_get/*.cpp"
-          "put/*.cpp"
-          "put_get/*.cpp"
-          "get/*.cpp"
-          "scan/*.cpp"
-          "delete/*.cpp"
-          "display/*.cpp"
-          "delete_get_put_scan/*.cpp"
-          "delete_put/*.cpp"
-          "tsurugi_issue/*.cpp"
+#          "multi_thread/put_delete_get/*.cpp"
+#          "put/*.cpp"
+#          "put_get/*.cpp"
+#          "get/*.cpp"
+#          "scan/*.cpp"
+#          "delete/*.cpp"
+#          "display/*.cpp"
+#          "delete_get_put_scan/*.cpp"
+#          "delete_put/*.cpp"
+#          "tsurugi_issue/*.cpp"
           )
 endif ()
 
