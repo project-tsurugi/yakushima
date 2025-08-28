@@ -152,7 +152,6 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
 
                     for (auto& i : kv) {
                         std::string k(std::get<0>(i));
-                        std::string v(std::get<1>(i));
                         status ret = remove(token, test_storage_name, k);
                         if (ret != status::OK) {
                             ASSERT_EQ(ret, status::OK);
@@ -276,7 +275,6 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
                     ASSERT_EQ(check_ctr, kv.size());
                     for (auto& i : kv) {
                         std::string k(std::get<0>(i));
-                        std::string v(std::get<1>(i));
                         status ret = remove(token, test_storage_name, k);
                         if (ret != status::OK) {
                             ASSERT_EQ(ret, status::OK);
