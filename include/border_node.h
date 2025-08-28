@@ -56,6 +56,7 @@ public:
 
         // rearrange permutation
         permutation_.delete_rank(rank);
+LOG(INFO) << "delete@ b:" << this << " r:" << rank;
     }
 
     /**
@@ -138,6 +139,7 @@ public:
                  memcmp(&key_slice, &get_key_slice_ref().at(index),
                         sizeof(key_slice_type)) == 0)) {
                 delete_at(token, i, index, target_is_value);
+LOG(INFO) << "deleteof" << (target_is_value ? "V" : "L") << " b:" << this << " i:" << i << "/" << cnk << " root:" << ti->load_root_ptr();
                 if (cnk == 1) { // attention : this cnk is before delete_at;
                     set_version_deleted(true);
 
@@ -532,6 +534,7 @@ public:
                               static_cast<key_length_type>(key_view.size()));
             // set value
             set_lv_value(index, new_value, created_value_ptr);
+LOG(INFO) << "insert@ b:" << this << " r:" << rank << " i:" << index << " val:" << new_value;
         }
         permutation_.insert_rank(rank, index);
     }

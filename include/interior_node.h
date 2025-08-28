@@ -59,6 +59,7 @@ public:
                     n_keys_decrement();
                     base_node* sibling = get_child_at(1 - i); // i == 0 or 1
                     base_node* pn = lock_parent(ti);
+LOG(INFO) << "deleteof I:" << this << " c:" << child << " i:" << i << "/" << n_key << " pn:" << pn << " ex-c:" << sibling;
                     if (pn == nullptr) { // if this node is masstree root
                         set_version_root(false); // guard by root lock
                         sibling->atomic_set_version_root(true); // guard by root lock
@@ -86,6 +87,7 @@ public:
                     tinfo->get_gc_info().push_node_container(
                             std::tuple{tinfo->get_begin_epoch(), this});
                 } else {          // n_key > 1
+LOG(INFO) << "deleteof I:" << this << " c:" << child << " i:" << i << "/" << n_key;
                     if (i == 0) { // leftmost points
                         shift_left_base_member(1, 1);
                         shift_left_children(1, 1);
