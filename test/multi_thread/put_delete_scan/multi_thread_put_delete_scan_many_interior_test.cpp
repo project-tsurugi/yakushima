@@ -224,7 +224,8 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, many_interior_inlined_va
                      ++i) {
                     if (i <= INT8_MAX) {
                         kv.emplace_back(
-                                std::make_pair(std::string(1, i), &pointers[i]));
+                                std::make_pair(std::string(1, i), // NOLINT
+                                               &pointers[i]));
                     } else {
                         kv.emplace_back(std::make_pair(
                                 std::string(i / INT8_MAX, INT8_MAX) + // NOLINT
