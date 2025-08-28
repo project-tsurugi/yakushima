@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <iomanip>
 #include <sstream>
 
 #include "border_node.h"
@@ -21,6 +22,22 @@ namespace yakushima {
 // forward declaration
 static void display_node(std::stringstream& ss, base_node* n,
                          std::string& key_prefix);
+
+static std::string display_printstr(const std::string& str) {
+    if (std::all_of(str.begin(), str.end(), [](char ch){ return 0x20 <= ch && ch < 0x7f; })) {
+        return str;
+    }
+    std::ostringstream ss{};
+    ss << std::hex;
+    bool first{true};
+    for (auto c : str) {
+        if (first) { first = false; }
+        else { ss << '-'; }
+        ss << std::setw(2) << std::setfill('0')
+           << static_cast<unsigned int>(static_cast<unsigned char>(c));
+    }
+    return ss.str();
+}
 
 static void display_border(std::stringstream& ss, border_node* n,
                            std::string& key_prefix) {
@@ -42,18 +59,20 @@ static void display_border(std::stringstream& ss, border_node* n,
                 key = std::string(reinterpret_cast<char*>(&ks), kl); // NOLINT
             }
         }
-        ss << "((" << key_prefix + key << ","
+        ss << "((" << display_printstr(key_prefix + key) << ","
            << std::to_string(n->get_key_length_at(index) + key_prefix.size())
            << "),";
         if (kl > sizeof(key_slice_type)) {
             ss << n->get_lv_at(index)->get_next_layer();
+        } else if (!value::is_value_ptr(value_ptr)) { // inlined value
+            ss << value_ptr;
         } else {
             std::string value_str{};
             void* val_ptr = value::get_body(value_ptr);
             auto val_len = value::get_len(value_ptr);
             if (val_len <= sizeof(void*)) { // inline opt
                 if (val_len > 0) {
-                    value_str = std::string(val_len, '0');
+                    value_str.resize(val_len);
                     memcpy(value_str.data(), val_ptr, val_len);
                 }
             } else { // not inline opt len > sizeof(void*)
@@ -61,7 +80,7 @@ static void display_border(std::stringstream& ss, border_node* n,
                         std::string(reinterpret_cast<char*>(val_ptr), // NOLINT
                                     val_len);
             }
-            ss << value_str;
+            ss << display_printstr(value_str);
         }
         ss << "), ";
     }
@@ -101,7 +120,7 @@ static void display_interior(std::stringstream& ss, interior_node* n,
         if (kl > 0) {
             key = std::string(reinterpret_cast<char*>(&ks), kl); // NOLINT
         }
-        ss << n->get_child_at(i) << "," << key_prefix + key << ",";
+        ss << n->get_child_at(i) << "," << display_printstr(key_prefix + key) << ",";
     }
     ss << n->get_child_at(n->get_n_keys()) << "\n";
     for (std::size_t i = 0; i <= n->get_n_keys(); ++i) {

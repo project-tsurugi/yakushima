@@ -4,6 +4,7 @@
 
 #include <array>
 #include <mutex>
+#include <string>
 
 #include "kvs.h"
 
@@ -43,6 +44,10 @@ TEST_F(display_test, simple) { // NOLINT
     ASSERT_OK(create_storage(st3));
     std::string st4{"test4"};
     ASSERT_OK(create_storage(st4));
+    std::string st5{"test5"};
+    ASSERT_OK(create_storage(st5));
+    std::string st6{"test6"};
+    ASSERT_OK(create_storage(st6));
     Token t{};
     ASSERT_OK(enter(t));
 
@@ -84,10 +89,45 @@ TEST_F(display_test, simple) { // NOLINT
                       &nvp_for_put));
     }
 
+    // test5: multi layer version of test4
+    for (std::size_t i = 0; i < 20; ++i) {
+        k = "abcdefgh" + std::to_string(i);
+        ASSERT_OK(put(t, st5, k, v.data(), v.size(), &tmp_created_value_ptr,
+                      static_cast<value_align_type>(alignof(char)), true,
+                      &nvp_for_put));
+    }
+
+    // test6: multi layer 2 border (inlined)
+    k = "12345678a";
+    auto* p = reinterpret_cast<void*>(uintptr_t(0x12345678AULL)); // NOLINT
+    ASSERT_OK(put<void*>(t, st6, k, &p, sizeof(p)));
+
     // test
     display();
 
     // cleanup
+    ASSERT_OK(leave(t));
+}
+
+TEST_F(display_test, binary) { // NOLINT
+    using namespace std::literals::string_literals;
+
+    std::string st{"test"};
+    ASSERT_OK(create_storage(st));
+    Token t{};
+    ASSERT_OK(enter(t));
+
+    std::string data[][2] = { // NOLINT
+        {"k1"s, "v1"s},
+        {"\0\0"s, "\0\0\0\0"s},
+        {"\0\0\0\0\0\0\0\0\0"s, "NUL9"s}
+    };
+    for (auto& [k, v] : data) {
+        ASSERT_OK(put(t, st, k, v.data(), v.size())) << "k=" << k;
+    }
+
+    display();
+
     ASSERT_OK(leave(t));
 }
 
