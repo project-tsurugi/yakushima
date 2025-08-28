@@ -273,12 +273,12 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, many_interior_inlined_va
                         if (check_key >= std::get<0>(*itr)) {
                             std::unique_lock lk{debug_mtx}; // why need this???
                             LOG(INFO) << "it found duplicate. thread " << th_id;
+                            std::ostringstream ss{};
                             for (auto itr_2 = tuple_list.begin(); // NOLINT
                                  itr_2 != tuple_list.end(); ++itr_2) {
-                                LOG(INFO) << "th_id:" << th_id << ", size:"
-                                          << std::get<0>(*itr_2).size()
-                                          << ", key:" << hexstr(std::get<0>(*itr_2));
+                                ss << " " << hexstr(std::get<0>(*itr_2));
                             }
+                            LOG(INFO) << "keys[" << ss.str() << " ]";
                             display(); // it's not thread-safe, but something is already broken
                             ASSERT_LT(check_key, std::get<0>(*itr));
                             LOG(FATAL);
