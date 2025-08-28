@@ -53,7 +53,7 @@ static void display_border(std::stringstream& ss, border_node* n,
             auto val_len = value::get_len(value_ptr);
             if (!value::is_value_ptr(value_ptr)) {
                 ss << value_ptr;  // and value_str="";
-            } else
+            } else {
             if (val_len <= sizeof(void*)) { // inline opt
                 if (val_len > 0) {
                     value_str = std::string(val_len, '0');
@@ -63,6 +63,7 @@ static void display_border(std::stringstream& ss, border_node* n,
                 value_str =
                         std::string(reinterpret_cast<char*>(val_ptr), // NOLINT
                                     val_len);
+            }
             }
             ss << value_str;
         }
