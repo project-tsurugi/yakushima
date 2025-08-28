@@ -140,7 +140,7 @@ retry:
          * fail. it doesn't need to clear tuple and node information because
          * caller of this will do.
          */
-        if (check_status == status::OK_RETRY_AFTER_FB) {
+        if (check_status == status::OK_RETRY_AFTER_FB) {  // never reach
             node_version64_body re_check_v = bn->get_stable_version();
             if (check_v.get_vsplit() != re_check_v.get_vsplit() ||
                 // retry from this b+ tree
@@ -158,6 +158,7 @@ retry:
         } else if (check_status == status::OK_RETRY_FROM_ROOT) {
             clean_up_tuple_list_nvc(initial_size_of_tuple_list,
                                     initial_size_of_node_version_vec);
+LOG(INFO) << "retry";
             goto retry; // NOLINT
         }
     }
@@ -165,6 +166,9 @@ retry:
 
 /**
  * scan for some leafnode of b+tree.
+ * returns: OK_SCAN_END
+ *          OK_SCAN_CONTINUE
+ *          OK_RETRY_FROM_ROOT
  */
 template<class ValueType>
 static status
@@ -265,6 +269,7 @@ retry:
             return status::OK_RETRY_FROM_ROOT;
         }
         if (check_status == status::OK_RETRY_AFTER_FB) {
+LOG(INFO) << "retry";
             goto retry; // NOLINT
         }
         if (kl > sizeof(key_slice_type)) {
@@ -327,6 +332,7 @@ retry:
             if (check_status != status::OK) {
                 // failed. clean up tuple list and node vesion vec.
                 clean_up_tuple_list_nvc();
+LOG(INFO) << "retry";
                 goto retry; // NOLINT
             }
             if (max_size != 0 && tuple_list.size() >= max_size) {
@@ -437,6 +443,7 @@ retry:
         return status::OK_RETRY_FROM_ROOT;
     }
     if (check_status == status::OK_RETRY_AFTER_FB) {
+LOG(INFO) << "retry";
         goto retry; // NOLINT
     }
 

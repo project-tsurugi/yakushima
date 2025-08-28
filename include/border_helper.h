@@ -309,6 +309,7 @@ static void border_split(tree_instance* ti, border_node* const border,
     if (p->get_version_deleted()) { LOG(ERROR) << log_location_prefix; }
 #endif
     auto* pi = dynamic_cast<interior_node*>(p);
+LOG(INFO) << "split " << pi;
     border->set_version_root(false);
     new_border->set_version_root(false);
     border->version_unlock();
