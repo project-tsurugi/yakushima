@@ -46,7 +46,11 @@ inline status scan_check_retry(border_node* const bn,
 }
 
 /**
- * scan for some try nodes which is not root.
+ * scan for some trie nodes which is not masstree root.
+ * returns:
+ *   OK:                 scan complete, i.e. reached search range end or entrire tree, or max_size
+ *   OK_RETRY_FROM_ROOT: interrupted by concurrent modification, and changed the structire around the root of B+-layer
+ *   OK_RETRY_AFTER_FB:  ??
  */
 template<class ValueType>
 static status
@@ -140,7 +144,7 @@ retry:
          * fail. it doesn't need to clear tuple and node information because
          * caller of this will do.
          */
-        if (check_status == status::OK_RETRY_AFTER_FB) {
+        if (check_status == status::OK_RETRY_AFTER_FB) {  // never reach
             node_version64_body re_check_v = bn->get_stable_version();
             if (check_v.get_vsplit() != re_check_v.get_vsplit() ||
                 // retry from this b+ tree
@@ -165,6 +169,22 @@ retry:
 
 /**
  * scan for some leafnode of b+tree.
+ * params:
+ *   target: [inout] search target border node, overwritten by next border at return
+ *   l_key: [in] left end key string (prefix removed)
+ *   l_end: [in] left end
+ *   r_key: [in] right end key string (full string)
+ *   r_end: [in] right end
+ *   tuple_list: [out] to store result
+ *   v_at_fb: [inout] version of target border node, overwritten by next border at return
+ *   node_version_vec: [out] to store node versions
+ *   key_prefix: [in]
+ *   max_size: [in]
+ *   right_to_left: [in]
+ * returns:
+ *   OK_SCAN_END:        scan complete, i.e. reached search range end or entrire tree, or max_size
+ *   OK_SCAN_CONTINUE:   scan complete for this border
+ *   OK_RETRY_FROM_ROOT: interrupted by concurrent modification, and cannot recover by retrying this border
  */
 template<class ValueType>
 static status
