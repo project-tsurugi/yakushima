@@ -66,6 +66,7 @@ scan(base_node* const root, const std::string_view l_key,
     if (node_version_vec != nullptr) {
         initial_size_of_node_version_vec = node_version_vec->size();
     }
+LOG(INFO) << "scan-i " << root;
 
     /**
      * For retry of failing optimistic verify, it must erase parts of
@@ -190,6 +191,7 @@ scan_border(border_node** const target, const std::string_view l_key,
     if (node_version_vec != nullptr) {
         initial_size_of_node_version_vec = node_version_vec->size();
     }
+LOG(INFO) << "scan " << *target;
     /**
      * For retry of failing optimistic verify, it must erase parts of
      * tuple_list and node vec. clear between initial_size... and current size.
