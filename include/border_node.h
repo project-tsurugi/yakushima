@@ -56,6 +56,7 @@ public:
         // rearrange permutation
         permutation_.delete_rank(rank);
         permutation_.dec_key_num();
+LOG(INFO) << "delete@ b:" << this << " r:" << rank;
     }
 
     /**
@@ -138,6 +139,7 @@ public:
                         sizeof(key_slice_type)) == 0)) {
                 delete_at(token, i, index, target_is_value);
                 if (cnk == 1) { // attention : this cnk is before delete_at;
+LOG(INFO) << "deleteof cnk1 b:" << this;
                     set_version_deleted(true);
                     if (ti->load_root_ptr() != this) {
                         // root && deleted node is treated as special. This isn't.
