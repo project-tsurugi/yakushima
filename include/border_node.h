@@ -534,6 +534,7 @@ public:
                               static_cast<key_length_type>(key_view.size()));
             // set value
             set_lv_value(index, new_value, created_value_ptr);
+LOG(INFO) << "insert@ b:" << this << " r:" << rank << " i:" << index << " val:" << new_value;
         }
         permutation_.inc_key_num();
         permutation_.insert(rank, index);
