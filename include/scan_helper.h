@@ -158,7 +158,7 @@ retry:
         } else if (check_status == status::OK_RETRY_FROM_ROOT) {
             clean_up_tuple_list_nvc(initial_size_of_tuple_list,
                                     initial_size_of_node_version_vec);
-LOG(INFO) << "retry";
+LOG(INFO) << "retry-i " << root;
             goto retry; // NOLINT
         }
     }
@@ -269,7 +269,7 @@ retry:
             return status::OK_RETRY_FROM_ROOT;
         }
         if (check_status == status::OK_RETRY_AFTER_FB) {
-LOG(INFO) << "retry";
+LOG(INFO) << "retry 1 " << *target;
             goto retry; // NOLINT
         }
         if (kl > sizeof(key_slice_type)) {
@@ -332,7 +332,7 @@ LOG(INFO) << "retry";
             if (check_status != status::OK) {
                 // failed. clean up tuple list and node vesion vec.
                 clean_up_tuple_list_nvc();
-LOG(INFO) << "retry";
+LOG(INFO) << "retry 2 " << *target;
                 goto retry; // NOLINT
             }
             if (max_size != 0 && tuple_list.size() >= max_size) {
@@ -443,7 +443,7 @@ LOG(INFO) << "retry";
         return status::OK_RETRY_FROM_ROOT;
     }
     if (check_status == status::OK_RETRY_AFTER_FB) {
-LOG(INFO) << "retry";
+LOG(INFO) << "retry 3 " << *target;
         goto retry; // NOLINT
     }
 
