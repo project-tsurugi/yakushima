@@ -273,6 +273,7 @@ static void border_split(tree_instance* ti, border_node* const border,
         new_border->version_unlock();
         ti->store_root_ptr(p);
         p->version_unlock();
+LOG(INFO) << "split root b:" << border << " p:" << p << " nb:" << new_border;
         return;
     }
 
