@@ -151,19 +151,22 @@ void many_interior_comm() {
                     }
                     ASSERT_EQ(check_ctr, kv.size());
                     // check success for own puts. check duplicate about key.
-                    std::sort(tuple_list.begin(), tuple_list.end());
                     std::string check_key = std::get<0>(*tuple_list.begin());
                     for (auto itr = tuple_list.begin() + 1;
                          itr != tuple_list.end(); ++itr) { // NOLINT
                         if (check_key >= std::get<0>(*itr)) {
                             std::unique_lock lk{debug_mtx}; // why need this???
                             LOG(INFO) << "it found duplicate. thread " << th_id;
-                            for (auto itr_2 = tuple_list.begin(); // NOLINT
+                            std::ostringstream ss{};
+                            std::string check_key2 = std::get<0>(*tuple_list.begin());
+                            ss << "keys[ " << hexstr(check_key2);
+                            for (auto itr_2 = tuple_list.begin() + 1; // NOLINT
                                  itr_2 != tuple_list.end(); ++itr_2) {
-                                LOG(INFO) << "th_id:" << th_id << ", size:"
-                                          << std::get<0>(*itr_2).size()
-                                          << ", key:" << hexstr(std::get<0>(*itr_2));
+                                ss << " " << hexstr(std::get<0>(*itr_2));
+                                if (check_key2 >= std::get<0>(*itr_2)) { ss << "!!"; }
+                                check_key2 = std::get<0>(*itr_2);
                             }
+                            LOG(INFO) << ss.str() << " ]";
                             display(); // it's not thread-safe, but something is already broken
                             ASSERT_LT(check_key, std::get<0>(*itr));
                             LOG(FATAL);
