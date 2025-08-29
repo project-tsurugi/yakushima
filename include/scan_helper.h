@@ -93,7 +93,7 @@ LOG(INFO) << "scan-i " << root << " ret#:" << initial_size_of_tuple_list;
 
 retry:
     if (root->get_version_deleted() || !root->get_version_root()) {
-LOG(INFO) << "scan-i " << root << "RETRY_FROM_ROOT";
+LOG(INFO) << "scan-i " << root << " RETRY_FROM_ROOT";
         return status::OK_RETRY_FROM_ROOT;
     }
 
@@ -269,7 +269,7 @@ retry:
             clean_up_tuple_list_nvc();
         }
         if (check_status == status::OK_RETRY_FROM_ROOT) {
-LOG(INFO) << "retry 1 " << *target << "RETRY_FROM_ROOT";
+LOG(INFO) << "retry 1 " << *target << " RETRY_FROM_ROOT";
             return status::OK_RETRY_FROM_ROOT;
         }
         if (check_status == status::OK_RETRY_AFTER_FB) {
@@ -444,7 +444,7 @@ LOG(INFO) << "retry 2 " << *target << " ret#:" << initial_size_of_tuple_list;
         clean_up_tuple_list_nvc();
     }
     if (check_status == status::OK_RETRY_FROM_ROOT) {
-LOG(INFO) << "retry 3 " << *target << "RETRY_FROM_ROOT";
+LOG(INFO) << "retry 3 " << *target << " RETRY_FROM_ROOT";
         return status::OK_RETRY_FROM_ROOT;
     }
     if (check_status == status::OK_RETRY_AFTER_FB) {
