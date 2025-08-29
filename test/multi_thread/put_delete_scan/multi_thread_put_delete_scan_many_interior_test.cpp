@@ -266,7 +266,6 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, many_interior_inlined_va
                     }
                     ASSERT_EQ(check_ctr, kv.size());
                     // check success for own puts. check duplicate about key.
-                    std::sort(tuple_list.begin(), tuple_list.end());
                     std::string check_key = std::get<0>(*tuple_list.begin());
                     for (auto itr = tuple_list.begin() + 1;
                          itr != tuple_list.end(); ++itr) { // NOLINT
