@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "kvs.h"
 #include "log.h"
 #include "scan_helper.h"
 #include "storage.h"

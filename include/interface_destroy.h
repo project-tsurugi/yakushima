@@ -10,7 +10,6 @@
 
 #include "destroy_manager.h"
 #include "interface_scan.h"
-#include "kvs.h"
 #include "storage.h"
 #include "storage_impl.h"
 

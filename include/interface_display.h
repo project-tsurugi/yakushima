@@ -8,7 +8,6 @@
 
 #include "border_node.h"
 #include "interior_node.h"
-#include "kvs.h"
 #include "log.h"
 #include "permutation.h"
 #include "tree_instance.h"

@@ -9,7 +9,6 @@
 #include "base_node.h"
 #include "border_node.h"
 #include "common_helper.h"
-#include "kvs.h"
 #include "link_or_value.h"
 #include "storage_impl.h"
 #include "tree_instance.h"

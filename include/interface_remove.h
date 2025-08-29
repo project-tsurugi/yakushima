@@ -7,7 +7,6 @@
 #include <utility>
 
 #include "border_node.h"
-#include "kvs.h"
 #include "log.h"
 #include "storage.h"
 #include "storage_impl.h"
