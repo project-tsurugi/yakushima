@@ -274,7 +274,7 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, many_interior_inlined_va
                             LOG(INFO) << "it found duplicate. thread " << th_id;
                             std::ostringstream ss{};
                             std::string check_key2 = std::get<0>(*tuple_list.begin());
-                            ss << "keys[ " << check_key2;
+                            ss << "keys[ " << hexstr(check_key2);
                             for (auto itr_2 = tuple_list.begin() + 1; // NOLINT
                                  itr_2 != tuple_list.end(); ++itr_2) {
                                 ss << " " << hexstr(std::get<0>(*itr_2));
