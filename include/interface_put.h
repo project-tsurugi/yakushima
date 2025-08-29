@@ -9,7 +9,6 @@
 #include "border_node.h"
 #include "interior_node.h"
 #include "storage.h"
-#include "storage_impl.h"
 
 namespace yakushima {
 
