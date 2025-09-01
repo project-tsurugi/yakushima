@@ -1,4 +1,4 @@
-# Copyright 2019-2019 tsurugi project.
+# Copyright 2019-2025 Project Tsurugi.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ else ()
 #          "*.cpp"
 #          "multi_thread/*.cpp"
 #          "multi_thread/delete/*.cpp"
+          "multi_thread/delete_scan/*.cpp"
 #          "multi_thread/put/*.cpp"
           "multi_thread/put_delete/*.cpp"
           "multi_thread/put_delete_scan/*.cpp"
