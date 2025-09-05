@@ -55,7 +55,6 @@ public:
 
         // rearrange permutation
         permutation_.delete_rank(rank);
-        permutation_.dec_key_num();
 LOG(INFO) << "delete@ b:" << this << " r:" << rank;
     }
 
@@ -537,8 +536,7 @@ LOG(INFO) << "deleteof cnk1 b:" << this;
             set_lv_value(index, new_value, created_value_ptr);
 LOG(INFO) << "insert@ b:" << this << " r:" << rank << " i:" << index << " val:" << new_value;
         }
-        permutation_.inc_key_num();
-        permutation_.insert(rank, index);
+        permutation_.insert_rank(rank, index);
     }
 
     void permutation_rearrange() {

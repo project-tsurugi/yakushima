@@ -40,38 +40,29 @@ public:
     explicit permutation(const std::uint64_t body) : body_{body} {}
 
     /**
-     * @brief decrement key number.
+     * @brief atomically delete rank and decrement key number.
      */
-    void dec_key_num() {
-        std::uint64_t per_body(body_.load(std::memory_order_acquire));
-        // decrement key number
-        std::size_t cnk = per_body & cnk_mask;
-        --cnk;
-        per_body &= ~cnk_mask;
-        per_body |= cnk;
-        body_.store(per_body, std::memory_order_release);
-    }
-
     void delete_rank(std::size_t rank) {
+        std::uint64_t per_body = get_body();
         // layout : left delete_target right cnk
         std::uint64_t left{};
-        std::uint64_t cnk = get_cnk();
+        std::uint64_t cnk = per_body & cnk_mask;
         if (rank == cnk - 1 || rank == key_slice_length - 1) {
             left = 0;
         } else {
-            left = get_body();
-            left = (left >> (pkey_bit_size * (rank + 2)))
+            left = (per_body >> (pkey_bit_size * (rank + 2)))
                    << (pkey_bit_size * (rank + 1));
         }
-        std::uint64_t right = get_body();
+        std::uint64_t right{};
         if (rank == 0) {
             right = 0;
         } else {
-            right = (right << (pkey_bit_size * (key_slice_length - rank))) >>
+            right = (per_body << (pkey_bit_size * (key_slice_length - rank))) >>
                     (pkey_bit_size * (key_slice_length - rank));
         }
         std::uint64_t final = left | right;
         final &= ~cnk_mask;
+        cnk--;
         final |= cnk;
         set_body(final);
     }
@@ -120,44 +111,34 @@ public:
         return per & cnk_mask;
     }
 
+    void init() { body_.store(0, std::memory_order_release); }
+
     /**
-     * @brief increment key number.
+     * @brief atomically insert rank and increment key number.
      */
-    void inc_key_num() {
-        std::uint64_t per_body(body_.load(std::memory_order_acquire));
-        // increment key number
-        std::size_t cnk = per_body & cnk_mask;
+    void insert_rank(std::size_t rank, std::size_t pos) {
+        std::uint64_t per_body = get_body();
+        // bit layout : left target right cnk
+        std::uint64_t cnk = per_body & cnk_mask;
 #ifndef NDEBUG
         if (cnk >= pow(2, cnk_bit_size) - 1) { // NOLINT
             LOG(ERROR) << log_location_prefix;
         }
 #endif
         ++cnk;
-        per_body &= ~cnk_mask;
-        per_body |= cnk;
-        body_.store(per_body, std::memory_order_release);
-    }
-
-    void init() { body_.store(0, std::memory_order_release); }
-
-    void insert(std::size_t rank, std::size_t pos) {
-        // bit layout : left target right cnk
-        std::uint64_t cnk = get_cnk();
         std::uint64_t target = pos << (pkey_bit_size * (rank + 1));
         std::uint64_t left{};
         if (rank == cnk - 1) {
             left = 0;
         } else {
-            left = get_body();
-            left = (left >> (pkey_bit_size * (rank + 1)))
+            left = (per_body >> (pkey_bit_size * (rank + 1)))
                    << (pkey_bit_size * (rank + 2));
         }
         std::uint64_t right{};
         if (rank == 0) {
             right = 0;
         } else {
-            right = get_body();
-            right = (right << (pkey_bit_size * (key_slice_length - rank))) >>
+            right = (per_body << (pkey_bit_size * (key_slice_length - rank))) >>
                     (pkey_bit_size * (key_slice_length - rank));
         }
         std::uint64_t final = left | target | right;
