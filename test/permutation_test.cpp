@@ -24,12 +24,42 @@ TEST_F(pt, test1) { // NOLINT
     ASSERT_EQ(per.get_cnk(), 1); // check invariant.
 }
 
-TEST_F(pt, test2) { // NOLINT
+TEST_F(pt, testinsdel) { // NOLINT
     permutation per{};
-    ASSERT_EQ(true, true);
+    per.insert_rank(0, 0);
+    per.insert_rank(0, 1);
+    per.insert_rank(0, 2);
+    per.insert_rank(3, 3);
+    ASSERT_EQ(per.get_cnk(), 4);
+    ASSERT_EQ(per.get_index_of_rank(0), 2);
+    ASSERT_EQ(per.get_index_of_rank(1), 1);
+    ASSERT_EQ(per.get_index_of_rank(2), 0);
+    ASSERT_EQ(per.get_index_of_rank(3), 3);
     // per.display();
-    per.inc_key_num();
-    ASSERT_EQ(true, true);
-    // per.display();
+
+    per.delete_rank(2);
+    EXPECT_EQ(per.get_cnk(), 3);
+    EXPECT_EQ(per.get_index_of_rank(0), 2);
+    EXPECT_EQ(per.get_index_of_rank(1), 1);
+    EXPECT_EQ(per.get_index_of_rank(2), 3);
+    per.delete_rank(0);
+    EXPECT_EQ(per.get_cnk(), 2);
+    EXPECT_EQ(per.get_index_of_rank(0), 1);
+    EXPECT_EQ(per.get_index_of_rank(1), 3);
+    per.insert_rank(1, 0);
+    EXPECT_EQ(per.get_cnk(), 3);
+    EXPECT_EQ(per.get_index_of_rank(0), 1);
+    EXPECT_EQ(per.get_index_of_rank(1), 0);
+    EXPECT_EQ(per.get_index_of_rank(2), 3);
+    per.delete_rank(2);
+    EXPECT_EQ(per.get_cnk(), 2);
+    EXPECT_EQ(per.get_index_of_rank(0), 1);
+    EXPECT_EQ(per.get_index_of_rank(1), 0);
+    per.delete_rank(0);
+    EXPECT_EQ(per.get_cnk(), 1);
+    EXPECT_EQ(per.get_index_of_rank(0), 0);
+    per.delete_rank(0);
+    EXPECT_EQ(per.get_cnk(), 0);
 }
+
 } // namespace yakushima::testing
