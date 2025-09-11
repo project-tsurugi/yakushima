@@ -55,7 +55,6 @@ public:
 
         // rearrange permutation
         permutation_.delete_rank(rank);
-        permutation_.dec_key_num();
     }
 
     /**
@@ -535,8 +534,7 @@ public:
             // set value
             set_lv_value(index, new_value, created_value_ptr);
         }
-        permutation_.inc_key_num();
-        permutation_.insert(rank, index);
+        permutation_.insert_rank(rank, index);
     }
 
     void permutation_rearrange() {

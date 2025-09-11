@@ -203,7 +203,6 @@ static void border_split(tree_instance* ti, border_node* const border,
         border->init_border(src_index);
         border->get_permutation().delete_rank(
                 remaining_size); // this is tricky.
-        border->get_permutation().dec_key_num();
     }
     /**
      * fix permutations
