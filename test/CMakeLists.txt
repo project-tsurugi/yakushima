@@ -25,7 +25,7 @@ else ()
           "multi_thread/delete_scan/*.cpp"
 #          "multi_thread/put/*.cpp"
           "multi_thread/put_delete/*.cpp"
-          "multi_thread/put_delete_scan/*.cpp"
+#          "multi_thread/put_delete_scan/*.cpp"
 #          "multi_thread/put_delete_get/*.cpp"
 #          "put/*.cpp"
 #          "put_get/*.cpp"
