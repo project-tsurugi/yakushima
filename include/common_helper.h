@@ -48,7 +48,7 @@ retry:
     }
     if (v.get_deleted()) {
         // root && deleted node.
-        if (n == nullptr) {
+        if (n == nullptr) {  // never reach
             LOG(ERROR) << log_location_prefix << "find_border: root: " << root
                        << ", key_slice: " << key_slice
                        << ", key_slice_length: " << key_slice_length
