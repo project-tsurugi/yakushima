@@ -182,6 +182,7 @@ LOG(INFO) << "deleteof" << (target_is_value ? "V" : "L") << " b:" << this << " i
                     set_version_root(false); // guard by parent lock
                     version_unlock();
                     if (pn->get_version_border()) {
+                        // border node in the upper layer
                         dynamic_cast<border_node*>(pn)->delete_of(token, ti,
                                                                   this);
                     } else {

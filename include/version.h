@@ -21,7 +21,7 @@
 namespace yakushima {
 
 /**
- * @brief Teh body of node_version64.
+ * @brief The body of node_version64.
  * @details This class is designed to be able to be wrapped by std::atomic,
  * so it can't declare default constructor. Therefore, it should use init function to
  * initialize before using this class object.
