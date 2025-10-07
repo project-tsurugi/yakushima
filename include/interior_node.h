@@ -76,7 +76,7 @@ LOG(INFO) << "deleteof I:" << this << " c:" << child << " i:" << i << "/" << n_k
                             lv->set_next_layer(sibling);
                             sibling->atomic_set_version_root(true); // guard by parent lock
                         } else {
-                            dynamic_cast<interior_node*>(pn)->swap_child(this, sibling);
+                            dynamic_cast<interior_node*>(pn)->swap_child(this, sibling); // guarded by this.lock
                         }
                         sibling->set_parent(pn); // guard by parent lock
                         pn->version_unlock();

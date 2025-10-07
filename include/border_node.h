@@ -154,14 +154,14 @@ LOG(INFO) << "deleteof" << (target_is_value ? "V" : "L") << " b:" << this << " i
                             prev->version_unlock();
                             goto retry_prev_lock; // NOLINT
                         } else {
-                            prev->set_next(get_next());
+                            prev->set_next(get_next()); // guard by prev.lock
                             if (get_next() != nullptr) {
                                 get_next()->set_prev(prev);
                             }
                             prev->version_unlock();
                         }
                     } else if (get_next() != nullptr) {
-                        get_next()->set_prev(nullptr);
+                        get_next()->set_prev(nullptr); // guard by this.lock
                     }
                     /**
                      * lock order is next to prev and lower to higher.
@@ -179,8 +179,10 @@ LOG(INFO) << "deleteof" << (target_is_value ? "V" : "L") << " b:" << this << " i
                      * note: Including relation of parent-child is
                      * border-border.
                      */
+if (get_version_root()) { LOG(INFO) << "drop root bit of b:" << this; }
                     set_version_root(false); // guard by parent lock
                     version_unlock();
+                    // pn: locked, this: unlocked
                     if (pn->get_version_border()) {
                         // border node in the upper layer
                         dynamic_cast<border_node*>(pn)->delete_of(token, ti,
