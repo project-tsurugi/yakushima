@@ -125,8 +125,7 @@ public:
     void delete_of(Token token, tree_instance* ti,
                    const key_slice_type key_slice,
                    const key_length_type key_slice_length) {
-        // past: delete is treated to increment vinsert counter.
-        //set_version_inserting_deleting(true);
+        set_version_inserting_deleting(true);
         /**
          * find position.
          */

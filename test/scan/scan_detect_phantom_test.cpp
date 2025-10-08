@@ -86,9 +86,10 @@ TEST_F(scan_detect_phantom_test,                   // NOLINT
     auto nv2 = nvp.second->get_stable_version();
     ASSERT_NE(nvp.first, nv2);
     ASSERT_EQ(status::OK, remove(s, st, ""));
-    // check not phantom about remove
+    // check phantom
     auto nv3 = nvp.second->get_stable_version();
-    ASSERT_EQ(nv2, nv3);
+    ASSERT_NE(nvp.first, nv3);
+    ASSERT_NE(nv2, nv3);
     ASSERT_EQ(status::OK, leave(s));
 }
 
