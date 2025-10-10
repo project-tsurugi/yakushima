@@ -29,11 +29,10 @@ static void create_interior_parent_of_interior(
         base_node** const new_parent) {
     left->set_version_root(false);
     right->set_version_root(false);
-    interior_node* ni = new interior_node(); // NOLINT
+    locked_interior_node* ni = (new interior_node())->lock(); // NOLINT
     ni->init_interior();
     ni->set_version_root(true);
     ni->set_version_inserting_deleting(true);
-    ni->lock();
     /**
      * process base members
      */
@@ -59,11 +58,11 @@ static void create_interior_parent_of_interior(
  * @param[in] child_node After split, it inserts this @a child_node.
  */
 static void
-interior_split(tree_instance* ti, interior_node* const interior,
+interior_split(tree_instance* ti, locked_interior_node* const interior,
                base_node* const child_node,
                const std::pair<key_slice_type, key_length_type> inserting_key) {
     interior->set_version_splitting(true);
-    interior_node* new_interior = new interior_node(); // NOLINT
+    new_interior_node* new_interior = new_interior_node::of(new interior_node()); // NOLINT
     new_interior->init_interior();
 
     /**
@@ -126,7 +125,7 @@ interior_split(tree_instance* ti, interior_node* const interior,
                 interior, new_interior, std::make_pair(pivot_key, pivot_length),
                 &p);
         interior->version_unlock();
-        new_interior->version_unlock();
+        //new_interior->version_unlock();
         /**
          * p became new root.
          */
@@ -144,13 +143,13 @@ interior_split(tree_instance* ti, interior_node* const interior,
     }
 #endif
     if (p->get_version_border()) {
-        auto* pb = dynamic_cast<border_node*>(p);
+        auto* pb = dynamic_cast<locked_border_node*>(p);
         base_node* new_p{};
         create_interior_parent_of_interior(
                 interior, new_interior, std::make_pair(pivot_key, pivot_length),
                 &new_p);
         interior->version_unlock();
-        new_interior->version_unlock();
+        //new_interior->version_unlock();
         link_or_value* lv = pb->get_lv(interior);
         lv->set_next_layer(new_p);
         new_p->set_parent(pb); // guard by parent lock
@@ -158,10 +157,10 @@ interior_split(tree_instance* ti, interior_node* const interior,
         p->version_unlock();
         return;
     }
-    auto* pi = dynamic_cast<interior_node*>(p);
+    auto* pi = dynamic_cast<locked_interior_node*>(p);
     interior->version_unlock();
     new_interior->set_parent(pi); // guard by parent lock
-    new_interior->version_unlock();
+    //new_interior->version_unlock();
     if (pi->get_n_keys() == key_slice_length) {
         /**
          * parent interior full case.
