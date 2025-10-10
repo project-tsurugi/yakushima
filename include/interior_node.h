@@ -38,18 +38,6 @@ public:
     ~interior_node() override{}; // NOLINT
 
     /**
-     * @pre There is a child which is the same to @a child.
-     * @a this interior node is locked by caller.
-     * @details Delete operation on the element matching @a child.
-     * If after deletion there is only one child left,
-     * promote the child to the position of @a this node.
-     * @param[in] token
-     * @param[in] ti pointer to the masstree instance
-     * @param[in] child removed child node (not locked by caller)
-     */
-    void delete_of(Token token, tree_instance* ti, base_node* child);
-
-    /**
      * @brief release all heap objects and clean up.
      * @pre This function is called by single thread.
      */
@@ -173,12 +161,64 @@ public:
         return ret_child;
     }
 
+    // base_node methods
+    [[nodiscard]] locked_interior_node* lock() {
+        base_node::lock();
+        return reinterpret_cast<locked_interior_node*>(this); // NOLINT
+    }
+    void set_parent(std::nullptr_t){base_node::set_parent(nullptr);}
+    void set_parent(locked_interior_node* p){base_node::set_parent(reinterpret_cast<interior_node*>(p));} // NOLINT
+    //void set_parent(locked_border_node* p){base_node::set_parent(reinterpret_cast<border_node*>(p));} // NOLINT
+    void set_parent(locked_border_node* p){base_node::set_parent(reinterpret_cast<base_node*>(p));} // NOLINT
+    void version_unlock() = delete;
+    void shift_left_base_member(std::size_t, std::size_t) = delete;
+    void shift_right_base_member(std::size_t, std::size_t) = delete;
+
+// NOLINTBEGIN(*-non-private-*)
+protected:
+    /**
+     * first member of base_node is aligned along with cache line size.
+     */
+
+    /**
+     * @attention This variable is read/written concurrently.
+     */
+    n_keys_type n_keys_{};
+    /**
+     * @attention This variable is read/written concurrently.
+     */
+    std::array<base_node*, child_length> children{};
+// NOLINTEND(*-non-private-*)
+};
+
+class alignas(CACHE_LINE_SIZE) locked_interior_node : public interior_node {
+public:
+    void lock() = delete;
+    interior_node* version_unlock() {
+        base_node::version_unlock();
+        return static_cast<interior_node*>(this);
+    }
+    void shift_left_base_member(std::size_t start, std::size_t sz) { base_node::shift_left_base_member(start, sz); };
+    void shift_right_base_member(std::size_t start, std::size_t sz) { base_node::shift_right_base_member(start, sz); };
+
     void init_interior() {
         init_base();
         set_version_border(false);
         children.fill(nullptr);
         set_n_keys(0);
     }
+
+    /**
+     * @pre There is a child which is the same to @a child.
+     * @a this interior node is locked by caller.
+     * @details Delete operation on the element matching @a child.
+     * If after deletion there is only one child left,
+     * promote the child to the position of @a this node.
+     * @param[in] token
+     * @param[in] ti pointer to the masstree instance
+     * @param[in] child removed child node (not locked by caller)
+     */
+    void delete_of(Token token, tree_instance* ti, base_node* child);
 
     /**
      * @pre It already acquired lock of this node.
@@ -232,7 +272,7 @@ public:
     }
 
     [[maybe_unused]] void
-    move_children_to_interior_range(interior_node* const right_interior,
+    move_children_to_interior_range(locked_interior_node* const right_interior,
                                     const std::size_t start) {
         for (auto i = start; i < child_length; ++i) {
             right_interior->set_child_at(i - start, get_child_at(i));
@@ -294,38 +334,6 @@ public:
         LOG(ERROR) << log_location_prefix << "unreachable path";
     }
 
-    // base_node methods
-    [[nodiscard]] locked_interior_node* lock() {
-        base_node::lock();
-        return reinterpret_cast<locked_interior_node*>(this);
-    }
-    void set_parent(std::nullptr_t){base_node::set_parent(nullptr);}
-    void set_parent(locked_interior_node* p){base_node::set_parent(reinterpret_cast<interior_node*>(p));}
-    //void set_parent(locked_border_node* p){base_node::set_parent(reinterpret_cast<border_node*>(p));}
-    void set_parent(locked_border_node* p){base_node::set_parent(reinterpret_cast<base_node*>(p));}
-    void version_unlock() = delete;
-
-protected:
-    /**
-     * first member of base_node is aligned along with cache line size.
-     */
-
-    /**
-     * @attention This variable is read/written concurrently.
-     */
-    n_keys_type n_keys_{};
-    /**
-     * @attention This variable is read/written concurrently.
-     */
-    std::array<base_node*, child_length> children{};
-};
-
-struct alignas(CACHE_LINE_SIZE) locked_interior_node : public interior_node {
-    void lock() = delete;
-    interior_node* version_unlock() {
-        base_node::version_unlock();
-        return reinterpret_cast<interior_node*>(this);
-    }
 };
 
 // localy created, not exposed object : can call set_* methods without lock

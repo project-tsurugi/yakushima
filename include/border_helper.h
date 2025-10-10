@@ -149,8 +149,8 @@ static void border_split(tree_instance* ti, locked_border_node* const border,
     }
 
     border->set_version_splitting(true);
-    new_border_node* new_border = new_border_node::create(); // NOLINT
-    new_border->border_node::init_border();
+    new_border_node* new_border = new_border_node::create();
+    new_border->init_border();
     new_border->set_next(border->get_next());
     new_border->set_prev(border);
 
@@ -186,7 +186,7 @@ static void border_split(tree_instance* ti, locked_border_node* const border,
         base_node* nl = border->get_lv_at(src_index)->get_next_layer();
         if (nl != nullptr) { nl->set_parent(new_border); }
         ++index_ctr;
-        border->border_node::init_border(src_index);
+        border->init_border(src_index);
         border->get_permutation().delete_rank(
                 remaining_size); // this is tricky.
     }
