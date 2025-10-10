@@ -24,30 +24,21 @@ namespace yakushima {
 /**
  * forward declaration.
  */
-template<class interior_node, class border_node>
-static void interior_split(tree_instance* ti, interior_node* interior,
-                           base_node* child_node,
-                           key_slice_type pivot_slice, // NOLINT
-                           key_length_type pivot_length);
 
 /**
  * @pre It already locked this node.
  * @details border node split.
  * @param[in] border
  * @param[in] key_view
- * @param[in] value_ptr
+ * @param[in] new_value
  * @param[out] created_value_ptr The pointer to created value in yakushima.
- * @param[in] value_length
- * @param[in] value_align
  * @param[out] inserted_node_version_ptr
  * @param[in] rank
  */
-template<class interior_node, class border_node>
 static void
 border_split(tree_instance* ti, border_node* border, std::string_view key_view,
-             void* value_ptr,
+             value* new_value,
              void** created_value_ptr, // NOLINT
-             value_length_type value_length, value_align_type value_align,
              node_version64** inserted_node_version_ptr, std::size_t rank);
 
 /**
@@ -66,7 +57,6 @@ border_split(tree_instance* ti, border_node* border, std::string_view key_view,
  * using.
  */
 
-template<class interior_node, class border_node>
 static void create_interior_parent_of_border(border_node* const left,
                                              border_node* const right,
                                              interior_node** const new_parent) {
@@ -112,7 +102,6 @@ static void create_interior_parent_of_border(border_node* const left,
  * @param[in] rank
  */
 
-template<class interior_node, class border_node>
 static void insert_lv(tree_instance* ti, border_node* const border,
                       std::string_view key_view, value* new_value,
                       void** const created_value_ptr,
@@ -134,7 +123,7 @@ static void insert_lv(tree_instance* ti, border_node* const border,
         /**
          * It needs splitting
          */
-        border_split<interior_node, border_node>(
+        border_split(
                 ti, border, key_view, new_value, created_value_ptr,
                 inserted_node_version_ptr, rank);
     } else {
@@ -150,7 +139,6 @@ static void insert_lv(tree_instance* ti, border_node* const border,
     }
 }
 
-template<class interior_node, class border_node>
 static void border_split(tree_instance* ti, border_node* const border,
                          std::string_view key_view, value* new_value,
                          void** const created_value_ptr,
@@ -261,7 +249,7 @@ static void border_split(tree_instance* ti, border_node* const border,
          * The disappearance of the parent node may have made this node the root node in
          * parallel. It cares in below function.
          */
-        create_interior_parent_of_border<interior_node, border_node>(
+        create_interior_parent_of_border(
                 border, new_border,
                 reinterpret_cast<interior_node**>(&p)); // NOLINT
         border->version_unlock();
@@ -287,7 +275,7 @@ static void border_split(tree_instance* ti, border_node* const border,
          */
         auto* pb = dynamic_cast<border_node*>(p);
         interior_node* pi{};
-        create_interior_parent_of_border<interior_node, border_node>(
+        create_interior_parent_of_border(
                 border, new_border, &pi);
         border->version_unlock();
         new_border->version_unlock();
@@ -313,7 +301,7 @@ static void border_split(tree_instance* ti, border_node* const border,
         /**
          * interior full case, it splits and inserts.
          */
-        interior_split<interior_node, border_node>(
+        interior_split(
                 ti, pi, reinterpret_cast<base_node*>(new_border), // NOLINT
                 std::make_pair(new_border->get_key_slice_at(0),
                                new_border->get_key_length_at(0)));
@@ -323,7 +311,7 @@ static void border_split(tree_instance* ti, border_node* const border,
      * interior not-full case, it inserts.
      */
     new_border->set_parent(pi); // guard by parent lock
-    pi->template insert<border_node>(
+    pi->insert(
             new_border, std::make_pair(new_border->get_key_slice_at(0),
                                        new_border->get_key_length_at(0)));
     pi->version_unlock();

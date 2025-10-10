@@ -6,7 +6,7 @@
 
 #include <utility>
 
-#include "border_node.h"
+#include "border_helper.h"
 #include "interior_node.h"
 #include "storage.h"
 #include "storage_impl.h"
@@ -155,7 +155,7 @@ retry_fetch_lv:
             goto retry_fetch_lv; // NOLINT
         }
         value* v = value::create_value<kIsInline>(v_ptr, v_len, v_align);
-        insert_lv<interior_node, border_node>(
+        insert_lv(
                 ti, target_border, traverse_key_view, v, created_v_ptr,
                 inserted_node_version_ptr,
                 target_border->compute_rank_if_insert(key_slice,
