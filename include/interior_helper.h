@@ -26,7 +26,7 @@ namespace yakushima {
 static void create_interior_parent_of_interior(
         interior_node* const left, interior_node* const right,
         const std::pair<key_slice_type, key_length_type> pivot_key,
-        base_node** const new_parent) {
+        locked_interior_node** const new_parent) {
     left->set_version_root(false);
     right->set_version_root(false);
     locked_interior_node* ni = (new interior_node())->lock(); // NOLINT
@@ -62,7 +62,7 @@ interior_split(tree_instance* ti, locked_interior_node* const interior,
                base_node* const child_node,
                const std::pair<key_slice_type, key_length_type> inserting_key) {
     interior->set_version_splitting(true);
-    new_interior_node* new_interior = new_interior_node::of(new interior_node()); // NOLINT
+    new_interior_node* new_interior = new_interior_node::create();
     new_interior->init_interior();
 
     /**
@@ -121,16 +121,17 @@ interior_split(tree_instance* ti, locked_interior_node* const interior,
          * The disappearance of the parent node may have made this node the root node in
          * parallel. It cares in below function.
          */
+        locked_interior_node* new_p{};
         create_interior_parent_of_interior(
                 interior, new_interior, std::make_pair(pivot_key, pivot_length),
-                &p);
+                &new_p);
         interior->version_unlock();
         //new_interior->version_unlock();
         /**
          * p became new root.
          */
-        ti->store_root_ptr(p);
-        p->version_unlock();
+        ti->store_root_ptr(new_p);
+        new_p->version_unlock();
         ti->root_unlock();
         return;
     }
@@ -144,7 +145,7 @@ interior_split(tree_instance* ti, locked_interior_node* const interior,
 #endif
     if (p->get_version_border()) {
         auto* pb = dynamic_cast<locked_border_node*>(p);
-        base_node* new_p{};
+        locked_interior_node* new_p{};
         create_interior_parent_of_interior(
                 interior, new_interior, std::make_pair(pivot_key, pivot_length),
                 &new_p);
@@ -154,7 +155,7 @@ interior_split(tree_instance* ti, locked_interior_node* const interior,
         lv->set_next_layer(new_p);
         new_p->set_parent(pb); // guard by parent lock
         new_p->version_unlock();
-        p->version_unlock();
+        pb->version_unlock();
         return;
     }
     auto* pi = dynamic_cast<locked_interior_node*>(p);
@@ -177,7 +178,7 @@ interior_split(tree_instance* ti, locked_interior_node* const interior,
 }
 
 inline
-    void interior_node::delete_of(Token token, tree_instance* ti, base_node* const child) {
+    void locked_interior_node::delete_of(Token token, tree_instance* ti, base_node* const child) {
         set_version_inserting_deleting(true);
         std::size_t n_key = get_n_keys();
 #ifndef NDEBUG
@@ -201,13 +202,14 @@ inline
                         set_version_root(false); // guard by parent lock
                         //pn->set_version_inserting_deleting(true);
                         if (pn->get_version_border()) { // if this node is layer 1+ root
+                            auto *lpn = dynamic_cast<locked_border_node*>(pn);
                             link_or_value* lv =
-                                    dynamic_cast<border_node*>(pn)->get_lv(
+                                    lpn->get_lv(
                                             this);
                             lv->set_next_layer(sibling);
                             sibling->atomic_set_version_root(true); // guard by parent lock
                         } else {
-                            dynamic_cast<interior_node*>(pn)->swap_child(this, sibling);
+                            dynamic_cast<locked_interior_node*>(pn)->swap_child(this, sibling);
                         }
                         sibling->set_parent(pn); // guard by parent lock
                         pn->version_unlock();
