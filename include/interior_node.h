@@ -21,8 +21,11 @@
 
 namespace yakushima {
 
-class alignas(CACHE_LINE_SIZE) interior_node final // NOLINT
-    : public base_node {                           // NOLINT
+class locked_border_node;
+class locked_interior_node;
+
+class alignas(CACHE_LINE_SIZE) interior_node // NOLINT
+    : public base_node {                     // NOLINT
 public:
     /**
      * @details The structure is "ptr, key, ptr, key, ..., ptr".
@@ -291,7 +294,18 @@ public:
         LOG(ERROR) << log_location_prefix << "unreachable path";
     }
 
-private:
+    // base_node methods
+    [[nodiscard]] locked_interior_node* lock() {
+        base_node::lock();
+        return reinterpret_cast<locked_interior_node*>(this);
+    }
+    void set_parent(std::nullptr_t){base_node::set_parent(nullptr);}
+    void set_parent(locked_interior_node* p){base_node::set_parent(reinterpret_cast<interior_node*>(p));}
+    //void set_parent(locked_border_node* p){base_node::set_parent(reinterpret_cast<border_node*>(p));}
+    void set_parent(locked_border_node* p){base_node::set_parent(reinterpret_cast<base_node*>(p));}
+    void version_unlock() = delete;
+
+protected:
     /**
      * first member of base_node is aligned along with cache line size.
      */
@@ -304,6 +318,28 @@ private:
      * @attention This variable is read/written concurrently.
      */
     std::array<base_node*, child_length> children{};
+};
+
+struct alignas(CACHE_LINE_SIZE) locked_interior_node : public interior_node {
+    void lock() = delete;
+    interior_node* version_unlock() {
+        base_node::version_unlock();
+        return reinterpret_cast<interior_node*>(this);
+    }
+};
+
+// localy created, not exposed object : can call set_* methods without lock
+class alignas(CACHE_LINE_SIZE) new_interior_node : public locked_interior_node {
+    // yakushima uses typeof() compare, so create as interior_node class
+private:
+    new_interior_node();
+public:
+    static new_interior_node* create() { return of(new interior_node()); }
+    static new_interior_node* of(interior_node* p) { return dynamic_cast<new_interior_node*>(p); }
+
+
+    [[nodiscard]] locked_interior_node* lock() { return interior_node::lock(); }
+    void version_unlock() = delete;
 };
 
 } // namespace yakushima

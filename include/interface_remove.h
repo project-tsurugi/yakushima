@@ -119,31 +119,31 @@ retry_fetch_lv:
      * If lv_ptr has some value && final_slice
      */
     if (target_border->get_key_length_at(lv_pos) <= sizeof(key_slice_type)) {
-        target_border->lock();
-        node_version64_body final_check = target_border->get_version();
+        locked_border_node *locked_border = target_border->lock();
+        node_version64_body final_check = locked_border->get_version();
         if ((final_check.get_deleted() &&
              !final_check.get_root()) || // the border was deleted.
             final_check.get_vsplit() !=
                     v_at_fb.get_vsplit()) { // the border may be incorrect.
-            target_border->version_unlock();
+            locked_border->version_unlock();
             goto retry_from_root; // NOLINT
         }                         // here border is correct.
         if (final_check.get_vinsert_delete() !=
             v_at_fetch_lv
                     .get_vinsert_delete()) { // the lv may be inserted/deleted.
-            target_border->version_unlock();
+            locked_border->version_unlock();
             goto retry_fetch_lv; // NOLINT
         }
 
         // re-check because delete operation is not tracked.
-        lv_ptr = target_border->get_lv_of_without_lock(key_slice, key_length);
+        lv_ptr = locked_border->get_lv_of_without_lock(key_slice, key_length);
         if (lv_ptr == nullptr) {
-            target_border->version_unlock();
+            locked_border->version_unlock();
             return status::OK_NOT_FOUND;
         }
 
         // success delete
-        target_border->delete_of<true>(token, ti, key_slice, key_length);
+        locked_border->delete_of<true>(token, ti, key_slice, key_length);
         return status::OK;
     }
 
