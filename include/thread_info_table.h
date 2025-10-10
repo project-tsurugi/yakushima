@@ -37,7 +37,7 @@ public:
         th_vc.reserve(thread_info_table_.size());
         for (auto&& elem : thread_info_table_) {
             auto process = [&elem](bool do_rr) {
-                elem.get_gc_info().fin<interior_node, border_node>();
+                elem.get_gc_info().fin();
                 if (do_rr) { destroy_manager::return_room(); }
             };
             if (destroy_manager::check_room()) {
@@ -51,7 +51,7 @@ public:
 
     static void gc() {
         for (auto&& elem : thread_info_table_) {
-            elem.get_gc_info().gc<interior_node, border_node>();
+            elem.get_gc_info().gc();
         }
     }
 
@@ -78,14 +78,9 @@ public:
     }
 
     /**
-     * @tparam interior_node Class information is given at compile time to eliminate
-     * the dependency between header files.
-     * @tparam border_node Class information is given at compile time to eliminate the
-     * dependency between header files.
      * @param[in] token Session information. The behavior is undefined if the @a token is invalid.
      * @return status::OK success.
      */
-    template<class interior_node, class border_node>
     static status leave_thread_info(Token token) {
         auto* target = static_cast<thread_info*>(token);
         target->set_begin_epoch(0);
