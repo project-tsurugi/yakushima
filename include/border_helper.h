@@ -36,7 +36,7 @@ namespace yakushima {
  * @param[in] rank
  */
 static void
-border_split(tree_instance* ti, border_node* border, std::string_view key_view,
+border_split(tree_instance* ti, locked_border_node* border, std::string_view key_view,
              value* new_value,
              void** created_value_ptr, // NOLINT
              node_version64** inserted_node_version_ptr, std::size_t rank);
@@ -59,17 +59,16 @@ border_split(tree_instance* ti, border_node* border, std::string_view key_view,
 
 static void create_interior_parent_of_border(border_node* const left,
                                              border_node* const right,
-                                             interior_node** const new_parent) {
+                                             locked_interior_node** const new_parent) {
     left->set_version_root(false);
     right->set_version_root(false);
     /**
      * create a new interior node p with children n, n'
      */
-    auto ni = new interior_node(); // NOLINT
+    auto* ni = (new interior_node())->lock();
     ni->init_interior();
     ni->set_version_root(true);
     ni->set_version_inserting_deleting(true);
-    ni->lock();
     /**
      * process base node members
      */
@@ -102,7 +101,7 @@ static void create_interior_parent_of_border(border_node* const left,
  * @param[in] rank
  */
 
-static void insert_lv(tree_instance* ti, border_node* const border,
+static void insert_lv(tree_instance* ti, locked_border_node* const border,
                       std::string_view key_view, value* new_value,
                       void** const created_value_ptr,
                       node_version64** inserted_node_version_ptr,
@@ -139,7 +138,7 @@ static void insert_lv(tree_instance* ti, border_node* const border,
     }
 }
 
-static void border_split(tree_instance* ti, border_node* const border,
+static void border_split(tree_instance* ti, locked_border_node* const border,
                          std::string_view key_view, value* new_value,
                          void** const created_value_ptr,
                          node_version64** inserted_node_version_ptr,
@@ -150,8 +149,8 @@ static void border_split(tree_instance* ti, border_node* const border,
     }
 
     border->set_version_splitting(true);
-    border_node* new_border = new border_node(); // NOLINT
-    new_border->init_border();
+    new_border_node* new_border = new_border_node::create(); // NOLINT
+    new_border->border_node::init_border();
     new_border->set_next(border->get_next());
     new_border->set_prev(border);
 
@@ -187,7 +186,7 @@ static void border_split(tree_instance* ti, border_node* const border,
         base_node* nl = border->get_lv_at(src_index)->get_next_layer();
         if (nl != nullptr) { nl->set_parent(new_border); }
         ++index_ctr;
-        border->init_border(src_index);
+        border->border_node::init_border(src_index);
         border->get_permutation().delete_rank(
                 remaining_size); // this is tricky.
     }
@@ -249,13 +248,14 @@ static void border_split(tree_instance* ti, border_node* const border,
          * The disappearance of the parent node may have made this node the root node in
          * parallel. It cares in below function.
          */
+        locked_interior_node *lp{};
         create_interior_parent_of_border(
                 border, new_border,
-                reinterpret_cast<interior_node**>(&p)); // NOLINT
+                &lp); // NOLINT
         border->version_unlock();
-        new_border->version_unlock();
-        ti->store_root_ptr(p); // guard by root lock
-        p->version_unlock();
+        //new_border->version_unlock();
+        ti->store_root_ptr(lp); // guard by root lock
+        lp->version_unlock();
         ti->root_unlock();
         return;
     }
@@ -273,17 +273,17 @@ static void border_split(tree_instance* ti, border_node* const border,
          * attention : The parent border node had this border node as one of the next_layer
          * before the split. The pointer is exchanged for a new parent interior node.
          */
-        auto* pb = dynamic_cast<border_node*>(p);
-        interior_node* pi{};
+        auto* pb = dynamic_cast<locked_border_node*>(p);
+        locked_interior_node* pi{};
         create_interior_parent_of_border(
                 border, new_border, &pi);
         border->version_unlock();
-        new_border->version_unlock();
-        pi->set_parent(p); // guard by parent lock
+        //new_border->version_unlock();
+        pi->set_parent(pb); // guard by parent lock
         pi->version_unlock();
         link_or_value* lv = pb->get_lv(border);
         lv->set_next_layer(pi);
-        p->version_unlock();
+        pb->version_unlock();
         return;
     }
     /**
@@ -292,11 +292,11 @@ static void border_split(tree_instance* ti, border_node* const border,
 #ifndef NDEBUG
     if (p->get_version_deleted()) { LOG(ERROR) << log_location_prefix; }
 #endif
-    auto* pi = dynamic_cast<interior_node*>(p);
+    auto* pi = dynamic_cast<locked_interior_node*>(p);
     border->set_version_root(false); // guard by parent lock
     new_border->set_version_root(false); // guard by parent lock
     border->version_unlock();
-    new_border->version_unlock();
+    //new_border->version_unlock();
     if (pi->get_n_keys() == key_slice_length) {
         /**
          * interior full case, it splits and inserts.
