@@ -43,7 +43,7 @@ root_nullptr:
         /**
          * root is nullptr, so put single border nodes.
          */
-        border_node* new_border = new border_node(); // NOLINT
+        new_border_node* new_border = new_border_node::create();
         value* v = value::create_value<kIsInline>(v_ptr, v_len, v_align);
         new_border->init_border(key_view, v, created_value_ptr, true);
         for (;;) {
@@ -127,23 +127,23 @@ retry_fetch_lv:
         goto retry_from_root; // NOLINT
     }
     if (lv_ptr == nullptr) {
-        target_border->lock();
-        if ((target_border->get_version_deleted() &&
-             !target_border->get_version_root()) ||
-            target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
+        locked_border_node *locked_border = target_border->lock();
+        if ((locked_border->get_version_deleted() &&
+             !locked_border->get_version_root()) ||
+            locked_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
             /**
              * get_version_deleted() : It was deleted between atomically fetching border node
              * and locking.
              * vsplit comparison : It may be change the correct border node between
              * atomically fetching border and lock.
              */
-            target_border->version_unlock();
+            locked_border->version_unlock();
             goto retry_from_root; // NOLINT
         }
         /**
           * Here, border node is the correct.
           */
-        if (target_border->get_version_vinsert_delete() !=
+        if (locked_border->get_version_vinsert_delete() !=
             v_at_fetch_lv.get_vinsert_delete()) { // It may exist lv_ptr
             /**
              * next_layers may be wrong. However, when it rechecks the next_layers, it can't get
@@ -151,14 +151,14 @@ retry_fetch_lv:
              * TODO : It can scan (its permutation) again and insert into this border node if it
              * don't have the same key.
              */
-            target_border->version_unlock();
+            locked_border->version_unlock();
             goto retry_fetch_lv; // NOLINT
         }
         value* v = value::create_value<kIsInline>(v_ptr, v_len, v_align);
         insert_lv(
-                ti, target_border, traverse_key_view, v, created_v_ptr,
+                ti, locked_border, traverse_key_view, v, created_v_ptr,
                 inserted_node_version_ptr,
-                target_border->compute_rank_if_insert(key_slice,
+                locked_border->compute_rank_if_insert(key_slice,
                                                       key_slice_length));
         return status::OK;
     }
@@ -171,19 +171,19 @@ retry_fetch_lv:
         if (key_slice_length <= sizeof(key_slice_type)) {
             if (unique_restriction) { return status::WARN_UNIQUE_RESTRICTION; }
 
-            target_border->lock();
+            locked_border_node *locked_border = target_border->lock();
 
-            if ((target_border->get_version_deleted() &&
-                 !target_border->get_version_root()) ||
-                target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
+            if ((locked_border->get_version_deleted() &&
+                 !locked_border->get_version_root()) ||
+                locked_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
                 // maybe wrong node
-                target_border->version_unlock();
+                locked_border->version_unlock();
                 goto retry_from_root; // NOLINT
             }
-            if (target_border->get_version_vinsert_delete() !=
+            if (locked_border->get_version_vinsert_delete() !=
                 v_at_fetch_lv.get_vinsert_delete()) {
                 // maybe wrong lv
-                target_border->version_unlock();
+                locked_border->version_unlock();
                 goto retry_fetch_lv; // NOLINT
             }
             // re-check because delete operation is not tracked.
@@ -196,11 +196,11 @@ retry_fetch_lv:
             value* v = value::create_value<kIsInline>(v_ptr, v_len, v_align);
             if constexpr (kIsInline) {
                 lv_ptr->set_value(v, created_v_ptr);
-                target_border->version_unlock();
+                locked_border->version_unlock();
             } else {
                 value* old_v = nullptr;
                 lv_ptr->set_value(v, created_v_ptr, &old_v);
-                target_border->version_unlock();
+                locked_border->version_unlock();
                 auto* thin = reinterpret_cast<thread_info*>(token); // NOLINT
                 if (old_v != nullptr) {
                     auto [o_ptr, o_len, o_align] = value::get_gc_info(old_v);
