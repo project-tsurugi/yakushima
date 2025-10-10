@@ -7,6 +7,7 @@
 #pragma once
 
 #include "border_helper.h"
+#include "interior_node.h"
 #include "log.h"
 #include "tree_instance.h"
 
@@ -22,7 +23,6 @@ namespace yakushima {
  * @param[out] lock_list
  * @param[out] new_parent This function tells new parent to the caller via this argument.
  */
-template<class interior_node, class border_node>
 static void create_interior_parent_of_interior(
         interior_node* const left, interior_node* const right,
         const std::pair<key_slice_type, key_length_type> pivot_key,
@@ -58,7 +58,6 @@ static void create_interior_parent_of_interior(
  * @param[in] interior
  * @param[in] child_node After split, it inserts this @a child_node.
  */
-template<class interior_node, class border_node>
 static void
 interior_split(tree_instance* ti, interior_node* const interior,
                base_node* const child_node,
@@ -106,10 +105,10 @@ interior_split(tree_instance* ti, interior_node* const interior,
     int ret_memcmp = memcmp(&key_slice, &pivot_key, comp_length);
     if (ret_memcmp < 0 || (ret_memcmp == 0 && key_length < pivot_length)) {
         child_node->set_parent(interior); // guard by parent lock
-        interior->template insert<border_node>(child_node, inserting_key);
+        interior->insert(child_node, inserting_key);
     } else {
         child_node->set_parent(new_interior); // guard by parent lock
-        new_interior->template insert<border_node>(child_node, inserting_key);
+        new_interior->insert(child_node, inserting_key);
     }
 
     base_node* p = interior->lock_parent(ti);
@@ -123,7 +122,7 @@ interior_split(tree_instance* ti, interior_node* const interior,
          * The disappearance of the parent node may have made this node the root node in
          * parallel. It cares in below function.
          */
-        create_interior_parent_of_interior<interior_node, border_node>(
+        create_interior_parent_of_interior(
                 interior, new_interior, std::make_pair(pivot_key, pivot_length),
                 &p);
         interior->version_unlock();
@@ -147,7 +146,7 @@ interior_split(tree_instance* ti, interior_node* const interior,
     if (p->get_version_border()) {
         auto* pb = dynamic_cast<border_node*>(p);
         base_node* new_p{};
-        create_interior_parent_of_interior<interior_node, border_node>(
+        create_interior_parent_of_interior(
                 interior, new_interior, std::make_pair(pivot_key, pivot_length),
                 &new_p);
         interior->version_unlock();
@@ -167,15 +166,14 @@ interior_split(tree_instance* ti, interior_node* const interior,
         /**
          * parent interior full case.
          */
-        interior_split<interior_node, border_node>(
+        interior_split(
                 ti, pi, new_interior, std::make_pair(pivot_key, pivot_length));
         return;
     }
     /**
      * parent interior not-full case
      */
-    pi->template insert<border_node>(new_interior,
-                                     std::make_pair(pivot_key, pivot_length));
+    pi->insert(new_interior, std::make_pair(pivot_key, pivot_length));
     pi->version_unlock();
 }
 

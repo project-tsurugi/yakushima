@@ -12,7 +12,7 @@
 #include "base_node.h"
 #include "destroy_manager.h"
 #include "garbage_collection.h"
-#include "interior_helper.h"
+#include "link_or_value.h"
 #include "log.h"
 #include "thread_info.h"
 #include "tree_instance.h"
@@ -248,7 +248,6 @@ public:
      * @details insert @a child and fix @a children.
      * @param child new inserted child.
      */
-    template<class border_node>
     void insert(base_node* const child,
                 const std::pair<key_slice_type, key_length_type> pivot_key) {
         set_version_inserting_deleting(true);
