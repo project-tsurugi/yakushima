@@ -20,7 +20,7 @@ TEST_F(intest, display) { // NOLINT
     interior_node in;
     ASSERT_EQ(true, true);
     // in.display();
-    in.init_interior();
+    // in.init_interior();
     ASSERT_EQ(true, true);
     // in.display();
 }

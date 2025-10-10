@@ -35,7 +35,7 @@ TEST_F(border_node_test, display) { // NOLINT
     border_node bn;
     ASSERT_EQ(true, true);
     // bn.display();
-    bn.init_border();
+    // bn.init_border();
     ASSERT_EQ(true, true);
     // bn.display();
 }

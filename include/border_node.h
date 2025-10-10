@@ -296,29 +296,6 @@ public:
 
     border_node* get_prev() { return loadAcquireN(prev_); }
 
-    void init_border() {
-        init_base();
-        init_border_member_range(0);
-        set_version_root(true);
-        set_version_border(true);
-        permutation_.init();
-        set_next(nullptr);
-        set_prev(nullptr);
-    }
-
-    /**
-     * @details init at @a pos as position.
-     * @param[in] pos This is a position (index) to be initialized.
-     */
-    void init_border(const std::size_t pos) {
-        init_base(pos);
-        lv_.at(pos).init_lv();
-    }
-
-    void init_border_member_range(const std::size_t start) {
-        for (auto i = start; i < lv_.size(); ++i) { lv_.at(i).init_lv(); }
-    }
-
     void permutation_rearrange() {
         permutation_.rearrange(get_key_slice_ref(), get_key_length_ref());
     }
@@ -351,8 +328,6 @@ public:
                            base_node* const next_layer) {
         lv_.at(index).set_next_layer(next_layer);
     }
-
-    void set_next(border_node* const nnext) { storeReleaseN(next_, nnext); }
 
     void set_prev(locked_border_node* const prev) { storeReleaseN(prev_, prev); }
 
@@ -563,13 +538,38 @@ public:
     template<class ValueType>
     void init_border(std::string_view key_view, value* new_value,
                      ValueType** const created_value_ptr, const bool root) {
-        this->border_node::init_border();
+        this->init_border();
         set_version_root(root);
         get_version_ptr()->atomic_inc_vinsert();
         insert_lv_at(get_permutation().get_empty_slot(), key_view, new_value,
                      reinterpret_cast<void**>(created_value_ptr), // NOLINT
                      0);
     }
+
+    void init_border() {
+        init_base();
+        init_border_member_range(0);
+        set_version_root(true);
+        set_version_border(true);
+        permutation_.init();
+        set_next(nullptr);
+        set_prev(nullptr);
+    }
+
+    /**
+     * @details init at @a pos as position.
+     * @param[in] pos This is a position (index) to be initialized.
+     */
+    void init_border(const std::size_t pos) {
+        init_base(pos);
+        lv_.at(pos).init_lv();
+    }
+
+    void init_border_member_range(const std::size_t start) {
+        for (auto i = start; i < lv_.size(); ++i) { lv_.at(i).init_lv(); }
+    }
+
+    void set_next(border_node* const nnext) { storeReleaseN(next_, nnext); }
 
     /**
      * @pre It already locked this node.
