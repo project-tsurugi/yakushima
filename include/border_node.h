@@ -588,14 +588,17 @@ public:
 
 // localy created, not exposed object : can call set_* methods without lock
 class alignas(CACHE_LINE_SIZE) new_border_node : public locked_border_node {
+    // yakushima uses typeof() compare, so create as border_node class
     new_border_node() = delete;
 public:
     static new_border_node* create() { return of(new border_node()); }
-    static new_border_node* of(border_node* p) { return dynamic_cast<new_border_node*>(p); }
+    static new_border_node* of(border_node* p) { return static_cast<new_border_node*>(p); } // NOLINT
 
     [[nodiscard]] locked_border_node* lock() { return border_node::lock(); }
     void version_unlock() = delete;
 };
+
+static_assert(sizeof(new_border_node) == sizeof(border_node));
 
 
     /**
