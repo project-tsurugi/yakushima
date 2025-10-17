@@ -65,7 +65,7 @@ static void create_interior_parent_of_border(border_node* const left,
     /**
      * create a new interior node p with children n, n'
      */
-    auto* ni = (new interior_node())->lock();
+    locked_interior_node* ni = new_interior_node::create()->lock();
     ni->init_interior();
     ni->set_version_root(true);
     ni->set_version_inserting_deleting(true);
@@ -149,14 +149,15 @@ static void border_split(tree_instance* ti, locked_border_node* const border,
     }
 
     border->set_version_splitting(true);
-    new_border_node* new_border = new_border_node::create();
-    new_border->init_border();
-    new_border->set_next(border->get_next());
-    new_border->set_prev(border);
+    new_border_node* new_border0 = new_border_node::create();
+    new_border0->init_border();
+    new_border0->set_next(border->get_next());
+    new_border0->set_prev(border);
 
     /**
      * new border is initially locked
      */
+    auto* new_border = new_border0->lock();
     new_border->set_version(border->get_version());
     border->set_next(new_border);
     if (new_border->get_next() != nullptr) {
@@ -253,7 +254,7 @@ static void border_split(tree_instance* ti, locked_border_node* const border,
                 border, new_border,
                 &lp); // NOLINT
         border->version_unlock();
-        //new_border->version_unlock();
+        new_border->version_unlock();
         ti->store_root_ptr(lp); // guard by root lock
         lp->version_unlock();
         ti->root_unlock();
@@ -278,7 +279,7 @@ static void border_split(tree_instance* ti, locked_border_node* const border,
         create_interior_parent_of_border(
                 border, new_border, &pi);
         border->version_unlock();
-        //new_border->version_unlock();
+        new_border->version_unlock();
         pi->set_parent(pb); // guard by parent lock
         pi->version_unlock();
         link_or_value* lv = pb->get_lv(border);
@@ -296,7 +297,7 @@ static void border_split(tree_instance* ti, locked_border_node* const border,
     border->set_version_root(false); // guard by parent lock
     new_border->set_version_root(false); // guard by parent lock
     border->version_unlock();
-    //new_border->version_unlock();
+    new_border->version_unlock();
     if (pi->get_n_keys() == key_slice_length) {
         /**
          * interior full case, it splits and inserts.
