@@ -63,7 +63,7 @@ TEST_F(put_test, put_to_root_border_split) { // NOLINT
 
     // check root is interior
     auto* n = ti->load_root_ptr();
-    ASSERT_EQ(typeid(*n), typeid(interior_node)); // NOLINT
+    ASSERT_FALSE(n->get_version_border());
     auto* in = dynamic_cast<interior_node*>(ti->load_root_ptr());
     // check child is border node which has 8 elements
     auto* bn = dynamic_cast<border_node*>(in->get_child_at(0));
@@ -239,7 +239,7 @@ TEST_F(put_test, one_key_len9) { // NOLINT
 
     // verify
     auto* n = ti->load_root_ptr();
-    ASSERT_EQ(typeid(*n), typeid(border_node)); // NOLINT
+    ASSERT_TRUE(n->get_version_border());
     auto* nvp_first_border_node = n->get_version_ptr();
     ASSERT_EQ(nvp, nvp_first_border_node);
     auto* n_second_border_node =
