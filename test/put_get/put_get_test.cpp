@@ -185,7 +185,7 @@ TEST_F(kt, test5) { // NOLINT
      */
     auto* br = dynamic_cast<border_node*>(ti->load_root_ptr());
     auto* n = br->get_lv_at(9)->get_next_layer();
-    ASSERT_EQ(typeid(*n), typeid(border_node)); // NOLINT
+    ASSERT_TRUE(n->get_version_border());
     ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
     ASSERT_EQ(leave(token), status::OK);
 }
@@ -264,7 +264,7 @@ TEST_F(kt, test7) { // NOLINT
     }
     auto* in = dynamic_cast<interior_node*>(ti->load_root_ptr());
     auto* n = ti->load_root_ptr();
-    ASSERT_EQ(typeid(*n), typeid(interior_node)); // NOLINT
+    ASSERT_FALSE(n->get_version_border());
     auto* bn = dynamic_cast<border_node*>(in->get_child_at(0));
     ASSERT_EQ(bn->get_permutation_cnk(), 8);
     bn = dynamic_cast<border_node*>(in->get_child_at(1));
@@ -298,7 +298,7 @@ TEST_F(kt, test8) { // NOLINT
                           std::get<1>(kv[i]).size()));
         }
         auto* n = ti->load_root_ptr();
-        ASSERT_EQ(typeid(*n), typeid(interior_node)); // NOLINT
+        ASSERT_FALSE(n->get_version_border());
         ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
         ASSERT_EQ(leave(token), status::OK);
         destroy();
@@ -333,13 +333,13 @@ TEST_F(kt, test9) { // NOLINT
              * root is full-border.
              */
             auto* n = ti->load_root_ptr();
-            ASSERT_EQ(typeid(*n), typeid(border_node)); // NOLINT
+            ASSERT_TRUE(n->get_version_border());
         } else if (i == key_slice_length) {
             /**
              * split and insert.
              */
             auto* n = ti->load_root_ptr();
-            ASSERT_EQ(typeid(*n), typeid(interior_node)); // NOLINT
+            ASSERT_FALSE(n->get_version_border());
             ASSERT_EQ(dynamic_cast<border_node*>(
                               dynamic_cast<interior_node*>(ti->load_root_ptr())
                                       ->get_child_at(0))
