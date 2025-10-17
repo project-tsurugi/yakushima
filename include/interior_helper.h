@@ -177,71 +177,68 @@ interior_split(tree_instance* ti, interior_node* const interior,
     pi->version_unlock();
 }
 
-inline
-    void interior_node::delete_of(Token token, tree_instance* ti, base_node* const child) {
-        set_version_inserting_deleting(true);
-        std::size_t n_key = get_n_keys();
+inline void
+interior_node::delete_of(Token token, tree_instance* ti, base_node* const child) {
+    set_version_inserting_deleting(true);
+    std::size_t n_key = get_n_keys();
 #ifndef NDEBUG
-        if (n_key == 0) { LOG(ERROR) << log_location_prefix; }
+    if (n_key == 0) { LOG(ERROR) << log_location_prefix; }
 #endif
-        for (std::size_t i = 0; i <= n_key; ++i) {
-            if (get_child_at(i) == child) {
-                if (n_key == 1) {
-                    // remove this node and promote its last child node one level
-                    set_version_deleted(true);
-                    n_keys_decrement();
-                    base_node* sibling = get_child_at(1 - i); // i == 0 or 1
-                    base_node* pn = lock_parent(ti);
-                    if (pn == nullptr) { // if this node is masstree root
-                        set_version_root(false); // guard by root lock
-                        sibling->atomic_set_version_root(true); // guard by root lock
-                        ti->store_root_ptr(sibling); // guard by root lock
-                        sibling->set_parent(nullptr); // guard by root lock
-                        ti->root_unlock();
+    for (std::size_t i = 0; i <= n_key; ++i) {
+        if (get_child_at(i) == child) {
+            if (n_key == 1) {
+                // remove this node and promote its last child node one level
+                set_version_deleted(true);
+                n_keys_decrement();
+                base_node* sibling = get_child_at(1 - i); // i == 0 or 1
+                base_node* pn = lock_parent(ti);
+                if (pn == nullptr) { // if this node is masstree root
+                    set_version_root(false); // guard by root lock
+                    sibling->atomic_set_version_root(true); // guard by root lock
+                    ti->store_root_ptr(sibling); // guard by root lock
+                    sibling->set_parent(nullptr); // guard by root lock
+                    ti->root_unlock();
+                } else {
+                    set_version_root(false); // guard by parent lock
+                    //pn->set_version_inserting_deleting(true);
+                    if (pn->get_version_border()) { // if this node is layer 1+ root
+                        link_or_value* lv = dynamic_cast<border_node*>(pn)->get_lv(this);
+                        lv->set_next_layer(sibling);
+                        sibling->atomic_set_version_root(true); // guard by parent lock
                     } else {
-                        set_version_root(false); // guard by parent lock
-                        //pn->set_version_inserting_deleting(true);
-                        if (pn->get_version_border()) { // if this node is layer 1+ root
-                            link_or_value* lv =
-                                    dynamic_cast<border_node*>(pn)->get_lv(
-                                            this);
-                            lv->set_next_layer(sibling);
-                            sibling->atomic_set_version_root(true); // guard by parent lock
-                        } else {
-                            dynamic_cast<interior_node*>(pn)->swap_child(this, sibling);
-                        }
-                        sibling->set_parent(pn); // guard by parent lock
-                        pn->version_unlock();
+                        dynamic_cast<interior_node*>(pn)->swap_child(this, sibling);
                     }
-                    version_unlock();
-                    auto* tinfo =
-                            reinterpret_cast<thread_info*>(token); // NOLINT
-                    tinfo->get_gc_info().push_node_container(
-                            std::tuple{tinfo->get_begin_epoch(), this});
-                } else {          // n_key > 1
-                    if (i == 0) { // leftmost points
-                        shift_left_base_member(1, 1);
-                        shift_left_children(1, 1);
-                        set_child_at(n_key, nullptr);
-                    } else if (i == n_key) { // rightmost points
-                        // no unique process
-                        set_child_at(i, nullptr);
-                    } else { // middle points
-                        shift_left_base_member(i, 1);
-                        shift_left_children(i + 1, 1);
-                        set_child_at(n_key, nullptr);
-                    }
-                    set_key(n_key - 1, 0, 0);
-                    n_keys_decrement();
-                    version_unlock();
+                    sibling->set_parent(pn); // guard by parent lock
+                    pn->version_unlock();
                 }
-                return;
+                version_unlock();
+                auto* tinfo = reinterpret_cast<thread_info*>(token); // NOLINT
+                tinfo->get_gc_info().push_node_container(
+                        std::tuple{tinfo->get_begin_epoch(), this});
+            } else {          // n_key > 1
+                if (i == 0) { // leftmost points
+                    shift_left_base_member(1, 1);
+                    shift_left_children(1, 1);
+                    set_child_at(n_key, nullptr);
+                } else if (i == n_key) { // rightmost points
+                    // no unique process
+                    set_child_at(i, nullptr);
+                } else { // middle points
+                    shift_left_base_member(i, 1);
+                    shift_left_children(i + 1, 1);
+                    set_child_at(n_key, nullptr);
+                }
+                set_key(n_key - 1, 0, 0);
+                n_keys_decrement();
+                version_unlock();
             }
+            return;
         }
+    }
 
 #ifndef NDEBUG
-        LOG(ERROR) << log_location_prefix << "precondition error";
+    LOG(ERROR) << log_location_prefix << "precondition error";
 #endif
-    }
+}
 
 } // namespace yakushima
