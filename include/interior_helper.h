@@ -78,11 +78,7 @@ interior_split(tree_instance* ti, interior_node* const interior,
     std::size_t split_children_points = pivot_key_pos + 1;
     interior->move_key_to_base_range(new_interior, split_children_points);
     interior->set_n_keys(pivot_key_pos);
-    if (pivot_key_pos & 1) { // NOLINT
-        new_interior->set_n_keys(pivot_key_pos);
-    } else {
-        new_interior->set_n_keys(pivot_key_pos - 1);
-    }
+    new_interior->set_n_keys(key_slice_length - pivot_key_pos - 1);
     interior->move_children_to_interior_range(new_interior,
                                               split_children_points);
     key_slice_type pivot_key = interior->get_key_slice_at(pivot_key_pos);
