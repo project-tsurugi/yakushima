@@ -184,7 +184,7 @@ public:
                                                                   this);
                     } else {
                         dynamic_cast<interior_node*>(pn)
-                                ->delete_of<border_node>(token, ti, this);
+                                ->delete_of(token, ti, this);
                     }
                     auto* tinfo =
                             reinterpret_cast<thread_info*>(token); // NOLINT
