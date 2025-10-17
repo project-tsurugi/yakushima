@@ -223,6 +223,9 @@ public:
         storeReleaseN(key_slice_.at(index), key_slice);
     }
 
+    /**
+     * @pre take lock of parent
+     */
     void set_parent(base_node* const new_parent) {
         storeReleaseN(parent_, new_parent);
     }
@@ -240,6 +243,9 @@ public:
         version_.atomic_set_inserting_deleting(tf);
     }
 
+    /**
+     * @pre take lock of parent
+     */
     void set_version_root(const bool tf) { version_.atomic_set_root(tf); }
 
     [[maybe_unused]] void set_version_splitting(const bool tf) {

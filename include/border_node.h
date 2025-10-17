@@ -29,6 +29,7 @@ public:
 
     /**
      * @pre This function is called by delete_of function.
+     * It already acquired lock of this node.
      * @details delete the key-value corresponding to @a pos as position.
      * @param[in] rank
      * @param[in] pos The position of being deleted.
@@ -59,6 +60,7 @@ public:
 
     /**
      * @pre There is a lv which points to @a child.
+     * It already acquired lock of this node.
      * @details Delete operation on the element matching @a child.
      * @param[in] token
      * @param[in] child

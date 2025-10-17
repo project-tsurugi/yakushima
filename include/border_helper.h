@@ -58,10 +58,9 @@ border_split(tree_instance* ti, border_node* border, std::string_view key_view,
  * @details This may be called at split function.
  * It creates new interior node as parents of this border_node and @a higher_border node.
  * After that, it inserts based on @a key_view, @a value_ptr, ... (args).
+ * It already locked @a left and @a right, and parent/root lock (originaly the parent of left).
  * @param[in] left
  * @param[in] right This is a higher border_node as result of split for this node.
- * @param[out] lock_list This is unused because the border nodes is not-full as result of
- * split.
  * @param[out] new_parent This is a new parents.
  * The insert_lv function needs lock_list as an argument, so it is passed in spite of not
  * using.

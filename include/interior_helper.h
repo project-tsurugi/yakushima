@@ -53,7 +53,7 @@ static void create_interior_parent_of_interior(
 }
 
 /**
- * @pre It already acquired lock of this node.
+ * @pre It already acquired lock of @a interior, and released lock of @a child_node.
  * @details split interior node.
  * @param[in] interior
  * @param[in] child_node After split, it inserts this @a child_node.
