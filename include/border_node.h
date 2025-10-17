@@ -142,7 +142,7 @@ public:
                     set_version_deleted(true);
                     if (ti->load_root_ptr() != this) {
                         // root && deleted node is treated as special. This isn't.
-                        set_version_root(false);
+                        set_version_root(false); // XXX
                     }
 
                     /**
@@ -180,7 +180,7 @@ public:
                      * note: Including relation of parent-child is
                      * border-border.
                      */
-                    set_version_root(false);
+                    set_version_root(false); // guard by parent lock
                     version_unlock();
                     if (pn->get_version_border()) {
                         dynamic_cast<border_node*>(pn)->delete_of(token, ti,

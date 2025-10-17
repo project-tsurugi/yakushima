@@ -56,15 +56,15 @@ public:
                 if (n_key == 1) {
                     // remove this node and promote its last child node one level
                     set_version_deleted(true);
-                    set_version_root(false);
+                    set_version_root(false); // XXX
                     n_keys_decrement();
                     base_node* sibling = get_child_at(1 - i); // i == 0 or 1
                     base_node* pn = lock_parent();
                     if (pn == nullptr) { // if this node is masstree root
                         ti->root_lock();
-                        sibling->atomic_set_version_root(true);
-                        ti->store_root_ptr(sibling);
-                        sibling->set_parent(nullptr);
+                        sibling->atomic_set_version_root(true); // guard by root lock
+                        ti->store_root_ptr(sibling); // guard by root lock
+                        sibling->set_parent(nullptr); // guard by root lock
                         ti->root_unlock();
                     } else {
                         //pn->set_version_inserting_deleting(true);
@@ -73,11 +73,11 @@ public:
                                     dynamic_cast<border_node*>(pn)->get_lv(
                                             this);
                             lv->set_next_layer(sibling);
-                            sibling->atomic_set_version_root(true);
+                            sibling->atomic_set_version_root(true); // guard by parent lock
                         } else {
                             dynamic_cast<interior_node*>(pn)->swap_child(this, sibling);
                         }
-                        sibling->set_parent(pn);
+                        sibling->set_parent(pn); // guard by parent lock
                         pn->version_unlock();
                     }
                     version_unlock();
@@ -302,7 +302,7 @@ public:
             /**
              * right interiror is new parent of get_child_at(i). // NOLINT
              */
-            get_child_at(i)->set_parent(right_interior);
+            get_child_at(i)->set_parent(right_interior); // guard by parent lock
             set_child_at(i, nullptr);
         }
     }
