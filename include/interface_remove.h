@@ -78,7 +78,7 @@ retry_find_border:
         goto retry_from_root; // NOLINT
     }
     // check target_border is border node.
-    if (typeid(*target_border) != typeid(border_node)) {
+    if (!target_border->get_version_border()) {
         LOG(ERROR) << log_location_prefix
                    << "find_border return not border node.";
         return status::ERR_FATAL;
