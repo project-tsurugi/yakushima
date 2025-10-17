@@ -339,9 +339,10 @@ public:
 // localy created, not exposed object : can call set_* methods without lock
 class alignas(CACHE_LINE_SIZE) new_interior_node : public locked_interior_node {
     // yakushima uses typeof() compare, so create as interior_node class
-    new_interior_node() = delete;
+//    new_interior_node() = delete;
 public:
-    static new_interior_node* create() { return of(new interior_node()); }
+    //static new_interior_node* create() { return of(new interior_node()); }
+    static new_interior_node* create() { return of(new new_interior_node()); }
     static new_interior_node* of(interior_node* p) { return reinterpret_cast<new_interior_node*>(p); } // NOLINT
 
 

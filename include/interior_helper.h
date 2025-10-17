@@ -29,7 +29,7 @@ static void create_interior_parent_of_interior(
         locked_interior_node** const new_parent) {
     left->set_version_root(false);
     right->set_version_root(false);
-    locked_interior_node* ni = (new interior_node())->lock(); // NOLINT
+    locked_interior_node* ni = new_interior_node::create()->lock(); // NOLINT
     ni->init_interior();
     ni->set_version_root(true);
     ni->set_version_inserting_deleting(true);
@@ -62,12 +62,13 @@ interior_split(tree_instance* ti, locked_interior_node* const interior,
                base_node* const child_node,
                const std::pair<key_slice_type, key_length_type> inserting_key) {
     interior->set_version_splitting(true);
-    new_interior_node* new_interior = new_interior_node::create();
-    new_interior->init_interior();
+    new_interior_node* new_interior0 = new_interior_node::create();
+    new_interior0->init_interior();
 
     /**
      * new interior is initially locked.
      */
+    locked_interior_node* new_interior = new_interior0->lock();
     new_interior->set_version(interior->get_version());
     /**
      * split keys among n and n'
@@ -126,7 +127,7 @@ interior_split(tree_instance* ti, locked_interior_node* const interior,
                 interior, new_interior, std::make_pair(pivot_key, pivot_length),
                 &new_p);
         interior->version_unlock();
-        //new_interior->version_unlock();
+        new_interior->version_unlock();
         /**
          * p became new root.
          */
@@ -150,7 +151,7 @@ interior_split(tree_instance* ti, locked_interior_node* const interior,
                 interior, new_interior, std::make_pair(pivot_key, pivot_length),
                 &new_p);
         interior->version_unlock();
-        //new_interior->version_unlock();
+        new_interior->version_unlock();
         link_or_value* lv = pb->get_lv(interior);
         lv->set_next_layer(new_p);
         new_p->set_parent(pb); // guard by parent lock
@@ -161,7 +162,7 @@ interior_split(tree_instance* ti, locked_interior_node* const interior,
     auto* pi = dynamic_cast<locked_interior_node*>(p);
     interior->version_unlock();
     new_interior->set_parent(pi); // guard by parent lock
-    //new_interior->version_unlock();
+    new_interior->version_unlock();
     if (pi->get_n_keys() == key_slice_length) {
         /**
          * parent interior full case.
