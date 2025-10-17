@@ -114,6 +114,7 @@ interior_split(tree_instance* ti, interior_node* const interior,
 
     base_node* p = interior->lock_parent();
     if (p == nullptr) {
+        ti->root_lock();
 #ifndef NDEBUG
         if (ti->load_root_ptr() != interior) {
             LOG(ERROR) << log_location_prefix;
@@ -133,6 +134,7 @@ interior_split(tree_instance* ti, interior_node* const interior,
          */
         ti->store_root_ptr(p);
         p->version_unlock();
+        ti->root_unlock();
         return;
     }
     /**

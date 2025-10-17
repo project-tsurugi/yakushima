@@ -61,9 +61,11 @@ public:
                     base_node* sibling = get_child_at(1 - i); // i == 0 or 1
                     base_node* pn = lock_parent();
                     if (pn == nullptr) { // if this node is masstree root
+                        ti->root_lock();
                         sibling->atomic_set_version_root(true);
                         ti->store_root_ptr(sibling);
                         sibling->set_parent(nullptr);
+                        ti->root_unlock();
                     } else {
                         //pn->set_version_inserting_deleting(true);
                         if (pn->get_version_border()) { // if this node is layer 1+ root
