@@ -36,12 +36,13 @@ public:
 
     /**
      * @pre There is a child which is the same to @a child.
-     * @post If the number of children is 1, It asks caller to make the child to root and
-     * delete this node. Therefore, it place the-only-one child to position 0.
+     * @a this interior node is locked by caller.
      * @details Delete operation on the element matching @a child.
+     * If after deletion there is only one child left,
+     * promote the child to the position of @a this node.
      * @param[in] token
-     * @param[in] child
-     * @param[in] lock_list
+     * @param[in] ti pointer to the masstree instance
+     * @param[in] child removed child node (not locked by caller)
      */
     template<class border_node>
     void delete_of(Token token, tree_instance* ti, base_node* const child) {
@@ -53,28 +54,28 @@ public:
         for (std::size_t i = 0; i <= n_key; ++i) {
             if (get_child_at(i) == child) {
                 if (n_key == 1) {
+                    // remove this node and promote its last child node one level
                     set_version_deleted(true);
                     set_version_root(false);
                     n_keys_decrement();
+                    base_node* sibling = get_child_at(1 - i); // i == 0 or 1
                     base_node* pn = lock_parent();
-                    if (pn == nullptr) {
-                        get_child_at(!i)->atomic_set_version_root(true);
-                        ti->store_root_ptr(get_child_at(!i)); // i == 0 or 1
-                        get_child_at(!i)->set_parent(nullptr);
+                    if (pn == nullptr) { // if this node is masstree root
+                        sibling->atomic_set_version_root(true);
+                        ti->store_root_ptr(sibling);
+                        sibling->set_parent(nullptr);
                     } else {
                         //pn->set_version_inserting_deleting(true);
-                        if (pn->get_version_border()) {
+                        if (pn->get_version_border()) { // if this node is layer 1+ root
                             link_or_value* lv =
                                     dynamic_cast<border_node*>(pn)->get_lv(
                                             this);
-                            base_node* sibling = get_child_at(!i);
                             lv->set_next_layer(sibling);
                             sibling->atomic_set_version_root(true);
                         } else {
-                            dynamic_cast<interior_node*>(pn)->swap_child(
-                                    this, get_child_at(!i));
+                            dynamic_cast<interior_node*>(pn)->swap_child(this, sibling);
                         }
-                        get_child_at(!i)->set_parent(pn);
+                        sibling->set_parent(pn);
                         pn->version_unlock();
                     }
                     version_unlock();
