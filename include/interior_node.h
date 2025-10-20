@@ -56,17 +56,18 @@ public:
                 if (n_key == 1) {
                     // remove this node and promote its last child node one level
                     set_version_deleted(true);
-                    set_version_root(false); // XXX
                     n_keys_decrement();
                     base_node* sibling = get_child_at(1 - i); // i == 0 or 1
                     base_node* pn = lock_parent();
                     if (pn == nullptr) { // if this node is masstree root
                         ti->root_lock();
+                        set_version_root(false); // guard by root lock
                         sibling->atomic_set_version_root(true); // guard by root lock
                         ti->store_root_ptr(sibling); // guard by root lock
                         sibling->set_parent(nullptr); // guard by root lock
                         ti->root_unlock();
                     } else {
+                        set_version_root(false); // guard by parent lock
                         //pn->set_version_inserting_deleting(true);
                         if (pn->get_version_border()) { // if this node is layer 1+ root
                             link_or_value* lv =
