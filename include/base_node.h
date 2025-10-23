@@ -11,6 +11,7 @@
 #include "atomic_wrapper.h"
 #include "cpu.h"
 #include "scheme.h"
+#include "tree_instance.h"
 #include "version.h"
 
 #include "glog/logging.h"
@@ -186,10 +187,17 @@ public:
     /**
      * @pre This function is called by split.
      */
-    [[nodiscard]] base_node* lock_parent() const {
+    [[nodiscard]] base_node* lock_parent(tree_instance* ti) const {
         base_node* p = get_parent();
         for (;;) {
-            if (p == nullptr) { return nullptr; }
+            if (p == nullptr) {
+                // root lock
+                ti->root_lock();
+                base_node* check = ti->load_root_ptr();
+                if (this == check) { return nullptr; }
+                ti->root_unlock();
+                continue;
+            }
             p->lock();
             base_node* check = get_parent();
             if (p == check) { return p; }

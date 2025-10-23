@@ -58,9 +58,8 @@ public:
                     set_version_deleted(true);
                     n_keys_decrement();
                     base_node* sibling = get_child_at(1 - i); // i == 0 or 1
-                    base_node* pn = lock_parent();
+                    base_node* pn = lock_parent(ti);
                     if (pn == nullptr) { // if this node is masstree root
-                        ti->root_lock();
                         set_version_root(false); // guard by root lock
                         sibling->atomic_set_version_root(true); // guard by root lock
                         ti->store_root_ptr(sibling); // guard by root lock

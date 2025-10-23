@@ -252,9 +252,8 @@ static void border_split(tree_instance* ti, border_node* const border,
                                  rank - remaining_size);
     }
 
-    base_node* p = border->lock_parent();
+    base_node* p = border->lock_parent(ti);
     if (p == nullptr) {
-        ti->root_lock();
 #ifndef NDEBUG
         if (ti->load_root_ptr() != border) {
             LOG(ERROR) << log_location_prefix;

@@ -8,9 +8,11 @@
 #include <xmmintrin.h>
 
 #include "atomic_wrapper.h"
-#include "base_node.h"
+#include "clock.h"
 
 namespace yakushima {
+
+class base_node;
 
 class alignas(CACHE_LINE_SIZE) tree_instance {
 public:

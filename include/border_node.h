@@ -164,10 +164,11 @@ public:
                     /**
                      * lock order is next to prev and lower to higher.
                      */
-                    base_node* pn = lock_parent();
+                    base_node* pn = lock_parent(ti);
                     if (pn == nullptr) {
                         //ti->store_root_ptr(nullptr);
                         // remain empty deleted root node.
+                        ti->root_unlock();
                         version_unlock();
                         return;
                     }

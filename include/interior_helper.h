@@ -112,9 +112,8 @@ interior_split(tree_instance* ti, interior_node* const interior,
         new_interior->template insert<border_node>(child_node, inserting_key);
     }
 
-    base_node* p = interior->lock_parent();
+    base_node* p = interior->lock_parent(ti);
     if (p == nullptr) {
-        ti->root_lock();
 #ifndef NDEBUG
         if (ti->load_root_ptr() != interior) {
             LOG(ERROR) << log_location_prefix;
