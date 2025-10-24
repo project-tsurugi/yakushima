@@ -22,26 +22,6 @@
 namespace yakushima {
 
 /**
- * forward declaration.
- */
-
-/**
- * @pre It already locked this node.
- * @details border node split.
- * @param[in] border
- * @param[in] key_view
- * @param[in] new_value
- * @param[out] created_value_ptr The pointer to created value in yakushima.
- * @param[out] inserted_node_version_ptr
- * @param[in] rank
- */
-static void
-border_split(tree_instance* ti, border_node* border, std::string_view key_view,
-             value* new_value,
-             void** created_value_ptr, // NOLINT
-             node_version64** inserted_node_version_ptr, std::size_t rank);
-
-/**
  * Start impl.
  */
 
@@ -123,8 +103,8 @@ static void insert_lv(tree_instance* ti, border_node* const border,
         /**
          * It needs splitting
          */
-        border_split(
-                ti, border, key_view, new_value, created_value_ptr,
+        border->border_split(
+                ti, key_view, new_value, created_value_ptr,
                 inserted_node_version_ptr, rank);
     } else {
         /**
@@ -139,27 +119,27 @@ static void insert_lv(tree_instance* ti, border_node* const border,
     }
 }
 
-static void border_split(tree_instance* ti, border_node* const border,
+inline void border_node::border_split(tree_instance* ti,
                          std::string_view key_view, value* new_value,
                          void** const created_value_ptr,
                          node_version64** inserted_node_version_ptr,
                          [[maybe_unused]] std::size_t rank) {
     // update inserted_node_version_ptr
     if (inserted_node_version_ptr != nullptr) {
-        *inserted_node_version_ptr = border->get_version_ptr();
+        *inserted_node_version_ptr = get_version_ptr();
     }
 
-    border->set_version_splitting(true);
+    set_version_splitting(true);
     border_node* new_border = new border_node(); // NOLINT
     new_border->init_border();
-    new_border->set_next(border->get_next());
-    new_border->set_prev(border);
+    new_border->set_next(get_next());
+    new_border->set_prev(this);
 
     /**
      * new border is initially locked
      */
-    new_border->set_version(border->get_version());
-    border->set_next(new_border);
+    new_border->set_version(get_version());
+    set_next(new_border);
     if (new_border->get_next() != nullptr) {
         /**
          * The prev of border next can be updated if it posesses the border lock.
@@ -177,18 +157,18 @@ static void border_split(tree_instance* ti, border_node* const border,
         /**
          * move base_node members to new nodes
          */
-        std::size_t src_index{border->get_permutation().get_index_of_rank(
+        std::size_t src_index{get_permutation().get_index_of_rank(
                 remaining_size)}; // this is tricky.
         new_border->set_key_slice_at(index_ctr,
-                                     border->get_key_slice_at(src_index));
+                                     get_key_slice_at(src_index));
         new_border->set_key_length_at(index_ctr,
-                                      border->get_key_length_at(src_index));
-        new_border->set_lv(index_ctr, border->get_lv_at(src_index));
-        base_node* nl = border->get_lv_at(src_index)->get_next_layer();
+                                      get_key_length_at(src_index));
+        new_border->set_lv(index_ctr, get_lv_at(src_index));
+        base_node* nl = get_lv_at(src_index)->get_next_layer();
         if (nl != nullptr) { nl->set_parent(new_border); }
         ++index_ctr;
-        border->init_border(src_index);
-        border->get_permutation().delete_rank(
+        init_border(src_index);
+        get_permutation().delete_rank(
                 remaining_size); // this is tricky.
     }
     /**
@@ -226,7 +206,7 @@ static void border_split(tree_instance* ti, border_node* const border,
         /**
          * insert to lower border node.
          */
-        border->insert_lv_at(border->get_permutation().get_empty_slot(),
+        insert_lv_at(get_permutation().get_empty_slot(),
                              key_view, new_value, created_value_ptr, rank);
     } else {
         /**
@@ -237,10 +217,10 @@ static void border_split(tree_instance* ti, border_node* const border,
                                  rank - remaining_size);
     }
 
-    base_node* p = border->lock_parent(ti);
+    base_node* p = lock_parent(ti);
     if (p == nullptr) {
 #ifndef NDEBUG
-        if (ti->load_root_ptr() != border) {
+        if (ti->load_root_ptr() != this) {
             LOG(ERROR) << log_location_prefix;
         }
 #endif
@@ -250,9 +230,9 @@ static void border_split(tree_instance* ti, border_node* const border,
          * parallel. It cares in below function.
          */
         create_interior_parent_of_border(
-                border, new_border,
+                this, new_border,
                 reinterpret_cast<interior_node**>(&p)); // NOLINT
-        border->version_unlock();
+        version_unlock();
         new_border->version_unlock();
         ti->store_root_ptr(p); // guard by root lock
         p->version_unlock();
@@ -261,7 +241,7 @@ static void border_split(tree_instance* ti, border_node* const border,
     }
 
 #ifndef NDEBUG
-    if (p != border->get_parent()) { LOG(ERROR) << log_location_prefix; }
+    if (p != get_parent()) { LOG(ERROR) << log_location_prefix; }
 #endif
 
     if (p->get_version_border()) {
@@ -276,12 +256,12 @@ static void border_split(tree_instance* ti, border_node* const border,
         auto* pb = dynamic_cast<border_node*>(p);
         interior_node* pi{};
         create_interior_parent_of_border(
-                border, new_border, &pi);
-        border->version_unlock();
+                this, new_border, &pi);
+        version_unlock();
         new_border->version_unlock();
         pi->set_parent(p); // guard by parent lock
         pi->version_unlock();
-        link_or_value* lv = pb->get_lv(border);
+        link_or_value* lv = pb->get_lv(this);
         lv->set_next_layer(pi);
         p->version_unlock();
         return;
@@ -293,9 +273,9 @@ static void border_split(tree_instance* ti, border_node* const border,
     if (p->get_version_deleted()) { LOG(ERROR) << log_location_prefix; }
 #endif
     auto* pi = dynamic_cast<interior_node*>(p);
-    border->set_version_root(false); // guard by parent lock
+    set_version_root(false); // guard by parent lock
     new_border->set_version_root(false); // guard by parent lock
-    border->version_unlock();
+    version_unlock();
     new_border->version_unlock();
     if (pi->get_n_keys() == key_slice_length) {
         /**
