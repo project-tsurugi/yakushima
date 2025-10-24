@@ -55,34 +55,32 @@ static void create_interior_parent_of_interior(
 /**
  * @pre It already acquired lock of @a interior, and released lock of @a child_node.
  * @details split interior node.
- * @param[in] interior
  * @param[in] child_node After split, it inserts this @a child_node.
  */
-static void
-interior_split(tree_instance* ti, interior_node* const interior,
-               base_node* const child_node,
-               const std::pair<key_slice_type, key_length_type> inserting_key) {
-    interior->set_version_splitting(true);
+inline void
+interior_node::interior_split(tree_instance* ti, base_node* const child_node,
+                              const std::pair<key_slice_type, key_length_type> inserting_key) {
+    set_version_splitting(true);
     interior_node* new_interior = new interior_node(); // NOLINT
     new_interior->init_interior();
 
     /**
      * new interior is initially locked.
      */
-    new_interior->set_version(interior->get_version());
+    new_interior->set_version(get_version());
     /**
      * split keys among n and n'
      */
     key_slice_type pivot_key_pos = key_slice_length / 2;
     std::size_t split_children_points = pivot_key_pos + 1;
-    interior->move_key_to_base_range(new_interior, split_children_points);
-    interior->set_n_keys(pivot_key_pos);
+    move_key_to_base_range(new_interior, split_children_points);
+    set_n_keys(pivot_key_pos);
     new_interior->set_n_keys(key_slice_length - pivot_key_pos - 1);
-    interior->move_children_to_interior_range(new_interior,
+    move_children_to_interior_range(new_interior,
                                               split_children_points);
-    key_slice_type pivot_key = interior->get_key_slice_at(pivot_key_pos);
-    key_length_type pivot_length = interior->get_key_length_at(pivot_key_pos);
-    interior->set_key(pivot_key_pos, 0, 0);
+    key_slice_type pivot_key = get_key_slice_at(pivot_key_pos);
+    key_length_type pivot_length = get_key_length_at(pivot_key_pos);
+    set_key(pivot_key_pos, 0, 0);
 
     /**
      * It inserts child_node.
@@ -104,17 +102,17 @@ interior_split(tree_instance* ti, interior_node* const interior,
     }
     int ret_memcmp = memcmp(&key_slice, &pivot_key, comp_length);
     if (ret_memcmp < 0 || (ret_memcmp == 0 && key_length < pivot_length)) {
-        child_node->set_parent(interior); // guard by parent lock
-        interior->insert(child_node, inserting_key);
+        child_node->set_parent(this); // guard by parent lock
+        insert(child_node, inserting_key);
     } else {
         child_node->set_parent(new_interior); // guard by parent lock
         new_interior->insert(child_node, inserting_key);
     }
 
-    base_node* p = interior->lock_parent(ti);
+    base_node* p = lock_parent(ti);
     if (p == nullptr) {
 #ifndef NDEBUG
-        if (ti->load_root_ptr() != interior) {
+        if (ti->load_root_ptr() != this) {
             LOG(ERROR) << log_location_prefix;
         }
 #endif
@@ -123,9 +121,9 @@ interior_split(tree_instance* ti, interior_node* const interior,
          * parallel. It cares in below function.
          */
         create_interior_parent_of_interior(
-                interior, new_interior, std::make_pair(pivot_key, pivot_length),
+                this, new_interior, std::make_pair(pivot_key, pivot_length),
                 &p);
-        interior->version_unlock();
+        version_unlock();
         new_interior->version_unlock();
         /**
          * p became new root.
@@ -139,7 +137,7 @@ interior_split(tree_instance* ti, interior_node* const interior,
      * p exists.
      */
 #ifndef NDEBUG
-    if (p->get_version_deleted() || p != interior->get_parent()) {
+    if (p->get_version_deleted() || p != get_parent()) {
         LOG(ERROR) << log_location_prefix;
     }
 #endif
@@ -147,11 +145,11 @@ interior_split(tree_instance* ti, interior_node* const interior,
         auto* pb = dynamic_cast<border_node*>(p);
         base_node* new_p{};
         create_interior_parent_of_interior(
-                interior, new_interior, std::make_pair(pivot_key, pivot_length),
+                this, new_interior, std::make_pair(pivot_key, pivot_length),
                 &new_p);
-        interior->version_unlock();
+        version_unlock();
         new_interior->version_unlock();
-        link_or_value* lv = pb->get_lv(interior);
+        link_or_value* lv = pb->get_lv(this);
         lv->set_next_layer(new_p);
         new_p->set_parent(pb); // guard by parent lock
         new_p->version_unlock();
@@ -159,15 +157,14 @@ interior_split(tree_instance* ti, interior_node* const interior,
         return;
     }
     auto* pi = dynamic_cast<interior_node*>(p);
-    interior->version_unlock();
+    version_unlock();
     new_interior->set_parent(pi); // guard by parent lock
     new_interior->version_unlock();
     if (pi->get_n_keys() == key_slice_length) {
         /**
          * parent interior full case.
          */
-        interior_split(
-                ti, pi, new_interior, std::make_pair(pivot_key, pivot_length));
+        pi->interior_split(ti, new_interior, std::make_pair(pivot_key, pivot_length));
         return;
     }
     /**

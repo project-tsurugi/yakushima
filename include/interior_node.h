@@ -291,6 +291,8 @@ public:
         LOG(ERROR) << log_location_prefix << "unreachable path";
     }
 
+    void interior_split(tree_instance* ti, base_node* child_node, std::pair<key_slice_type, key_length_type> inserting_key);
+
 private:
     /**
      * first member of base_node is aligned along with cache line size.
