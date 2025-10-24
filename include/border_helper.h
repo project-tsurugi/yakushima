@@ -301,8 +301,8 @@ static void border_split(tree_instance* ti, border_node* const border,
         /**
          * interior full case, it splits and inserts.
          */
-        interior_split(
-                ti, pi, reinterpret_cast<base_node*>(new_border), // NOLINT
+        pi->interior_split(
+                ti, reinterpret_cast<base_node*>(new_border), // NOLINT
                 std::make_pair(new_border->get_key_slice_at(0),
                                new_border->get_key_length_at(0)));
         return;
