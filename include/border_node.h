@@ -579,6 +579,21 @@ public:
                 sizeof(link_or_value) * (key_slice_length - start_pos));
     }
 
+    /**
+     * @pre It already locked this node.
+     * @details border node split.
+     * @param[in] ti
+     * @param[in] key_view
+     * @param[in] new_value
+     * @param[out] created_value_ptr The pointer to created value in yakushima.
+     * @param[out] inserted_node_version_ptr
+     * @param[in] rank
+     */
+    void border_split(tree_instance* ti, std::string_view key_view,
+             value* new_value,
+             void** created_value_ptr, // NOLINT
+             node_version64** inserted_node_version_ptr, std::size_t rank);
+
 private:
     // first member of base_node is aligned along with cache line size.
     /**
