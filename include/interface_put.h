@@ -160,8 +160,8 @@ retry_fetch_lv:
             goto retry_fetch_lv; // NOLINT
         }
         value* v = value::create_value<kIsInline>(v_ptr, v_len, v_align);
-        insert_lv(
-                ti, target_border, traverse_key_view, v, created_v_ptr,
+        target_border->insert_lv(
+                ti, traverse_key_view, v, created_v_ptr,
                 inserted_node_info_ptr,
                 target_border->compute_rank_if_insert(key_slice,
                                                       key_slice_length));
