@@ -69,12 +69,12 @@ static void create_interior_parent_of_border(border_node* const left,
 }
 
 /**
- * @pre It already locked @a border.
+ * @pre It already locked @a this.
  * @details This function is also called when creating a new layer when 8 bytes-key
  * collides at a border node. At that time, the original value is moved to the new layer.
  * This function does not use a template declaration because its pointer is retrieved with
  * void *.
- * @param[in] border
+ * @param[in] ti
  * @param[in] key_view
  * @param[in] new_value
  * @param[out] created_value_ptr
@@ -82,28 +82,28 @@ static void create_interior_parent_of_border(border_node* const left,
  * @param[in] rank
  */
 
-static void insert_lv(tree_instance* ti, border_node* const border,
+inline void border_node::insert_lv(tree_instance* ti,
                       std::string_view key_view, value* new_value,
                       void** const created_value_ptr,
                       node_version64** inserted_node_version_ptr,
                       std::size_t rank) {
-    border->set_version_inserting_deleting(true);
-    std::size_t cnk = border->get_permutation_cnk();
+    set_version_inserting_deleting(true);
+    std::size_t cnk = get_permutation_cnk();
     if (cnk == 0) {
         // this must be root && border node
-        if (!border->get_version_root()) {
+        if (!get_version_root()) {
             LOG(ERROR) << log_location_prefix
                        << "programming error. ti->load_root_ptr(): "
                        << ti->load_root_ptr()
-                       << ", this border node: " << border;
+                       << ", this border node: " << this;
         }
-        border->set_version_deleted(false);
+        set_version_deleted(false);
     }
     if (cnk == key_slice_length) {
         /**
          * It needs splitting
          */
-        border->border_split(
+        border_split(
                 ti, key_view, new_value, created_value_ptr,
                 inserted_node_version_ptr, rank);
     } else {
@@ -111,11 +111,11 @@ static void insert_lv(tree_instance* ti, border_node* const border,
          * Insert into this nodes.
          */
         if (inserted_node_version_ptr != nullptr) {
-            *inserted_node_version_ptr = border->get_version_ptr();
+            *inserted_node_version_ptr = get_version_ptr();
         }
-        border->insert_lv_at(border->get_permutation().get_empty_slot(),
+        insert_lv_at(get_permutation().get_empty_slot(),
                              key_view, new_value, created_value_ptr, rank);
-        border->version_unlock();
+        version_unlock();
     }
 }
 
