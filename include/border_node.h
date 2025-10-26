@@ -594,6 +594,12 @@ public:
              void** created_value_ptr, // NOLINT
              node_version64** inserted_node_version_ptr, std::size_t rank);
 
+    void insert_lv(tree_instance* ti,
+                      std::string_view key_view, value* new_value,
+                      void** created_value_ptr,
+                      node_version64** inserted_node_version_ptr,
+                      std::size_t rank);
+
 private:
     // first member of base_node is aligned along with cache line size.
     /**
