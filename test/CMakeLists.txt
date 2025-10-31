@@ -32,7 +32,7 @@ else ()
 #          "get/*.cpp"
 #          "scan/*.cpp"
 #          "delete/*.cpp"
-#          "display/*.cpp"
+          "display/*.cpp"
 #          "delete_get_put_scan/*.cpp"
 #          "delete_put/*.cpp"
 #          "tsurugi_issue/*.cpp"
