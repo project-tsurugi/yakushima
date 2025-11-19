@@ -53,7 +53,7 @@ static void create_interior_parent_of_interior(
 }
 
 /**
- * @pre It already acquired lock of this node.
+ * @pre It already acquired lock of @a interior, and released lock of @a child_node.
  * @details split interior node.
  * @param[in] interior
  * @param[in] child_node After split, it inserts this @a child_node.
@@ -105,14 +105,14 @@ interior_split(tree_instance* ti, interior_node* const interior,
     }
     int ret_memcmp = memcmp(&key_slice, &pivot_key, comp_length);
     if (ret_memcmp < 0 || (ret_memcmp == 0 && key_length < pivot_length)) {
-        child_node->set_parent(interior);
+        child_node->set_parent(interior); // guard by parent lock
         interior->template insert<border_node>(child_node, inserting_key);
     } else {
-        child_node->set_parent(new_interior);
+        child_node->set_parent(new_interior); // guard by parent lock
         new_interior->template insert<border_node>(child_node, inserting_key);
     }
 
-    base_node* p = interior->lock_parent();
+    base_node* p = interior->lock_parent(ti);
     if (p == nullptr) {
 #ifndef NDEBUG
         if (ti->load_root_ptr() != interior) {
@@ -133,6 +133,7 @@ interior_split(tree_instance* ti, interior_node* const interior,
          */
         ti->store_root_ptr(p);
         p->version_unlock();
+        ti->root_unlock();
         return;
     }
     /**
@@ -153,14 +154,14 @@ interior_split(tree_instance* ti, interior_node* const interior,
         new_interior->version_unlock();
         link_or_value* lv = pb->get_lv(interior);
         lv->set_next_layer(new_p);
-        new_p->set_parent(pb);
+        new_p->set_parent(pb); // guard by parent lock
         new_p->version_unlock();
         p->version_unlock();
         return;
     }
     auto* pi = dynamic_cast<interior_node*>(p);
     interior->version_unlock();
-    new_interior->set_parent(pi);
+    new_interior->set_parent(pi); // guard by parent lock
     new_interior->version_unlock();
     if (pi->get_n_keys() == key_slice_length) {
         /**

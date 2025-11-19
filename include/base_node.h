@@ -11,6 +11,7 @@
 #include "atomic_wrapper.h"
 #include "cpu.h"
 #include "scheme.h"
+#include "tree_instance.h"
 #include "version.h"
 
 #include "glog/logging.h"
@@ -184,12 +185,26 @@ public:
     void lock() { version_.lock(); }
 
     /**
-     * @pre This function is called by split.
+     * @brief takes the parent-lock of this node.
+     * @details this method takes the parent-lock of this node and returns the parent node.
+     * - if @a this node is not masstree root, the parent-lock means the lock of the parent node of @a this node.
+     * - if @a this node is masstree root, the parent-lock means the root-lock of this masstree instance.
+     * @pre this thread does not take the parent-lock of @a this node.
+     * @param ti the masstree instance that contains @a this node.
+     * @return the locked parent node.
+     * if @a this node is masstree root (i.e. parent is nullptr), returns nullptr.
      */
-    [[nodiscard]] base_node* lock_parent() const {
+    [[nodiscard]] base_node* lock_parent(tree_instance* ti) const {
         base_node* p = get_parent();
         for (;;) {
-            if (p == nullptr) { return nullptr; }
+            if (p == nullptr) {
+                // root lock
+                ti->root_lock();
+                base_node* check = ti->load_root_ptr();
+                if (this == check) { return nullptr; }
+                ti->root_unlock();
+                continue;
+            }
             p->lock();
             base_node* check = get_parent();
             if (p == check) { return p; }
@@ -223,6 +238,9 @@ public:
         storeReleaseN(key_slice_.at(index), key_slice);
     }
 
+    /**
+     * @pre take lock of parent
+     */
     void set_parent(base_node* const new_parent) {
         storeReleaseN(parent_, new_parent);
     }
@@ -240,6 +258,9 @@ public:
         version_.atomic_set_inserting_deleting(tf);
     }
 
+    /**
+     * @pre take lock of parent
+     */
     void set_version_root(const bool tf) { version_.atomic_set_root(tf); }
 
     [[maybe_unused]] void set_version_splitting(const bool tf) {

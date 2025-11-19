@@ -58,10 +58,9 @@ border_split(tree_instance* ti, border_node* border, std::string_view key_view,
  * @details This may be called at split function.
  * It creates new interior node as parents of this border_node and @a higher_border node.
  * After that, it inserts based on @a key_view, @a value_ptr, ... (args).
+ * It already locked @a left and @a right, and parent/root lock (originaly the parent of left).
  * @param[in] left
  * @param[in] right This is a higher border_node as result of split for this node.
- * @param[out] lock_list This is unused because the border nodes is not-full as result of
- * split.
  * @param[out] new_parent This is a new parents.
  * The insert_lv function needs lock_list as an argument, so it is passed in spite of not
  * using.
@@ -253,7 +252,7 @@ static void border_split(tree_instance* ti, border_node* const border,
                                  rank - remaining_size);
     }
 
-    base_node* p = border->lock_parent();
+    base_node* p = border->lock_parent(ti);
     if (p == nullptr) {
 #ifndef NDEBUG
         if (ti->load_root_ptr() != border) {
@@ -270,8 +269,9 @@ static void border_split(tree_instance* ti, border_node* const border,
                 reinterpret_cast<interior_node**>(&p)); // NOLINT
         border->version_unlock();
         new_border->version_unlock();
-        ti->store_root_ptr(p);
+        ti->store_root_ptr(p); // guard by root lock
         p->version_unlock();
+        ti->root_unlock();
         return;
     }
 
@@ -294,7 +294,7 @@ static void border_split(tree_instance* ti, border_node* const border,
                 border, new_border, &pi);
         border->version_unlock();
         new_border->version_unlock();
-        pi->set_parent(p);
+        pi->set_parent(p); // guard by parent lock
         pi->version_unlock();
         link_or_value* lv = pb->get_lv(border);
         lv->set_next_layer(pi);
@@ -308,8 +308,8 @@ static void border_split(tree_instance* ti, border_node* const border,
     if (p->get_version_deleted()) { LOG(ERROR) << log_location_prefix; }
 #endif
     auto* pi = dynamic_cast<interior_node*>(p);
-    border->set_version_root(false);
-    new_border->set_version_root(false);
+    border->set_version_root(false); // guard by parent lock
+    new_border->set_version_root(false); // guard by parent lock
     border->version_unlock();
     new_border->version_unlock();
     if (pi->get_n_keys() == key_slice_length) {
@@ -325,7 +325,7 @@ static void border_split(tree_instance* ti, border_node* const border,
     /**
      * interior not-full case, it inserts.
      */
-    new_border->set_parent(pi);
+    new_border->set_parent(pi); // guard by parent lock
     pi->template insert<border_node>(
             new_border, std::make_pair(new_border->get_key_slice_at(0),
                                        new_border->get_key_length_at(0)));

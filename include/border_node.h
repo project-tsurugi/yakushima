@@ -29,6 +29,7 @@ public:
 
     /**
      * @pre This function is called by delete_of function.
+     * It already acquired lock of this node.
      * @details delete the key-value corresponding to @a pos as position.
      * @param[in] rank
      * @param[in] pos The position of being deleted.
@@ -59,6 +60,7 @@ public:
 
     /**
      * @pre There is a lv which points to @a child.
+     * It already acquired lock of this node.
      * @details Delete operation on the element matching @a child.
      * @param[in] token
      * @param[in] child
@@ -138,10 +140,6 @@ public:
                 delete_at(token, i, index, target_is_value);
                 if (cnk == 1) { // attention : this cnk is before delete_at;
                     set_version_deleted(true);
-                    if (ti->load_root_ptr() != this) {
-                        // root && deleted node is treated as special. This isn't.
-                        set_version_root(false);
-                    }
 
                     /**
                      * After this delete operation, this border node is empty.
@@ -166,10 +164,11 @@ public:
                     /**
                      * lock order is next to prev and lower to higher.
                      */
-                    base_node* pn = lock_parent();
+                    base_node* pn = lock_parent(ti);
                     if (pn == nullptr) {
                         //ti->store_root_ptr(nullptr);
                         // remain empty deleted root node.
+                        ti->root_unlock();
                         version_unlock();
                         return;
                     }
@@ -178,7 +177,7 @@ public:
                      * note: Including relation of parent-child is
                      * border-border.
                      */
-                    set_version_root(false);
+                    set_version_root(false); // guard by parent lock
                     version_unlock();
                     if (pn->get_version_border()) {
                         dynamic_cast<border_node*>(pn)->delete_of(token, ti,

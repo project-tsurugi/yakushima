@@ -55,15 +55,38 @@ static std::string hexstr(const std::string& str) {
     return ss.str();
 }
 
-TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
-       many_interior) {                                 // NOLINT
-    /**
-     * concurrent put/delete/scan in the state between none to many split of
-     * interior.
-     */
+static std::string value_varchar(std::size_t i) {
+    return std::to_string(i);
+}
 
-    constexpr std::size_t ary_size =
-            interior_node::child_length * key_slice_length * 1.4;
+static bool eq_varchar(char* p, const std::string& v) {
+    return memcmp(p, v.data(), v.size()) == 0;
+}
+
+class pointer {
+public:
+    explicit pointer(char* p) : p_(p) {}
+    std::size_t size() { return sizeof(p_); }
+    char** data() { return &p_; }
+    bool operator==(pointer o) { return p_ == o.p_; }
+private:
+    char* p_;
+};
+
+constexpr std::size_t ary_size = interior_node::child_length * key_slice_length * 1.4;
+
+static pointer value_inlined(std::size_t i) {
+    static std::string pointers(ary_size + 8, 'x'); // prepare many different pointer; +8 for display()
+    return pointer{&pointers[i]};
+}
+
+static bool eq_inlined(char* p, const pointer& v) {
+    return pointer(p) == v;
+}
+
+
+template<class valtype, valtype(*value)(std::size_t), bool(*eq)(char*, const valtype&)>
+void many_interior_comm() {
     std::size_t th_nm{std::min<std::size_t>(ary_size, std::thread::hardware_concurrency())};
     LOG(INFO) << "process " << ary_size << " nodes by " << th_nm << " threads";
 
@@ -72,7 +95,7 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
 
         struct S {
             static void work(std::size_t th_id, std::size_t max_thread) {
-                std::vector<std::pair<std::string, std::string>> kv;
+                std::vector<std::pair<std::string, valtype>> kv;
                 kv.reserve(ary_size / max_thread);
                 // data generation
                 for (std::size_t i = (ary_size / max_thread) * th_id;
@@ -83,12 +106,12 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
                     if (i <= INT8_MAX) {
                         kv.emplace_back(
                                 std::make_pair(std::string(1, i), // NOLINT
-                                               std::to_string(i)));
+                                               value(i)));
                     } else {
                         kv.emplace_back(std::make_pair(
                                 std::string(i / INT8_MAX, INT8_MAX) + // NOLINT
                                         std::string(1, i % INT8_MAX), // NOLINT
-                                std::to_string(i)));                  // NOLINT
+                                value(i)));
                     }
                 }
 
@@ -98,7 +121,7 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
                 for (std::size_t j = 0; j < 1; ++j) {
                     for (auto& i : kv) {
                         std::string k(std::get<0>(i));
-                        std::string v(std::get<1>(i));
+                        valtype v(std::get<1>(i));
                         status ret = put(token, test_storage_name, k, v.data(),
                                          v.size());
                         if (ret != status::OK) {
@@ -120,9 +143,7 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
                         for (auto&& elem2 : kv) {
                             if (std::get<1>(elem2).size() ==
                                         std::get<2>(elem) &&
-                                memcmp(std::get<1>(elem2).data(),
-                                       std::get<1>(elem),
-                                       std::get<2>(elem)) == 0) {
+                                eq(std::get<1>(elem), std::get<1>(elem2))) {
                                 ++check_ctr;
                                 break;
                             }
@@ -130,19 +151,22 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
                     }
                     ASSERT_EQ(check_ctr, kv.size());
                     // check success for own puts. check duplicate about key.
-                    std::sort(tuple_list.begin(), tuple_list.end());
                     std::string check_key = std::get<0>(*tuple_list.begin());
                     for (auto itr = tuple_list.begin() + 1;
                          itr != tuple_list.end(); ++itr) { // NOLINT
                         if (check_key >= std::get<0>(*itr)) {
                             std::unique_lock lk{debug_mtx}; // why need this???
                             LOG(INFO) << "it found duplicate. thread " << th_id;
-                            for (auto itr_2 = tuple_list.begin(); // NOLINT
+                            std::ostringstream ss{};
+                            std::string check_key2 = std::get<0>(*tuple_list.begin());
+                            ss << "keys[ " << hexstr(check_key2);
+                            for (auto itr_2 = tuple_list.begin() + 1; // NOLINT
                                  itr_2 != tuple_list.end(); ++itr_2) {
-                                LOG(INFO) << "th_id:" << th_id << ", size:"
-                                          << std::get<0>(*itr_2).size()
-                                          << ", key:" << hexstr(std::get<0>(*itr_2));
+                                ss << " " << hexstr(std::get<0>(*itr_2));
+                                if (check_key2 >= std::get<0>(*itr_2)) { ss << "!!"; }
+                                check_key2 = std::get<0>(*itr_2);
                             }
+                            LOG(INFO) << ss.str() << " ]";
                             display(); // it's not thread-safe, but something is already broken
                             ASSERT_LT(check_key, std::get<0>(*itr));
                             LOG(FATAL);
@@ -152,7 +176,6 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
 
                     for (auto& i : kv) {
                         std::string k(std::get<0>(i));
-                        std::string v(std::get<1>(i));
                         status ret = remove(token, test_storage_name, k);
                         if (ret != status::OK) {
                             ASSERT_EQ(ret, status::OK);
@@ -162,7 +185,7 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
                 }
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
-                    std::string v(std::get<1>(i));
+                    valtype v(std::get<1>(i));
                     status ret = put(token, test_storage_name, k, v.data(),
                                      v.size());
                     if (ret != status::OK) {
@@ -189,15 +212,26 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
                    scan_endpoint::INF, tuple_list);
         ASSERT_EQ(tuple_list.size(), ary_size);
         for (std::size_t j = 0; j < ary_size; ++j) {
-            std::string v(std::to_string(j));
+            valtype v(value(j));
             constexpr std::size_t v_index = 1;
-            ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(),
-                             v.size()),
-                      0);
+            ASSERT_TRUE(eq(std::get<v_index>(tuple_list.at(j)), v));
         }
 
         destroy();
     }
+}
+
+TEST_F(multi_thread_put_delete_scan_many_interior_test, many_interior) { // NOLINT
+    /**
+     * concurrent put/delete/scan in the state between none to many split of
+     * interior.
+     */
+    many_interior_comm<std::string, value_varchar, eq_varchar>();
+}
+
+TEST_F(multi_thread_put_delete_scan_many_interior_test, many_interior_inlined_value) { // NOLINT
+    // inlined value version of many_interior
+    many_interior_comm<pointer, value_inlined, eq_inlined>();
 }
 
 TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
@@ -276,7 +310,6 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
                     ASSERT_EQ(check_ctr, kv.size());
                     for (auto& i : kv) {
                         std::string k(std::get<0>(i));
-                        std::string v(std::get<1>(i));
                         status ret = remove(token, test_storage_name, k);
                         if (ret != status::OK) {
                             ASSERT_EQ(ret, status::OK);
