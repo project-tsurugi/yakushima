@@ -185,7 +185,14 @@ public:
     void lock() { version_.lock(); }
 
     /**
-     * @pre This function is called by split.
+     * @brief takes the parent-lock of this node.
+     * @details this method takes the parent-lock of this node and returns the parent node.
+     * - if @a this node is not masstree root, the parent-lock means the lock of the parent node of @a this node.
+     * - if @a this node is masstree root, the parent-lock means the root-lock of this masstree instance.
+     * @pre this thread does not take the parent-lock of @a this node.
+     * @param ti the masstree instance that contains @a this node.
+     * @return the locked parent node.
+     * if @a this node is masstree root (i.e. parent is nullptr), returns nullptr.
      */
     [[nodiscard]] base_node* lock_parent(tree_instance* ti) const {
         base_node* p = get_parent();
