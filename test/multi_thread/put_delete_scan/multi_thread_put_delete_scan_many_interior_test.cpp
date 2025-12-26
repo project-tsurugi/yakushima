@@ -168,7 +168,7 @@ void many_interior_comm() {
                             }
                             LOG(INFO) << ss.str() << " ]";
                             display(); // it's not thread-safe, but something is already broken
-                            ASSERT_LT(check_key, std::get<0>(*itr));
+                            ASSERT_LT(check_key, std::get<0>(*itr)) << "KNOWN-ISSUE: tcn#8 (ti#1299 or ti#1300)";
                             LOG(FATAL);
                         }
                         check_key = std::get<0>(*itr);
@@ -221,7 +221,7 @@ void many_interior_comm() {
     }
 }
 
-TEST_F(multi_thread_put_delete_scan_many_interior_test, many_interior) { // NOLINT
+TEST_F(multi_thread_put_delete_scan_many_interior_test, many_interior_KNOWN_ISSUE_TCN8) { // NOLINT
     /**
      * concurrent put/delete/scan in the state between none to many split of
      * interior.
@@ -229,7 +229,7 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, many_interior) { // NOLI
     many_interior_comm<std::string, value_varchar, eq_varchar>();
 }
 
-TEST_F(multi_thread_put_delete_scan_many_interior_test, many_interior_inlined_value) { // NOLINT
+TEST_F(multi_thread_put_delete_scan_many_interior_test, many_interior_inlined_value_KNOWN_ISSUE_TCN8) { // NOLINT
     // inlined value version of many_interior
     many_interior_comm<pointer, value_inlined, eq_inlined>();
 }

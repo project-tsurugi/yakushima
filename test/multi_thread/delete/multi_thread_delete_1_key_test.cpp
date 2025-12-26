@@ -39,7 +39,7 @@ private:
 
 std::string st{"1"}; // NOLINT
 
-TEST_F(multi_thread_delete_1_key_test, 1_key) { // NOLINT
+TEST_F(multi_thread_delete_1_key_test, 1_key_KNOWN_ISSUE_TCN10) { // NOLINT
     /**
      * Concurrent put 1 key.
      * Concurrent remove 1 key.
