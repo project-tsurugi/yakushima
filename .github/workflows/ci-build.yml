@@ -93,12 +93,11 @@ jobs:
         with:
           submodules: true
 
-      - name: CMake_Build
+      - name: CMake_Generate
         run: |
           mkdir build
           cd build
           cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DBUILD_BENCHMARK=ON -DBUILD_TESTS=ON -DBUILD_STRICT=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_INSTALL_PREFIX=${GITHUB_WORKSPACE}/.local -DPERFORMANCE_TOOLS=OFF ${{ inputs.cmake_build_option }} ..
-          cmake --build . --target all --clean-first
 
       - name: Clang-Tidy
         run: |
