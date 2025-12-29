@@ -51,16 +51,15 @@ public:
      * @details display function for analysis and debug.
      */
     void display() const {
-        std::cout << "node_version64_body::display" << std::endl;
-        std::cout << "locked : " << get_locked() << std::endl;
-        std::cout << "inserting_deleting : " << get_inserting_deleting()
-                  << std::endl;
-        std::cout << "splitting : " << get_splitting() << std::endl;
-        std::cout << "deleted : " << get_deleted() << std::endl;
-        std::cout << "root : " << get_root() << std::endl;
-        std::cout << "border : " << get_border() << std::endl;
-        std::cout << "vinsert_delete : " << get_vinsert_delete() << std::endl;
-        std::cout << "vsplit: " << get_vsplit() << std::endl;
+        std::cout << "node_version64_body::display" << "\n"
+                     "locked : " << get_locked() << "\n"
+                     "inserting_deleting : " << get_inserting_deleting() << "\n"
+                     "splitting : " << get_splitting() << "\n"
+                     "deleted : " << get_deleted() << "\n"
+                     "root : " << get_root() << "\n"
+                     "border : " << get_border() << "\n"
+                     "vinsert_delete : " << get_vinsert_delete() << "\n"
+                     "vsplit: " << get_vsplit() << "\n";
     }
 
     bool operator!=(const node_version64_body& rhs) const {

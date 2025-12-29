@@ -25,11 +25,11 @@ public:
         value* v{};
         if constexpr (kIsInlineValue) {
             // inline value
-            memcpy(&v, in_ptr, sizeof(uintptr_t));
+            memcpy(&v, in_ptr, sizeof(uintptr_t)); // NOLINT
         } else {
             // compute the size/alignment to be reserved
             constexpr auto kMinAlignment = static_cast<value_align_type>(8);
-            if (v_align < kMinAlignment) { v_align = kMinAlignment; }
+            if (v_align < kMinAlignment) { v_align = kMinAlignment; } // NOLINT(*-min-max)
             const auto total_len =
                     v_len + static_cast<value_length_type>(v_align);
 

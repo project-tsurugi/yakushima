@@ -2,6 +2,7 @@
 Checks: "-*,\
 abseil-*,\
 boost-*,\
+-boost-use-ranges,\
 bugprone-*,\
 -bugprone-branch-clone,\
 -bugprone-easily-swappable-parameters,\
@@ -30,17 +31,26 @@ llvm-*,\
 -llvm-header-guard,\
 -llvm-namespace-comment,\
 misc-*,\
+-misc-const-correctness,\
+-misc-header-include-cycle,\
+-misc-include-cleaner,\
 -misc-no-recursion,\
 -misc-unused-parameters,\
+-misc-use-anonymous-namespace,\
 modernize-*,\
 -modernize-use-trailing-return-type,\
 performance-*,\
+-performance-enum-size,\
 readability-*,\
+-readability-avoid-return-with-void-value,\
 -readability-braces-around-statements,\
 -readability-function-cognitive-complexity,\
 -readability-identifier-length,\
+-readability-math-missing-parentheses,\
 -readability-named-parameter,\
 -readability-magic-numbers,\
+-readability-redundant-inline-specifier,\
+-readability-redundant-member-init,\
 "
 CheckOptions:
   - key: readability-implicit-bool-conversion.AllowPointerConditions
