@@ -60,7 +60,8 @@ TEST_F(scan_detect_phantom_test,               // NOLINT
     // check phantom
     auto nv3 = nvp.second->get_stable_version();
     ASSERT_NE(nvp.first, nv3);
-    ASSERT_NE(nv2, nv3);
+    // leftmost border node is not removed, and simple remove leaf don't cause version change (for now, see ti-1299)
+    //ASSERT_NE(nv2, nv3);
     ASSERT_EQ(status::OK, leave(s));
 }
 
