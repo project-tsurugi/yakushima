@@ -147,7 +147,7 @@ public:
                      */
                 retry_prev_lock:
                     border_node* prev = get_prev();
-                    if (prev != nullptr) {
+                    if (prev != nullptr) { // always
                         prev->lock();
                         if (prev->get_version_deleted() || prev != get_prev()) {
                             prev->version_unlock();
@@ -156,6 +156,9 @@ public:
                             prev->set_next(get_next());
                             if (get_next() != nullptr) {
                                 get_next()->set_prev(prev);
+                            } else {
+                                // this border node is rightmost
+                                // TODO: need care if prev is leftmost and here is layer 1+
                             }
                             prev->version_unlock();
                         }
