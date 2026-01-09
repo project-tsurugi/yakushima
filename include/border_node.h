@@ -138,29 +138,40 @@ public:
                  memcmp(&key_slice, &get_key_slice_ref().at(index),
                         sizeof(key_slice_type)) == 0)) {
                 delete_at(token, i, index, target_is_value);
-                if (cnk == 1 && // attention : this cnk is before delete_at;
-                    get_prev() != nullptr) { // not leftmost border
+                if (cnk != 1) { // attention : this cnk is before delete_at;
+                    version_unlock();
+                    return;
+                }
+                border_node* tobe_remove_leftmost = nullptr;
+                // last child
+                border_node* prev = get_prev();
+                if (get_prev() != nullptr) { // not leftmost border
                     set_version_deleted(true);
 
                     /**
                      * After this delete operation, this border node is empty.
                      */
                 retry_prev_lock:
-                    border_node* prev = get_prev();
                     if (prev != nullptr) { // always
                         prev->lock();
                         if (prev->get_version_deleted() || prev != get_prev()) {
                             prev->version_unlock();
+                            prev = get_prev();
                             goto retry_prev_lock; // NOLINT
                         } else {
                             prev->set_next(get_next());
                             if (get_next() != nullptr) {
                                 get_next()->set_prev(prev);
+                                prev->version_unlock();
                             } else {
                                 // this border node is rightmost
-                                // TODO: need care if prev is leftmost and here is layer 1+
+                                if (prev->get_prev() == nullptr) { // only two boder nodes in this B+tree
+                                    tobe_remove_leftmost = prev;
+                                    // keep prev lock
+                                } else {
+                                    prev->version_unlock();
+                                }
                             }
-                            prev->version_unlock();
                         }
                     } else if (get_next() != nullptr) {
                         get_next()->set_prev(nullptr);
@@ -174,6 +185,11 @@ public:
                         // remain empty deleted root node.
                         ti->root_unlock();
                         version_unlock();
+                        // assert tobe_remove_leftmost == nullptr
+                        if (tobe_remove_leftmost != nullptr) {
+                            LOG(ERROR) << log_location_prefix << "unreachable path";
+                            prev->version_unlock();
+                        }
                         return;
                     }
                     /**
@@ -194,8 +210,10 @@ public:
                             reinterpret_cast<thread_info*>(token); // NOLINT
                     tinfo->get_gc_info().push_node_container(
                             {tinfo->get_begin_epoch(), this});
-                } else {
-                    version_unlock();
+                }
+                if (tobe_remove_leftmost != nullptr) {
+                    
+
                 }
                 return;
             }
