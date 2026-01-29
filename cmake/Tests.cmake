@@ -1,4 +1,4 @@
-# Copyright 2019-2019 tsurugi project.
+# Copyright 2019-2026 Project Tsurugi.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+include(CMakeParseArguments)
+include(GoogleTest)
+
 function(register_tests)
-  include(CMakeParseArguments)
   cmake_parse_arguments(
           TESTS # prefix
           ""
@@ -77,9 +79,7 @@ function(register_tests)
 
       if (TESTS_BUILD)
         if (NOT test_name MATCHES "exe$")
-          add_test(
-                  NAME ${test_name}
-                  COMMAND ${test_name} --gtest_output=xml:${test_name}_gtest_result.xml)
+          gtest_discover_tests(${test_name} XML_OUTPUT_DIR gtest_results)
         endif ()
       else ()
         set_target_properties(${test_name}

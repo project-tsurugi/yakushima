@@ -68,6 +68,8 @@ jobs:
       - name: Verify
         uses: project-tsurugi/tsurugi-annotations-action@v1
         if: always()
+        with:
+          ctest_input: 'build/test/gtest_results/**/*.xml'
 
   Analysis:
     runs-on: [self-hosted, docker]
