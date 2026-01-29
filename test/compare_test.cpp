@@ -159,4 +159,9 @@ TEST_F(ct, compareStringView) { // NOLINT
     ASSERT_EQ(std::string_view(a), std::string_view(b));
 #endif
 }
+
+TEST_F(ct, fail) { // NOLINT
+    ASSERT_TRUE(false);
+}
+
 } // namespace yakushima::testing
