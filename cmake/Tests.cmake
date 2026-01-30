@@ -79,7 +79,7 @@ function(register_tests)
 
       if (TESTS_BUILD)
         if (NOT test_name MATCHES "exe$")
-          gtest_discover_tests(${test_name} XML_OUTPUT_DIR gtest_results)
+          gtest_discover_tests(${test_name} XML_OUTPUT_DIR gtest_results TEST_SUFFIX _gtest_result)
         endif ()
       else ()
         set_target_properties(${test_name}
