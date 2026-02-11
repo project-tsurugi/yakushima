@@ -112,6 +112,68 @@ public:
     }
 
     /**
+     * @pre @a this interior node is B+tree node root and locked by caller.
+     * @a this node has two empty border nodes as children and locked by caller.
+     * @details Delete children and @a this if Layer 1+ B+tree,
+     * otherwise (masstree root), delete right child and @a this, promote left child as root node.
+     * @param[in] token
+     * @param[in] ti pointer to the masstree instance
+     */
+    template<class border_node>
+    void cleanup_empty_btree(Token token, tree_instance* ti) {
+        set_version_inserting_deleting(true);
+        std::size_t n_key = get_n_keys();
+        if (n_key != 1) { LOG(ERROR) << log_location_prefix; }
+        {
+            std::size_t i = 1;
+            //base_node* child = get_child_at(i);
+            {
+                {
+                    // remove this node and promote its last child node one level
+                    set_version_deleted(true);
+                    n_keys_decrement();
+                    base_node* sibling = get_child_at(1 - i); // i == 0 or 1
+                    base_node* pn = lock_parent(ti);
+                    if (pn == nullptr) { // if this node is masstree root
+                        set_version_root(false); // guard by root lock
+                        sibling->atomic_set_version_root(true); // guard by root lock
+                        ti->store_root_ptr(sibling); // guard by root lock
+                        sibling->set_parent(nullptr); // guard by root lock
+                        ti->root_unlock();
+                    } else {
+                        set_version_root(false); // guard by parent lock
+                        //pn->set_version_inserting_deleting(true);
+                        if (pn->get_version_border()) { // if this node is layer 1+ root
+                            link_or_value* lv =
+                                    dynamic_cast<border_node*>(pn)->get_lv(
+                                            this);
+                            lv->set_next_layer(sibling);
+                            sibling->atomic_set_version_root(true); // guard by parent lock
+                        } else {
+                            LOG(FATAL);
+                            dynamic_cast<interior_node*>(pn)->swap_child(this, sibling);
+                        }
+                        sibling->set_parent(pn); // guard by parent lock
+                        pn->version_unlock();
+                    }
+                    version_unlock();
+                    auto* tinfo =
+                            reinterpret_cast<thread_info*>(token); // NOLINT
+                    tinfo->get_gc_info().push_node_container(
+                            std::tuple{tinfo->get_begin_epoch(), this});
+                //}
+                    // above here, the code is copied from delete_of
+                    if (pn == nullptr) { return; } // for masstree root, return here
+                    // else delete left child (fallback to )
+                //{
+                    sibling->version_unlock();
+                    dynamic_cast<border_node*>(pn)->delete_of(token, ti, sibling);
+                }
+            }
+        }
+    }
+
+    /**
      * @brief release all heap objects and clean up.
      * @pre This function is called by single thread.
      */

@@ -185,7 +185,7 @@ public:
                         // remain empty deleted root node.
                         ti->root_unlock();
                         version_unlock();
-                        // assert tobe_remove_leftmost == nullptr
+                        // assert tobe_remove_leftmost == nullptr : in this case parent must be interior
                         if (tobe_remove_leftmost != nullptr) {
                             LOG(ERROR) << log_location_prefix << "unreachable path";
                             prev->version_unlock();
@@ -203,17 +203,18 @@ public:
                         dynamic_cast<border_node*>(pn)->delete_of(token, ti,
                                                                   this);
                     } else {
+                        if (tobe_remove_leftmost == nullptr) {
                         dynamic_cast<interior_node*>(pn)
                                 ->delete_of<border_node>(token, ti, this);
+                        } else {
+                            dynamic_cast<interior_node*>(pn)
+                                    ->cleanup_empty_btree<border_node>(token, ti);
+                        }
                     }
                     auto* tinfo =
                             reinterpret_cast<thread_info*>(token); // NOLINT
                     tinfo->get_gc_info().push_node_container(
                             {tinfo->get_begin_epoch(), this});
-                }
-                if (tobe_remove_leftmost != nullptr) {
-                    
-
                 }
                 return;
             }
