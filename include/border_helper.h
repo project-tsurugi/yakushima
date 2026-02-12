@@ -121,13 +121,13 @@ static void insert_lv(tree_instance* ti, border_node* const border,
     border->set_version_inserting_deleting(true);
     std::size_t cnk = border->get_permutation_cnk();
     if (cnk == 0) {
-        // this must be root && border node
-        if (!border->get_version_root()) {
+        // this must be leftmost
+        if (border->get_prev() != nullptr) {
             LOG(ERROR) << log_location_prefix
-                       << "programming error. ti->load_root_ptr(): "
-                       << ti->load_root_ptr()
+                       << "programming error. prev: " << border->get_prev()
                        << ", this border node: " << border;
         }
+        // XXX: empty-root border rule is generalized to leftmost-empty border rule, so never set deleted??
         border->set_version_deleted(false);
     }
     if (cnk == key_slice_length) {
