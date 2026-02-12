@@ -123,7 +123,7 @@ public:
     void cleanup_empty_btree(Token token, tree_instance* ti) {
         set_version_inserting_deleting(true);
         std::size_t n_key = get_n_keys();
-        if (n_key != 1) { LOG(ERROR) << log_location_prefix; }
+        if (n_key != 1) { LOG(ERROR) << log_location_prefix << "n_keys must be 1, but is " << n_key << ". " << this; }
         {
             std::size_t i = 1;
             //base_node* child = get_child_at(i);
