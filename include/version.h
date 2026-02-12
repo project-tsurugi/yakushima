@@ -374,6 +374,9 @@ public:
                 desired.inc_vsplit();
                 desired.set_splitting(false);
             }
+            if (!expected.get_locked()) {
+                LOG(ERROR) << "unlock() NOT LOCKED " << this;
+            }
             desired.set_locked(false);
             if (body_.compare_exchange_weak(expected, desired,
                                             std::memory_order_acq_rel,
