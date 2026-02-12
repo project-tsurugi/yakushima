@@ -163,10 +163,10 @@ public:
                             std::tuple{tinfo->get_begin_epoch(), this});
                 //}
                     // above here, the code is copied from delete_of
-                    if (pn == nullptr) { return; } // for masstree root, return here
-                    // else delete left child (fallback to )
-                //{
                     sibling->version_unlock();
+                    if (pn == nullptr) { return; } // for masstree root, return here
+                    // else delete left child (fallback to delete_of)
+                //{
                     dynamic_cast<border_node*>(pn)->delete_of(token, ti, sibling);
                 }
             }

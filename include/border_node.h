@@ -215,6 +215,8 @@ public:
                             reinterpret_cast<thread_info*>(token); // NOLINT
                     tinfo->get_gc_info().push_node_container(
                             {tinfo->get_begin_epoch(), this});
+                } else { // leftmost border node
+                    version_unlock();
                 }
                 return;
             }
