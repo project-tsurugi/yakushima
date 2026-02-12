@@ -145,14 +145,17 @@ public:
                 border_node* tobe_remove_leftmost = nullptr;
                 // last child
                 border_node* prev = get_prev();
-                if (get_prev() != nullptr) { // not leftmost border
+                if (prev == nullptr && get_next() != nullptr) { // leftmost border and not single border node
+                    // keep this empty node
+                    version_unlock();
+                } else {
                     set_version_deleted(true);
 
                     /**
                      * After this delete operation, this border node is empty.
                      */
                 retry_prev_lock:
-                    if (prev != nullptr) { // always
+                    if (prev != nullptr) {
                         prev->lock();
                         if (prev->get_version_deleted() || prev != get_prev()) {
                             prev->version_unlock();
@@ -165,7 +168,8 @@ public:
                                 prev->version_unlock();
                             } else {
                                 // this border node is rightmost
-                                if (prev->get_prev() == nullptr) { // only two boder nodes in this B+tree
+                                if (prev->get_prev() == nullptr // only two boder nodes in this B+tree
+                                    && prev->get_permutation_cnk() == 0) { // and leftmost is empty
                                     tobe_remove_leftmost = prev;
                                     // keep prev lock
                                 } else {
@@ -215,8 +219,6 @@ public:
                             reinterpret_cast<thread_info*>(token); // NOLINT
                     tinfo->get_gc_info().push_node_container(
                             {tinfo->get_begin_epoch(), this});
-                } else { // leftmost border node
-                    version_unlock();
                 }
                 return;
             }
