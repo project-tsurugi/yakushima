@@ -154,7 +154,7 @@ public:
                             dynamic_cast<interior_node*>(pn)->swap_child(this, sibling);
                         }
                         sibling->set_parent(pn); // guard by parent lock
-                        pn->version_unlock();
+                        // keep lock    pn->version_unlock();
                     }
                     version_unlock();
                     auto* tinfo =
