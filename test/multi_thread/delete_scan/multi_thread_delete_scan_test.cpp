@@ -158,6 +158,8 @@ static void test_sub(std::size_t num_scan_th, const std::bitset<data_size>& dele
         for (auto&& th : thv) { th.join(); }
         thv.clear();
 
+        display(); // for debug
+
         destroy();
     }
 }
