@@ -168,6 +168,8 @@ public:
                     // else delete left child (fallback to delete_of)
                 //{
                     dynamic_cast<border_node*>(pn)->delete_of(token, ti, sibling);
+                    tinfo->get_gc_info().push_node_container(
+                            {tinfo->get_begin_epoch(), sibling});
                 }
             }
         }
