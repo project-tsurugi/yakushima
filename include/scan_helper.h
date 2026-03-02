@@ -25,9 +25,10 @@ scan_border(border_node** target, std::string_view l_key, scan_endpoint l_end,
             const std::string& key_prefix, std::size_t max_size);
 
 inline status scan_check_retry(border_node* const bn,
-                               node_version64_body& v_at_fb) {
+                               node_version64_body& v_at_fb,
+                               const permutation& perm) {
     node_version64_body check = bn->get_stable_version();
-    if (check != v_at_fb) {
+    if (check != v_at_fb || bn->get_permutation().get_body() != perm.get_body()) {
         // fail optimistic verify
         if (check.get_vsplit() != v_at_fb.get_vsplit() || check.get_deleted()) {
             /**
@@ -256,7 +257,7 @@ retry:
          * This verification may seem verbose, but it can also be considered
          * an early abort.
          */
-        status check_status = scan_check_retry(bn, v_at_fb);
+        status check_status = scan_check_retry(bn, v_at_fb, perm);
         if (check_status != status::OK) {
             // failed. clean up tuple list and node vesion vec.
             clean_up_tuple_list_nvc();
@@ -428,7 +429,7 @@ retry:
     if (next != nullptr) { next_version = next->get_stable_version(); }
 
     // final check for atomicity
-    status check_status = scan_check_retry(bn, v_at_fb);
+    status check_status = scan_check_retry(bn, v_at_fb, perm);
     if (check_status != status::OK) {
         // failed. clean up tuple list and node vesion vec.
         clean_up_tuple_list_nvc();
