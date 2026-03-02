@@ -13,6 +13,8 @@
 
 using namespace yakushima;
 
+#define ASSERT_OK(test) ASSERT_EQ(status::OK, test)
+
 namespace yakushima::testing {
 
 std::string test_storage_name{"1"}; // NOLINT
@@ -157,7 +159,7 @@ TEST_F(dt, two_border_shuffle) { // NOLINT
     }
 }
 
-TEST_F(dt, one_interi_two_bor) { // NOLINT
+TEST_F(dt, one_interi_two_bor_l) { // NOLINT
     tree_instance* ti{};
     find_storage(test_storage_name, &ti);
     Token token{};
@@ -178,7 +180,7 @@ TEST_F(dt, one_interi_two_bor) { // NOLINT
     for (std::size_t i = 0; i < lb_n; ++i) {
         ASSERT_EQ(status::OK, remove(token, test_storage_name, k.at(i)));
     }
-    ASSERT_EQ(ti->load_root_ptr()->get_version_border(), true);
+    ASSERT_FALSE(ti->load_root_ptr()->get_version_border());
     for (std::size_t i = lb_n; i < ary_size; ++i) {
         ASSERT_EQ(status::OK, remove(token, test_storage_name, k.at(i)));
     }
@@ -186,7 +188,36 @@ TEST_F(dt, one_interi_two_bor) { // NOLINT
     ASSERT_EQ(leave(token), status::OK);
 }
 
-TEST_F(dt, one_interi_two_bor_shuffle) { // NOLINT
+TEST_F(dt, one_interi_two_bor_r) { // NOLINT
+    tree_instance* ti{};
+    find_storage(test_storage_name, &ti);
+    Token token{};
+    ASSERT_EQ(enter(token), status::OK);
+    constexpr std::size_t ary_size = key_slice_length + 1;
+    std::array<std::string, ary_size> k; // NOLINT
+    std::array<std::string, ary_size> v; // NOLINT
+    for (std::size_t i = 0; i < ary_size; ++i) {
+        k.at(i).assign(1, static_cast<char>(i));
+        v.at(i).assign(1, static_cast<char>(i));
+    }
+    for (std::size_t i = 0; i < ary_size; ++i) {
+        ASSERT_EQ(status::OK, put(token, test_storage_name, k.at(i),
+                                  v.at(i).data(), v.at(i).size()));
+    }
+
+    constexpr std::size_t lb_n{ary_size / 2};
+    for (std::size_t i = 0; i < lb_n; ++i) {
+        ASSERT_EQ(status::OK, remove(token, test_storage_name, k.at(ary_size - i - 1)));
+    }
+    ASSERT_EQ(ti->load_root_ptr()->get_version_border(), true);
+    for (std::size_t i = lb_n; i < ary_size; ++i) {
+        ASSERT_EQ(status::OK, remove(token, test_storage_name, k.at(ary_size - i - 1)));
+    }
+    ASSERT_NE(ti->load_root_ptr(), nullptr);
+    ASSERT_EQ(leave(token), status::OK);
+}
+
+TEST_F(dt, one_interi_two_bor_shuffle_l) { // NOLINT
     for (std::size_t h = 0; h < 1; ++h) {
         create_storage(test_storage_name);
         tree_instance* ti{};
@@ -216,7 +247,7 @@ TEST_F(dt, one_interi_two_bor_shuffle) { // NOLINT
             ASSERT_EQ(status::OK,
                       remove(token, test_storage_name, std::get<0>(kv.at(i))));
         }
-        ASSERT_EQ(ti->load_root_ptr()->get_version_border(), true);
+        ASSERT_FALSE(ti->load_root_ptr()->get_version_border());
         for (std::size_t i = lb_n; i < ary_size; ++i) {
             ASSERT_EQ(status::OK,
                       remove(token, test_storage_name, std::get<0>(kv.at(i))));
@@ -227,7 +258,48 @@ TEST_F(dt, one_interi_two_bor_shuffle) { // NOLINT
     }
 }
 
-TEST_F(dt, two_interi) { // NOLINT
+TEST_F(dt, one_interi_two_bor_shuffle_r) { // NOLINT
+    for (std::size_t h = 0; h < 1; ++h) {
+        create_storage(test_storage_name);
+        tree_instance* ti{};
+        find_storage(test_storage_name, &ti);
+        Token token{};
+        ASSERT_EQ(enter(token), status::OK);
+        constexpr std::size_t ary_size = key_slice_length + 1;
+        std::vector<std::tuple<std::string, std::string>> kv; // NOLINT
+        for (std::size_t i = 0; i < ary_size; ++i) {
+            kv.emplace_back(std::make_tuple(std::string(1, i),   // NOLINT
+                                            std::string(1, i))); // NOLINT
+        }
+        std::random_device seed_gen;
+        std::mt19937 engine(seed_gen());
+        std::shuffle(kv.begin(), kv.end(), engine);
+
+        for (std::size_t i = 0; i < ary_size; ++i) {
+            ASSERT_EQ(status::OK,
+                      put(token, test_storage_name, std::get<0>(kv.at(i)),
+                          std::get<1>(kv.at(i)).data(),
+                          std::get<1>(kv.at(i)).size()));
+        }
+
+        std::sort(kv.begin(), kv.end());
+        std::size_t lb_n{ary_size / 2 + 1};
+        for (std::size_t i = 0; i < lb_n; ++i) {
+            ASSERT_EQ(status::OK,
+                      remove(token, test_storage_name, std::get<0>(kv.at(ary_size - i - 1))));
+        }
+        ASSERT_EQ(ti->load_root_ptr()->get_version_border(), true);
+        for (std::size_t i = lb_n; i < ary_size; ++i) {
+            ASSERT_EQ(status::OK,
+                      remove(token, test_storage_name, std::get<0>(kv.at(ary_size - i - 1))));
+        }
+        ASSERT_NE(ti->load_root_ptr(), nullptr);
+        ASSERT_EQ(leave(token), status::OK);
+        destroy();
+    }
+}
+
+TEST_F(dt, two_interi_l) { // NOLINT
     tree_instance* ti{};
     find_storage(test_storage_name, &ti);
     Token token{};
@@ -364,7 +436,7 @@ TEST_F(dt, two_interi) { // NOLINT
     for (std::size_t i = 0; i < n_in_bn; ++i) {
         ASSERT_EQ(status::OK, remove(token, test_storage_name, k.at(i)));
     }
-    ASSERT_EQ(n_in_bn - 2,
+    ASSERT_EQ(n_in_bn - 2 + 1,
               dynamic_cast<interior_node*>(
                       dynamic_cast<interior_node*>(ti->load_root_ptr())
                               ->get_child_at(0))
@@ -416,6 +488,191 @@ TEST_F(dt, many) { // NOLINT
         ASSERT_NE(ti->load_root_ptr(), nullptr);
         ASSERT_EQ(leave(token), status::OK);
         destroy();
+    }
+}
+
+TEST_F(dt, L0_leftmost_border) { // NOLINT
+    tree_instance* ti{};
+    find_storage(test_storage_name, &ti);
+    Token token{};
+    // setup
+    {
+        ASSERT_OK(enter(token));
+        ASSERT_OK(put<char>(token, test_storage_name, "A", "A", 1));
+        for (unsigned char i = 1; i < key_slice_length; ++i) {
+            char key[2] = { 'A', (char)i };
+            ASSERT_OK(put<char>(token, test_storage_name, std::string_view{key, sizeof(key)}, "A", 1));
+        }
+        ASSERT_OK(put<char>(token, test_storage_name, "X", "A", 1));
+        for (unsigned char i = 1; i < key_slice_length; ++i) {
+            char key[2] = { 'A', (char)i };
+            ASSERT_OK(remove(token, test_storage_name, std::string_view{key, sizeof(key)}));
+        }
+        ASSERT_OK(leave(token));
+
+        // root I: BL BR
+        // BL: key "A"
+        // BR: key "X"
+        auto* root_I = dynamic_cast<interior_node*>(ti->load_root_ptr());
+        ASSERT_EQ(root_I->get_n_keys() + 1, 2);
+        auto* BL = dynamic_cast<border_node*>(root_I->get_child_at(0));
+        auto* BR = dynamic_cast<border_node*>(root_I->get_child_at(1));
+        ASSERT_EQ(BL->get_permutation_cnk(), 1);
+        ASSERT_EQ(BR->get_permutation_cnk(), 1);
+    }
+
+    ASSERT_OK(enter(token));
+    ASSERT_OK(remove(token, test_storage_name, "A"));
+    ASSERT_OK(leave(token));
+
+    // leftmost border node (not single border) is kept
+    {
+        // root I: BL BR
+        // BL: (empty)
+        // BR: key "X"
+        auto* root_I = dynamic_cast<interior_node*>(ti->load_root_ptr());
+        ASSERT_EQ(root_I->get_n_keys() + 1, 2);
+        auto* BL = dynamic_cast<border_node*>(root_I->get_child_at(0));
+        auto* BR = dynamic_cast<border_node*>(root_I->get_child_at(1));
+        ASSERT_EQ(BL->get_permutation_cnk(), 0);
+        ASSERT_EQ(BR->get_permutation_cnk(), 1);
+    }
+
+    ASSERT_OK(enter(token));
+    ASSERT_OK(remove(token, test_storage_name, "X"));
+    ASSERT_OK(leave(token));
+
+    // Layer 0 root, single border node is kept
+    {
+        // root BL: (empty)
+        auto* BL = dynamic_cast<border_node*>(ti->load_root_ptr());
+        ASSERT_EQ(BL->get_permutation_cnk(), 0);
+    }
+}
+
+TEST_F(dt, L1_leftmost_border) { // NOLINT
+    tree_instance* ti{};
+    find_storage(test_storage_name, &ti);
+    Token token{};
+
+    // setup
+    {
+        ASSERT_OK(enter(token));
+        ASSERT_OK(put<char>(token, test_storage_name, "12345678A", "A", 1));
+        for (unsigned char i = 1; i < key_slice_length; ++i) {
+            char key[10] = { '1', '2', '3', '4', '5', '6', '7', '8', 'A', (char)i };
+            ASSERT_OK(put<char>(token, test_storage_name, std::string_view{key, sizeof(key)}, "A", 1));
+        }
+        ASSERT_OK(put<char>(token, test_storage_name, "12345678X", "A", 1));
+        for (unsigned char i = 1; i < key_slice_length; ++i) {
+            char key[10] = { '1', '2', '3', '4', '5', '6', '7', '8', 'A', (char)i };
+            ASSERT_OK(remove(token, test_storage_name, std::string_view{key, sizeof(key)}));
+        }
+        ASSERT_OK(leave(token));
+
+        // root B: prefix "12345678", next-layer I1
+        // I1: B1L B1R
+        // B1L: key-suffix "A"
+        // B1R: key-suffix "X"
+        auto* root_B = dynamic_cast<border_node*>(ti->load_root_ptr());
+        ASSERT_EQ(root_B->get_permutation_cnk(), 1);
+        auto* I1 = dynamic_cast<interior_node*>(root_B->get_lv_at(0)->get_next_layer());
+        ASSERT_EQ(I1->get_n_keys() + 1, 2);
+        auto* B1L = dynamic_cast<border_node*>(I1->get_child_at(0));
+        auto* B1R = dynamic_cast<border_node*>(I1->get_child_at(1));
+        ASSERT_EQ(B1L->get_permutation_cnk(), 1);
+        ASSERT_EQ(B1R->get_permutation_cnk(), 1);
+    }
+
+    ASSERT_OK(enter(token));
+    ASSERT_OK(remove(token, test_storage_name, "12345678A"));
+    ASSERT_OK(leave(token));
+
+    // leftmost border node (not single border) is kept
+    {
+        // root B: prefix "12345678", next-layer I1
+        // I1: B1L B1R
+        // B1L: (empty)
+        // B1R: key-suffix "X"
+        auto* root_B = dynamic_cast<border_node*>(ti->load_root_ptr());
+        ASSERT_EQ(root_B->get_permutation_cnk(), 1);
+        auto* I1 = dynamic_cast<interior_node*>(root_B->get_lv_at(0)->get_next_layer());
+        ASSERT_EQ(I1->get_n_keys() + 1, 2);
+        auto* B1L = dynamic_cast<border_node*>(I1->get_child_at(0));
+        auto* B1R = dynamic_cast<border_node*>(I1->get_child_at(1));
+        ASSERT_EQ(B1L->get_permutation_cnk(), 0);
+        ASSERT_EQ(B1R->get_permutation_cnk(), 1);
+    }
+
+    ASSERT_OK(enter(token));
+    ASSERT_OK(remove(token, test_storage_name, "12345678X"));
+    ASSERT_OK(leave(token));
+
+    // Layer 1 root, single border node is deleted
+    // Layer 0 root, single border node is kept
+    {
+        // root B: (empty)
+        auto* root_B = dynamic_cast<border_node*>(ti->load_root_ptr());
+        ASSERT_EQ(root_B->get_permutation_cnk(), 0);
+    }
+}
+
+TEST_F(dt, L1_single_border) { // NOLINT
+    tree_instance* ti{};
+    find_storage(test_storage_name, &ti);
+    Token token{};
+    {
+        ASSERT_OK(enter(token));
+        ASSERT_OK(put<char>(token, test_storage_name, "12345678A", "A", 1));
+        for (unsigned char i = 1; i < key_slice_length; ++i) {
+            char key[10] = { '1', '2', '3', '4', '5', '6', '7', '8', 'A', (char)i };
+            ASSERT_OK(put<char>(token, test_storage_name, std::string_view{key, sizeof(key)}, "A", 1));
+        }
+        ASSERT_OK(put<char>(token, test_storage_name, "12345678X", "A", 1));
+        for (unsigned char i = 1; i < key_slice_length; ++i) {
+            char key[10] = { '1', '2', '3', '4', '5', '6', '7', '8', 'A', (char)i };
+            ASSERT_OK(remove(token, test_storage_name, std::string_view{key, sizeof(key)}));
+        }
+        ASSERT_OK(leave(token));
+
+        // root B: prefix "12345678", next-layer I1
+        // I1: B1L B1R
+        // B1L: key-suffix "A"
+        // B1R: key-suffix "X"
+        auto* root_B = dynamic_cast<border_node*>(ti->load_root_ptr());
+        ASSERT_EQ(root_B->get_permutation_cnk(), 1);
+        auto* I1 = dynamic_cast<interior_node*>(root_B->get_lv_at(0)->get_next_layer());
+        ASSERT_EQ(I1->get_n_keys() + 1, 2);
+        auto* B1L = dynamic_cast<border_node*>(I1->get_child_at(0));
+        auto* B1R = dynamic_cast<border_node*>(I1->get_child_at(1));
+        ASSERT_EQ(B1L->get_permutation_cnk(), 1);
+        ASSERT_EQ(B1R->get_permutation_cnk(), 1);
+    }
+
+    ASSERT_OK(enter(token));
+    ASSERT_OK(remove(token, test_storage_name, "12345678X"));
+    ASSERT_OK(leave(token));
+
+    // leftmost border node (not single border) is kept
+    {
+        // root B: prefix "12345678", next-layer B1L
+        // B1L: key-suffix "A"
+        auto* root_B = dynamic_cast<border_node*>(ti->load_root_ptr());
+        ASSERT_EQ(root_B->get_permutation_cnk(), 1);
+        auto* B1L = dynamic_cast<border_node*>(root_B->get_lv_at(0)->get_next_layer());
+        ASSERT_EQ(B1L->get_permutation_cnk(), 1);
+    }
+
+    ASSERT_OK(enter(token));
+    ASSERT_OK(remove(token, test_storage_name, "12345678A"));
+    ASSERT_OK(leave(token));
+
+    // Layer 1 root, single border node is deleted
+    // Layer 0 root, single border node is kept
+    {
+        // root B: (empty)
+        auto* root_B = dynamic_cast<border_node*>(ti->load_root_ptr());
+        ASSERT_EQ(root_B->get_permutation_cnk(), 0);
     }
 }
 
