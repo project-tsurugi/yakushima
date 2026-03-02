@@ -74,6 +74,30 @@ public:
                                             this);
                             lv->set_next_layer(sibling);
                             sibling->atomic_set_version_root(true); // guard by parent lock
+                            // handle last empty border, this needs lock. due to lock order, release once and relock
+                            if (sibling->get_version_border()) {
+                                if (auto* bsib = dynamic_cast<border_node*>(sibling); bsib->get_permutation_cnk() == 0) {
+                                    bsib->lock();
+                                    if (bsib->get_permutation_cnk() != 0) { // detect concurrent change: border is not empty now
+                                        bsib->version_unlock();
+                                    } else {
+                                        pn = bsib->lock_parent(ti);
+                                        if (pn == nullptr) { // detect concurrent change: border node is now mastree root. why????
+                                            // give up delete this border
+                                            ti->root_unlock();
+                                            bsib->version_unlock();
+                                        } else if (!pn->get_version_border()) { // detect concurrent change: border node is not root. so many inserts and deletes?
+                                            // give up delete this border
+                                            pn->version_unlock();
+                                            bsib->version_unlock();
+                                        } else { // sibling is layer 1+ root (yet)
+                                            bsib->set_version_deleted(true);
+                                            bsib->version_unlock();
+                                            dynamic_cast<interior_node*>(pn)->delete_of<border_node>(token, ti, sibling);
+                                        }
+                                    }
+                                }
+                            }
                         } else {
                             dynamic_cast<interior_node*>(pn)->swap_child(this, sibling);
                         }
