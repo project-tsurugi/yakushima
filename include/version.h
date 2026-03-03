@@ -290,6 +290,7 @@ public:
     void lock() {
         node_version64_body expected{};
         node_version64_body desired{};
+VLOG(10) << "enter lock() " << this;
         for (;;) {
             for (size_t i = 1;; ++i) {
                 expected = get_body();
@@ -303,9 +304,11 @@ public:
                 if (body_.compare_exchange_weak(expected, desired,
                                                 std::memory_order_acq_rel,
                                                 std::memory_order_acquire)) {
+VLOG(15) << "leave lock() " << this;
                     return;
                 }
             }
+VLOG(5) << "lock() sleep " << this;
             std::this_thread::sleep_for(std::chrono::microseconds(1));
         }
     }
@@ -323,6 +326,7 @@ public:
     [[nodiscard]] bool get_root() const { return get_body().get_root(); }
 
     [[nodiscard]] node_version64_body get_stable_version() const {
+        std::uint64_t cnt = 0;
         for (;;) {
             node_version64_body sv = get_body();
             /**
@@ -336,6 +340,10 @@ public:
                 return sv;
             }
             _mm_pause();
+++cnt;
+if ((cnt | (cnt-1))+1 == cnt<<1) { // 1,2,4,8,...
+VLOG(15) << "get_stable_version retry(" << cnt << ") " << this << " " << sv;
+}
         }
     }
 
@@ -364,6 +372,7 @@ public:
     void unlock() {
         node_version64_body expected(get_body());
         node_version64_body desired{};
+VLOG(10) << "enter unlock() " << this;
         for (;;) {
             desired = expected;
             if (desired.get_inserting_deleting()) {
@@ -381,6 +390,7 @@ public:
                 break;
             }
         }
+VLOG(20) << "leave unlock() " << this;
     }
 
     static void unlock(std::vector<node_version64*>& lock_list) {
