@@ -25,7 +25,7 @@ public:
         google::InitGoogleLogging(
                 "yakushima-test-multi_thread-put_delete_scan-multi_thread_put_"
                 "delete_scan_many_interior_test");
-        FLAGS_stderrthreshold = 0;
+        FLAGS_stderrthreshold = 0; FLAGS_v = 10;
     }
 
     void SetUp() override {
