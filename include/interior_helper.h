@@ -222,6 +222,7 @@ interior_node::delete_of(Token token, tree_instance* ti, base_node* const child)
                 base_node* sibling = get_child_at(1 - i); // i == 0 or 1
                 base_node* pn = lock_parent(ti);
                 border_node* tobe_removed = nullptr;
+VLOG(10) << "deleteof I:" << this << " c:" << child << " i:" << i << "/" << n_key << " pn:" << pn << " ex-c:" << sibling;
                 if (pn == nullptr) { // if this node is masstree root
                     set_version_root(false); // guard by root lock
                     sibling->atomic_set_version_root(true); // guard by root lock
@@ -251,6 +252,7 @@ interior_node::delete_of(Token token, tree_instance* ti, base_node* const child)
                 auto* tinfo = reinterpret_cast<thread_info*>(token); // NOLINT
                 tinfo->get_gc_info().push_node_container(
                         std::tuple{tinfo->get_begin_epoch(), this});
+VLOG(15) << "gc register I " << this;
                 if (tobe_removed != nullptr) {
                     cleanup_last_border(token, ti, tobe_removed);
                 }
