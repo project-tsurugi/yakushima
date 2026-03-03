@@ -24,7 +24,7 @@ public:
     static void call_once_f() {
         google::InitGoogleLogging("yakushima-test-multi_turead-put_delete_get-"
                                   "multi_thread_put_delete_get_test");
-        FLAGS_stderrthreshold = 0;
+        FLAGS_stderrthreshold = 0; FLAGS_v = 10;
     }
 
 protected:
