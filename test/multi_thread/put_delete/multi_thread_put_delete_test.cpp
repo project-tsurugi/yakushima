@@ -23,7 +23,7 @@ public:
     static void call_once_f() {
         google::InitGoogleLogging("yakushima-test-multi_thread-put_delete-"
                                   "multi_thread_put_delete_test");
-        FLAGS_stderrthreshold = 0;
+        FLAGS_stderrthreshold = 0; FLAGS_v = 10;
     }
     void SetUp() override {
         std::call_once(init_, call_once_f);
