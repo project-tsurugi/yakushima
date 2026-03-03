@@ -43,6 +43,7 @@ static void display_border(std::stringstream& ss, border_node* n,
                            std::string& key_prefix) {
     ss << "border node, " << n << "\n";
     ss << "version_ptr " << n->get_version_ptr() << "\n";
+    ss << "prev:" << n->get_prev() << " next:" << n->get_next() << "\n";
     ss << "((key,key_len),value):";
     permutation perm{n->get_permutation().get_body()};
     for (std::size_t i = 0; i < perm.get_cnk(); ++i) {
