@@ -67,6 +67,7 @@ scan(base_node* const root, const std::string_view l_key,
     if (node_version_vec != nullptr) {
         initial_size_of_node_version_vec = node_version_vec->size();
     }
+VLOG(10) << "scan-i " << root << " ret#:" << initial_size_of_tuple_list;
 
     /**
      * For retry of failing optimistic verify, it must erase parts of
@@ -93,6 +94,7 @@ scan(base_node* const root, const std::string_view l_key,
 
 retry:
     if (root->get_version_deleted() || !root->get_version_root()) {
+VLOG(10) << "scan-i " << root << " RETRY_FROM_ROOT";
         return status::OK_RETRY_FROM_ROOT;
     }
 
@@ -159,6 +161,7 @@ retry:
         } else if (check_status == status::OK_RETRY_FROM_ROOT) {
             clean_up_tuple_list_nvc(initial_size_of_tuple_list,
                                     initial_size_of_node_version_vec);
+VLOG(10) << "retry-i " << root << " ret#:" << initial_size_of_tuple_list;
             goto retry; // NOLINT
         }
     }
@@ -187,6 +190,7 @@ scan_border(border_node** const target, const std::string_view l_key,
     if (node_version_vec != nullptr) {
         initial_size_of_node_version_vec = node_version_vec->size();
     }
+VLOG(10) << "scan " << *target << " ret#:" << initial_size_of_tuple_list;
     /**
      * For retry of failing optimistic verify, it must erase parts of
      * tuple_list and node vec. clear between initial_size... and current size.
@@ -263,9 +267,11 @@ retry:
             clean_up_tuple_list_nvc();
         }
         if (check_status == status::OK_RETRY_FROM_ROOT) {
+VLOG(10) << "retry 1 " << *target << " RETRY_FROM_ROOT";
             return status::OK_RETRY_FROM_ROOT;
         }
         if (check_status == status::OK_RETRY_AFTER_FB) {
+VLOG(10) << "retry 1 " << *target << " ret#:" << initial_size_of_tuple_list;
             goto retry; // NOLINT
         }
         if (kl > sizeof(key_slice_type)) {
@@ -328,6 +334,7 @@ retry:
             if (check_status != status::OK) {
                 // failed. clean up tuple list and node vesion vec.
                 clean_up_tuple_list_nvc();
+VLOG(10) << "retry 2 " << *target << " ret#:" << initial_size_of_tuple_list;
                 goto retry; // NOLINT
             }
             if (max_size != 0 && tuple_list.size() >= max_size) {
@@ -340,6 +347,7 @@ retry:
                 tuple_list.emplace_back(std::make_tuple(
                         full_key, static_cast<ValueType*>(value::get_body(vp)),
                         value::get_len(vp)));
+VLOG(15) << "emplace_back key:" << full_key << " val:" << value::get_body(vp);
                 if (node_version_vec != nullptr) {
                     /**
                      * note:
@@ -435,9 +443,11 @@ retry:
         clean_up_tuple_list_nvc();
     }
     if (check_status == status::OK_RETRY_FROM_ROOT) {
+VLOG(10) << "retry 3 " << *target << " RETRY_FROM_ROOT";
         return status::OK_RETRY_FROM_ROOT;
     }
     if (check_status == status::OK_RETRY_AFTER_FB) {
+VLOG(10) << "retry 3 " << *target << " ret#:" << initial_size_of_tuple_list;
         goto retry; // NOLINT
     }
 

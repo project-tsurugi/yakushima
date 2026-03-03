@@ -172,6 +172,7 @@ TEST_F(multi_thread_delete_200_key_test, 200_key_shuffle) { // NOLINT
                 ASSERT_EQ(status::OK, enter(token));
 
                 std::shuffle(kv.begin(), kv.end(), engine);
+{ std::stringstream ss; ss << "["; for(auto& i : kv){ ss << " " << std::get<1>(i); } ss << " ]"; LOG(INFO) << ss.str(); }
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
@@ -182,7 +183,7 @@ TEST_F(multi_thread_delete_200_key_test, 200_key_shuffle) { // NOLINT
                         std::abort();
                     }
                 }
-
+if(meet->load(std::memory_order_acquire) == max_thread-1) {display();}
                 meet->fetch_add(1);
                 while (meet->load(std::memory_order_acquire) != max_thread) {
                     _mm_pause();
@@ -191,12 +192,14 @@ TEST_F(multi_thread_delete_200_key_test, 200_key_shuffle) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
+LOG(INFO) << "remove " << v;
                     status ret = remove(token, test_storage_name, k);
                     if (ret != status::OK) {
                         EXPECT_EQ(status::OK, ret); // output log
                         std::abort();
                     }
                 }
+LOG(INFO) << "work end";
                 ASSERT_EQ(status::OK, leave(token));
             }
         };
