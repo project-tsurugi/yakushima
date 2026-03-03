@@ -43,6 +43,7 @@ retry:
     node_version64_body v = n->get_stable_version();
     if (!v.get_root()) {
         special_status = status::WARN_RETRY_FROM_ROOT_OF_ALL;
+        LOG_FIRST_N(ERROR, 25) << "not root n:" << n;
         return std::make_tuple(nullptr, node_version64_body());
     }
     if (v.get_deleted()) {

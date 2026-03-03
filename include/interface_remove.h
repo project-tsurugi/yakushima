@@ -53,6 +53,7 @@ retry_find_border:
     if (root == nullptr) {
         LOG(ERROR) << log_location_prefix << "unexpected process.";
     }
+VLOG(10) << "remove find_border " << key_view;
     std::tuple<border_node*, node_version64_body> node_and_v =
             find_border(root, key_slice, key_length, special_status);
     if (special_status == status::WARN_RETRY_FROM_ROOT_OF_ALL) {

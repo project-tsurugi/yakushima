@@ -56,6 +56,7 @@ public:
 
         // rearrange permutation
         permutation_.delete_rank(rank);
+VLOG(10) << "delete@ b:" << this << " r:" << rank;
     }
 
     /**
@@ -66,6 +67,7 @@ public:
      * @param[in] child
      */
     void delete_of(Token token, tree_instance* ti, base_node* const child) {
+VLOG(10) << "delete_of b:" << this << " child:" << child;
         std::size_t cnk = get_permutation_cnk();
         for (std::size_t i = 0; i < cnk; ++i) {
             std::size_t index = permutation_.get_index_of_rank(i);
@@ -137,6 +139,7 @@ public:
                 (key_slice_length == get_key_length_at(index) &&
                  memcmp(&key_slice, &get_key_slice_ref().at(index),
                         sizeof(key_slice_type)) == 0)) {
+VLOG(10) << "delete_of b:" << this << " i:" << i << " index:" << index << " cnk:" << cnk;
                 delete_at(token, i, index, target_is_value);
                 if (cnk == 1 && // attention : this cnk is before delete_at;
                     (get_prev() != nullptr || get_next() == nullptr)) { // not leftmost border OR single border
@@ -184,6 +187,7 @@ public:
                         dynamic_cast<border_node*>(pn)->delete_of(token, ti,
                                                                   this);
                     } else {
+VLOG(10) << "recursive delete to upper I " << pn;
                         dynamic_cast<interior_node*>(pn)
                                 ->delete_of<border_node>(token, ti, this);
                     }
@@ -191,6 +195,7 @@ public:
                             reinterpret_cast<thread_info*>(token); // NOLINT
                     tinfo->get_gc_info().push_node_container(
                             {tinfo->get_begin_epoch(), this});
+VLOG(10) << "register gc " << this;
                 } else {
                     version_unlock();
                 }
@@ -533,6 +538,7 @@ public:
                               static_cast<key_length_type>(key_view.size()));
             // set value
             set_lv_value(index, new_value, created_value_ptr);
+VLOG(10) << "insert@ b:" << this << " r:" << rank << " i:" << index << " val:" << new_value;
         }
         permutation_.insert_rank(rank, index);
     }
