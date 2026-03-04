@@ -347,7 +347,6 @@ VLOG(10) << "retry 2 " << *target << " ret#:" << initial_size_of_tuple_list;
                 tuple_list.emplace_back(std::make_tuple(
                         full_key, static_cast<ValueType*>(value::get_body(vp)),
                         value::get_len(vp)));
-VLOG(15) << "emplace_back key:" << full_key << " val:" << value::get_body(vp);
                 if (node_version_vec != nullptr) {
                     /**
                      * note:
@@ -455,6 +454,17 @@ VLOG(10) << "retry 3 " << *target << " ret#:" << initial_size_of_tuple_list;
     if (next == nullptr) { return status::OK_SCAN_END; }
 
     // it is in scan range and fin scaning this border node.
+if (VLOG_IS_ON(15)) {
+  std::stringstream ss;
+  if (tuple_list.size() > initial_size_of_tuple_list) {
+    ss << "{(k:" << std::get<0>(tuple_list[initial_size_of_tuple_list]) << ",v:" << reinterpret_cast<void*>(std::get<1>(tuple_list[initial_size_of_tuple_list])) << ")";
+  if (tuple_list.size() > initial_size_of_tuple_list + 1) {
+    ss << "...(k:" << std::get<0>(tuple_list.back()) << ",v:" << reinterpret_cast<void*>(std::get<1>(tuple_list.back())) << ")";
+  }
+    ss << "}";
+  }
+  LOG(INFO) << "scan cont " << *target << " to " << next << " tuple_list[" << initial_size_of_tuple_list << "->" << tuple_list.size() << "]" << ss.str();
+}
     *target = next;
     v_at_fb = next_version;
     return status::OK_SCAN_CONTINUE;
