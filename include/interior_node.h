@@ -132,6 +132,10 @@ VLOG(15) << "deleteof I:" << this << " c:" << child << " i:" << i << "/" << n_ke
                         shift_left_base_member(1, 1);
                         shift_left_children(1, 1);
                         set_child_at(n_key, nullptr);
+                        // before delete: leftmost border's range = [this interior's lowest, slice[0]), next border's range = [slice[0], ...)
+                        // after delete : next border's range = [this interior's lowest, ...)  <- lowest is decreased <- invariant broken
+                        // TODO: adjust upper interior node's key slice: change this interior's lowest to slice[0]
+                        // this interior's lowest is calculated from parent's slice
                     } else if (i == n_key) { // rightmost points
                         // no unique process
                         set_child_at(i, nullptr);
