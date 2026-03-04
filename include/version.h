@@ -326,6 +326,7 @@ VLOG(5) << "lock() sleep " << this;
     [[nodiscard]] bool get_root() const { return get_body().get_root(); }
 
     [[nodiscard]] node_version64_body get_stable_version() const {
+        std::uint64_t cnt = 0;
         for (;;) {
             node_version64_body sv = get_body();
             /**
@@ -339,7 +340,10 @@ VLOG(5) << "lock() sleep " << this;
                 return sv;
             }
             _mm_pause();
-VLOG(10) << "get_stable_version retry " << this << " " << sv;
+++cnt;
+if ((cnt | (cnt-1))+1 == cnt<<1) { // 1,2,4,8,...
+VLOG(15) << "get_stable_version retry(" << cnt << ") " << this << " " << sv;
+}
         }
     }
 
