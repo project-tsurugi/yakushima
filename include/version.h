@@ -304,7 +304,7 @@ VLOG(10) << "enter lock() " << this;
                 if (body_.compare_exchange_weak(expected, desired,
                                                 std::memory_order_acq_rel,
                                                 std::memory_order_acquire)) {
-VLOG(15) << "leave lock()" << this;
+VLOG(15) << "leave lock() " << this;
                     return;
                 }
             }
