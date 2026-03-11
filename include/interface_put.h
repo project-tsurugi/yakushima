@@ -186,6 +186,12 @@ retry_fetch_lv:
                 target_border->version_unlock();
                 goto retry_fetch_lv; // NOLINT
             }
+            // re-check because delete operation is not tracked.
+            lv_ptr = target_border->get_lv_of_without_lock(key_slice, key_slice_length);
+            if (lv_ptr == nullptr) {
+                target_border->version_unlock();
+                goto retry_fetch_lv; // NOLINT
+            }
 
             value* v = value::create_value<kIsInline>(v_ptr, v_len, v_align);
             if constexpr (kIsInline) {
