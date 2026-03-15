@@ -187,9 +187,9 @@ retry_fetch_lv:
                 goto retry_fetch_lv; // NOLINT
             }
             // re-check because delete operation is not tracked.
-            lv_ptr = target_border->get_lv_of_without_lock(key_slice, key_slice_length);
+            lv_ptr = locked_border->get_lv_of_without_lock(key_slice, key_slice_length);
             if (lv_ptr == nullptr) {
-                target_border->version_unlock();
+                locked_border->version_unlock();
                 goto retry_fetch_lv; // NOLINT
             }
 
