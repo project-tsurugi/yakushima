@@ -29,6 +29,14 @@ Masstree に比べて劣る点は以下である:
     * 競合相手の操作が更新操作である場合には両者が lock を取るので, 適切なタイミングでの lock 操作で実現できる
     * 競合相手の操作が読み取りである場合には楽観的 version 比較で済ませたいが, vinsert だけでなくほかの要素も比較する必要がある
 
+## メモ
+
 特に最後の 読み取り操作との競合については border node の permutation (60 bits) の比較で変更操作を追跡できると考えている.
 permutation だけの比較では delete + insert で ABA 問題的な 問題が起きるが, これは vinsert 比較にて検出できるため,
 vinsert と permutation の2つを組み合わせた比較で理論上は変更を漏れなく検出できる.
+(masstree-beta もそのように組み合わせていた)
+
+設計ではない点
+
+version 比較で使用するフィールドが Masstree と比べて少ない。設計意図は不明 (abort を減らしたいから?)
+
