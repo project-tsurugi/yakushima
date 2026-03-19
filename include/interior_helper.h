@@ -177,6 +177,35 @@ interior_split(tree_instance* ti, interior_node* const interior,
     pi->version_unlock();
 }
 
+/**
+ * helper method for cleanup last border node
+ * @pre both target and parent are not locked by caller
+ */
+static void
+cleanup_last_border(Token token, tree_instance* ti, border_node* target) {
+    target->lock();
+    if (target->get_permutation_cnk() != 0) { // detect concurrent change: border is not empty now
+        target->version_unlock();
+    } else {
+        auto* pn = target->lock_parent(ti);
+        if (pn == nullptr) { // detect concurrent change: border node is now mastree root. why????
+            // give up delete this border
+            ti->root_unlock();
+            target->version_unlock();
+        } else if (!pn->get_version_border()) { // detect concurrent change: border node is not root. so many inserts and deletes?
+            // give up delete this border
+            pn->version_unlock();
+            target->version_unlock();
+        } else { // sibling is layer 1+ root (yet)
+            target->set_version_deleted(true);
+            target->version_unlock();
+            dynamic_cast<border_node*>(pn)->delete_of(token, ti, target);
+            auto* tinfo = reinterpret_cast<thread_info*>(token); // NOLINT
+            tinfo->get_gc_info().push_node_container({tinfo->get_begin_epoch(), target});
+        }
+    }
+}
+
 inline void
 interior_node::delete_of(Token token, tree_instance* ti, base_node* const child) {
     set_version_inserting_deleting(true);
@@ -192,6 +221,7 @@ interior_node::delete_of(Token token, tree_instance* ti, base_node* const child)
                 n_keys_decrement();
                 base_node* sibling = get_child_at(1 - i); // i == 0 or 1
                 base_node* pn = lock_parent(ti);
+                border_node* tobe_removed = nullptr;
                 if (pn == nullptr) { // if this node is masstree root
                     set_version_root(false); // guard by root lock
                     sibling->atomic_set_version_root(true); // guard by root lock
@@ -205,6 +235,12 @@ interior_node::delete_of(Token token, tree_instance* ti, base_node* const child)
                         link_or_value* lv = dynamic_cast<border_node*>(pn)->get_lv(this);
                         lv->set_next_layer(sibling);
                         sibling->atomic_set_version_root(true); // guard by parent lock
+                        // handle last empty border, this needs lock. due to lock order, release once and relock
+                        if (sibling->get_version_border()) {
+                            if (auto* bsib = dynamic_cast<border_node*>(sibling); bsib->get_permutation_cnk() == 0) {
+                                tobe_removed = bsib;
+                            }
+                        }
                     } else {
                         dynamic_cast<interior_node*>(pn)->swap_child(this, sibling);
                     }
@@ -215,6 +251,9 @@ interior_node::delete_of(Token token, tree_instance* ti, base_node* const child)
                 auto* tinfo = reinterpret_cast<thread_info*>(token); // NOLINT
                 tinfo->get_gc_info().push_node_container(
                         std::tuple{tinfo->get_begin_epoch(), this});
+                if (tobe_removed != nullptr) {
+                    cleanup_last_border(token, ti, tobe_removed);
+                }
             } else {          // n_key > 1
                 if (i == 0) { // leftmost points
                     shift_left_base_member(1, 1);

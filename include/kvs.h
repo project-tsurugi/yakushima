@@ -195,7 +195,7 @@ get(std::string_view storage_name, // NOLINT
 template<class ValueType>
 [[maybe_unused]] static status
 put(Token token, std::string_view storage_name, // NOLINT
-    std::string_view key_view, ValueType* value_ptr,
+    std::string_view key_view, const ValueType* value_ptr,
     std::size_t arg_value_length,
     ValueType** created_value_ptr,
     value_align_type value_align, bool unique_restriction,
@@ -212,7 +212,7 @@ put(Token token, std::string_view storage_name, // NOLINT
 template<class ValueType>
 [[maybe_unused]] static status
 put(Token token, std::string_view storage_name, // NOLINT
-    std::string_view key_view, ValueType* value_ptr,
+    std::string_view key_view, const ValueType* value_ptr,
     std::size_t arg_value_length,
     ValueType** created_value_ptr,
     value_align_type value_align, bool unique_restriction,
@@ -222,7 +222,7 @@ put(Token token, std::string_view storage_name, // NOLINT
 template<class ValueType>
 [[maybe_unused]] static status
 put(Token token, std::string_view storage_name, // NOLINT
-    std::string_view key_view, ValueType* value_ptr,
+    std::string_view key_view, const ValueType* value_ptr,
     std::size_t arg_value_length,
     ValueType** created_value_ptr,
     value_align_type value_align, bool unique_restriction,
