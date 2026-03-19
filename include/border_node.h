@@ -138,7 +138,8 @@ public:
                  memcmp(&key_slice, &get_key_slice_ref().at(index),
                         sizeof(key_slice_type)) == 0)) {
                 delete_at(token, i, index, target_is_value);
-                if (cnk == 1) { // attention : this cnk is before delete_at;
+                if (cnk == 1 && // attention : this cnk is before delete_at;
+                    (get_prev() != nullptr || get_next() == nullptr)) { // not leftmost border OR single border
                     set_version_deleted(true);
 
                     /**

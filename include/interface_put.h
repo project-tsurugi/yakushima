@@ -28,7 +28,7 @@ namespace yakushima {
 template<class ValueType>
 [[maybe_unused]] static status
 put([[maybe_unused]] Token token, tree_instance* ti, std::string_view key_view,
-    ValueType* v_ptr, bool unique_restriction,
+    const ValueType* v_ptr, bool unique_restriction,
     value_length_type v_len = sizeof(ValueType),
     ValueType** created_value_ptr = nullptr,
     value_align_type v_align =
@@ -267,7 +267,7 @@ retry_fetch_lv:
 template<class ValueType>
 [[maybe_unused]] static status
 put(Token token, std::string_view storage_name, // NOLINT
-    std::string_view key_view, ValueType* value_ptr,
+    std::string_view key_view, const ValueType* value_ptr,
     std::size_t arg_value_length = sizeof(ValueType),
     ValueType** created_value_ptr = nullptr,
     value_align_type value_align =
