@@ -183,10 +183,8 @@ get(std::string_view storage_name, // NOLINT
  * static_cast<value_align_type>(alignof(ValueType)).
  * @param[in] unique_restriction If this is true, you can't put same key. If you
  * update key, you should execute remove and put.
- * @param[out] inserted_node_version_ptr The pointer to version of the inserted
- * node. It may be used to find out difference of the version between some
- * operations. Default is @a nullptr. If split occurs due to this insert, this
- *  point to old border node.
+ * @param[out] inserted_node_info_ptr The pointer to the information about affected nodes by this put operation.
+ * if nullptr is given, no information is stored. Default is nullptr.
  * The address obtained here can be accessed safely until the Token entered at the time of address acquisition leaves.
  * @return status::OK success.
  * @return status::WARN_UNIQUE_RESTRICTION The key-value whose key is same to given key
@@ -199,9 +197,36 @@ template<class ValueType>
 put(Token token, std::string_view storage_name, // NOLINT
     std::string_view key_view, ValueType* value_ptr,
     std::size_t arg_value_length,
-    ValueType** created_value_ptr, // NOLINT
+    ValueType** created_value_ptr,
+    value_align_type value_align, bool unique_restriction,
+    inserted_node_info* inserted_node_info_ptr);
+
+/**
+ * @brief old interface for backward-compatibility, pass to new interface
+ * @deprecated Use inserted_node_info version of put() instead.
+ * @param[out] inserted_node_version_ptr The pointer to version of the inserted
+ * node. It may be used to find out difference of the version between some
+ * operations. Default is nullptr. If split occurs due to this insert, this points to the original (left) border node.
+ * The address obtained here can be accessed safely until the Token entered at the time of address acquisition leaves.
+ */
+template<class ValueType>
+[[maybe_unused]] static status
+put(Token token, std::string_view storage_name, // NOLINT
+    std::string_view key_view, ValueType* value_ptr,
+    std::size_t arg_value_length,
+    ValueType** created_value_ptr,
     value_align_type value_align, bool unique_restriction,
     node_version64** inserted_node_version_ptr);
+
+/** @brief dispatch nullptr to new interface (to avoid error by ambiguous overloaded function call) */
+template<class ValueType>
+[[maybe_unused]] static status
+put(Token token, std::string_view storage_name, // NOLINT
+    std::string_view key_view, ValueType* value_ptr,
+    std::size_t arg_value_length,
+    ValueType** created_value_ptr,
+    value_align_type value_align, bool unique_restriction,
+    std::nullptr_t);
 
 /**
  * @pre @a token of arguments is valid.

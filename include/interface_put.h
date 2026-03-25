@@ -23,7 +23,7 @@ namespace yakushima {
  * @param[in] v_len
  * @param[in] created_value_ptr
  * @param[in] v_align
- * @param[in] inserted_node_version_ptr
+ * @param[in] inserted_node_info_ptr
  */
 template<class ValueType>
 [[maybe_unused]] static status
@@ -33,9 +33,12 @@ put([[maybe_unused]] Token token, tree_instance* ti, std::string_view key_view,
     ValueType** created_value_ptr = nullptr,
     value_align_type v_align =
             static_cast<value_align_type>(alignof(ValueType)),
-    node_version64** inserted_node_version_ptr = nullptr) {
+    inserted_node_info* inserted_node_info_ptr = nullptr) {
     constexpr auto kIsInline = is_inlinable<ValueType>();
     auto* created_v_ptr = reinterpret_cast<void**>(created_value_ptr); // NOLINT
+    if (inserted_node_info_ptr != nullptr) {
+        inserted_node_info_ptr->created_nvp = nullptr;
+    }
 
 root_nullptr:
     base_node* expected = ti->load_root_ptr();
@@ -47,8 +50,10 @@ root_nullptr:
         value* v = value::create_value<kIsInline>(v_ptr, v_len, v_align);
         new_border->init_border(key_view, v, created_value_ptr, true);
         for (;;) {
-            if (inserted_node_version_ptr != nullptr) {
-                *inserted_node_version_ptr = new_border->get_version_ptr();
+            if (inserted_node_info_ptr != nullptr) {
+                // strictly speaking, a new node is created in this case, but for consistency with other cases,
+                // the result is stored to modified_nvp instead of created_nvp.
+                inserted_node_info_ptr->modified_nvp = new_border->get_version_ptr();
             }
             base_node* desired{dynamic_cast<base_node*>(new_border)};
             if (ti->cas_root_ptr(&expected, &desired)) { return status::OK; }
@@ -157,7 +162,7 @@ retry_fetch_lv:
         value* v = value::create_value<kIsInline>(v_ptr, v_len, v_align);
         insert_lv<interior_node, border_node>(
                 ti, target_border, traverse_key_view, v, created_v_ptr,
-                inserted_node_version_ptr,
+                inserted_node_info_ptr,
                 target_border->compute_rank_if_insert(key_slice,
                                                       key_slice_length));
         return status::OK;
@@ -273,12 +278,47 @@ put(Token token, std::string_view storage_name, // NOLINT
     value_align_type value_align =
             static_cast<value_align_type>(alignof(ValueType)),
     bool unique_restriction = false,
-    node_version64** inserted_node_version_ptr = nullptr) {
+    inserted_node_info* inserted_node_info_ptr = nullptr) {
     tree_instance* ti{};
     status ret{storage::find_storage(storage_name, &ti)};
     if (status::OK != ret) { return status::WARN_STORAGE_NOT_EXIST; }
     return put(token, ti, key_view, value_ptr, unique_restriction,
                arg_value_length, created_value_ptr, value_align,
-               inserted_node_version_ptr);
+               inserted_node_info_ptr);
 }
+
+// old interface, pass to new interface
+template<class ValueType>
+[[maybe_unused]] static status
+put(Token token, std::string_view storage_name, // NOLINT
+    std::string_view key_view, ValueType* value_ptr,
+    std::size_t arg_value_length,
+    ValueType** created_value_ptr,
+    value_align_type value_align,
+    bool unique_restriction,
+    node_version64** inserted_node_version_ptr) {
+    if (inserted_node_version_ptr == nullptr) {
+        return put(token, storage_name, key_view, value_ptr, arg_value_length, created_value_ptr,
+                   value_align, unique_restriction, static_cast<inserted_node_info*>(nullptr));
+    }
+    inserted_node_info tmp{};
+    auto ret = put(token, storage_name, key_view, value_ptr, arg_value_length, created_value_ptr,
+                   value_align, unique_restriction, &tmp);
+    *inserted_node_version_ptr = tmp.modified_nvp;
+    return ret;
+}
+
+// dispatch nullptr to new interface (to avoid error by ambiguous overloaded function call)
+template<class ValueType>
+[[maybe_unused]] static status
+put(Token token, std::string_view storage_name, // NOLINT
+    std::string_view key_view, ValueType* value_ptr,
+    std::size_t arg_value_length,
+    ValueType** created_value_ptr,
+    value_align_type value_align, bool unique_restriction,
+    std::nullptr_t) {
+    return put(token, storage_name, key_view, value_ptr, arg_value_length, created_value_ptr,
+               value_align, unique_restriction, static_cast<inserted_node_info*>(nullptr));
+}
+
 } // namespace yakushima
