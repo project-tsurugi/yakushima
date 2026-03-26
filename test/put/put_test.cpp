@@ -285,4 +285,38 @@ TEST_F(put_test, one_key_twice_unique_rest_false) { // NOLINT
     ASSERT_EQ(leave(token), status::OK);
 }
 
+TEST_F(put_test, inserted_node_info) {
+    tree_instance* ti{};
+    find_storage(st, &ti);
+    Token token{};
+    ASSERT_EQ(enter(token), status::OK);
+    // test
+    std::string v{"v"};
+    char* created_value_ptr{};
+    inserted_node_info ii1;
+    inserted_node_info ii2;
+    // insert to empty root
+    ASSERT_EQ(status::OK,
+              put(token, st, "a", v.data(), v.size(), &created_value_ptr,
+                  static_cast<value_align_type>(alignof(char)), true, &ii1));
+    EXPECT_NE(ii1.modified_nvp, nullptr);
+    EXPECT_EQ(ii1.created_nvp, nullptr);
+    for (std::size_t i = 1; i < key_slice_length; i++) {
+        // insert to border node
+        ASSERT_EQ(status::OK,
+                  put(token, st, std::to_string(i), v.data(), v.size(), &created_value_ptr,
+                      static_cast<value_align_type>(alignof(char)), true, &ii2));
+        EXPECT_EQ(ii2.modified_nvp, ii1.modified_nvp);
+        EXPECT_EQ(ii2.created_nvp, nullptr);
+    }
+    // insert to border node (split)
+    ASSERT_EQ(status::OK,
+              put(token, st, "b", v.data(), v.size(), &created_value_ptr,
+                  static_cast<value_align_type>(alignof(char)), true, &ii2));
+    EXPECT_EQ(ii2.modified_nvp, ii1.modified_nvp);
+    EXPECT_NE(ii2.created_nvp, nullptr);
+    ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
+    ASSERT_EQ(leave(token), status::OK);
+}
+
 } // namespace yakushima::testing

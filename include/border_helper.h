@@ -39,7 +39,7 @@ static void interior_split(tree_instance* ti, interior_node* interior,
  * @param[out] created_value_ptr The pointer to created value in yakushima.
  * @param[in] value_length
  * @param[in] value_align
- * @param[out] inserted_node_version_ptr
+ * @param[out] inserted_node_info_ptr
  * @param[in] rank
  */
 template<class interior_node, class border_node>
@@ -48,7 +48,7 @@ border_split(tree_instance* ti, border_node* border, std::string_view key_view,
              void* value_ptr,
              void** created_value_ptr, // NOLINT
              value_length_type value_length, value_align_type value_align,
-             node_version64** inserted_node_version_ptr, std::size_t rank);
+             inserted_node_info* inserted_node_info_ptr, std::size_t rank);
 
 /**
  * Start impl.
@@ -116,7 +116,7 @@ template<class interior_node, class border_node>
 static void insert_lv(tree_instance* ti, border_node* const border,
                       std::string_view key_view, value* new_value,
                       void** const created_value_ptr,
-                      node_version64** inserted_node_version_ptr,
+                      inserted_node_info* inserted_node_info_ptr,
                       std::size_t rank) {
     border->set_version_inserting_deleting(true);
     std::size_t cnk = border->get_permutation_cnk();
@@ -136,13 +136,13 @@ static void insert_lv(tree_instance* ti, border_node* const border,
          */
         border_split<interior_node, border_node>(
                 ti, border, key_view, new_value, created_value_ptr,
-                inserted_node_version_ptr, rank);
+                inserted_node_info_ptr, rank);
     } else {
         /**
          * Insert into this nodes.
          */
-        if (inserted_node_version_ptr != nullptr) {
-            *inserted_node_version_ptr = border->get_version_ptr();
+        if (inserted_node_info_ptr != nullptr) {
+            inserted_node_info_ptr->modified_nvp = border->get_version_ptr();
         }
         border->insert_lv_at(border->get_permutation().get_empty_slot(),
                              key_view, new_value, created_value_ptr, rank);
@@ -154,18 +154,19 @@ template<class interior_node, class border_node>
 static void border_split(tree_instance* ti, border_node* const border,
                          std::string_view key_view, value* new_value,
                          void** const created_value_ptr,
-                         node_version64** inserted_node_version_ptr,
+                         inserted_node_info* inserted_node_info_ptr,
                          [[maybe_unused]] std::size_t rank) {
-    // update inserted_node_version_ptr
-    if (inserted_node_version_ptr != nullptr) {
-        *inserted_node_version_ptr = border->get_version_ptr();
-    }
-
     border->set_version_splitting(true);
     border_node* new_border = new border_node(); // NOLINT
     new_border->init_border();
     new_border->set_next(border->get_next());
     new_border->set_prev(border);
+
+    // update inserted_node_info_ptr
+    if (inserted_node_info_ptr != nullptr) {
+        inserted_node_info_ptr->modified_nvp = border->get_version_ptr();
+        inserted_node_info_ptr->created_nvp = new_border->get_version_ptr();
+    }
 
     /**
      * new border is initially locked
