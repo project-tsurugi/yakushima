@@ -16,8 +16,7 @@ namespace yakushima {
 }
 
 [[maybe_unused]] static status leave(Token token) {
-    return thread_info_table::leave_thread_info<interior_node, border_node>(
-            token);
+    return thread_info_table::leave_thread_info(token);
 }
 
 [[maybe_unused]] static void init() {

@@ -18,12 +18,6 @@ namespace yakushima {
 
 class garbage_collection {
 public:
-    /**
-     * @tparam interior_node
-     * @tparam border_node
-     * @attention Use a template class so that the dependency does not cycle.
-     */
-    template<class interior_node, class border_node>
     void fin() {
         // for cache
         if (std::get<gc_target_index>(cache_node_container_) != nullptr) {
@@ -55,23 +49,11 @@ public:
         }
     }
 
-    /**
-     * @tparam interior_node
-     * @tparam border_node
-     * @attention Use a template class so that the dependency does not cycle.
-     */
-    template<class interior_node, class border_node>
     void gc() {
-        gc_node<interior_node, border_node>();
+        gc_node();
         gc_value();
     }
 
-    /**
-     * @tparam interior_node
-     * @tparam border_node
-     * @attention Use a template class so that the dependency does not cycle.
-     */
-    template<class interior_node, class border_node>
     void gc_node() {
         Epoch gc_epoch = get_gc_epoch();
 
