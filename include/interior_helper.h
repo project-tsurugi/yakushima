@@ -255,6 +255,7 @@ interior_node::delete_of(Token token, tree_instance* ti, base_node* const child)
                     cleanup_last_border(token, ti, tobe_removed);
                 }
             } else {          // n_key > 1
+VLOG(15) << "deleteof I:" << this << " c:" << child << " i:" << i << "/" << n_key;
                 if (i == 0) { // leftmost points
                     shift_left_base_member(1, 1);
                     shift_left_children(1, 1);
