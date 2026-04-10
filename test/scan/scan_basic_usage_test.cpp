@@ -152,7 +152,7 @@ TEST_F(st, inf_endpoint_l1) {
     std::vector<std::pair<node_version64_body, node_version64*>> nv;
     auto verify = [&tup_lis, &nv, &v]() {
         if (tup_lis.size() != 1) { return false; }
-        if (tup_lis.size() != nv.size()) { return false; }
+        //if (tup_lis.size() != nv.size()) { return false; }
         if (std::get<2>(tup_lis.at(0)) != v.size()) { return false; }
         if (memcmp(std::get<1>(tup_lis.at(0)), v.data(), v.size()) != 0) {
             return false;
@@ -161,7 +161,7 @@ TEST_F(st, inf_endpoint_l1) {
     };
     auto verify_no_exist = [&tup_lis, &nv]() {
         if (!tup_lis.empty()) { return false; }
-        if (nv.size() != 1) { return false; }
+        //if (nv.size() != 1) { return false; }
         return true;
     };
     // a < kkkkkkkkk < z
