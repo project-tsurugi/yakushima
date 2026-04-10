@@ -22,7 +22,7 @@ scan_border(border_node** target, std::string_view l_key, scan_endpoint l_end,
             node_version64_body& v_at_fb,
             std::vector<std::tuple<std::string, node_version64_body,
                                    node_version64*>>* node_version_vec,
-            const std::string& key_prefix, std::size_t max_size);
+            const std::string& key_prefix, std::size_t max_size, bool);
 
 inline status scan_check_retry(border_node* const bn,
                                node_version64_body& v_at_fb) {
@@ -46,7 +46,7 @@ inline status scan_check_retry(border_node* const bn,
 }
 
 /**
- * scan for some try nodes which is not root.
+ * scan for some trie nodes which is not root.
  */
 template<class ValueType>
 static status
