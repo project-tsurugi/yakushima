@@ -84,19 +84,20 @@ retry_from_root:
     key_slice_type key_slice(0);
     auto key_slice_length =
             static_cast<key_length_type>(traverse_key_view.size());
-    if (traverse_key_view.size() > sizeof(key_slice_type)) {
+    if (!right_to_left && l_end == scan_endpoint::INF) {
+        // treat l_key as ""
+        key_slice_length = 0;
+    } else if (right_to_left && r_end == scan_endpoint::INF) {
+        // put maximum value of key_slice
+        key_slice = ~key_slice_type{0};
+        key_slice_length = sizeof(key_slice_type);
+    } else if (traverse_key_view.size() > sizeof(key_slice_type)) {
         memcpy(&key_slice, traverse_key_view.data(), sizeof(key_slice_type));
     } else {
         if (!traverse_key_view.empty()) {
             memcpy(&key_slice, traverse_key_view.data(),
                    traverse_key_view.size());
         }
-    }
-    if (right_to_left) {
-        // assuming r_end == scan_endpoint::INF
-        // put maximum value of key_slice
-        key_slice = ~key_slice_type{0};
-        key_slice_length = sizeof(key_slice_type);
     }
     /**
      * traverse tree to border node.
