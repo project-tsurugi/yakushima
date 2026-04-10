@@ -138,7 +138,49 @@ TEST_F(st, inf_endpoint) {
     ASSERT_EQ(status::ERR_BAD_USAGE,
               scan<char>(test_storage_name, "z", scan_endpoint::INF, "",
                          scan_endpoint::EXCLUSIVE, tup_lis, &nv));
-    ASSERT_EQ(leave(token), status::OK);
+    ASSERT_OK(leave(token));
+}
+
+TEST_F(st, inf_endpoint_l1) {
+    // long key (Layer 1+) version of inf_endpoint
+    std::string k("kkkkkkkkk");
+    std::string v("v");
+    Token token{};
+    ASSERT_OK(enter(token));
+    ASSERT_OK(put(token, test_storage_name, k, v.data(), v.size()));
+    std::vector<std::tuple<std::string, char*, std::size_t>> tup_lis{};
+    std::vector<std::pair<node_version64_body, node_version64*>> nv;
+    auto verify = [&tup_lis, &nv, &v]() {
+        if (tup_lis.size() != 1) { return false; }
+        if (tup_lis.size() != nv.size()) { return false; }
+        if (std::get<2>(tup_lis.at(0)) != v.size()) { return false; }
+        if (memcmp(std::get<1>(tup_lis.at(0)), v.data(), v.size()) != 0) {
+            return false;
+        }
+        return true;
+    };
+    auto verify_no_exist = [&tup_lis, &nv]() {
+        if (!tup_lis.empty()) { return false; }
+        if (nv.size() != 1) { return false; }
+        return true;
+    };
+    // a < kkkkkkkkk < z
+    ASSERT_OK(scan<char>(test_storage_name, "z", scan_endpoint::INF,
+                         "", scan_endpoint::INF, tup_lis, &nv));
+    ASSERT_EQ(true, verify());
+    ASSERT_OK(scan<char>(test_storage_name, "z", scan_endpoint::INF, "",
+                         scan_endpoint::INCLUSIVE, tup_lis, &nv));
+    ASSERT_EQ(true, verify_no_exist());
+    ASSERT_OK(scan<char>(test_storage_name, "", scan_endpoint::INCLUSIVE, "a",
+                         scan_endpoint::INF, tup_lis, &nv));
+    ASSERT_EQ(true, verify());
+    ASSERT_OK(scan<char>(test_storage_name, "", scan_endpoint::EXCLUSIVE, "a",
+                         scan_endpoint::INF, tup_lis, &nv));
+    ASSERT_EQ(true, verify());
+    ASSERT_EQ(status::ERR_BAD_USAGE,
+              scan<char>(test_storage_name, "z", scan_endpoint::INF, "",
+                         scan_endpoint::EXCLUSIVE, tup_lis, &nv));
+    ASSERT_OK(leave(token));
 }
 
 } // namespace yakushima::testing
