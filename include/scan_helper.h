@@ -232,13 +232,16 @@ retry:
      */
     permutation perm(bn->get_permutation().get_body());
     // check all elements in border node.
+    std::string full_key{};
+    full_key.reserve(key_prefix.size() + 8);
+    full_key.assign(key_prefix);
     for (std::size_t i = 0, n = perm.get_cnk(); i < n; ++i) {
         std::size_t index = perm.get_index_of_rank(right_to_left ? n-i-1 : i);
         key_slice_type ks = bn->get_key_slice_at(index);
         key_length_type kl = bn->get_key_length_at(index);
-        std::string full_key{key_prefix};
         if (kl > 0) {
             // gen full key from log and this key slice
+            full_key.resize(key_prefix.size());
             full_key.append(
                     reinterpret_cast<char*>(&ks), // NOLINT
                     kl < sizeof(key_slice_type) ? kl : sizeof(key_slice_type));
