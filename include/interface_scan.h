@@ -162,12 +162,15 @@ scan(std::string_view storage_name, std::string_view l_key, // NOLINT
      std::size_t max_size = 0,
      bool right_to_left = false) {
     // check storage
+LOG(INFO) << "enter scan";
     tree_instance* ti{};
     if (storage::find_storage(storage_name, &ti) != status::OK) {
         return status::WARN_STORAGE_NOT_EXIST;
     }
-    return scan(ti, l_key, l_end, r_key, r_end, tuple_list, node_version_vec,
+    auto rc = scan(ti, l_key, l_end, r_key, r_end, tuple_list, node_version_vec,
                 max_size, right_to_left);
+LOG(INFO) << "leave scan";
+    return rc;
 }
 
 } // namespace yakushima

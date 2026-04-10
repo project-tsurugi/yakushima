@@ -353,6 +353,7 @@ retry:
                      * to the actual situation read by the transaction
                      * execution engine.
                      */
+LOG(INFO) << "add1 " << node_version_ptr;
                     node_version_vec->emplace_back(
                             std::make_pair(v_at_fb, node_version_ptr));
                 }
@@ -407,6 +408,7 @@ retry:
                  * included in the phantom verification. However, there were
                  * no elements included in the range.
                  */
+LOG(INFO) << "add2 " << bn->get_version_ptr();
                 node_version_vec->emplace_back(
                         std::make_pair(v_at_fb, bn->get_version_ptr()));
             }
@@ -422,6 +424,7 @@ retry:
          * in the phantom verification. However, there were no elements
          * included in the range.
          */
+LOG(INFO) << "add3 " << bn->get_version_ptr();
         node_version_vec->emplace_back(
                 std::make_pair(v_at_fb, bn->get_version_ptr()));
     }
