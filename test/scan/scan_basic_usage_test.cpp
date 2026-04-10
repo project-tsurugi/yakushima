@@ -183,4 +183,46 @@ TEST_F(st, inf_endpoint_l1) {
     ASSERT_OK(leave(token));
 }
 
+TEST_F(st, inf_endpoint_border_chain) {
+    // find_border
+    std::string v("v");
+    Token token{};
+    ASSERT_OK(enter(token));
+    ASSERT_OK(put(token, test_storage_name, "000000000", v.data(), v.size()));
+    ASSERT_OK(put(token, test_storage_name, "111111111", v.data(), v.size()));
+    ASSERT_OK(put(token, test_storage_name, "222222222", v.data(), v.size()));
+    ASSERT_OK(put(token, test_storage_name, "333333333", v.data(), v.size()));
+    ASSERT_OK(put(token, test_storage_name, "444444444", v.data(), v.size()));
+    ASSERT_OK(put(token, test_storage_name, "555555555", v.data(), v.size()));
+    ASSERT_OK(put(token, test_storage_name, "666666666", v.data(), v.size()));
+    ASSERT_OK(put(token, test_storage_name, "777777777", v.data(), v.size()));
+    ASSERT_OK(put(token, test_storage_name, "888888888", v.data(), v.size()));
+    ASSERT_OK(put(token, test_storage_name, "999999999", v.data(), v.size()));
+    ASSERT_OK(put(token, test_storage_name, "aaaaaaaaa", v.data(), v.size()));
+    ASSERT_OK(put(token, test_storage_name, "bbbbbbbbb", v.data(), v.size()));
+    ASSERT_OK(put(token, test_storage_name, "ccccccccc", v.data(), v.size()));
+    ASSERT_OK(put(token, test_storage_name, "ddddddddd", v.data(), v.size()));
+    ASSERT_OK(put(token, test_storage_name, "eeeeeeeee", v.data(), v.size()));
+    ASSERT_OK(put(token, test_storage_name, "fffffffff", v.data(), v.size()));
+    std::vector<std::tuple<std::string, char*, std::size_t>> tup_lis{};
+    std::vector<std::pair<node_version64_body, node_version64*>> nv;
+    // 0 < keys... < z
+    ASSERT_OK(scan<char>(test_storage_name, "z", scan_endpoint::INF,
+                         "", scan_endpoint::INF, tup_lis, &nv));
+    EXPECT_EQ(tup_lis.size(), 16);
+    ASSERT_OK(scan<char>(test_storage_name, "z", scan_endpoint::INF, "",
+                         scan_endpoint::INCLUSIVE, tup_lis, &nv));
+    EXPECT_EQ(tup_lis.size(), 0);
+    ASSERT_OK(scan<char>(test_storage_name, "", scan_endpoint::INCLUSIVE, "0",
+                         scan_endpoint::INF, tup_lis, &nv));
+    EXPECT_EQ(tup_lis.size(), 16);
+    ASSERT_OK(scan<char>(test_storage_name, "", scan_endpoint::EXCLUSIVE, "0",
+                         scan_endpoint::INF, tup_lis, &nv));
+    EXPECT_EQ(tup_lis.size(), 16);
+    ASSERT_EQ(status::ERR_BAD_USAGE,
+              scan<char>(test_storage_name, "z", scan_endpoint::INF, "",
+                         scan_endpoint::EXCLUSIVE, tup_lis, &nv));
+    ASSERT_OK(leave(token));
+}
+
 } // namespace yakushima::testing
