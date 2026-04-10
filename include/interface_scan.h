@@ -87,7 +87,6 @@ retry_from_root:
     if (!right_to_left && l_end == scan_endpoint::INF) {
         // treat l_key as ""
         key_slice_length = 0;
-        traverse_key_view = {};
     } else if (right_to_left && r_end == scan_endpoint::INF) {
         // put maximum value of key_slice
         key_slice = ~key_slice_type{0};
