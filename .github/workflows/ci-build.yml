@@ -35,7 +35,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: true
 
@@ -70,7 +70,7 @@ jobs:
           ctest --verbose --timeout 100 -j 16
 
       - name: Verify
-        uses: project-tsurugi/tsurugi-annotations-action@v1
+        uses: project-tsurugi/tsurugi-annotations-action@v2
         if: always()
 
   Analysis:
@@ -100,7 +100,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: true
 
@@ -124,5 +124,5 @@ jobs:
           ninja doxygen 2> >(tee doxygen-error.log)
 
       - name: Verify
-        uses: project-tsurugi/tsurugi-annotations-action@v1
+        uses: project-tsurugi/tsurugi-annotations-action@v2
         if: always()
