@@ -18,6 +18,7 @@ scan 操作において, 前いなかったものが増えていることを (CC
 前いたものが消えていることは read verify で実現できるため node version による delete 追跡は必須ではないこと,
 および自分の delete による node verify 失敗を防ぐために delete での version 変更を無くしたというのが主な理由である.
 (TBD: 自分の delete による node verify 失敗に関しては insert でやっているような対策を入れるという設計方針もありえたのではないか)
+(XXX: CC の文脈での自分の delete ってなんだ? Record GC 以外は delete しないはずだが)
 
 この方針は (Masstree 側の要請である) delete + insert 検出を実現でき, また (Silo 側の要請である) insert 全検出を実現できる.
 
@@ -28,6 +29,7 @@ Masstree に比べて劣る点は以下である:
 * 並行で border node を扱う別スレッドとの競合検査のために vinsert を使っても delete 操作を検出できない.
     * 競合相手の操作が更新操作である場合には両者が lock を取るので, 適切なタイミングでの lock 操作で実現できる
     * 競合相手の操作が読み取りである場合には楽観的 version 比較で済ませたいが, vinsert だけでなくほかの要素も比較する必要がある
+    * 特に scan 操作に delete が絡んだ場合に問題になる
 
 ## メモ
 
@@ -35,8 +37,14 @@ Masstree に比べて劣る点は以下である:
 permutation だけの比較では delete + insert で ABA 問題的な 問題が起きるが, これは vinsert 比較にて検出できるため,
 vinsert と permutation の2つを組み合わせた比較で理論上は変更を漏れなく検出できる.
 (masstree-beta もそのように組み合わせていた)
+ただ、2 word になるため atomic 性は注意が必要
+* 隣り合うように配置すれば解消できるかもしれないが (version が base_node のメンバであり permutation が border_node のメンバであることにも注意が必要)
 
-設計ではない点
+delete version を新規導入する手もある。
+15個より多く delete を連続することはできないので vinsert と合わせて比較することを考えれば 4bit でよい
+
+## 設計ではない点
 
 version 比較で使用するフィールドが Masstree と比べて少ない。設計意図は不明 (abort を減らしたいから?)
+lock ビットや inserting, splitting ビットを見ていないことが多い。大丈夫なのか?
 
