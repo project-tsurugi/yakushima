@@ -199,6 +199,24 @@ enum class scan_endpoint : char {
     INF,
 };
 
+inline constexpr std::string_view to_string_view(const scan_endpoint value) noexcept {
+    using namespace std::string_view_literals;
+    switch (value) {
+        case scan_endpoint::EXCLUSIVE:
+            return "EXCLUSIVE"sv;
+        case scan_endpoint::INCLUSIVE:
+            return "INCLUSIVE"sv;
+        case scan_endpoint::INF:
+            return "INF"sv;
+    }
+    LOG(ERROR) << log_location_prefix;
+    return ""sv;
+}
+
+inline std::ostream& operator<<(std::ostream& out, const scan_endpoint value) {
+    return out << to_string_view(value);
+}
+
 template<class ValueType>
 constexpr bool is_inlinable() {
     // pointer type or uintptr_t, it is inlinable

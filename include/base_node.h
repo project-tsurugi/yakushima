@@ -7,6 +7,7 @@
 #include <array>
 #include <cstring>
 #include <functional>
+#include <iomanip>
 
 #include "atomic_wrapper.h"
 #include "cpu.h"
@@ -27,6 +28,17 @@ public:
         key_tuple(key_slice_type slice, key_length_type length)
             : key_slice_(slice), key_length_(length) {}
 
+        explicit key_tuple(std::string_view key_sv) {
+            if (key_sv.size() > sizeof(key_slice_type)) {
+                key_length_ = sizeof(key_slice_type) + 1;
+                memcpy(&key_slice_, key_sv.data(), sizeof(key_slice_type));
+            } else {
+                key_slice_ = 0U;
+                key_length_ = key_sv.size();
+                memcpy(&key_slice_, key_sv.data(), key_sv.size());
+            }
+        }
+
         bool operator<(const key_tuple& r) const {
             if (r.key_length_ == 0) { return false; }
             if (key_length_ == 0) { return true; }
@@ -37,16 +49,20 @@ public:
             if (ret == 0) { return key_length_ < r.key_length_; }
             return false;
         }
+        bool operator>(const key_tuple& r) const { return r < *this; }
+        bool operator>=(const key_tuple& r) const { return !(*this < r); }
+        bool operator<=(const key_tuple& r) const { return !(*this > r); }
 
         bool operator==(const key_tuple& r) const {
             return key_slice_ == r.key_slice_ && key_length_ == r.key_length_;
         }
+        bool operator!=(const key_tuple& r) const { return !(*this == r); }
 
         [[nodiscard]] key_length_type get_key_length() const {
             return key_length_;
         }
 
-        [[nodiscard]] key_slice_type get_key_slice() const {
+        [[nodiscard]] const key_slice_type& get_key_slice() const {
             return key_slice_;
         }
 
@@ -55,6 +71,9 @@ public:
         }
 
         void set_key_slice(const key_slice_type slice) { key_slice_ = slice; }
+
+        static key_tuple min() { return {0UL, 0}; }
+        static key_tuple max() { return {~0UL, sizeof(key_slice_type) + 1}; }
 
     private:
         key_slice_type key_slice_{0};
@@ -324,5 +343,15 @@ private:
      */
     std::array<key_length_type, key_slice_length> key_length_{};
 };
+
+inline std::ostream& operator<<(std::ostream& out, const base_node::key_tuple t) {
+    std::stringstream ss{};
+    ss << std::hex << std::setfill('0') << std::uppercase;
+    const auto* p = reinterpret_cast<const unsigned char*>(&t.get_key_slice()); // NOLINT
+    for (std::size_t i = 0; i < 8; i++) {
+        ss << std::setw(2) << static_cast<unsigned int>(p[i]); // NOLINT
+    }
+    return out << "{" << ss.str() << "," << static_cast<int>(t.get_key_length()) << "}";
+}
 
 } // namespace yakushima
