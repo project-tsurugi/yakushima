@@ -20,6 +20,7 @@ if (BUILD_ONLY_WD_TEST)
 else ()
   file(GLOB TEST_SOURCES
           "*.cpp"
+          "iscan/*.cpp"
           "multi_thread/*.cpp"
           "multi_thread/delete/*.cpp"
           "multi_thread/delete_scan/*.cpp"

@@ -38,6 +38,8 @@ using memory_usage_stack =
         std::vector<std::tuple<std::size_t, std::size_t, std::size_t>>;
 
 enum class status : std::int32_t {
+    /// @brief operation is aborted by user
+    WARN_ABORTED_BY_USER,
     /**
      * @brief Warning of mistaking usage.
      */
@@ -120,6 +122,8 @@ enum class status : std::int32_t {
 inline constexpr std::string_view to_string_view(const status value) noexcept {
     using namespace std::string_view_literals;
     switch (value) {
+        case status::WARN_ABORTED_BY_USER:
+            return "WARN_ABORTED_BY_USER"sv;
         case status::WARN_BAD_USAGE:
             return "WARN_BAD_USAGE"sv;
         case status::WARN_CONCURRENT_OPERATIONS:

@@ -13,6 +13,9 @@
 
 namespace yakushima {
 
+// XXX: find_border should also return permutation to compensate for the lack of
+// delete information in vinsert_delete/inserting_deleting in node version
+
 /**
  *
  * @details It finds border node by using arguments @a root, @a key_slice.

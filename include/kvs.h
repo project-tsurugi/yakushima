@@ -10,6 +10,7 @@
 #include "base_node.h"
 #include "interface_destroy.h"
 #include "interface_display.h"
+#include "interface_iscan.h"
 #include "interface_get.h"
 #include "interface_helper.h"
 #include "interface_put.h"

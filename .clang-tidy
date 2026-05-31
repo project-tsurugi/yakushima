@@ -42,6 +42,7 @@ modernize-*,\
 performance-*,\
 -performance-enum-size,\
 readability-*,\
+-readability-avoid-nested-conditional-operator,\
 -readability-avoid-return-with-void-value,\
 -readability-braces-around-statements,\
 -readability-function-cognitive-complexity,\
