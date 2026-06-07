@@ -70,12 +70,16 @@ public:
     [[nodiscard]] bool get_early_abort() const { return early_abort_; }
 
     void stack(key_tuple kt, base_node* layer_root, border_node* bn, int cmp_end, const bn_iterate_state& bi) {
+        VLOG(log_debug) << "stack [" << stackq_.size() << "] {kt:" << kt << ", Lroot:" << layer_root << ", bn:" << bn
+                        << ", cmpend:" << cmp_end << ", bi{r" << bi.perm_rank << ",v{" << std::hex << bi.v_prev
+                        << "},p" << std::hex << bi.perm_prev.get_body() << "}";
         stackq_.emplace_back(kt, layer_root, bn, cmp_end, bi);
     }
     stack_element& stack_top() {
         return stackq_.back();
     }
     void stack_pop() {
+        VLOG(log_debug) << "stack_pop ssz:" << stackq_.size();
         return stackq_.pop_back();
     }
     [[nodiscard]] bool stack_empty() const { return stackq_.empty(); }
@@ -96,6 +100,7 @@ public:
         if (!right_to_left_ && end_point_ == scan_endpoint::INF) {
             return key_tuple::max(); // each slice of +inf
         }
+        VLOG(log_debug) << "get_end_tuple: ofs:" << offset << ", ssz:" << stack_size() << ", {\"" << get_end_key() << "\"," << get_end_key().size() << "}";
         return key_tuple(std::string_view(get_end_key()).substr((stack_size() + offset) * sizeof(key_slice_type)));
     }
 
@@ -120,6 +125,8 @@ inline status iscan_check_retry(border_node* const bn, node_version64_body& v_at
     }
     if (check_v != v_at_fb || check_perm_b != perm.get_body()) {
         // fail optimistic verify
+        VLOG(log_debug) << "scan_check_retry fail check_v,perm:\n" << check_v << "," << std::hex << check_perm_b
+                        << "\nv_at_fb,perm\n" << std::dec << v_at_fb << "," << std::hex << perm.get_body();
         if (check_v.get_vsplit() != v_at_fb.get_vsplit() || check_v.get_deleted()) {
             // The node at find border was changed by split or deleted.
             return status::OK_RETRY_FROM_ROOT;
@@ -149,6 +156,7 @@ iscan_findfirst(iscan_context* ctx, std::string_view start_key, scan_endpoint st
 
 retry_from_root: // retry from Masstree root
     base_node* root = ctx->get_ti()->load_root_ptr();
+    VLOG(log_debug) << "FF root: " << root;
     if (root == nullptr) {
         // no border to callback is exist, so give up callback
         return status::OK_SCAN_END;
@@ -186,9 +194,11 @@ next_layer:
     constexpr std::size_t tuple_v_index = 1;
     border_node* target_border = std::get<tuple_node_index>(node_and_v);
     node_version64_body v_at_fb = std::get<tuple_v_index>(node_and_v);
+    VLOG(log_debug) << "v_at_fb: " << v_at_fb;
     if (v_at_fb.get_deleted() && v_at_fb.get_root()) {
         // empty masstree
         if (bnv_cb(target_border->get_version_ptr(), v_at_fb)) { return status::WARN_ABORTED_BY_USER; }
+        VLOG(log_debug) << "FF deleted root SCAN END";
         return status::OK_SCAN_END;
     }
 
@@ -235,10 +245,12 @@ retry_fetch_lv:
         ctx->stack(key_tup, root, target_border, cmp_to_end,
                    {v_at_fb, permutation(target_border->get_permutation().get_body()), 0});
         if (cmp_to_end == 0) {
+            VLOG(log_debug) << key_tup << "/" << ctx->get_end_tuple(-1);
             if (key_tup != ctx->get_end_tuple(-1)) {
                 cmp_to_end = -1;
             }
         }
+        VLOG(log_debug) << "FF next_layer";
         goto next_layer; // NOLINT
     }
 
@@ -260,11 +272,13 @@ retry_fetch_lv:
             out = v_body;
             ctx->stack(key_tup, root, target_border, cmp_to_end,
                        {v_at_fb, permutation(target_border->get_permutation().get_body()), 0});
+            VLOG(log_debug) << "FF case2 OK key=" << ctx->full_key();
             return status::OK;
         }
         // pass to findnext
         ctx->stack(key_tup, root, target_border, cmp_to_end,
                    {v_at_fb, permutation(target_border->get_permutation().get_body()), 0});
+        VLOG(log_debug) << "FF case2 CONTINUE";
         return status::OK_SCAN_CONTINUE;
     } else { // NOLINT
         // case 3. lv_ptr == nullptr
@@ -278,6 +292,7 @@ retry_fetch_lv:
 
         ctx->stack(key_tup, root, target_border, cmp_to_end,
                    {v_at_fb, permutation(target_border->get_permutation().get_body()), 0});
+        VLOG(log_debug) << "FF case3 CONTINUE";
         return status::OK_SCAN_CONTINUE; // pass to findnext
     }
 }
@@ -324,6 +339,7 @@ next_layer:
 retry_from_root:
         base_node* root = ctx->stack_top().layer_root;
         auto rv = root->get_stable_version();
+        VLOG(log_debug) << "FN retry_from_root: root:" << root << ", v{" << rv << "}";
         if (rv.get_deleted()) {
             // border in upper layer is modified
             // return to upper root
@@ -334,6 +350,7 @@ retry_from_root:
                     goto retry_from_root; // NOLINT
                 }
                 // mt root is deleted, so scan end
+                VLOG(log_debug) << "FN mt root is deleted. root:" << root << ", v{" << rv << "}";
                 return status::OK_SCAN_END;
             }
             // L1+
@@ -358,6 +375,7 @@ retry_from_root:
             find_border(root, last_key.get_key_slice(), last_key.get_key_length(), check_status);
         border_node* target_border = std::get<0>(border_node_and_v);
         if (check_status != status::OK) {
+            VLOG(log_debug) << "FN retry_from_root FB=" << check_status;
             goto retry_from_root; // NOLINT
         }
         ctx->stack_top().bn = target_border;
@@ -403,6 +421,9 @@ retry_after_fb:
     // TODO check at resume, version
 
     std::size_t i = st->bi.perm_rank;
+    VLOG(log_debug) << "FN ctx:" << ctx << " top=[" << ctx->stack_size()-1 << "]:{Lroot:" << st->layer_root
+                    << " bn:" << bn << ", lastkey:" << last_key << ", cmpend:" << cmp_to_end << ", bi{r" << i
+                    << ",v{" << st->bi.v_prev << "},p" << std::hex << st->bi.perm_prev.get_body() << "}}";
     // check all elements in this border node.
     auto ekt = cmp_to_end == 0 ? ctx->get_end_tuple(-1) : (right_to_left ? key_tuple::min() : key_tuple::max());
     auto eep = ctx->get_end_point();
@@ -424,23 +445,30 @@ retry_after_fb:
         if (check_status != status::OK) {
             if (early_abort) { return status::WARN_CONCURRENT_OPERATIONS; }
             if (check_status == status::OK_RETRY_FROM_ROOT) {
+                VLOG(log_debug) << "FN retry FROM_ROOT 1";
                 goto retry_from_root; // NOLINT
             }
             if (check_status == status::OK_RETRY_AFTER_FB) {
+                VLOG(log_debug) << "FN retry AFTER_FB 1";
                 goto retry_after_fb; // NOLINT
             }
         }
         // start-side check
         bool hit{};
+        VLOG(log_debug) << "FN start-side-check: " << last_key << "/" << kt << " EXCLUSIVE"
+                        << (right_to_left ? " (rev)" : "");
         if (!right_to_left) { // forward order
             hit = (last_key < kt);
         } else { // reverse order
             hit = (last_key > kt);
         }
+        VLOG(log_debug) << "FN start-side-check: " << std::boolalpha << hit;
         if (!hit) { continue; } // skip this key/value
 
         // end-side check
         if (cmp_to_end == 0) {
+            VLOG(log_debug) << "FN end-side-check: " << kt << "/" << ekt << " " << eep
+                            << (right_to_left ? " (rev)" : "");
             if (!right_to_left) { // forward order
                 if (eep == scan_endpoint::INCLUSIVE) {
                     hit = !(kt > ekt);
@@ -455,7 +483,9 @@ retry_after_fb:
                 }
             }
             if (!hit) { // reach to range end
+                VLOG(log_debug) << "FN end-side-check: false (range-check)";
                 // callback range, from last_key to range_end.
+                VLOG(log_debug) << "FN end-side cb-check: eep:" << eep << ", " << last_key << "/" << ekt;
                 // if last_key = range_end_key and range_end_ep = INCLUSIVE, callback range is empty
                 if (!(eep == scan_endpoint::INCLUSIVE && last_key == ekt)) { // NOLINT(*-simplify-boolean-expr)
                     if (bnv_cb(bn->get_version_ptr(), v_at_fb)) {
@@ -464,6 +494,9 @@ retry_after_fb:
                 }
                 return status::OK_SCAN_END;
             }
+            VLOG(log_debug) << "FN end-side-check: true (range-check pass)";
+        } else {
+            VLOG(log_debug) << "FN end-side-check: true (all of this layer is in-range)";
         }
         // in range
         if (kl > sizeof(key_slice_type)) {
@@ -494,6 +527,7 @@ retry_after_fb:
             ctx->stack(child_kt, child, target_border, cmp_to_end,
                        {std::get<1>(child_border_node_and_v),
                         permutation(target_border->get_permutation().get_body()), 0});
+            VLOG(log_debug) << "FN next_layer";
             goto next_layer; // NOLINT
         } else {
             // hit value
@@ -504,9 +538,11 @@ retry_after_fb:
             if (check_status != status::OK) {
                 if (early_abort) { return status::WARN_CONCURRENT_OPERATIONS; }
                 if (check_status == status::OK_RETRY_FROM_ROOT) {
+                    VLOG(log_debug) << "FN retry FROM_ROOT hit-valuw";
                     goto retry_from_root; // NOLINT
                 }
                 if (check_status == status::OK_RETRY_AFTER_FB) {
+                    VLOG(log_debug) << "FN retry AFTER_FB hit-valuw";
                     goto retry_after_fb; // NOLINT
                 }
             }
@@ -518,9 +554,11 @@ retry_after_fb:
             ctx->stack_top().bn = bn;
             ctx->stack_top().key = {ks, kl};
             ctx->stack_top().bi.perm_rank = i+1;
+            VLOG(log_debug) << "FN OK: key=" << ctx->full_key();
             return status::OK;
         }
     }
+    VLOG(log_debug) << "FN permutation iterate done bn:" << bn;
     // permutation iteration done
     // move to neighbour
 
@@ -530,12 +568,14 @@ retry_after_fb:
     {
         border_node* check_to_bn = right_to_left ? bn->get_prev() : bn->get_next();
         if (to_bn != check_to_bn) {
+            VLOG(log_debug) << "FN retry_from_root: neighbor node is changed";
             goto retry_from_root; // NOLINT
         }
     }
     if (to_bn != nullptr) {
         to_version = to_bn->get_stable_version();
         if (to_version.get_deleted()) { // XXX
+            VLOG(log_debug) << "FN to_bn is deleted: " << to_bn;
             goto retry_from_root; // NOLINT
         }
         to_perm_body = to_bn->get_permutation().get_body();
@@ -546,9 +586,11 @@ retry_after_fb:
     if (check_status != status::OK) {
         if (early_abort) { return status::WARN_CONCURRENT_OPERATIONS; }
         if (check_status == status::OK_RETRY_FROM_ROOT) {
+            VLOG(log_debug) << "FN retry FROM_ROOT perm";
             goto retry_from_root; // NOLINT
         }
         if (check_status == status::OK_RETRY_AFTER_FB) {
+            VLOG(log_debug) << "FN retry AFTER_FB perm-end";
             goto retry_after_fb; // NOLINT
         }
     }
@@ -565,16 +607,21 @@ retry_after_fb:
     if (to_bn == nullptr) {
         // end-side check
         if (cmp_to_end == 0) {
+            VLOG(log_debug) << "FN end-side-check: false";
             // end-point is before inf (= entire-b+tree), so it might be reached end-point
             return status::OK_SCAN_END;
         }
+        VLOG(log_debug) << "FN end-side-check: true (all of this layer is in-range)";
+        VLOG(log_debug) << "FN CONTINUE";
         return status::OK_SCAN_CONTINUE;
     }
     if ((right_to_left ? to_bn->get_next() : to_bn->get_prev()) != bn) {
+        VLOG(log_debug) << "FN NEIGHBOR dual-link-check failed, retry from root";
         goto retry_from_root; // NOLINT
     }
 
     // it is in scan range and fin scaning this border node.
+    VLOG(log_debug) << "FN NEIGHBOR move from " << bn << " to " << to_bn;
     bn = to_bn;
     v_at_fb = to_version;
     perm.set_body(to_perm_body);
@@ -644,6 +691,8 @@ iscan_next(iscan_context* ctx, void*& value,
         const std::function<bool(node_version64*, node_version64_body)>& bnv_cb = dummycallback) {
     while (true) {
         auto rc = iscan_findnext(ctx, value, bnv_cb);
+        VLOG_IF(log_debug, rc == status::OK) << rc << " value:" << value;
+        VLOG_IF(log_debug, rc != status::OK) << rc;
         if (rc == status::OK_SCAN_END) {
             ctx->stack_clear();
             return rc;
@@ -663,6 +712,7 @@ iscan_next(iscan_context* ctx, void*& value,
         }
         break;
     }
+    VLOG(log_debug) << "unimplemented";
     return status::ERR_FATAL;
 }
 
