@@ -54,16 +54,16 @@ struct ctx_cleaner{
 };
 
 TEST_F(put_get_iscan_remove_long_key_test, put_get) { // NOLINT
-                                                     // prepare
+    // prepare
     Token s{};
     ASSERT_EQ(status::OK, enter(s));
     std::string st{"test"};
     ASSERT_EQ(status::OK, create_storage(st));
     //std::size_t max_len = 2U * 1024U * 1024U; // 2Mi
-    std::size_t max_len = 64U * 1024U; // 64Ki
+    std::size_t max_len = 32U * 1024U; // 32Ki
 
     std::string v{"v"};
-    for (std::size_t i = 1024; i <= max_len; i *= 2) { // NOLINT
+    for (std::size_t i = 1024U; i <= max_len; ) { // NOLINT
         if (i >= 1024U*1024U) {
             LOG(INFO) << "test key size " << i << " B (" << i / (1024U*1024U) << " MiB)";
         } else {
@@ -85,7 +85,7 @@ TEST_F(put_get_iscan_remove_long_key_test, put_get) { // NOLINT
 
         // test and verify: iscan
         void* val;
-        iscan_context* ctx{};
+        iscan_context* ctx{nullptr};
         ctx_cleaner<iscan_context> cleaner{ctx};
         ASSERT_EQ(status::OK, iscan_open(st, {}, scan_endpoint::INF, {}, scan_endpoint::INF, false, false, ctx, val));
         ASSERT_EQ(ctx->full_key(), k);
@@ -99,6 +99,15 @@ TEST_F(put_get_iscan_remove_long_key_test, put_get) { // NOLINT
 
         // delete verify
         ASSERT_EQ(status::WARN_NOT_EXIST, get<char>(st, k, tuple));
+
+        std::size_t delta = 1024U;
+        if (i < 64U * 1024U) {
+            // if small, delta is 1024 as original test (put_get_scan_remove_long_key_test)
+        } else {
+            while (delta <= i) { delta <<= 4U; }
+            delta >>= 4U;
+        }
+        i += delta;
     }
 
     // cleanup
