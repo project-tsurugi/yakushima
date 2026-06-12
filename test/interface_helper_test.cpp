@@ -106,6 +106,7 @@ TEST_F(interface_helper_test, mem_usage_iv) {
     EXPECT_EQ(mem_stat[1].bn_used_key, 5);
     EXPECT_EQ(mem_stat[1].iv_count, 5);
 
+    mem_usage_display(mem_stat);
     ASSERT_OK(leave(token));
 }
 
@@ -162,6 +163,7 @@ TEST_F(interface_helper_test, mem_usage_vv) {
     EXPECT_EQ(mem_stat[1].vv_count, 5);
     EXPECT_EQ(mem_stat[1].vv_allocated_mem, (8 + 4) * 2 + (8 + 64) * 3);
 
+    mem_usage_display(mem_stat);
     ASSERT_OK(leave(token));
 }
 
