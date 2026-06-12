@@ -299,6 +299,7 @@ TEST_F(iscan_single_test, l0b1) {
     // ["k", "l123456789")
     tc("k", scan_endpoint::INCLUSIVE, "l123456789", scan_endpoint::EXCLUSIVE,
        {B{}, v, B{b}});
+    mem_usage_all();
 }
 
 TEST_F(iscan_single_test, l0b2_lowkey) {
@@ -600,6 +601,7 @@ TEST_F(iscan_single_test, l1b1b1) {
        {B{b0}});
 
     ASSERT_OK(leave(token));
+    mem_usage_all();
 }
 
 TEST_F(iscan_single_test, l2b1v2) {
@@ -676,6 +678,7 @@ TEST_F(iscan_single_test, l2b1v2) {
        {B{b2}});
 
     ASSERT_OK(leave(token));
+    mem_usage_all();
 }
 
 TEST_F(iscan_single_test, l2b2v2) {
@@ -729,6 +732,7 @@ TEST_F(iscan_single_test, l2b2v2) {
        {B{b21, b1, b22}, v2, B{}});
 
     ASSERT_OK(leave(token));
+    mem_usage_all();
 }
 
 static void iscan_scan_sub(std::map<std::string, void*> entries) {
@@ -794,6 +798,7 @@ TEST_F(iscan_single_test, random) {
     }
     EXPECT_NO_FATAL_FAILURE(iscan_scan_sub(entries));
     ASSERT_OK(leave(token));
+    mem_usage_all();
 }
 
 } // namespace yakushima::testing
