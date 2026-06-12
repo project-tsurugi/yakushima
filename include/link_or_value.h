@@ -69,17 +69,21 @@ public:
     /**
      * @brief Collect the memory usage of this record.
      *
-     * @param[in] level The level of this node in the tree.
-     * @param[in,out] mem_stat The stack of memory usage for each level.
+     * @param[in] level The level of this B+Tree layer in the tree.
+     * @param[in,out] mem_stat The stack of memory usage for each B+Tree layer level.
      */
     void mem_usage(std::size_t level, memory_usage_stack& mem_stat) const {
         if (auto* child = get_next_layer(); child != nullptr) {
             child->mem_usage(level + 1, mem_stat);
         } else if (auto* v = get_value(); v != nullptr) {
-            const auto v_len = std::get<1>(value::get_gc_info(v));
-            auto& [node_num, used, reserved] = mem_stat.at(level);
-            used += v_len;
-            reserved += v_len;
+            mem_usage_layer_stat& ls = mem_stat.at(level);
+            if (value::is_value_ptr(v)) {
+                const auto v_len = std::get<1>(value::get_gc_info(v));
+                ls.vv_count++;
+                ls.vv_allocated_mem += v_len;
+            } else {
+                ls.iv_count++;
+            }
         }
     }
 

@@ -88,18 +88,17 @@ public:
 
     void mem_usage(std::size_t level,
                    memory_usage_stack& mem_stat) const override {
-        if (mem_stat.size() <= level) { mem_stat.emplace_back(0, 0, 0); }
-        auto& [node_num, used, reserved] = mem_stat.at(level);
+        if (mem_stat.size() <= level) { mem_stat.resize(level + 1); }
+        mem_usage_layer_stat& ls = mem_stat.at(level);
 
         const auto n_keys = n_keys_ + 1UL;
-        ++node_num;
-        reserved += sizeof(interior_node);
-        used += sizeof(interior_node) -
-                ((child_length - n_keys) * sizeof(uintptr_t));
+        if (get_version_root()) { ls.bt_count++; }
+        ls.in_count++;
+        ls.in_allocated_mem += sizeof(interior_node);
+        ls.in_used_key += n_keys;
 
-        const auto next_level = level + 1;
         for (std::size_t i = 0; i < n_keys; ++i) {
-            get_child_at(i)->mem_usage(next_level, mem_stat);
+            get_child_at(i)->mem_usage(level, mem_stat);
         }
     }
 

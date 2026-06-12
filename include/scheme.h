@@ -31,11 +31,24 @@ using key_length_type = std::uint8_t;
 using value_length_type = std::size_t;
 using value_align_type = std::align_val_t;
 
-/**
- * @brief The stack of (# of nodes, used memory, reserved memory) tuples.
- */
-using memory_usage_stack =
-        std::vector<std::tuple<std::size_t, std::size_t, std::size_t>>;
+/// @brief memory usage statistics for B+Tree Layer
+struct mem_usage_layer_stat {
+    std::size_t bt_count = 0;
+    // interior
+    std::size_t in_count = 0;
+    std::size_t in_allocated_mem = 0;
+    std::size_t in_used_key = 0;
+    // border
+    std::size_t bn_count = 0;
+    std::size_t bn_allocated_mem = 0;
+    std::size_t bn_used_key = 0;
+    // leaf_value (inlined-value)
+    std::size_t iv_count = 0;
+    // leaf_value (varlen-value)
+    std::size_t vv_count = 0;
+    std::size_t vv_allocated_mem = 0;
+};
+using memory_usage_stack = std::vector<mem_usage_layer_stat>;
 
 enum class status : std::int32_t {
     /// @brief operation is aborted by user
