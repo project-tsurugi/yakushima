@@ -225,14 +225,13 @@ public:
      */
     void mem_usage(std::size_t level,
                    memory_usage_stack& mem_stat) const override {
-        if (mem_stat.size() <= level) { mem_stat.emplace_back(0, 0, 0); }
-        auto& [node_num, used, reserved] = mem_stat.at(level);
+        if (mem_stat.size() <= level) { mem_stat.resize(level+1); }
+        mem_usage_stat& st = mem_stat.at(level);
 
         const std::size_t cnk = get_permutation_cnk();
-        ++node_num;
-        reserved += sizeof(border_node);
-        used += sizeof(border_node) -
-                ((key_slice_length - cnk) * sizeof(link_or_value));
+        st.b_node_count++;
+        st.b_allocated_mem += sizeof(border_node);
+        st.b_used_key += cnk;
 
         for (std::size_t i = 0; i < cnk; ++i) {
             std::size_t index = permutation_.get_index_of_rank(i);

@@ -76,10 +76,9 @@ public:
         if (auto* child = get_next_layer(); child != nullptr) {
             child->mem_usage(level + 1, mem_stat);
         } else if (auto* v = get_value(); v != nullptr) {
-            const auto v_len = std::get<1>(value::get_gc_info(v));
-            auto& [node_num, used, reserved] = mem_stat.at(level);
-            used += v_len;
-            reserved += v_len;
+            if (value::is_value_ptr(v)) {
+                mem_stat.at(level).lv_count++;
+            }
         }
     }
 

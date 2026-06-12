@@ -34,8 +34,20 @@ using value_align_type = std::align_val_t;
 /**
  * @brief The stack of (# of nodes, used memory, reserved memory) tuples.
  */
+struct mem_usage_stat {
+    // interior
+    std::size_t i_node_count = 0;
+    std::size_t i_allocated_mem = 0;
+    std::size_t i_used_key = 0;
+    // border
+    std::size_t b_node_count = 0;
+    std::size_t b_allocated_mem = 0;
+    std::size_t b_used_key = 0;
+    // leaf_value
+    std::size_t lv_count = 0; // num of not inlined
+};
 using memory_usage_stack =
-        std::vector<std::tuple<std::size_t, std::size_t, std::size_t>>;
+        std::vector<mem_usage_stat>;
 
 enum class status : std::int32_t {
     /// @brief operation is aborted by user
