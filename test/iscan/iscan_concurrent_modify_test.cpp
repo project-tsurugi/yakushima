@@ -52,7 +52,7 @@ TEST_F(iscan_concurrent_modify_test, insert_same_border_scanned) {
     ctx_cleaner<iscan_context> cleaner{ctx};
     auto cb = [&](node_version64*, node_version64_body) {
         if (state == 0) {
-            Token s2;
+            Token s2{};
             enter(s2);
             put<void*>(s2, st, "a", &v2, sizeof(v2)); // scanned area
             leave(s2);
@@ -87,7 +87,7 @@ TEST_F(iscan_concurrent_modify_test, concurrent_insert_same_border_unscanned) {
     ctx_cleaner<iscan_context> cleaner{ctx};
     auto cb = [&](node_version64*, node_version64_body) {
         if (state == 0) {
-            Token s2;
+            Token s2{};
             enter(s2);
             put<void*>(s2, st, "m", &v2, sizeof(v2)); // unscanned, but same border
             leave(s2);
