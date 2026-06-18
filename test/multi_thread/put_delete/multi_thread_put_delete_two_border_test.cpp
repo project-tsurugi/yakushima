@@ -69,7 +69,7 @@ TEST_F(mtpdt, two_layer_two_border) { // NOLINT
                 }
 
                 Token token{};
-                while (enter(token) != status::OK) { _mm_pause(); }
+                while (enter(token) != status::OK) { spin_wait_hint(); }
 
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
@@ -157,7 +157,7 @@ TEST_F(mtpdt, two_layer_two_border_shuffle) { // NOLINT
                 std::random_device seed_gen{};
                 std::mt19937 engine(seed_gen());
                 Token token{};
-                while (enter(token) != status::OK) { _mm_pause(); }
+                while (enter(token) != status::OK) { spin_wait_hint(); }
 
                 std::shuffle(kv.begin(), kv.end(), engine);
                 for (auto& i : kv) {
@@ -244,7 +244,7 @@ TEST_F(mtpdt, concurrent_put_delete_between_none_and_interior) { // NOLINT
                 }
 
                 Token token{};
-                while (enter(token) != status::OK) { _mm_pause(); }
+                while (enter(token) != status::OK) { spin_wait_hint(); }
 
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
@@ -334,7 +334,7 @@ TEST_F(mtpdt, // NOLINT
                 }
 
                 Token token{};
-                while (enter(token) != status::OK) { _mm_pause(); }
+                while (enter(token) != status::OK) { spin_wait_hint(); }
 
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
@@ -433,7 +433,7 @@ TEST_F(mtpdt, // NOLINT
                 std::random_device seed_gen{};
                 std::mt19937 engine(seed_gen());
                 Token token{};
-                while (enter(token) != status::OK) { _mm_pause(); };
+                while (enter(token) != status::OK) { spin_wait_hint(); };
 
                 std::shuffle(kv.begin(), kv.end(), engine);
                 for (auto& i : kv) {
@@ -526,7 +526,7 @@ TEST_F( // NOLINT
                 std::random_device seed_gen{};
                 std::mt19937 engine(seed_gen());
                 Token token{};
-                while (enter(token) != status::OK) { _mm_pause(); }
+                while (enter(token) != status::OK) { spin_wait_hint(); }
 
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));

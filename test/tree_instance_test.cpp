@@ -34,7 +34,7 @@ TEST_F(ti, basic) { // NOLINT
         static void work(tree_instance* tin, base_node* own, base_node* against,
                          std::atomic<std::size_t>* meet) {
             meet->fetch_add(1);
-            while (meet->load(std::memory_order_acquire) != 2) { _mm_pause(); }
+            while (meet->load(std::memory_order_acquire) != 2) { spin_wait_hint(); }
             std::size_t ctr{0};
             for (std::size_t i = 0; i < 100; ++i) {
                 base_node* expected = tin->load_root_ptr();
@@ -63,7 +63,7 @@ TEST_F(ti, yakushima_in_yakushima) { // NOLINT
     create_storage(storage_name);
     tree_instance tin;
     Token token{};
-    while (status::OK != enter(token)) { _mm_pause(); }
+    while (status::OK != enter(token)) { spin_wait_hint(); }
     put(token, storage_name, k, &tin);
     std::pair<tree_instance*, std::size_t> ret{};
     ASSERT_EQ(status::OK, get<tree_instance>(storage_name, k, ret));

@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#include <xmmintrin.h>
-
 #include <algorithm>
 #include <cstring>
 #include <memory>
@@ -32,6 +30,7 @@
 
 #include "gflags/gflags.h"
 #include "glog/logging.h"
+#include "spin_wait_hint.h"
 
 #ifdef ENABLE_JEMALLOC
 #include <jemalloc/jemalloc.h>
@@ -67,7 +66,7 @@ static bool isReady(const std::vector<char>& readys) {
 }
 
 static void waitForReady(const std::vector<char>& readys) {
-    while (!isReady(readys)) { _mm_pause(); }
+    while (!isReady(readys)) { spin_wait_hint(); }
 }
 
 void worker(const size_t thid, char& ready, const bool& start, const bool& quit,
@@ -99,7 +98,7 @@ void worker(const size_t thid, char& ready, const bool& start, const bool& quit,
     }
 
     storeReleaseN(ready, 1);
-    while (!loadAcquireN(start)) _mm_pause();
+    while (!loadAcquireN(start)) spin_wait_hint();
 
     std::vector<std::unique_ptr<char[]>> vec; // NOLINT
     while (!loadAcquireN(quit)) {

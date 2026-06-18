@@ -119,7 +119,7 @@ void many_interior_comm() {
                 std::mt19937 engine(seed_gen());
 
                 Token token{};
-                while (enter(token) != status::OK) { _mm_pause(); }
+                while (enter(token) != status::OK) { spin_wait_hint(); }
 
                 for (std::size_t j = 0; j < repeats; ++j) {
                     if (do_shuffle) {

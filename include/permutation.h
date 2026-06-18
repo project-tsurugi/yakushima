@@ -15,13 +15,12 @@
 #include <tuple>
 #include <vector>
 
-#include <xmmintrin.h>
-
 #include "base_node.h"
 #include "log.h"
 #include "scheme.h"
 
 #include "glog/logging.h"
+#include "spin_wait_hint.h"
 
 namespace yakushima {
 

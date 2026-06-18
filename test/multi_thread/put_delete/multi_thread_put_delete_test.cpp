@@ -89,7 +89,7 @@ TEST_F(mtpdt, multi_layer_many_interior_shuffle) { // NOLINT
                 std::random_device seed_gen{};
                 std::mt19937 engine(seed_gen());
                 Token token{};
-                while (enter(token) != status::OK) { _mm_pause(); }
+                while (enter(token) != status::OK) { spin_wait_hint(); }
 
                 std::shuffle(kv.begin(), kv.end(), engine);
                 for (auto& i : kv) {
@@ -106,7 +106,7 @@ TEST_F(mtpdt, multi_layer_many_interior_shuffle) { // NOLINT
                 }
                 //(*join_num)++;
                 //while (join_num->load(std::memory_order_acquire) < max_thread) {
-                //    _mm_pause();
+                //    spin_wait_hint();
                 //}
                 for (auto& i : kv) {
                     std::string v(std::get<1>(i));
@@ -121,7 +121,7 @@ TEST_F(mtpdt, multi_layer_many_interior_shuffle) { // NOLINT
                 //(*join_num)++;
                 //while (join_num->load(std::memory_order_acquire) <
                 //       max_thread * 2) {
-                //    _mm_pause();
+                //    spin_wait_hint();
                 //}
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));

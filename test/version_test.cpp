@@ -2,13 +2,12 @@
  * @file version_test.cpp
  */
 
-#include <xmmintrin.h>
-
 #include <future>
 
 #include "gtest/gtest.h"
 
 #include "kvs.h"
+#include "spin_wait_hint.h"
 #include "version.h"
 
 using namespace yakushima;
@@ -77,7 +76,7 @@ TEST_F(vt, vinsert_delete) { // NOLINT
         key.at(i) = std::string{1, static_cast<char>(i)}; // NOLINT
     }
     Token token{};
-    while (status::OK != enter(token)) { _mm_pause(); }
+    while (status::OK != enter(token)) { spin_wait_hint(); }
     ASSERT_EQ(status::OK,
               put(token, test_storage_name, key.at(0), v.data(), v.size()));
     std::size_t vid = ti->load_root_ptr()->get_version_vinsert_delete();
@@ -100,7 +99,7 @@ TEST_F(vt, vsplit) { // NOLINT
         key.at(i) = std::string{1, static_cast<char>(i)}; // NOLINT
     }
     Token token{};
-    while (status::OK != enter(token)) { _mm_pause(); }
+    while (status::OK != enter(token)) { spin_wait_hint(); }
     ASSERT_EQ(status::OK,
               put(token, test_storage_name, key.at(0), v.data(), v.size()));
     std::size_t vid = ti->load_root_ptr()->get_version_vsplit();

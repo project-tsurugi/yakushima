@@ -57,7 +57,7 @@ TEST_F(mtpdst, one_interior) { // NOLINT
                 }
 
                 Token token{};
-                while (enter(token) != status::OK) { _mm_pause(); }
+                while (enter(token) != status::OK) { spin_wait_hint(); }
 
 #ifndef NDEBUG
                 for (std::size_t j = 0; j < 1; ++j) {
@@ -183,7 +183,7 @@ TEST_F(mtpdst, one_interior_shuffle) { // NOLINT
                 std::random_device seed_gen{};
                 std::mt19937 engine(seed_gen());
                 Token token{};
-                while (enter(token) != status::OK) { _mm_pause(); }
+                while (enter(token) != status::OK) { spin_wait_hint(); }
 
 #ifndef NDEBUG
                 for (std::size_t j = 0; j < 1; ++j) {

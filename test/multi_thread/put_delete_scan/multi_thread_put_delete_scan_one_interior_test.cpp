@@ -70,7 +70,7 @@ TEST_F(mtpdst, one_interior) { // NOLINT
                 std::random_device seed_gen{};
                 std::mt19937 engine(seed_gen());
                 Token token{};
-                while (enter(token) != status::OK) { _mm_pause(); }
+                while (enter(token) != status::OK) { spin_wait_hint(); }
 
                 for (std::size_t j = 0; j < 10; ++j) {
                     std::shuffle(kv.begin(), kv.end(), engine);

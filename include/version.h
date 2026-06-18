@@ -14,9 +14,9 @@
 #include <iostream>
 #include <thread>
 #include <vector>
-#include <xmmintrin.h>
 
 #include "atomic_wrapper.h"
+#include "spin_wait_hint.h"
 
 namespace yakushima {
 
@@ -295,7 +295,7 @@ public:
                 expected = get_body();
                 if (expected.get_locked()) {
                     if (i >= 10) { break; }
-                    _mm_pause();
+                    spin_wait_hint();
                     continue;
                 }
                 desired = expected;
@@ -335,7 +335,7 @@ public:
                 !sv.get_splitting()) {
                 return sv;
             }
-            _mm_pause();
+            spin_wait_hint();
         }
     }
 

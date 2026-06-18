@@ -5,10 +5,10 @@
 #pragma once
 
 #include <atomic>
-#include <xmmintrin.h>
 
 #include "atomic_wrapper.h"
 #include "clock.h"
+#include "spin_wait_hint.h"
 
 namespace yakushima {
 
@@ -36,7 +36,7 @@ public:
                 expected = root_lock_.load(std::memory_order_acquire);
                 if (expected) {
                     if (i >= 10) { break; }
-                    _mm_pause();
+                    spin_wait_hint();
                     continue;
                 }
                 desired = true;

@@ -45,7 +45,7 @@ TEST_F(garbage_collection, gc) { // NOLINT
         /**
          * Put enough sleep and let the background thread gc.
          */
-        _mm_pause();
+        spin_wait_hint();
     }
     LOG(INFO) << "final epoch is " << epoch_management::get_epoch();
 }

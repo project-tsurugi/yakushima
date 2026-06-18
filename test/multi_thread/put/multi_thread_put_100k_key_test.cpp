@@ -69,7 +69,7 @@ TEST_F(multi_thread_put_100k_key_test, 100k_key) {         // NOLINT
                 }
 
                 Token token{nullptr};
-                while (status::OK != enter(token)) { _mm_pause(); }
+                while (status::OK != enter(token)) { spin_wait_hint(); }
 
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));

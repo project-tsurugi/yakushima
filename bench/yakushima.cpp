@@ -118,7 +118,7 @@ static bool isReady(const std::vector<char>& readys) {
 }
 
 static void waitForReady(const std::vector<char>& readys) {
-    while (!isReady(readys)) { _mm_pause(); }
+    while (!isReady(readys)) { spin_wait_hint(); }
 }
 
 void parallel_build_tree() {
@@ -126,7 +126,7 @@ void parallel_build_tree() {
         static void parallel_build_worker(std::uint64_t left_edge,
                                           std::uint64_t right_edge) {
             Token token{};
-            while (enter(token) != status::OK) { _mm_pause(); }
+            while (enter(token) != status::OK) { spin_wait_hint(); }
             std::string value(FLAGS_value_size, '0');
             for (std::uint64_t i = left_edge; i < right_edge; ++i) {
                 void* p = (&i);
@@ -188,10 +188,10 @@ void get_worker(const size_t thid, char& ready, const bool& start,
 #endif
 
     storeReleaseN(ready, 1);
-    while (!loadAcquireN(start)) _mm_pause();
+    while (!loadAcquireN(start)) spin_wait_hint();
 
     Token token{};
-    while (enter(token) != status::OK) { _mm_pause(); }
+    while (enter(token) != status::OK) { spin_wait_hint(); }
     std::uint64_t local_res{0};
 #ifdef PERFORMANCE_TOOLS
     performance_tools::get_watch().set_point(0, thid);
@@ -225,10 +225,10 @@ void scan_worker(const size_t thid, char& ready, const bool& start,
 #endif
 
     storeReleaseN(ready, 1);
-    while (!loadAcquireN(start)) _mm_pause();
+    while (!loadAcquireN(start)) spin_wait_hint();
 
     Token token{};
-    while (enter(token) != status::OK) { _mm_pause(); }
+    while (enter(token) != status::OK) { spin_wait_hint(); }
     std::uint64_t local_res{0};
 #ifdef PERFORMANCE_TOOLS
     performance_tools::get_watch().set_point(0, thid);
@@ -260,13 +260,13 @@ void remove_worker(const size_t thid, char& ready, const bool& start,
 #endif
 
     Token token{};
-    while (enter(token) != status::OK) { _mm_pause(); }
+    while (enter(token) != status::OK) { spin_wait_hint(); }
     std::uint64_t left_edge(FLAGS_initial_record / FLAGS_thread * thid);
     std::uint64_t right_edge(FLAGS_initial_record / FLAGS_thread * (thid + 1));
     std::string value(FLAGS_value_size, '0');
 
     storeReleaseN(ready, 1);
-    while (!loadAcquireN(start)) { _mm_pause(); }
+    while (!loadAcquireN(start)) { spin_wait_hint(); }
 
     std::uint64_t local_res{0};
 #ifdef PERFORMANCE_TOOLS
@@ -306,13 +306,13 @@ void put_worker(const size_t thid, char& ready, const bool& start,
 #endif
 
     Token token{};
-    while (enter(token) != status::OK) { _mm_pause(); }
+    while (enter(token) != status::OK) { spin_wait_hint(); }
     std::uint64_t left_edge(UINT64_MAX / FLAGS_thread * thid);
     std::uint64_t right_edge(UINT64_MAX / FLAGS_thread * (thid + 1));
     std::string value(FLAGS_value_size, '0');
 
     storeReleaseN(ready, 1);
-    while (!loadAcquireN(start)) { _mm_pause(); }
+    while (!loadAcquireN(start)) { spin_wait_hint(); }
 
     std::uint64_t local_res{0};
 #ifdef PERFORMANCE_TOOLS

@@ -56,7 +56,7 @@ TEST_F(multi_thread_delete_1_key_test, 1_key) {
         struct S {
             static void work() {
                 Token token{nullptr};
-                while (status::OK != enter(token)) { _mm_pause(); }
+                while (status::OK != enter(token)) { spin_wait_hint(); }
 
                 std::string k{"k"};
                 std::string v{"v"};

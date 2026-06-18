@@ -30,7 +30,7 @@ status storage::create_storage(std::string_view storage_name) { // NOLINT
     new_border->init_border();
     new_instance.store_root_ptr(new_border);
     Token token{};
-    while (status::OK != enter(token)) { _mm_pause(); }
+    while (status::OK != enter(token)) { spin_wait_hint(); }
 
     // try creating storage
     status ret_st{
@@ -50,7 +50,7 @@ status storage::create_storage(std::string_view storage_name) { // NOLINT
 
 status storage::delete_storage(std::string_view storage_name) { // NOLINT
     Token token{};
-    while (status::OK != enter(token)) { _mm_pause(); }
+    while (status::OK != enter(token)) { spin_wait_hint(); }
     // search storage
     std::pair<tree_instance*, std::size_t> ret{};
     auto rc = get<tree_instance>(get_storages(), storage_name, ret);

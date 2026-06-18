@@ -65,7 +65,7 @@ static void test_sub(std::size_t num_scan_th, const std::bitset<data_size>& dele
 
     auto scan_work = [&delete_target, key_width](std::size_t th_id) {
         Token token{};
-        while (enter(token) != status::OK) { _mm_pause(); }
+        while (enter(token) != status::OK) { spin_wait_hint(); }
         for (std::size_t j = 0; j < 5; ++j) {
             std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list; // NOLINT
             ASSERT_OK(scan<char>(test_storage_name, {}, scan_endpoint::INF, {}, scan_endpoint::INF, tuple_list));
@@ -126,7 +126,7 @@ static void test_sub(std::size_t num_scan_th, const std::bitset<data_size>& dele
 
     auto del_work = [&delete_target, key_width](std::size_t th_id) {
         Token token{};
-        while (enter(token) != status::OK) { _mm_pause(); }
+        while (enter(token) != status::OK) { spin_wait_hint(); }
         for (std::size_t i = th_id * remaining_size; i < (th_id + 1) * remaining_size; i++) {
             if (delete_target.test(i)) {
                 auto k = make_key(i, key_width);
@@ -141,7 +141,7 @@ static void test_sub(std::size_t num_scan_th, const std::bitset<data_size>& dele
         {
             // setup initial tree
             Token token{};
-            while (enter(token) != status::OK) { _mm_pause(); }
+            while (enter(token) != status::OK) { spin_wait_hint(); }
             for (std::size_t i = 0; i < remaining_size * key_slice_length; i++) {
                 auto k = make_key(i, key_width);
                 ASSERT_OK(put<char>(token, test_storage_name, k, k.data(), k.size())) << k;

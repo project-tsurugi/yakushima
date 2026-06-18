@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cpuid.h>
 #include <sched.h>
 #include <sys/syscall.h>
 #include <sys/types.h>

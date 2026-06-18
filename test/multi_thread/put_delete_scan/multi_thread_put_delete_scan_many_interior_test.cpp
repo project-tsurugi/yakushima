@@ -116,7 +116,7 @@ void many_interior_comm() {
                 }
 
                 Token token{};
-                while (enter(token) != status::OK) { _mm_pause(); }
+                while (enter(token) != status::OK) { spin_wait_hint(); }
 
                 for (std::size_t j = 0; j < 1; ++j) {
                     for (auto& i : kv) {
@@ -272,7 +272,7 @@ TEST_F(multi_thread_put_delete_scan_many_interior_test, // NOLINT
                 std::random_device seed_gen;
                 std::mt19937 engine(seed_gen());
                 Token token{};
-                while (enter(token) != status::OK) { _mm_pause(); }
+                while (enter(token) != status::OK) { spin_wait_hint(); }
 
                 for (std::size_t j = 0; j < 1; ++j) {
                     std::shuffle(kv.begin(), kv.end(), engine);

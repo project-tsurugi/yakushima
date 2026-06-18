@@ -57,7 +57,7 @@ TEST_F(mtpdst, one_border) { // NOLINT
                 }
 
                 Token token{};
-                while (enter(token) != status::OK) { _mm_pause(); }
+                while (enter(token) != status::OK) { spin_wait_hint(); }
 
                 for (std::size_t j = 0; j < 1; ++j) {
                     for (auto&& i : kv) {
@@ -185,7 +185,7 @@ TEST_F(mtpdst, one_border_shuffle) { // NOLINT
                 std::random_device seed_gen{};
                 std::mt19937 engine(seed_gen());
                 Token token{};
-                while (enter(token) != status::OK) { _mm_pause(); }
+                while (enter(token) != status::OK) { spin_wait_hint(); }
 
                 for (std::size_t j = 0; j < 1; ++j) {
                     std::shuffle(kv.begin(), kv.end(), engine);
