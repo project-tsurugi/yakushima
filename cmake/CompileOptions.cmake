@@ -19,6 +19,8 @@ else ()
   message(FATAL_ERROR "unsupported compiler ${CMAKE_CXX_COMPILER_ID}")
 endif ()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funsigned-char")
+
 if (ENABLE_SANITIZER)
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=${sanitizers}")
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-sanitize=alignment")
