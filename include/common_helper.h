@@ -36,7 +36,7 @@ retry:
     if (root == nullptr) {
         LOG(ERROR) << log_location_prefix << "find_border: root: " << root
                    << ", key_slice: " << key_slice
-                   << ", key_slice_length: " << key_slice_length
+                   << ", key_slice_length: " << static_cast<int>(key_slice_length)
                    << ", special_status: " << special_status;
         // if special status is ok, it is just after called.
         // if special status is warn, it is just after retry one.
@@ -53,7 +53,7 @@ retry:
         if (n == nullptr) {
             LOG(ERROR) << log_location_prefix << "find_border: root: " << root
                        << ", key_slice: " << key_slice
-                       << ", key_slice_length: " << key_slice_length
+                       << ", key_slice_length: " << static_cast<int>(key_slice_length)
                        << ", special_status: " << special_status
                        << ", version: " << v;
         }
@@ -82,7 +82,7 @@ retry:
     if (n == nullptr) {
         LOG(ERROR) << log_location_prefix << "find_border: root: " << root
                    << ", key_slice: " << key_slice
-                   << ", key_slice_length: " << key_slice_length
+                   << ", key_slice_length: " << static_cast<int>(key_slice_length)
                    << ", special_status: " << special_status;
     }
     return std::make_tuple(dynamic_cast<border_node*>(n), v);
