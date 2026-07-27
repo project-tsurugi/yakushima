@@ -59,4 +59,24 @@ TEST_F(bnt, function) { // NOLINT
         }
     }
 }
+
+TEST_F(bnt, key_tuple) { // NOLINT
+    // regular case
+    char d1[8] = { 0x31, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }; // NOLINT
+    char d2[8] = { 0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }; // NOLINT
+    std::uint64_t ud1 = *reinterpret_cast<std::uint64_t*>(d1); // NOLINT
+    std::uint64_t ud2 = *reinterpret_cast<std::uint64_t*>(d2); // NOLINT
+    ASSERT_LT(base_node::key_tuple(ud1, 1), base_node::key_tuple(ud2, 1));
+    ASSERT_LT(base_node::key_tuple(ud1, 1), base_node::key_tuple(ud2, 2));
+    ASSERT_LT(base_node::key_tuple(ud1, 2), base_node::key_tuple(ud2, 1));
+    // suffix NUL
+    ASSERT_LT(base_node::key_tuple(ud1, 1), base_node::key_tuple(ud1, 2));
+    ASSERT_LT(base_node::key_tuple(ud1, 2), base_node::key_tuple(ud1, 3));
+    ASSERT_LT(base_node::key_tuple(ud1, 3), base_node::key_tuple(ud1, 4));
+
+    // empty case
+    ASSERT_EQ(base_node::key_tuple{}, base_node::key_tuple{});
+    ASSERT_FALSE(base_node::key_tuple{} < base_node::key_tuple{});
+}
+
 } // namespace yakushima::testing
