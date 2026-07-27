@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <cstring>
 #include <functional>
@@ -43,8 +44,7 @@ public:
             if (r.key_length_ == 0) { return false; }
             if (key_length_ == 0) { return true; }
             int ret = memcmp(&key_slice_, &r.key_slice_,
-                             key_length_ < r.key_length_ ? key_length_
-                                                         : r.key_length_);
+                             std::min<std::size_t>({sizeof(key_slice_type), key_length_, r.key_length_}));
             if (ret < 0) { return true; }
             if (ret == 0) { return key_length_ < r.key_length_; }
             return false;
@@ -73,7 +73,7 @@ public:
         void set_key_slice(const key_slice_type slice) { key_slice_ = slice; }
 
         static key_tuple min() { return {0UL, 0}; }
-        static key_tuple max() { return {~0UL, sizeof(key_slice_type) + 1}; }
+        static key_tuple max() { return {~0UL, std::numeric_limits<key_length_type>::max() }; }
 
     private:
         key_slice_type key_slice_{0};
