@@ -83,6 +83,10 @@ public:
 
     private:
         key_slice_type key_slice_{0};
+
+        // 0:   length-0 slice, leaf is value (only used in L0)
+        // 1-8: normal slice,   leaf is value
+        // 9:   length-8 slice, leaf is link to next layer
         key_length_type key_length_{0};
     };
 
