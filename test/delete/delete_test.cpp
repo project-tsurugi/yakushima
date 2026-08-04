@@ -255,13 +255,13 @@ TEST_F(dt, two_interi) { // NOLINT
              * root is full-border.
              */
             auto* n = ti->load_root_ptr();
-            ASSERT_EQ(typeid(*n), typeid(border_node)); // NOLINT
+            ASSERT_EQ(n->get_version_border(), true);
         } else if (i == key_slice_length) {
             /**
              * split and insert.
              */
             auto* n = ti->load_root_ptr();
-            ASSERT_EQ(typeid(*n), typeid(interior_node)); // NOLINT
+            ASSERT_EQ(n->get_version_border(), false);
             ASSERT_EQ(dynamic_cast<border_node*>(
                               dynamic_cast<interior_node*>(ti->load_root_ptr())
                                       ->get_child_at(0))
