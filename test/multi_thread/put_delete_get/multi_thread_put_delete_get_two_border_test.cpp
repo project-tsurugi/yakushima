@@ -80,24 +80,19 @@ TEST_F(mtpdgt, two_border_null_key) { // NOLINT
                     for (auto& i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        ASSERT_EQ(put(token, test_storage_name, k, v.data(),
-                                      v.size()),
-                                  status::OK);
+                        EXPECT_EQ(put(token, test_storage_name, k, v.data(), v.size()), status::OK) << "v:" << v;
                     }
                     for (auto& i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
                         std::pair<char*, std::size_t> ret{};
-                        ASSERT_EQ(status::OK,
-                                  get<char>(test_storage_name, k, ret));
-                        ASSERT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()),
-                                  0);
+                        EXPECT_EQ(status::OK, get<char>(test_storage_name, k, ret)) << "v:" << v;
+                        EXPECT_EQ(memcmp(std::get<0>(ret), v.data(), v.size()), 0) << "v:" << v;
                     }
                     for (auto& i : kv) {
                         std::string k(std::get<0>(i));
                         std::string v(std::get<1>(i));
-                        ASSERT_EQ(remove(token, test_storage_name, k),
-                                  status::OK);
+                        EXPECT_EQ(remove(token, test_storage_name, k), status::OK) << "v:" << v;
                     }
                 }
                 for (auto& i : kv) {
@@ -105,7 +100,7 @@ TEST_F(mtpdgt, two_border_null_key) { // NOLINT
                     std::string v(std::get<1>(i));
                     ASSERT_EQ(put(token, test_storage_name, k, v.data(),
                                   v.size()),
-                              status::OK);
+                              status::OK) << "v:" << v;
                 }
 
                 leave(token);
@@ -126,10 +121,7 @@ TEST_F(mtpdgt, two_border_null_key) { // NOLINT
                    scan_endpoint::INF, tuple_list);
         for (std::size_t j = 0; j < ary_size; ++j) {
             std::string v(std::to_string(j));
-            constexpr std::size_t v_index = 1;
-            ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(),
-                             v.size()),
-                      0);
+            EXPECT_EQ(std::string(std::get<1>(tuple_list.at(j)), std::get<2>(tuple_list.at(j))), v);
         }
         destroy();
     }
@@ -223,10 +215,7 @@ TEST_F(mtpdgt, two_border_null_key_shuffle) { // NOLINT
                    scan_endpoint::INF, tuple_list);
         for (std::size_t j = 0; j < ary_size; ++j) {
             std::string v(std::to_string(j));
-            constexpr std::size_t v_index = 1;
-            ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(),
-                             v.size()),
-                      0);
+            EXPECT_EQ(std::string(std::get<1>(tuple_list.at(j)), std::get<2>(tuple_list.at(j))), v);
         }
         destroy();
     }

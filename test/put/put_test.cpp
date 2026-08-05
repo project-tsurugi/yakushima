@@ -1,5 +1,5 @@
 /**
- * @file put_put_test.cpp
+ * @file
  */
 
 #include <algorithm>
@@ -244,6 +244,7 @@ TEST_F(put_test, one_key_len9) { // NOLINT
     ASSERT_EQ(nvp, nvp_first_border_node);
     auto* n_second_border_node =
             dynamic_cast<border_node*>(n)->get_lv_at(0)->get_next_layer();
+    ASSERT_NE(n_second_border_node, nullptr);
     ASSERT_NE(nvp, n_second_border_node->get_version_ptr());
 
     ASSERT_EQ(leave(token), status::OK);

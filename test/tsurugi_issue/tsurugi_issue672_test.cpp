@@ -1,5 +1,5 @@
 /**
- * @file scan_basic_usage_test.cpp
+ * @file
  */
 
 #include <array>
@@ -67,8 +67,10 @@ TEST_F(tsurugi_issue672_test, simple) { // NOLINT
     // verify
     auto* nvp_first_border_node = n->get_version_ptr();
     ASSERT_EQ(nvp_for_put, nvp_first_border_node);
+    ASSERT_EQ(n->get_version_border(), true);
     auto* n_second_border_node =
             dynamic_cast<border_node*>(n)->get_lv_at(0)->get_next_layer();
+    ASSERT_NE(n_second_border_node, nullptr);
     ASSERT_NE(nvp_for_put, n_second_border_node->get_version_ptr());
 
     // cleanup
