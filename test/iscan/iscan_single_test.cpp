@@ -27,6 +27,8 @@ namespace yakushima::testing {
 
 std::string st{"1"}; // NOLINT
 
+constexpr static bool suffix_enabled = true;
+
 class iscan_single_test : public ::testing::Test {
     void SetUp() override {
         init();
@@ -404,6 +406,12 @@ TEST_F(iscan_single_test, l1b1b1) {
     ASSERT_OK(enter(token));
     ASSERT_OK(put<void*>(token, st, std::string_view(k1), &v1, sizeof(v1)));
     ASSERT_OK(put<void*>(token, st, std::string_view(k2), &v2, sizeof(v2)));
+    if (suffix_enabled) {
+        ASSERT_OK(put<void*>(token, st, k1 + " ", &v1, sizeof(v1)));
+        ASSERT_OK(remove(token, st, k1 + " "));
+        ASSERT_OK(put<void*>(token, st, k2 + " ", &v2, sizeof(v2)));
+        ASSERT_OK(remove(token, st, k2 + " "));
+    }
 
     border_node* b0;
     border_node* b11;
@@ -690,6 +698,12 @@ TEST_F(iscan_single_test, l2b2v2) {
     ASSERT_OK(enter(token));
     ASSERT_OK(put<void*>(token, st, std::string_view(k1), &v1, sizeof(v1)));
     ASSERT_OK(put<void*>(token, st, std::string_view(k2), &v2, sizeof(v2)));
+    if (suffix_enabled) {
+        ASSERT_OK(put<void*>(token, st, k1 + " ", &v1, sizeof(v1)));
+        ASSERT_OK(remove(token, st, k1 + " "));
+        ASSERT_OK(put<void*>(token, st, k2 + " ", &v2, sizeof(v2)));
+        ASSERT_OK(remove(token, st, k2 + " "));
+    }
 
     border_node* b0;
     border_node* b1;
@@ -727,6 +741,77 @@ TEST_F(iscan_single_test, l2b2v2) {
     // (k1, k2]
     tc(k1, scan_endpoint::EXCLUSIVE, k2, scan_endpoint::INCLUSIVE,
        {B{b21, b1, b22}, v2, B{}});
+
+    ASSERT_OK(leave(token));
+}
+
+TEST_F(iscan_single_test, scan_left_check_lvsuf1) {
+    if (!suffix_enabled) { GTEST_SKIP() << "this test is for suffix-supported yakushima"; }
+    // left-end in-range check (lv = suffix+value and suffix-len >= 2)
+    auto k1 = "1234567B11"sv;
+    auto k2 = "1234567C11"sv;
+    auto k3 = "1234567D11"sv;
+    void* v1 = reinterpret_cast<void*>(uintptr_t(0x0000000081808080));
+    void* v2 = reinterpret_cast<void*>(uintptr_t(0x0000000082808080));
+    void* v3 = reinterpret_cast<void*>(uintptr_t(0x0000000083808080));
+    Token token{};
+    ASSERT_OK(enter(token));
+    ASSERT_OK(put(token, st, k1, &v1, sizeof(v1)));
+    ASSERT_OK(put(token, st, k2, &v2, sizeof(v2)));
+    ASSERT_OK(put(token, st, k3, &v3, sizeof(v3)));
+
+    border_node* b0;
+    {
+        tree_instance* ti{};
+        find_storage(st, &ti);
+        base_node* root = ti->load_root_ptr();
+        ASSERT_EQ(root->get_version_border(), true);
+        ASSERT_EQ(root->get_version_deleted(), false);
+        b0 = static_cast<border_node*>(root);
+        ASSERT_EQ(b0->get_key_slice_at(0), base_node::key_tuple(k1).get_key_slice());
+        ASSERT_EQ(b0->get_key_slice_at(1), base_node::key_tuple(k2).get_key_slice());
+        ASSERT_EQ(b0->get_key_slice_at(2), base_node::key_tuple(k3).get_key_slice());
+    }
+
+    // [k1, k3]
+    tc(k1, scan_endpoint::INCLUSIVE, k3, scan_endpoint::INCLUSIVE,
+       {B{}, v1, B{b0}, v2, B{b0}, v3, B{}});
+
+    // [k1, k3)
+    tc(k1, scan_endpoint::INCLUSIVE, k3, scan_endpoint::EXCLUSIVE,
+       {B{}, v1, B{b0}, v2, B{b0}});
+
+    // (k1, k3]
+    tc(k1, scan_endpoint::EXCLUSIVE, k3, scan_endpoint::INCLUSIVE,
+       {B{b0}, v2, B{b0}, v3, B{}});
+
+    // (k1, k3)
+    tc(k1, scan_endpoint::EXCLUSIVE, k3, scan_endpoint::EXCLUSIVE,
+       {B{b0}, v2, B{b0}});
+
+    // "1234567B10" : slightly left of k1
+    tc("1234567B10", scan_endpoint::INCLUSIVE, k3, scan_endpoint::INCLUSIVE,
+       {B{b0}, v1, B{b0}, v2, B{b0}, v3, B{}});
+    tc("1234567B10", scan_endpoint::EXCLUSIVE, k3, scan_endpoint::INCLUSIVE,
+       {B{b0}, v1, B{b0}, v2, B{b0}, v3, B{}});
+
+    // "1234567B12" : slightly right of k1
+    tc("1234567B12", scan_endpoint::INCLUSIVE, k3, scan_endpoint::INCLUSIVE,
+       {B{b0}, v2, B{b0}, v3, B{}});
+    tc("1234567B12", scan_endpoint::EXCLUSIVE, k3, scan_endpoint::INCLUSIVE,
+       {B{b0}, v2, B{b0}, v3, B{}});
+
+    // "1234567D10" : slightly left of k3
+    tc(k1, scan_endpoint::INCLUSIVE, "1234567D10", scan_endpoint::INCLUSIVE,
+       {B{}, v1, B{b0}, v2, B{b0}});
+    tc(k1, scan_endpoint::INCLUSIVE, "1234567D10", scan_endpoint::EXCLUSIVE,
+       {B{}, v1, B{b0}, v2, B{b0}});
+
+    // "1234567D12" : slightly right of k3
+    tc(k1, scan_endpoint::INCLUSIVE, "1234567D12", scan_endpoint::INCLUSIVE,
+       {B{}, v1, B{b0}, v2, B{b0}, v3, B{b0}});
+    tc(k1, scan_endpoint::INCLUSIVE, "1234567D12", scan_endpoint::EXCLUSIVE,
+       {B{}, v1, B{b0}, v2, B{b0}, v3, B{b0}});
 
     ASSERT_OK(leave(token));
 }

@@ -60,9 +60,12 @@ static void display_border(std::stringstream& ss, border_node* n,
             }
         }
         ss << "((" << display_printstr(key_prefix + key) << ","
-           << std::to_string(n->get_key_length_at(index) + key_prefix.size())
-           << "),";
-        if (kl > sizeof(key_slice_type)) {
+           << std::to_string(n->get_key_length_at(index) + key_prefix.size());
+        if (auto* suf = n->get_lv_at(index)->get_suffix(); suf) {
+            ss << ",(suffix)" << display_printstr(std::string(suf->get_suffix_sv()));
+        }
+        ss << "),";
+        if (n->get_lv_at(index)->get_lv_typetag() == link_or_value::tag::Child) {
             ss << n->get_lv_at(index)->get_next_layer();
         } else if (!value::is_value_ptr(value_ptr)) { // inlined value
             ss << value_ptr;
@@ -90,7 +93,7 @@ static void display_border(std::stringstream& ss, border_node* n,
         std::size_t index = perm.get_index_of_rank(i);
         link_or_value* lv = n->get_lv_at(index);
         base_node* next_layer = lv->get_next_layer();
-        if (n->get_key_length_at(index) > sizeof(key_slice_type)) {
+        if (lv->get_lv_typetag() == link_or_value::tag::Child) {
             key_slice_type ks = n->get_key_slice_at(index);
             key_length_type kl = n->get_key_length_at(index);
             std::string key{};

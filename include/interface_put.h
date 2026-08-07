@@ -131,6 +131,7 @@ retry_fetch_lv:
          */
         goto retry_from_root; // NOLINT
     }
+    // new lv
     if (lv_ptr == nullptr) {
         target_border->lock();
         if ((target_border->get_version_deleted() &&
@@ -206,8 +207,8 @@ retry_fetch_lv:
                 value* old_v = nullptr;
                 lv_ptr->set_value(v, created_v_ptr, &old_v);
                 target_border->version_unlock();
-                auto* thin = reinterpret_cast<thread_info*>(token); // NOLINT
                 if (old_v != nullptr) {
+                    auto* thin = reinterpret_cast<thread_info*>(token); // NOLINT
                     auto [o_ptr, o_len, o_align] = value::get_gc_info(old_v);
                     thin->get_gc_info().push_value_container(
                             {thin->get_begin_epoch(), o_ptr, o_len, o_align});
@@ -234,10 +235,150 @@ retry_fetch_lv:
             goto retry_fetch_lv; // NOLINT
         }
     }
+    if (lv_suffix* suf = lv_ptr->get_suffix(); suf != nullptr) {
+        auto sve = suf->get_suffix_sv();
+        auto svn = traverse_key_view.substr(sizeof(key_slice_type));
+        if (sve == svn) {
+            if (unique_restriction) { return status::WARN_UNIQUE_RESTRICTION; }
+
+            target_border->lock();
+
+            if ((target_border->get_version_deleted() &&
+                 !target_border->get_version_root()) ||
+                target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
+                // maybe wrong node
+                target_border->version_unlock();
+                goto retry_from_root; // NOLINT
+            }
+            if (target_border->get_version_vinsert_delete() !=
+                v_at_fetch_lv.get_vinsert_delete()) {
+                // maybe wrong lv
+                target_border->version_unlock();
+                goto retry_fetch_lv; // NOLINT
+            }
+            // re-check because delete operation is not tracked.
+            lv_ptr = target_border->get_lv_of_without_lock(key_slice, key_slice_length);
+            if (lv_ptr == nullptr) {
+                target_border->version_unlock();
+                goto retry_fetch_lv; // NOLINT
+            }
+
+            value* v = value::create_value<kIsInline>(v_ptr, v_len, v_align);
+            if constexpr (kIsInline) {
+                suf->set_value(v, created_v_ptr);
+                target_border->version_unlock();
+            } else {
+                value* old_v = nullptr;
+                suf->set_value(v, created_v_ptr, &old_v);
+                target_border->version_unlock();
+                if (old_v != nullptr) {
+                    auto* thin = reinterpret_cast<thread_info*>(token); // NOLINT
+                    auto [o_ptr, o_len, o_align] = value::get_gc_info(old_v);
+                    thin->get_gc_info().push_value_container(
+                            {thin->get_begin_epoch(), o_ptr, o_len, o_align});
+                }
+            }
+            return status::OK;
+        }
+        target_border->lock();
+
+        if ((target_border->get_version_deleted() &&
+             !target_border->get_version_root()) ||
+            target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
+            // maybe wrong node
+            target_border->version_unlock();
+            goto retry_from_root; // NOLINT
+        }
+        if (target_border->get_version_vinsert_delete() !=
+            v_at_fetch_lv.get_vinsert_delete()) {
+            // maybe wrong lv
+            target_border->version_unlock();
+            goto retry_fetch_lv; // NOLINT
+        }
+        // re-check because delete operation is not tracked.
+        lv_ptr = target_border->get_lv_of_without_lock(key_slice, key_slice_length);
+        if (lv_ptr == nullptr) {
+            target_border->version_unlock();
+            goto retry_fetch_lv; // NOLINT
+        }
+        if (auto* new_suf = lv_ptr->get_suffix(); new_suf != suf) { // concurrent mod
+            if (new_suf == nullptr) { // XXX: concurrent suffix->another? this is caused by remove+insert, so must be blocked by v_insert check
+                target_border->version_unlock();
+                goto retry_fetch_lv; // NOLINT
+            }
+            // suffix is concurrently overwriten, but go
+            suf = new_suf;
+        }
+
+        target_border->set_version_inserting_deleting(true);
+        link_or_value* common_bottom_lv = nullptr;
+        border_node* parent_of_b2 = target_border;
+        border_node* common_root = nullptr;
+        // create the chain of common prefix of sve and svn
+        while (sve.size() > sizeof(key_slice_type) && svn.size() > sizeof(key_slice_type)
+               && memcmp(sve.data(), svn.data(), sizeof(key_slice_type)) == 0) {
+            border_node* common_prefix_border = new border_node(); // NOLINT
+            common_prefix_border->init_border();
+            if (common_root == nullptr) {
+                // pending link from lv_ptr
+                common_root = common_prefix_border;
+                common_prefix_border->set_parent(target_border);
+            } else {
+                common_bottom_lv->set_next_layer(common_prefix_border);
+            }
+            key_slice_type key_slice(0);
+            memcpy(&key_slice, sve.data(), sizeof(key_slice_type));
+            common_prefix_border->set_key(0, key_slice, sizeof(key_slice_type) + 1);
+            common_prefix_border->get_permutation().insert_rank(0, 0);
+
+            common_prefix_border->set_parent(parent_of_b2);
+            sve.remove_prefix(sizeof(key_slice_type));
+            svn.remove_prefix(sizeof(key_slice_type));
+            parent_of_b2 = common_prefix_border;
+            common_bottom_lv = common_prefix_border->get_lv_at(0);
+        }
+        // create a border node with 2 values (existing one and new one)
+        border_node* b2 = new border_node(); // NOLINT
+        b2->init_border<void>(sve, suf->get_value(), nullptr, true);
+        b2->set_parent(parent_of_b2);
+        border_node::key_tuple ktn(svn);
+        value* v = value::create_value<kIsInline>(v_ptr, v_len, v_align);
+        insert_lv(
+                ti, b2, svn, v, created_v_ptr,
+                nullptr, // no need to track newly created border node in insert_lv
+                b2->compute_rank_if_insert(ktn.get_key_slice(), ktn.get_key_length()));
+        if (inserted_node_info_ptr != nullptr) {
+            inserted_node_info_ptr->modified_nvp = target_border->get_version_ptr();
+        }
+
+        // release old suffix
+        // old value is moved to new border node, not to release
+        if (auto* suf = lv_ptr->get_suffix(); suf != nullptr) {
+            auto* tinfo = reinterpret_cast<thread_info*>(token); // NOLINT
+            auto [p, sz, align] = suf->get_gc_info();
+            tinfo->get_gc_info().push_value_container(
+                    {tinfo->get_begin_epoch(), p, sz, align});
+        }
+
+        // expose new nodes
+        if (common_bottom_lv) {
+           // connect target_border -> (common) -> b2
+            common_bottom_lv->set_next_layer(b2);
+            lv_ptr->set_next_layer(common_root);
+        } else {
+           // connect target_border -> b2
+            lv_ptr->set_next_layer(b2);
+        }
+        target_border->version_unlock();
+        return status::OK;
+    }
     /**
      * Here, lv_ptr has some next_layer.
      */
     root = lv_ptr->get_next_layer();
+    if (root == nullptr) { // concurrent modification
+        goto retry_fetch_lv;                  // NOLINT
+    }
     /**
      * check whether border is still correct.
      */

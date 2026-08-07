@@ -118,7 +118,7 @@ retry_fetch_lv:
      * Here, lv_ptr != nullptr.
      * If lv_ptr has some value && final_slice
      */
-    if (target_border->get_key_length_at(lv_pos) <= sizeof(key_slice_type)) {
+    if (lv_ptr->get_lv_typetag() != link_or_value::tag::Child) {
         target_border->lock();
         node_version64_body final_check = target_border->get_version();
         if ((final_check.get_deleted() &&
@@ -140,6 +140,14 @@ retry_fetch_lv:
         if (lv_ptr == nullptr) {
             target_border->version_unlock();
             return status::OK_NOT_FOUND;
+        }
+
+        if (lv_ptr->get_lv_typetag() == link_or_value::tag::SuffixValue) {
+            lv_suffix* suf = lv_ptr->get_suffix();
+            if (traverse_key_view.substr(sizeof(key_slice_type)) != suf->get_suffix_sv()) {
+                target_border->version_unlock();
+                return status::OK_NOT_FOUND;
+            }
         }
 
         // success delete

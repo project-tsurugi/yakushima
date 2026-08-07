@@ -47,6 +47,11 @@ public:
                 ti->get_gc_info().push_value_container(
                         {ti->get_begin_epoch(), v_ptr, v_len, v_align});
             }
+            if (auto* suf = lv_.at(pos).get_suffix(); suf != nullptr) {
+                auto [p, sz, align] = suf->get_gc_info();
+                ti->get_gc_info().push_value_container(
+                        {ti->get_begin_epoch(), p, sz, align});
+            }
         }
 
         // rearrange permutation
@@ -494,25 +499,11 @@ public:
          */
         key_slice_type key_slice(0);
         if (key_view.size() > sizeof(key_slice_type)) {
-            /**
-             * Create multiple border nodes.
-             */
             memcpy(&key_slice, key_view.data(), sizeof(key_slice_type));
             set_key_slice_at(index, key_slice);
-            /**
-             * You only need to know that it is 8 bytes or more. If it is
-             * stored obediently, key_length_type must be a large size type.
-             */
+            auto* suf = lv_suffix::create_suffix(key_view.substr(sizeof(key_slice_type)), new_value);
             set_key_length_at(index, sizeof(key_slice_type) + 1);
-            border_node* next_layer_border = new border_node(); // NOLINT
-            key_view.remove_prefix(sizeof(key_slice_type));
-            /**
-             * attention: next_layer_border is the root of next layer.
-             */
-            next_layer_border->init_border(key_view, new_value,
-                                           created_value_ptr, true);
-            next_layer_border->set_parent(this);
-            set_lv_next_layer(index, next_layer_border);
+            set_lv_value(index, reinterpret_cast<value*>(reinterpret_cast<uintptr_t>(suf) | link_or_value::tag::SuffixValue), created_value_ptr); // NOLINT
         } else {
             // set key
             memcpy(&key_slice, key_view.data(), key_view.size());

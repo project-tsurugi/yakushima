@@ -86,7 +86,7 @@ public:
 
         // 0:   length-0 slice, leaf is value (only used in L0)
         // 1-8: normal slice,   leaf is value
-        // 9:   length-8 slice, leaf is link to next layer
+        // 9:   length-8 slice, leaf is link to next layer OR value with suffix
         key_length_type key_length_{0};
     };
 

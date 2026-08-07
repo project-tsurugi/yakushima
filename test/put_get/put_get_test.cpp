@@ -466,4 +466,38 @@ TEST_F(kt, test12) { // NOLINT
     ASSERT_EQ(tuple_list.size(), 2);
     ASSERT_OK(leave(token));
 }
+
+TEST_F(kt, overwrite_longkey) {
+    Token token{};
+    std::string k('a', 50);
+    std::string v1("v1");
+    std::string v2("v2");
+
+    std::pair<char*, std::size_t> tuple{};
+
+    ASSERT_OK(enter(token));
+
+    ASSERT_EQ(get<char>(test_storage_name, k, tuple), status::WARN_NOT_EXIST);
+
+    ASSERT_OK(put<char>(token, test_storage_name, k, v1.data(), v1.size()));
+
+    ASSERT_OK(get<char>(test_storage_name, k, tuple));
+    EXPECT_EQ(std::string(tuple.first, tuple.second), v1);
+
+    ASSERT_EQ(put<char>(token, test_storage_name, k, v2.data(), v2.size(),
+                        nullptr, value_align_type(1), true),
+              status::WARN_UNIQUE_RESTRICTION);
+
+    ASSERT_OK(get<char>(test_storage_name, k, tuple));
+    EXPECT_EQ(std::string(tuple.first, tuple.second), v1);
+
+    ASSERT_OK(put<char>(token, test_storage_name, k, v2.data(), v2.size(),
+                        nullptr, value_align_type(1), false));
+
+    ASSERT_OK(get<char>(test_storage_name, k, tuple));
+    EXPECT_EQ(std::string(tuple.first, tuple.second), v2);
+
+    ASSERT_OK(leave(token));
+}
+
 } // namespace yakushima::testing

@@ -134,7 +134,9 @@ private:
     /**
      * @brief A flag for indicating that the value pointer is actually a pointer (i.e. not inlined).
      */
-    static constexpr uintptr_t kValPtrFlag = 0b01UL << 62UL;
+    static constexpr uintptr_t kValPtrFlag = 0b01UL << 62UL; // = link_or_value::tag::ValuePtr
+
+    static constexpr uintptr_t kLeafTagBits = 0b11UL << 62UL; // = link_or_value::tag::LeafTagBits
 
     /**
      * @brief Internal constructor for setting header information.
@@ -151,8 +153,7 @@ private:
      * @return The actual pointer without a flag.
      */
     static value* remove_ptr_flag(const value* val) {
-        return reinterpret_cast<value*>(                          // NOLINT
-                reinterpret_cast<uintptr_t>(val) & ~kValPtrFlag); // NOLINT
+        return reinterpret_cast<value*>(reinterpret_cast<uintptr_t>(val) & ~kLeafTagBits); // NOLINT
     }
 
     /**
@@ -172,5 +173,68 @@ private:
      */
     bool need_delete_{false};
 };
+
+/// @brief yes, suffix is a part of key, not value
+class lv_suffix {
+    std::uintptr_t v_;
+    std::size_t len_ : 56;
+    std::size_t      :  8; // reserved
+    alignas(8) char body_[1]; // NOLINT(*-avoid-c-arrays)
+
+    lv_suffix(std::string_view suffix, std::uintptr_t v) : v_(v), len_(suffix.size()) { // NOLINT(*member-init)
+        memcpy(&body_[0], suffix.data(), suffix.size());
+    }
+
+public:
+    /**
+     * @param[in] val The target value pointer.
+     * @return The address of the contained value.
+     */
+    [[nodiscard]]
+    static lv_suffix* create_suffix(std::string_view suffix, std::uintptr_t v) {
+        std::size_t total_len = offsetof(lv_suffix, body_) + suffix.size();
+        void* p = ::operator new(total_len, std::align_val_t{alignof(lv_suffix)});
+        auto* suf = new (p) lv_suffix{suffix, v}; // NOLINT
+        return suf;
+    }
+    static lv_suffix* create_suffix(std::string_view suffix, value* v) {
+        return create_suffix(suffix, reinterpret_cast<std::uintptr_t>(v)); // NOLINT
+    }
+
+    std::string_view get_suffix_sv() {
+        return {body_, len_}; // NOLINT
+    }
+
+    [[nodiscard]] value* get_value() const {
+        return reinterpret_cast<value*>(v_); // NOLINT
+    }
+
+    void set_value(value* new_value, void** const created_value_ptr,
+                   value** old_value = nullptr) {
+        if (old_value != nullptr) {
+            auto* cur_v = get_value();
+            *old_value = cur_v;
+        }
+
+        // store the given value
+        const auto ptr = reinterpret_cast<uintptr_t>(new_value); // NOLINT
+        storeReleaseN(v_, ptr);
+        if (created_value_ptr != nullptr) {
+            auto* v_ptr = reinterpret_cast<value*>(v_); // NOLINT
+            *created_value_ptr = value::get_body(v_ptr);
+        }
+    }
+
+    /**
+     * @retval 1st: The address of the given lv_suffix.
+     * @retval 2nd: The allocated memory size for the given lv_suffix.
+     * @retval 3rd: The alignment size of the given lv_suffix.
+     */
+    std::tuple<void*, value_length_type, value_align_type>
+    get_gc_info() {
+        return {this, offsetof(lv_suffix, body_) + len_, std::align_val_t{alignof(lv_suffix)}};
+    }
+};
+
 
 } // namespace yakushima

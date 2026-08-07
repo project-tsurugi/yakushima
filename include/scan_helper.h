@@ -236,8 +236,17 @@ retry:
         std::size_t index = perm.get_index_of_rank(right_to_left ? n-i-1 : i);
         key_slice_type ks = bn->get_key_slice_at(index);
         key_length_type kl = bn->get_key_length_at(index);
+        base_node::key_tuple kt{ks, kl};
+        link_or_value lv = loadAcquireNS(*bn->get_lv_at(index));
+        value* vp = lv.get_value();
+        base_node* next_layer = lv.get_next_layer();
         std::string full_key{key_prefix};
-        if (kl > 0) {
+        if (auto* suf = lv.get_suffix(); suf) {
+            full_key.append(
+                    reinterpret_cast<char*>(&ks), // NOLINT
+                    sizeof(key_slice_type));
+            full_key.append(suf->get_suffix_sv());
+        } else if (kl > 0) {
             // gen full key from log and this key slice
             full_key.append(
                     reinterpret_cast<char*>(&ks), // NOLINT
@@ -248,9 +257,6 @@ retry:
              * Otherwise, sizeof key_slice_type.
              */
         }
-        link_or_value* lv = bn->get_lv_at(index);
-        value* vp = lv->get_value();
-        base_node* next_layer = lv->get_next_layer();
         node_version64* node_version_ptr = bn->get_version_ptr();
         /**
          * This verification may seem verbose, but it can also be considered
@@ -267,7 +273,7 @@ retry:
         if (check_status == status::OK_RETRY_AFTER_FB) {
             goto retry; // NOLINT
         }
-        if (kl > sizeof(key_slice_type)) {
+        if (lv.get_lv_typetag() == link_or_value::tag::Child) {
             std::string_view arg_l_key;
             scan_endpoint arg_l_end{};
             if (l_end == scan_endpoint::INF) {
@@ -366,19 +372,17 @@ retry:
             }
             // not all range
             if (l_end != scan_endpoint::INF) {
-                key_slice_type l_key_slice{0};
-                if (!l_key.empty()) {
-                    memcpy(&l_key_slice, l_key.data(),
-                           l_key.size() < sizeof(key_slice_type)
-                                   ? l_key.size()
-                                   : sizeof(key_slice_type));
-                }
-                int l_cmp = memcmp(&l_key_slice, &ks, sizeof(key_slice_type));
-                if (l_cmp > 0 ||
-                    (l_cmp == 0 && (l_key.size() > kl ||
-                                    (l_key.size() == kl &&
-                                     l_end == scan_endpoint::EXCLUSIVE)))) {
-                    continue;
+                base_node::key_tuple lkt{l_key};
+                int cmp = kt.compare(lkt);
+                if (cmp < 0) { continue; }
+                if (cmp == 0) {
+                    if (auto* suf = lv.get_suffix(); suf != nullptr) {
+                        cmp = suf->get_suffix_sv().compare(l_key.substr(sizeof(key_slice_type)));
+                        if (cmp < 0) { continue; }
+                    }
+                    if (cmp == 0 && l_end == scan_endpoint::EXCLUSIVE) {
+                        continue;
+                    }
                 }
             }
             // pass left endpoint.

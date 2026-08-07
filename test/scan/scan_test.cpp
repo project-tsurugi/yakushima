@@ -3,12 +3,16 @@
  */
 
 #include <array>
+#include <string_view>
 
 #include "gtest/gtest.h"
 
+#include "test_tool.h"
 #include "kvs.h"
 
 using namespace yakushima;
+
+using namespace std::literals;
 
 namespace yakushima::testing {
 
@@ -287,6 +291,109 @@ TEST_F(st, scan_with_same_prefix_25char_26diff_27to33same_34diff) { // NOLINT
     ASSERT_EQ(status::OK, scan(test_storage_name, r6, scan_endpoint::EXCLUSIVE,
                                "", scan_endpoint::INF, tuple_list));
     ASSERT_EQ(tuple_list.size(), 0);
+}
+
+TEST_F(st, scan_left_check_lvsuf1) {
+    // left-end in-range check (lv = suffix+value and suffix-len >= 2)
+    auto r1 = "1234567B11"sv;
+    auto r2 = "1234567C11"sv;
+    auto r3 = "1234567D11"sv;
+    auto v = "bbb"sv;
+    auto r1m = "1234567B10"sv; // < r1
+    auto r1p = "1234567B12"sv; // > r1
+    auto r3m = "1234567D10"sv; // < r3
+    auto r3p = "1234567D12"sv; // > r3
+    Token token{};
+    ASSERT_OK(enter(token));
+    ASSERT_OK(put(token, test_storage_name, r1, v.data(), v.size()));
+    ASSERT_OK(put(token, test_storage_name, r2, v.data(), v.size()));
+    ASSERT_OK(put(token, test_storage_name, r3, v.data(), v.size()));
+    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{};
+
+    ASSERT_OK(scan(test_storage_name, r1, scan_endpoint::INCLUSIVE,
+                   r3, scan_endpoint::INCLUSIVE, tuple_list));
+    ASSERT_EQ(tuple_list.size(), 3);
+
+    ASSERT_OK(scan(test_storage_name, r1, scan_endpoint::INCLUSIVE,
+                   r3, scan_endpoint::EXCLUSIVE, tuple_list));
+    ASSERT_EQ(tuple_list.size(), 2);
+    EXPECT_EQ(std::get<0>(tuple_list[0]), r1);
+    EXPECT_EQ(std::get<0>(tuple_list[1]), r2);
+
+    ASSERT_OK(scan(test_storage_name, r1, scan_endpoint::EXCLUSIVE,
+                   r3, scan_endpoint::INCLUSIVE, tuple_list));
+    ASSERT_EQ(tuple_list.size(), 2);
+    EXPECT_EQ(std::get<0>(tuple_list[0]), r2);
+    EXPECT_EQ(std::get<0>(tuple_list[1]), r3);
+
+    ASSERT_OK(scan(test_storage_name, r1, scan_endpoint::EXCLUSIVE,
+                   r3, scan_endpoint::EXCLUSIVE, tuple_list));
+    ASSERT_EQ(tuple_list.size(), 1);
+    EXPECT_EQ(std::get<0>(tuple_list[0]), r2);
+
+    ASSERT_OK(scan(test_storage_name, r1m, scan_endpoint::INCLUSIVE,
+                   r3, scan_endpoint::INCLUSIVE, tuple_list));
+    ASSERT_EQ(tuple_list.size(), 3);
+    ASSERT_OK(scan(test_storage_name, r1m, scan_endpoint::EXCLUSIVE,
+                   r3, scan_endpoint::INCLUSIVE, tuple_list));
+    ASSERT_EQ(tuple_list.size(), 3);
+
+    ASSERT_OK(scan(test_storage_name, r1p, scan_endpoint::INCLUSIVE,
+                   r3, scan_endpoint::INCLUSIVE, tuple_list));
+    ASSERT_EQ(tuple_list.size(), 2);
+    EXPECT_EQ(std::get<0>(tuple_list[0]), r2);
+    EXPECT_EQ(std::get<0>(tuple_list[1]), r3);
+    ASSERT_OK(scan(test_storage_name, r1p, scan_endpoint::EXCLUSIVE,
+                   r3, scan_endpoint::INCLUSIVE, tuple_list));
+    ASSERT_EQ(tuple_list.size(), 2);
+    EXPECT_EQ(std::get<0>(tuple_list[0]), r2);
+    EXPECT_EQ(std::get<0>(tuple_list[1]), r3);
+
+    ASSERT_OK(scan(test_storage_name, r1, scan_endpoint::INCLUSIVE,
+                   r3m, scan_endpoint::INCLUSIVE, tuple_list));
+    ASSERT_EQ(tuple_list.size(), 2);
+    EXPECT_EQ(std::get<0>(tuple_list[0]), r1);
+    EXPECT_EQ(std::get<0>(tuple_list[1]), r2);
+    ASSERT_OK(scan(test_storage_name, r1, scan_endpoint::INCLUSIVE,
+                   r3m, scan_endpoint::EXCLUSIVE, tuple_list));
+    ASSERT_EQ(tuple_list.size(), 2);
+    EXPECT_EQ(std::get<0>(tuple_list[0]), r1);
+    EXPECT_EQ(std::get<0>(tuple_list[1]), r2);
+
+    ASSERT_OK(scan(test_storage_name, r1, scan_endpoint::INCLUSIVE,
+                   r3p, scan_endpoint::INCLUSIVE, tuple_list));
+    ASSERT_EQ(tuple_list.size(), 3);
+    ASSERT_OK(scan(test_storage_name, r1, scan_endpoint::INCLUSIVE,
+                   r3p, scan_endpoint::EXCLUSIVE, tuple_list));
+    ASSERT_EQ(tuple_list.size(), 3);
+
+    ASSERT_OK(leave(token));
+}
+
+TEST_F(st, scan_left_check_lvsuf2) {
+    // from jogasaki sql_join_find_secondary_test.composite_key_asc_desc
+    // left-end in-range check (lv = suffix+value)
+    auto r1 = "\x81\x80\x00\x00\x01~\x7f\xff\xff\xf4\x80\x00\x00\x01"sv;
+    auto r2 = "\x81\x80\x00\x00\x01~\x7f\xff\xff\xf4\x80\x00\x00\x02"sv;
+    auto r3 = "\x81\x80\x00\x00\x02~\x7f\xff\xff\xeb\x80\x00\x00\x03"sv;
+    auto r4 = "\x80~\x7f\xff\xff\xf4\x80\x00\x00\x04"sv;
+    auto r5 = "\x81\x80\x00\x00\x01\x7f\x80\x00\x00\x05"sv;
+    auto be = "\x81\x80\x00\x00\x02~\x7f\xff\xff\xf3"sv;
+    auto en = "\x81\x80\x00\x00\x02~\x7f\xff\xff\xf4"sv;
+    auto v = "bbb"sv;
+    Token token{};
+    ASSERT_OK(enter(token));
+    ASSERT_OK(put(token, test_storage_name, r1, v.data(), v.size()));
+    ASSERT_OK(put(token, test_storage_name, r2, v.data(), v.size()));
+    ASSERT_OK(put(token, test_storage_name, r3, v.data(), v.size()));
+    ASSERT_OK(put(token, test_storage_name, r4, v.data(), v.size()));
+    ASSERT_OK(put(token, test_storage_name, r5, v.data(), v.size()));
+    display();
+    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{};
+    ASSERT_OK(scan(test_storage_name, be, scan_endpoint::INCLUSIVE,
+                   en, scan_endpoint::EXCLUSIVE, tuple_list));
+    ASSERT_EQ(tuple_list.size(), 0);
+    ASSERT_OK(leave(token));
 }
 
 } // namespace yakushima::testing
