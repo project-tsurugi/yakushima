@@ -69,14 +69,21 @@ TEST_F(bnt, key_tuple) { // NOLINT
     ASSERT_LT(base_node::key_tuple(ud1, 1), base_node::key_tuple(ud2, 1));
     ASSERT_LT(base_node::key_tuple(ud1, 1), base_node::key_tuple(ud2, 2));
     ASSERT_LT(base_node::key_tuple(ud1, 2), base_node::key_tuple(ud2, 1));
+    ASSERT_LT(base_node::key_tuple(ud1, 1).compare(base_node::key_tuple(ud2, 1)), 0);
+    ASSERT_LT(base_node::key_tuple(ud1, 1).compare(base_node::key_tuple(ud2, 2)), 0);
+    ASSERT_LT(base_node::key_tuple(ud1, 2).compare(base_node::key_tuple(ud2, 1)), 0);
     // suffix NUL
     ASSERT_LT(base_node::key_tuple(ud1, 1), base_node::key_tuple(ud1, 2));
     ASSERT_LT(base_node::key_tuple(ud1, 2), base_node::key_tuple(ud1, 3));
     ASSERT_LT(base_node::key_tuple(ud1, 3), base_node::key_tuple(ud1, 4));
+    ASSERT_LT(base_node::key_tuple(ud1, 1).compare(base_node::key_tuple(ud1, 2)), 0);
+    ASSERT_LT(base_node::key_tuple(ud1, 2).compare(base_node::key_tuple(ud1, 3)), 0);
+    ASSERT_LT(base_node::key_tuple(ud1, 3).compare(base_node::key_tuple(ud1, 4)), 0);
 
     // empty case
     ASSERT_EQ(base_node::key_tuple{}, base_node::key_tuple{});
     ASSERT_FALSE(base_node::key_tuple{} < base_node::key_tuple{});
+    ASSERT_EQ(base_node::key_tuple{}.compare(base_node::key_tuple{}), 0);
 }
 
 } // namespace yakushima::testing

@@ -40,6 +40,12 @@ public:
             }
         }
 
+        [[nodiscard]] int compare(const key_tuple& r) const {
+            int ret = memcmp(&key_slice_, &r.key_slice_,
+                             std::min<std::size_t>({sizeof(key_slice_type), key_length_, r.key_length_}));
+            if (ret != 0) { return ret; }
+            return static_cast<int>(key_length_) - static_cast<int>(r.key_length_);
+        }
         bool operator<(const key_tuple& r) const {
             if (r.key_length_ == 0) { return false; }
             if (key_length_ == 0) { return true; }
