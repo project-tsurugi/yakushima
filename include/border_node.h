@@ -217,12 +217,6 @@ public:
         cout << "next : " << get_next() << endl; // NOLINT(*-avoid-endl)
     }
 
-    /**
-     * @brief Collect the memory usage of this partial tree.
-     *
-     * @param level the level of this node in the tree.
-     * @param mem_stat the stack of memory usage for each level.
-     */
     void mem_usage(std::size_t level,
                    memory_usage_stack& mem_stat) const override {
         if (mem_stat.size() <= level) { mem_stat.emplace_back(0, 0, 0); }
