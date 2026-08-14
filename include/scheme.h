@@ -31,13 +31,18 @@ using key_length_type = std::uint8_t;
 using value_length_type = std::size_t;
 using value_align_type = std::align_val_t;
 
+/// @brief memory usage statistics for interior nodes by depth in the B+Tree Layer
+struct mem_usage_interior_stat {
+    std::size_t in_count = 0;
+    std::size_t in_allocated_mem = 0;
+    std::size_t in_used_key = 0;
+};
+
 /// @brief memory usage statistics for B+Tree Layer
 struct mem_usage_layer_stat {
     std::size_t bt_count = 0;
     // interior
-    std::size_t in_count = 0;
-    std::size_t in_allocated_mem = 0;
-    std::size_t in_used_key = 0;
+    std::vector<mem_usage_interior_stat> in_stack;
     // border
     std::size_t bn_count = 0;
     std::size_t bn_allocated_mem = 0;

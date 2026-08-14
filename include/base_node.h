@@ -106,10 +106,11 @@ public:
     /**
      * @brief Collect the memory usage of this partial tree.
      *
-     * @param[in] level the level of this B+Tree layer in the tree.
+     * @param[in] layer_level the level of this B+Tree layer in the tree.
+     * @param[in] interior_level the level of this node in the B+Tree layer.
      * @param[in,out] mem_stat the stack of memory usage for each B+Tree layer level.
      */
-    virtual void mem_usage(std::size_t level,
+    virtual void mem_usage(std::size_t layer_level, std::size_t interior_level,
                            memory_usage_stack& mem_stat) const = 0;
 
     void display_base() {

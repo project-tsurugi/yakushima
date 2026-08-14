@@ -3,6 +3,7 @@
  */
 
 #include <array>
+#include <sstream>
 
 #include "test_tool.h"
 
@@ -95,7 +96,7 @@ TEST_F(interface_helper_test, mem_usage_iv) {
     auto mem_stat = mem_usage(test_storage_name);
     ASSERT_EQ(mem_stat.size(), 2);
     EXPECT_EQ(mem_stat[0].bt_count, 1);
-    EXPECT_EQ(mem_stat[0].in_count, 0);
+    EXPECT_EQ(mem_stat[0].in_stack.size(), 0);
     EXPECT_EQ(mem_stat[0].bn_count, 1);
     EXPECT_EQ(mem_stat[0].bn_allocated_mem, sizeof(border_node));
     EXPECT_EQ(mem_stat[0].bn_used_key, 2);
@@ -150,7 +151,7 @@ TEST_F(interface_helper_test, mem_usage_vv) {
     auto mem_stat = mem_usage(test_storage_name);
     ASSERT_EQ(mem_stat.size(), 2);
     EXPECT_EQ(mem_stat[0].bt_count, 1);
-    EXPECT_EQ(mem_stat[0].in_count, 0);
+    EXPECT_EQ(mem_stat[0].in_stack.size(), 0);
     EXPECT_EQ(mem_stat[0].bn_count, 1);
     EXPECT_EQ(mem_stat[0].bn_allocated_mem, sizeof(border_node));
     EXPECT_EQ(mem_stat[0].bn_used_key, 2);
@@ -162,6 +163,47 @@ TEST_F(interface_helper_test, mem_usage_vv) {
     EXPECT_EQ(mem_stat[1].bn_used_key, 5);
     EXPECT_EQ(mem_stat[1].vv_count, 5);
     EXPECT_EQ(mem_stat[1].vv_allocated_mem, (8 + 4) * 2 + (8 + 64) * 3);
+
+    mem_usage_display(mem_stat);
+    ASSERT_OK(leave(token));
+}
+
+TEST_F(interface_helper_test, mem_usage_in) {
+    // L0 (b) -  L1_(i)
+    //               +-- L1 1 (b) - k6, k7
+    //               +-- L1 2 (b) - k8, ..., k15
+    void* v = reinterpret_cast<void*>(uintptr_t(0x123));
+    Token token{};
+    auto make_key = [] (std::size_t i) {
+        std::ostringstream ss{};
+        ss << "k" << std::setw(11) << std::setfill('0') << i;
+        return ss.str();
+    };
+    ASSERT_OK(enter(token));
+    for (std::size_t i = 0; i < 16; i++) {
+        ASSERT_OK(put<void*>(token, test_storage_name, make_key(i), &v, sizeof(v)));
+    }
+    for (std::size_t i = 0; i < 6; i++) {
+        ASSERT_OK(remove(token, test_storage_name, make_key(i)));
+    }
+
+    auto mem_stat = mem_usage(test_storage_name);
+    ASSERT_EQ(mem_stat.size(), 2);
+    EXPECT_EQ(mem_stat[0].bt_count, 1);
+    EXPECT_EQ(mem_stat[0].in_stack.size(), 0);
+    EXPECT_EQ(mem_stat[0].bn_count, 1);
+    EXPECT_EQ(mem_stat[0].bn_allocated_mem, sizeof(border_node));
+    EXPECT_EQ(mem_stat[0].bn_used_key, 1);
+    EXPECT_EQ(mem_stat[0].iv_count, 0);
+    EXPECT_EQ(mem_stat[1].bt_count, 1);
+    ASSERT_EQ(mem_stat[1].in_stack.size(), 1);
+    EXPECT_EQ(mem_stat[1].in_stack[0].in_count, 1);
+    EXPECT_EQ(mem_stat[1].in_stack[0].in_allocated_mem, sizeof(interior_node));
+    EXPECT_EQ(mem_stat[1].in_stack[0].in_used_key, 2);
+    EXPECT_EQ(mem_stat[1].bn_count, 2);
+    EXPECT_EQ(mem_stat[1].bn_allocated_mem, sizeof(border_node) * 2);
+    EXPECT_EQ(mem_stat[1].bn_used_key, 10);
+    EXPECT_EQ(mem_stat[1].iv_count, 10);
 
     mem_usage_display(mem_stat);
     ASSERT_OK(leave(token));

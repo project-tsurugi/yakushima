@@ -86,19 +86,21 @@ public:
         std::cout << std::flush;
     }
 
-    void mem_usage(std::size_t level,
+    void mem_usage(std::size_t layer_level, std::size_t interior_level,
                    memory_usage_stack& mem_stat) const override {
-        if (mem_stat.size() <= level) { mem_stat.resize(level + 1); }
-        mem_usage_layer_stat& ls = mem_stat.at(level);
+        if (mem_stat.size() <= layer_level) { mem_stat.resize(layer_level + 1); }
+        mem_usage_layer_stat& ls = mem_stat.at(layer_level);
+        if (ls.in_stack.size() <= interior_level) { ls.in_stack.resize(interior_level + 1); }
+        mem_usage_interior_stat& is = ls.in_stack.at(interior_level);
 
         const auto n_keys = n_keys_ + 1UL;
         if (get_version_root()) { ls.bt_count++; }
-        ls.in_count++;
-        ls.in_allocated_mem += sizeof(interior_node);
-        ls.in_used_key += n_keys;
+        is.in_count++;
+        is.in_allocated_mem += sizeof(interior_node);
+        is.in_used_key += n_keys;
 
         for (std::size_t i = 0; i < n_keys; ++i) {
-            get_child_at(i)->mem_usage(level, mem_stat);
+            get_child_at(i)->mem_usage(layer_level, interior_level + 1, mem_stat);
         }
     }
 

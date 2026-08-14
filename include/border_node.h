@@ -217,10 +217,10 @@ public:
         cout << "next : " << get_next() << endl; // NOLINT(*-avoid-endl)
     }
 
-    void mem_usage(std::size_t level,
+    void mem_usage(std::size_t layer_level, std::size_t,
                    memory_usage_stack& mem_stat) const override {
-        if (mem_stat.size() <= level) { mem_stat.resize(level + 1); }
-        mem_usage_layer_stat& ls = mem_stat.at(level);
+        if (mem_stat.size() <= layer_level) { mem_stat.resize(layer_level + 1); }
+        mem_usage_layer_stat& ls = mem_stat.at(layer_level);
 
         const std::size_t cnk = get_permutation_cnk();
         if (get_version_root()) { ls.bt_count++; }
@@ -230,7 +230,7 @@ public:
 
         for (std::size_t i = 0; i < cnk; ++i) {
             std::size_t index = permutation_.get_index_of_rank(i);
-            lv_.at(index).mem_usage(level, mem_stat);
+            lv_.at(index).mem_usage(layer_level, mem_stat);
         }
     }
 

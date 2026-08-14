@@ -42,7 +42,7 @@ mem_usage(std::string_view storage_name) {
     memory_usage_stack mem_stat{};
     tree_instance* ti{};
     if (status::OK == storage::find_storage(storage_name, &ti)) {
-        ti->load_root_ptr()->mem_usage(0, mem_stat);
+        ti->load_root_ptr()->mem_usage(0, 0, mem_stat);
     }
     return mem_stat;
 }
@@ -56,14 +56,20 @@ mem_usage(std::string_view storage_name) {
     };
     for (std::size_t l = 0; l < mem_stat.size(); l++) {
         const auto& ls = mem_stat[l];
+        mem_usage_interior_stat is{};
+        for (const auto& isd : ls.in_stack) {
+            is.in_count += isd.in_count;
+            is.in_allocated_mem += isd.in_allocated_mem;
+            is.in_used_key += isd.in_used_key;
+        }
         std::ostringstream ss;
         ss << "L" << l
            << ": bt_count=" << ls.bt_count
-           << ", in_count=" << ls.in_count;
-        if (ls.in_count != 0) {
-            ss << ", in_allocated_mem=" << ls.in_allocated_mem
-               << ", in_used_key=" << ls.in_used_key
-               << " " << str_rate(ls.in_used_key, ls.in_count * interior_node::child_length);
+           << ", in_count=" << is.in_count;
+        if (is.in_count != 0) {
+            ss << ", in_allocated_mem=" << is.in_allocated_mem
+               << ", in_used_key=" << is.in_used_key
+               << " " << str_rate(is.in_used_key, is.in_count * interior_node::child_length);
         }
         ss << ", bn_count=" << ls.bn_count
            << ", bn_allocated_mem=" << ls.bn_allocated_mem
@@ -75,6 +81,14 @@ mem_usage(std::string_view storage_name) {
            << ", vv_count=" << ls.vv_count
            << ", vv_allocated_mem=" << ls.vv_allocated_mem;
         LOG(INFO) << ss.str();
+        for (std::size_t i = 0; i < ls.in_stack.size(); i++) {
+            const auto& isd = ls.in_stack[i];
+            LOG(INFO) << "L" << l << "-i" << i
+                      << ": in_count=" << isd.in_count
+                      << ", in_allocated_mem=" << isd.in_allocated_mem
+                      << ", in_used_key=" << isd.in_used_key
+                      << " " << str_rate(isd.in_used_key, isd.in_count * interior_node::child_length);
+        }
     }
 }
 
@@ -99,7 +113,7 @@ mem_usage(std::string_view storage_name) {
     if (rc != status::OK) { return; }
     for (auto& st : st_list) {
         memory_usage_stack mem_stat{};
-        st.second->load_root_ptr()->mem_usage(0, mem_stat);
+        st.second->load_root_ptr()->mem_usage(0, 0, mem_stat);
         LOG(INFO) << "mem_usage: storage " << st.second << "(" << str_for_print(st.first) << ")";
         mem_usage_display(mem_stat);
     }
