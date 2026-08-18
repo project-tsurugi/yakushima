@@ -16,6 +16,8 @@ using namespace yakushima;
 
 namespace yakushima::testing {
 
+constexpr static bool suffix_enabled = true;
+
 class tsurugi_issue672_test : public ::testing::Test {
 public:
     static void call_once_f() {
@@ -68,6 +70,16 @@ TEST_F(tsurugi_issue672_test, simple) { // NOLINT
     auto* nvp_first_border_node = n->get_version_ptr();
     ASSERT_EQ(nvp_for_put, nvp_first_border_node);
     ASSERT_EQ(n->get_version_border(), true);
+    if (suffix_enabled) {
+        auto* suf = dynamic_cast<border_node*>(n)->get_lv_at(0)->get_suffix();
+        ASSERT_NE(suf, nullptr);
+        ASSERT_EQ(suf->get_suffix_sv(), k.substr(8));
+        ASSERT_NE(suf->get_value(), nullptr);
+
+        // 2nd put creates a new layer
+        ASSERT_OK(put(t, st, k + " ", v.data(), v.size(), &tmp_created_value_ptr,
+                      static_cast<value_align_type>(alignof(char)), true, &nvp_for_put));
+    }
     auto* n_second_border_node =
             dynamic_cast<border_node*>(n)->get_lv_at(0)->get_next_layer();
     ASSERT_NE(n_second_border_node, nullptr);

@@ -19,6 +19,22 @@ namespace yakushima {
 
 class link_or_value {
 public:
+    // 00: inlined-value
+    // 01: value struct
+    // 10: child node -> suffix struct
+    // 11: child node
+    enum tag : uintptr_t {
+        LeafTagBits = 0b11UL << 62U, // mask bits
+
+        /// @brief Tag for indicating that the raw pointer value is stored (i.e. inlined).
+        InlinedValue = 0b00UL << 62U,
+        /// @brief Tag for indicating that the value pointer is actually a pointer (i.e. not inlined).
+        ValuePtr     = 0b01UL << 62U,
+        /// @brief Tag for indicating that the key suffix and value.
+        SuffixValue  = 0b10UL << 62U,
+        /// @brief Tag for indicating that the next layer exists.
+        Child        = 0b11UL << 62U,
+    };
     link_or_value() = default;
 
     link_or_value(const link_or_value&) = default;
@@ -40,6 +56,10 @@ public:
             delete child; // NOLINT
         } else if (auto* v = get_value(); v != nullptr) {
             if (value::need_delete(v)) { value::delete_value(v); }
+            if (auto* suf = get_suffix(); suf != nullptr) {
+                auto [p, sz, align] = suf->get_gc_info();
+                ::operator delete(p, sz, align);
+            }
         }
         init_lv();
     }
@@ -93,6 +113,11 @@ public:
         return &typeid(nullptr);
     }
 
+    [[nodiscard]] tag get_lv_typetag() const {
+        const auto ptr = loadAcquireN(child_or_v_);
+        return static_cast<tag>(ptr & tag::LeafTagBits);
+    }
+
     /**
      * @brief Get the root node of the next layer.
      *
@@ -104,8 +129,8 @@ public:
      */
     [[nodiscard]] base_node* get_next_layer() const {
         const auto ptr = loadAcquireN(child_or_v_);
-        if ((ptr & kChildFlag) == 0) { return nullptr; }
-        return reinterpret_cast<base_node*>(ptr & ~kChildFlag); // NOLINT
+        if ((ptr & tag::LeafTagBits) != tag::Child) { return nullptr; }
+        return reinterpret_cast<base_node*>(ptr & ~tag::LeafTagBits); // NOLINT
     }
 
     /**
@@ -119,15 +144,24 @@ public:
      */
     [[nodiscard]] value* get_value() const {
         const auto ptr = loadAcquireN(child_or_v_);
-        if ((ptr & kChildFlag) > 0 || ptr == kValPtrFlag) { return nullptr; }
+        if ((ptr & tag::LeafTagBits) == tag::Child || ptr == tag::ValuePtr) { return nullptr; }
+        if ((ptr & tag::LeafTagBits) == tag::SuffixValue) {
+            return reinterpret_cast<lv_suffix*>(ptr & ~tag::LeafTagBits)->get_value(); // NOLINT
+        }
         return reinterpret_cast<value*>(ptr); // NOLINT
+    }
+
+    [[nodiscard]] lv_suffix* get_suffix() const {
+        const auto ptr = loadAcquireN(child_or_v_);
+        if ((ptr & tag::LeafTagBits) != tag::SuffixValue) { return nullptr; }
+        return reinterpret_cast<lv_suffix*>(ptr & ~tag::LeafTagBits); // NOLINT
     }
 
     /**
      * @brief Initialize the payload to zero.
      *
      */
-    void init_lv() { child_or_v_ = kValPtrFlag; }
+    void init_lv() { child_or_v_ = tag::ValuePtr; }
 
     /**
      * @details This is move process.
@@ -153,14 +187,18 @@ public:
     void set_value(value* new_value, void** const created_value_ptr,
                    value** old_value = nullptr) {
         if (old_value != nullptr) {
-            *old_value = get_value();
+            auto* cur_v = get_value();
+            if (auto* suf = get_suffix(); suf != nullptr) {
+                cur_v = suf->get_value();
+            }
+            *old_value = cur_v;
         }
 
         // store the given value
         const auto ptr = reinterpret_cast<uintptr_t>(new_value); // NOLINT
         storeReleaseN(child_or_v_, ptr);
         if (created_value_ptr != nullptr) {
-            auto* v_ptr = reinterpret_cast<value*>(child_or_v_); // NOLINT
+            auto* v_ptr = get_value();
             *created_value_ptr = value::get_body(v_ptr);
         }
     }
@@ -171,19 +209,10 @@ public:
      */
     void set_next_layer(base_node* const new_next_layer) {
         auto ptr = reinterpret_cast<uintptr_t>(new_next_layer); // NOLINT
-        storeReleaseN(child_or_v_, ptr | kChildFlag);
+        storeReleaseN(child_or_v_, ptr | tag::Child);
     }
 
 private:
-    /**
-     * @brief A flag for indicating that the next layer exists.
-     */
-    static constexpr uintptr_t kChildFlag = 0b10UL << 62UL;
-
-    /**
-     * @brief A flag for indicating that the value pointer is actually a pointer (i.e. not inlined).
-     */
-    static constexpr uintptr_t kValPtrFlag = 0b01UL << 62UL;
 
     /**
      * @attention
@@ -192,7 +221,7 @@ private:
      * If the most significant bit is one, this contains the next layer.
      * Otherwise, this contains the pointer of a value.
      */
-    uintptr_t child_or_v_{kValPtrFlag};
+    uintptr_t child_or_v_{tag::ValuePtr};
 };
 
 } // namespace yakushima

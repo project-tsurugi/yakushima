@@ -7,7 +7,7 @@
 #include <future>
 #include <random>
 
-#include "gtest/gtest.h"
+#include "test_tool.h"
 
 #include "kvs.h"
 
@@ -16,6 +16,8 @@ using namespace yakushima;
 namespace yakushima::testing {
 
 std::string st{"1"}; // NOLINT
+
+constexpr static bool suffix_enabled = true;
 
 class put_test : public ::testing::Test {
 protected:
@@ -233,8 +235,7 @@ TEST_F(put_test, one_key_len9) { // NOLINT
     std::string v{"v"};
     yakushima::node_version64* nvp{};
     char* tmp_created_value_ptr{};
-    ASSERT_EQ(status::OK,
-              put(token, st, k, v.data(), v.size(), &tmp_created_value_ptr,
+    ASSERT_OK(put(token, st, k, v.data(), v.size(), &tmp_created_value_ptr,
                   static_cast<value_align_type>(alignof(char)), true, &nvp));
 
     // verify
@@ -242,6 +243,16 @@ TEST_F(put_test, one_key_len9) { // NOLINT
     ASSERT_EQ(n->get_version_border(), true);
     auto* nvp_first_border_node = n->get_version_ptr();
     ASSERT_EQ(nvp, nvp_first_border_node);
+    if (suffix_enabled) {
+        auto* suf = dynamic_cast<border_node*>(n)->get_lv_at(0)->get_suffix();
+        ASSERT_NE(suf, nullptr);
+        ASSERT_EQ(suf->get_suffix_sv(), k.substr(8));
+        ASSERT_NE(suf->get_value(), nullptr);
+
+        // 2nd put creates a new layer
+        ASSERT_OK(put(token, st, k + " ", v.data(), v.size(), &tmp_created_value_ptr,
+                      static_cast<value_align_type>(alignof(char)), true, &nvp));
+    }
     auto* n_second_border_node =
             dynamic_cast<border_node*>(n)->get_lv_at(0)->get_next_layer();
     ASSERT_NE(n_second_border_node, nullptr);
