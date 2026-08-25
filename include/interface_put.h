@@ -349,6 +349,7 @@ retry_fetch_lv:
                 b2->compute_rank_if_insert(ktn.get_key_slice(), ktn.get_key_length()));
         if (inserted_node_info_ptr != nullptr) {
             inserted_node_info_ptr->modified_nvp = target_border->get_version_ptr();
+            // XXX(ti1543): shirakami must know all border nodes created in put(), but no such API/interface
         }
 
         // release old suffix
