@@ -257,8 +257,8 @@ class node_version64;
 struct inserted_node_info {
     /** pointer to the version object of inserted/split border node */
     node_version64* modified_nvp;
-    /** pointer to the version object of newly created border node, or nullptr if not split */
-    node_version64* created_nvp;
+    /** pointer to the version object of newly created border node, or nullptr if not created */
+    std::vector<node_version64*> created_nvps;
 };
 
 } // namespace yakushima
