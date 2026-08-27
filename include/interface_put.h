@@ -37,7 +37,7 @@ put([[maybe_unused]] Token token, tree_instance* ti, std::string_view key_view,
     constexpr auto kIsInline = is_inlinable<ValueType>();
     auto* created_v_ptr = reinterpret_cast<void**>(created_value_ptr); // NOLINT
     if (inserted_node_info_ptr != nullptr) {
-        inserted_node_info_ptr->created_nvp = nullptr;
+        inserted_node_info_ptr->created_nvps.clear();
     }
 
 root_nullptr:
