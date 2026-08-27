@@ -332,7 +332,7 @@ TEST_F(put_test, inserted_node_info) {
     ASSERT_EQ(leave(token), status::OK);
 }
 
-// ti 1543 (API unimplemented)
+// ti 1543
 TEST_F(put_test, inserted_node_info_deep) {
     tree_instance* ti{};
     find_storage(st, &ti);
@@ -353,7 +353,7 @@ TEST_F(put_test, inserted_node_info_deep) {
     EXPECT_EQ(ii.modified_nvp, b0->get_version_ptr());
     if (suffix_enabled) {
         // 1st put makes no layers
-        // TODO: CHECK created nodes = {}
+        EXPECT_EQ(ii.created_nvps.size(), 0);
 
         // 2nd put makes layers
         ASSERT_OK(put<char>(token, st, std::string{k} + "x", v.data(), v.size(),
@@ -366,7 +366,10 @@ TEST_F(put_test, inserted_node_info_deep) {
     ASSERT_EQ(b1->get_key_slice_at(0), base_node::key_tuple(k.substr(8)).get_key_slice());
     ASSERT_EQ(b1->get_lv_at(0)->get_next_layer()->get_version_border(), true);
     auto* b2 = static_cast<border_node*>(b1->get_lv_at(0)->get_next_layer());
-    (void)b2; // TODO: CHECK created nodes = { b1, b2 }
+    ASSERT_EQ(ii.created_nvps.size(), 2);
+    std::set<node_version64*> created_nvp_set({ii.created_nvps[0].second, ii.created_nvps[1].second});
+    EXPECT_EQ(created_nvp_set.count(b1->get_version_ptr()), 1);
+    EXPECT_EQ(created_nvp_set.count(b2->get_version_ptr()), 1);
     EXPECT_EQ(ii.modified_nvp, b0->get_version_ptr());
 
     ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
