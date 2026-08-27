@@ -391,4 +391,15 @@ private:
     std::atomic<node_version64_body> body_;
 };
 
+struct inserted_node_info {
+    /** pointer to the version object of inserted/split border node */
+    node_version64* modified_nvp;
+    /** pointer to the version object of newly created border node, or nullptr if not created */
+    std::vector<std::pair<node_version64_body, node_version64*>> created_nvps;
+
+    //* register the version of new node.
+    //* call before expose the node (chance to modified by other thread)
+    void add_created_nvp(node_version64* nvp) { created_nvps.emplace_back(nvp->get_body(), nvp); }
+};
+
 } // namespace yakushima

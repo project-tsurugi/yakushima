@@ -153,7 +153,7 @@ static void border_split(tree_instance* ti, border_node* const border,
     // update inserted_node_info_ptr
     if (inserted_node_info_ptr != nullptr) {
         inserted_node_info_ptr->modified_nvp = border->get_version_ptr();
-        inserted_node_info_ptr->created_nvps.emplace_back(new_border->get_version_ptr());
+        inserted_node_info_ptr->add_created_nvp(new_border->get_version_ptr());
     }
 
     /**
