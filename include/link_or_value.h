@@ -137,21 +137,19 @@ public:
     }
 
     /**
+     * @pre acquire the lock of the border node to which @a this lv belongs
      * @brief set the new value and release the old value if needed
      * @param[in] new_value the new value to be set
      * @param[out] created_value_ptr output parameter filled with the created value pointer
      * @param[out] old_value output parameter filled with the old value pointer. If caller receives non-null pointer,
      * it transfers ownership and caller is responsible for deleting the old value pointer.
+     * This parameter must only be set where this lv is alive (i.e. from overwrite process in put()).
+     * If not, the object pointed by lv has already been handed over the GC and cannot be safely accessed.
      */
     void set_value(value* new_value, void** const created_value_ptr,
                    value** old_value = nullptr) {
-        auto* cur_v = get_value();
-        if (cur_v != nullptr && value::need_delete(cur_v)) {
-            if (old_value == nullptr) {
-                value::delete_value(cur_v);
-            } else {
-                *old_value = cur_v;
-            }
+        if (old_value != nullptr) {
+            *old_value = get_value();
         }
 
         // store the given value
