@@ -12,10 +12,13 @@
 #include "kvs.h"
 
 using namespace yakushima;
+using namespace std::literals;
 
 namespace yakushima::testing {
 
 std::string st{"1"}; // NOLINT
+
+constexpr static bool suffix_enabled = true;
 
 class put_test : public ::testing::Test {
 protected:
@@ -325,6 +328,44 @@ TEST_F(put_test, inserted_node_info) {
                   static_cast<value_align_type>(alignof(char)), true, &ii2));
     EXPECT_EQ(ii2.modified_nvp, ii1.modified_nvp);
     EXPECT_NE(ii2.created_nvp, nullptr);
+    ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
+    ASSERT_EQ(leave(token), status::OK);
+}
+
+// ti 1543 (API unimplemented)
+TEST_F(put_test, inserted_node_info_deep) {
+    tree_instance* ti{};
+    find_storage(st, &ti);
+    Token token{};
+    ASSERT_OK(enter(token));
+    // test
+    auto v = "v"sv;
+    inserted_node_info ii{};
+    auto* n = ti->load_root_ptr();
+    ASSERT_TRUE(n->get_version_border());
+    auto* b0 = dynamic_cast<border_node*>(n);
+
+    ASSERT_OK(put<char>(token, st, "12345678abcdefgh1234", v.data(), v.size(),
+                        nullptr, std::align_val_t{alignof(char)}, true, &ii));
+    ASSERT_EQ(ii.modified_nvp, b0->get_version_ptr());
+    if (suffix_enabled) {
+        // 1st put makes no layers
+        // TODO: CHECK created nodes = {}
+
+        // 2nd put makes layers
+        ASSERT_OK(put<char>(token, st, "12345678abcdefgh1234x", v.data(), v.size(),
+                            nullptr, std::align_val_t{alignof(char)}, true, &ii));
+        ASSERT_EQ(ii.modified_nvp, b0->get_version_ptr());
+    }
+    ASSERT_EQ(b0->get_key_slice_at(0), base_node::key_tuple("12345678").get_key_slice());
+    ASSERT_EQ(b0->get_lv_at(0)->get_next_layer()->get_version_border(), true);
+    auto* b1 = static_cast<border_node*>(b0->get_lv_at(0)->get_next_layer());
+    ASSERT_EQ(b1->get_key_slice_at(0), base_node::key_tuple("abcdefgh").get_key_slice());
+    ASSERT_EQ(b1->get_lv_at(0)->get_next_layer()->get_version_border(), true);
+    auto* b2 = static_cast<border_node*>(b1->get_lv_at(0)->get_next_layer());
+    (void)b2; // TODO: CHECK created nodes = { b1, b2 }
+    ASSERT_EQ(ii.modified_nvp, b0->get_version_ptr());
+
     ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
     ASSERT_EQ(leave(token), status::OK);
 }
