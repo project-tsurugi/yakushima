@@ -69,22 +69,18 @@ TEST_F(mtpdt, one_interior_many_border_shuffle) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(token, test_storage_name, k, v.data(),
-                                  v.size()),
-                              status::OK);
+                    EXPECT_EQ(put(token, test_storage_name, k, v.data(), v.size()), status::OK) << "v:" << v;
                 }
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(remove(token, test_storage_name, k), status::OK);
+                    EXPECT_EQ(remove(token, test_storage_name, k), status::OK) << "v:" << v;
                 }
 
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(token, test_storage_name, k, v.data(),
-                                  v.size()),
-                              status::OK);
+                    EXPECT_EQ(put(token, test_storage_name, k, v.data(), v.size()), status::OK) << "v:" << v;
                 }
 
                 leave(token);
@@ -106,10 +102,7 @@ TEST_F(mtpdt, one_interior_many_border_shuffle) { // NOLINT
         ASSERT_EQ(tuple_list.size(), ary_size);
         for (std::size_t j = 0; j < ary_size; ++j) {
             std::string v(std::to_string(j));
-            constexpr std::size_t v_index = 1;
-            ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(),
-                             v.size()),
-                      0);
+            EXPECT_EQ(std::string(std::get<1>(tuple_list.at(j)), std::get<2>(tuple_list.at(j))), v);
         }
 
         destroy();
@@ -162,22 +155,18 @@ TEST_F(mtpdt, second_layer_one_interior_many_border_shuffle) { // NOLINT
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(token, test_storage_name, k, v.data(),
-                                  v.size()),
-                              status::OK);
+                    EXPECT_EQ(put(token, test_storage_name, k, v.data(), v.size()), status::OK) << "v:" << v;
                 }
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(remove(token, test_storage_name, k), status::OK);
+                    EXPECT_EQ(remove(token, test_storage_name, k), status::OK) << "v:" << v;
                 }
 
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     std::string v(std::get<1>(i));
-                    ASSERT_EQ(put(token, test_storage_name, k, v.data(),
-                                  v.size()),
-                              status::OK);
+                    EXPECT_EQ(put(token, test_storage_name, k, v.data(), v.size()), status::OK) << "v:" << v;
                 }
 
                 leave(token);
@@ -199,10 +188,7 @@ TEST_F(mtpdt, second_layer_one_interior_many_border_shuffle) { // NOLINT
         ASSERT_EQ(tuple_list.size(), ary_size);
         for (std::size_t j = 0; j < ary_size; ++j) {
             std::string v(std::to_string(j));
-            constexpr std::size_t v_index = 1;
-            ASSERT_EQ(memcmp(std::get<v_index>(tuple_list.at(j)), v.data(),
-                             v.size()),
-                      0);
+            EXPECT_EQ(std::string(std::get<1>(tuple_list.at(j)), std::get<2>(tuple_list.at(j))), v);
         }
 
         destroy();
