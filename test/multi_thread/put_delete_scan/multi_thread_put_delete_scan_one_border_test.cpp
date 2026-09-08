@@ -7,7 +7,7 @@
 #include <random>
 #include <thread>
 
-#include "gtest/gtest.h"
+#include "test_tool.h"
 
 #include "kvs.h"
 
@@ -274,6 +274,79 @@ TEST_F(mtpdst, one_border_shuffle) { // NOLINT
                              v.size()),
                       0);
         }
+        destroy();
+    }
+}
+
+TEST_F(mtpdst, never_read_null_lv) {
+    // check: delete_at for varlen (not-inlined) value
+    // regardless of concurrent schedule, remove() must not result in scan() reading NULL value
+    // calling init_lv() in delete_at() may cause the problem
+    constexpr std::size_t ary_size = 12; // <= key_slice_length
+
+#ifndef NDEBUG
+    for (std::size_t h = 0; h < 1; ++h) {
+#else
+    for (std::size_t h = 0; h < 50; ++h) {
+#endif
+        create_storage(test_storage_name);
+        static std::atomic_bool end_flag = false;
+        struct S {
+            static std::string make_key(std::size_t k) {
+                return std::to_string(k);
+            }
+            static std::string make_value(std::size_t k) {
+                return std::to_string(k);
+            }
+            static void modify_work(std::size_t th_id) {
+                Token token{};
+                for (std::size_t i = 0; i < 100; i++) {
+                    while (enter(token) != status::OK) { _mm_pause(); }
+                    std::string v = make_value(th_id);
+                    VLOG(41) << "put    th_id:" << th_id << " v:" << v;
+                    ASSERT_OK(put(token, test_storage_name, make_key(th_id), v.data(), v.size()));
+                    _mm_pause();
+                    VLOG(41) << "remove th_id:" << th_id << " v:" << v;
+                    ASSERT_OK(remove(token, test_storage_name, make_key(th_id)));
+                    _mm_pause();
+                    leave(token);
+                }
+            }
+            static void scan_work(std::size_t th_id) {
+                while (!end_flag) {
+                    Token token{};
+                    while (enter(token) != status::OK) { _mm_pause(); }
+                    std::vector<std::tuple<std::string, char*, std::size_t>> tuple_list{};
+                    ASSERT_OK(scan<char>(test_storage_name, "", scan_endpoint::INF, "", scan_endpoint::INF,
+                                         tuple_list));
+                    for (auto&& elem : tuple_list) {
+                        auto k = std::get<0>(elem);
+                        if (std::get<1>(elem) == nullptr) {
+                            // using VLOG to display timestamp in the same format as modify_work()
+                            VLOG(41) << "scan returns null value";
+                            EXPECT_NE(std::get<1>(elem), nullptr) << "th_id:" << th_id << " k:" << k;
+                            continue;
+                        }
+                        std::string_view scanned{std::get<1>(elem), std::get<2>(elem)};
+                        ASSERT_EQ(k, scanned) << "th_id:" << th_id;
+                    }
+                    leave(token);
+                }
+            }
+        };
+
+        std::vector<std::thread> mth{};
+        std::vector<std::thread> sth{};
+        mth.reserve(ary_size);
+        sth.reserve(5);
+        for (std::size_t i = 0; i < ary_size; ++i) { mth.emplace_back(S::modify_work, i); }
+        for (std::size_t i = 0; i < 5; ++i) { sth.emplace_back(S::scan_work, i); }
+        for (auto&& th : mth) { th.join(); }
+        end_flag = true;
+        for (auto&& th : sth) { th.join(); }
+        mth.clear();
+        sth.clear();
+
         destroy();
     }
 }
