@@ -53,6 +53,17 @@ namespace yakushima {
 mem_usage(std::string_view storage_name); // NOLINT
 
 /**
+ * @brief Display memory usage data.
+ * @param[in] mem_stat memory usage data to display.
+ */
+[[maybe_unused]] static void mem_usage_display(const memory_usage_stack& mem_stat); // NOLINT
+
+/**
+ * @brief Display memory usage data of all storage. This is not thread safe.
+ */
+[[maybe_unused]] static void mem_usage_display_all(); // NOLINT
+
+/**
  * @brief Create storage
  * @param [in] storage_name
  * @attention Do not treat DDL operations in parallel with DML operations.
