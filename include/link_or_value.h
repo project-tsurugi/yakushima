@@ -97,6 +97,12 @@ public:
             child->mem_usage(layer_level + 1, 0, mem_stat);
         } else if (auto* v = get_value(); v != nullptr) {
             mem_usage_layer_stat& ls = mem_stat.at(layer_level);
+            if (auto* suf = get_suffix(); suf != nullptr) {
+                auto len = std::get<1>(suf->get_gc_info());
+                ls.sv_count++;
+                ls.sv_allocated_mem += len;
+                v = suf->get_value();
+            }
             if (value::is_value_ptr(v)) {
                 const auto v_len = std::get<1>(value::get_gc_info(v));
                 ls.vv_count++;

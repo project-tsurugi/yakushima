@@ -52,6 +52,9 @@ struct mem_usage_layer_stat {
     // leaf_value (varlen-value)
     std::size_t vv_count = 0;
     std::size_t vv_allocated_mem = 0;
+    // leaf_value (suffix+value)
+    std::size_t sv_count = 0;
+    std::size_t sv_allocated_mem = 0;
 };
 using memory_usage_stack = std::vector<mem_usage_layer_stat>;
 
