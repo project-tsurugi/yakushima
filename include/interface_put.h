@@ -236,50 +236,7 @@ retry_fetch_lv:
         }
     }
     if (lv_suffix* suf = lv_ptr->get_suffix(); suf != nullptr) {
-        auto sve = suf->get_suffix_sv();
-        auto svn = traverse_key_view.substr(sizeof(key_slice_type));
-        if (sve == svn) {
-            if (unique_restriction) { return status::WARN_UNIQUE_RESTRICTION; }
-
-            target_border->lock();
-
-            if ((target_border->get_version_deleted() &&
-                 !target_border->get_version_root()) ||
-                target_border->get_version_vsplit() != v_at_fb.get_vsplit()) {
-                // maybe wrong node
-                target_border->version_unlock();
-                goto retry_from_root; // NOLINT
-            }
-            if (target_border->get_version_vinsert_delete() !=
-                v_at_fetch_lv.get_vinsert_delete()) {
-                // maybe wrong lv
-                target_border->version_unlock();
-                goto retry_fetch_lv; // NOLINT
-            }
-            // re-check because delete operation is not tracked.
-            lv_ptr = target_border->get_lv_of_without_lock(key_slice, key_slice_length);
-            if (lv_ptr == nullptr) {
-                target_border->version_unlock();
-                goto retry_fetch_lv; // NOLINT
-            }
-
-            value* v = value::create_value<kIsInline>(v_ptr, v_len, v_align);
-            if constexpr (kIsInline) {
-                suf->set_value(v, created_v_ptr);
-                target_border->version_unlock();
-            } else {
-                value* old_v = nullptr;
-                suf->set_value(v, created_v_ptr, &old_v);
-                target_border->version_unlock();
-                if (old_v != nullptr) {
-                    auto* thin = reinterpret_cast<thread_info*>(token); // NOLINT
-                    auto [o_ptr, o_len, o_align] = value::get_gc_info(old_v);
-                    thin->get_gc_info().push_value_container(
-                            {thin->get_begin_epoch(), o_ptr, o_len, o_align});
-                }
-            }
-            return status::OK;
-        }
+        // lock to prevent the invalid key_slice and key-suffix (from lv) combination
         target_border->lock();
 
         if ((target_border->get_version_deleted() &&
@@ -301,13 +258,36 @@ retry_fetch_lv:
             target_border->version_unlock();
             goto retry_fetch_lv; // NOLINT
         }
-        if (auto* new_suf = lv_ptr->get_suffix(); new_suf != suf) { // concurrent mod
-            if (new_suf == nullptr) { // XXX: concurrent suffix->another? this is caused by remove+insert, so must be blocked by v_insert check
+        suf = lv_ptr->get_suffix();
+        if (suf == nullptr) { // XXX: concurrent suffix->another? this is caused by remove+insert, so must be blocked by v_insert check
+            target_border->version_unlock();
+            goto retry_fetch_lv; // NOLINT
+        }
+
+        auto sve = suf->get_suffix_sv();
+        auto svn = traverse_key_view.substr(sizeof(key_slice_type));
+        if (sve == svn) {
+            if (unique_restriction) {
                 target_border->version_unlock();
-                goto retry_fetch_lv; // NOLINT
+                return status::WARN_UNIQUE_RESTRICTION;
             }
-            // suffix was modified concurrently, but continue
-            suf = new_suf;
+
+            value* v = value::create_value<kIsInline>(v_ptr, v_len, v_align);
+            if constexpr (kIsInline) {
+                suf->set_value(v, created_v_ptr);
+                target_border->version_unlock();
+            } else {
+                value* old_v = nullptr;
+                suf->set_value(v, created_v_ptr, &old_v);
+                target_border->version_unlock();
+                if (old_v != nullptr) {
+                    auto* thin = reinterpret_cast<thread_info*>(token); // NOLINT
+                    auto [o_ptr, o_len, o_align] = value::get_gc_info(old_v);
+                    thin->get_gc_info().push_value_container(
+                            {thin->get_begin_epoch(), o_ptr, o_len, o_align});
+                }
+            }
+            return status::OK;
         }
 
         target_border->set_version_inserting_deleting(true);
