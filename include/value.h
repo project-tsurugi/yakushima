@@ -210,6 +210,8 @@ public:
         return reinterpret_cast<value*>(v_tmp); // NOLINT
     }
 
+    const static std::size_t header_size;
+
     void set_value(value* new_value, void** const created_value_ptr,
                    value** old_value = nullptr) {
         if (old_value != nullptr) {
@@ -237,5 +239,6 @@ public:
     }
 };
 
+inline const std::size_t lv_suffix::header_size = offsetof(lv_suffix, body_);
 
 } // namespace yakushima

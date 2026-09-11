@@ -79,7 +79,9 @@ mem_usage(std::string_view storage_name) {
         }
         ss << ", iv_count=" << ls.iv_count
            << ", vv_count=" << ls.vv_count
-           << ", vv_allocated_mem=" << ls.vv_allocated_mem;
+           << ", vv_allocated_mem=" << ls.vv_allocated_mem
+           << ", sv_count=" << ls.sv_count
+           << ", sv_allocated_mem=" << ls.sv_allocated_mem;
         LOG(INFO) << ss.str();
         for (std::size_t i = 0; i < ls.in_stack.size(); i++) {
             const auto& isd = ls.in_stack[i];
