@@ -35,7 +35,7 @@ using value_align_type = std::align_val_t;
 struct mem_usage_interior_stat {
     std::size_t in_count = 0;
     std::size_t in_allocated_mem = 0;
-    std::size_t in_used_key = 0;
+    std::size_t in_used_child = 0;
 };
 
 /// @brief memory usage statistics for B+Tree Layer
@@ -46,7 +46,7 @@ struct mem_usage_layer_stat {
     // border
     std::size_t bn_count = 0;
     std::size_t bn_allocated_mem = 0;
-    std::size_t bn_used_key = 0;
+    std::size_t bn_used_lv = 0;
     // leaf_value (inlined-value)
     std::size_t iv_count = 0;
     // leaf_value (varlen-value)

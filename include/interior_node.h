@@ -97,7 +97,7 @@ public:
         if (get_version_root()) { ls.bt_count++; }
         is.in_count++;
         is.in_allocated_mem += sizeof(interior_node);
-        is.in_used_key += n_keys;
+        is.in_used_child += n_keys;
 
         for (std::size_t i = 0; i < n_keys; ++i) {
             get_child_at(i)->mem_usage(layer_level, interior_level + 1, mem_stat);

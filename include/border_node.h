@@ -226,7 +226,7 @@ public:
         if (get_version_root()) { ls.bt_count++; }
         ls.bn_count++;
         ls.bn_allocated_mem += sizeof(border_node);
-        ls.bn_used_key += cnk;
+        ls.bn_used_lv += cnk;
 
         for (std::size_t i = 0; i < cnk; ++i) {
             std::size_t index = permutation_.get_index_of_rank(i);

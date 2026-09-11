@@ -99,12 +99,12 @@ TEST_F(interface_helper_test, mem_usage_iv) {
     EXPECT_EQ(mem_stat[0].in_stack.size(), 0);
     EXPECT_EQ(mem_stat[0].bn_count, 1);
     EXPECT_EQ(mem_stat[0].bn_allocated_mem, sizeof(border_node));
-    EXPECT_EQ(mem_stat[0].bn_used_key, 2);
+    EXPECT_EQ(mem_stat[0].bn_used_lv, 2);
     EXPECT_EQ(mem_stat[0].iv_count, 0);
     EXPECT_EQ(mem_stat[1].bt_count, 2);
     EXPECT_EQ(mem_stat[1].bn_count, 2);
     EXPECT_EQ(mem_stat[1].bn_allocated_mem, sizeof(border_node) * 2);
-    EXPECT_EQ(mem_stat[1].bn_used_key, 5);
+    EXPECT_EQ(mem_stat[1].bn_used_lv, 5);
     EXPECT_EQ(mem_stat[1].iv_count, 5);
 
     mem_usage_display(mem_stat);
@@ -154,13 +154,13 @@ TEST_F(interface_helper_test, mem_usage_vv) {
     EXPECT_EQ(mem_stat[0].in_stack.size(), 0);
     EXPECT_EQ(mem_stat[0].bn_count, 1);
     EXPECT_EQ(mem_stat[0].bn_allocated_mem, sizeof(border_node));
-    EXPECT_EQ(mem_stat[0].bn_used_key, 2);
+    EXPECT_EQ(mem_stat[0].bn_used_lv, 2);
     EXPECT_EQ(mem_stat[0].vv_count, 0);
     EXPECT_EQ(mem_stat[0].vv_allocated_mem, 0);
     EXPECT_EQ(mem_stat[1].bt_count, 2);
     EXPECT_EQ(mem_stat[1].bn_count, 2);
     EXPECT_EQ(mem_stat[1].bn_allocated_mem, sizeof(border_node) * 2);
-    EXPECT_EQ(mem_stat[1].bn_used_key, 5);
+    EXPECT_EQ(mem_stat[1].bn_used_lv, 5);
     EXPECT_EQ(mem_stat[1].vv_count, 5);
     EXPECT_EQ(mem_stat[1].vv_allocated_mem, (8 + 4) * 2 + (8 + 64) * 3);
 
@@ -193,16 +193,16 @@ TEST_F(interface_helper_test, mem_usage_in) {
     EXPECT_EQ(mem_stat[0].in_stack.size(), 0);
     EXPECT_EQ(mem_stat[0].bn_count, 1);
     EXPECT_EQ(mem_stat[0].bn_allocated_mem, sizeof(border_node));
-    EXPECT_EQ(mem_stat[0].bn_used_key, 1);
+    EXPECT_EQ(mem_stat[0].bn_used_lv, 1);
     EXPECT_EQ(mem_stat[0].iv_count, 0);
     EXPECT_EQ(mem_stat[1].bt_count, 1);
     ASSERT_EQ(mem_stat[1].in_stack.size(), 1);
     EXPECT_EQ(mem_stat[1].in_stack[0].in_count, 1);
     EXPECT_EQ(mem_stat[1].in_stack[0].in_allocated_mem, sizeof(interior_node));
-    EXPECT_EQ(mem_stat[1].in_stack[0].in_used_key, 2);
+    EXPECT_EQ(mem_stat[1].in_stack[0].in_used_child, 2);
     EXPECT_EQ(mem_stat[1].bn_count, 2);
     EXPECT_EQ(mem_stat[1].bn_allocated_mem, sizeof(border_node) * 2);
-    EXPECT_EQ(mem_stat[1].bn_used_key, 10);
+    EXPECT_EQ(mem_stat[1].bn_used_lv, 10);
     EXPECT_EQ(mem_stat[1].iv_count, 10);
 
     mem_usage_display(mem_stat);

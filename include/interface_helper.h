@@ -60,7 +60,7 @@ mem_usage(std::string_view storage_name) {
         for (const auto& isd : ls.in_stack) {
             is.in_count += isd.in_count;
             is.in_allocated_mem += isd.in_allocated_mem;
-            is.in_used_key += isd.in_used_key;
+            is.in_used_child += isd.in_used_child;
         }
         std::ostringstream ss;
         ss << "L" << l
@@ -68,14 +68,14 @@ mem_usage(std::string_view storage_name) {
            << ", in_count=" << is.in_count;
         if (is.in_count != 0) {
             ss << ", in_allocated_mem=" << is.in_allocated_mem
-               << ", in_used_key=" << is.in_used_key
-               << " " << str_rate(is.in_used_key, is.in_count * interior_node::child_length);
+               << ", in_used_child=" << is.in_used_child
+               << " " << str_rate(is.in_used_child, is.in_count * interior_node::child_length);
         }
         ss << ", bn_count=" << ls.bn_count
            << ", bn_allocated_mem=" << ls.bn_allocated_mem
-           << ", bn_used_key=" << ls.bn_used_key;
+           << ", bn_used_lv=" << ls.bn_used_lv;
         if (ls.bn_count != 0) { // B+-tree must have at least one border node, but just in case
-            ss << " " << str_rate(ls.bn_used_key, ls.bn_count * key_slice_length);
+            ss << " " << str_rate(ls.bn_used_lv, ls.bn_count * key_slice_length);
         }
         ss << ", iv_count=" << ls.iv_count
            << ", vv_count=" << ls.vv_count
@@ -86,8 +86,8 @@ mem_usage(std::string_view storage_name) {
             LOG(INFO) << "L" << l << "-i" << i
                       << ": in_count=" << isd.in_count
                       << ", in_allocated_mem=" << isd.in_allocated_mem
-                      << ", in_used_key=" << isd.in_used_key
-                      << " " << str_rate(isd.in_used_key, isd.in_count * interior_node::child_length);
+                      << ", in_used_child=" << isd.in_used_child
+                      << " " << str_rate(isd.in_used_child, isd.in_count * interior_node::child_length);
         }
     }
 }
