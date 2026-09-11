@@ -206,7 +206,8 @@ public:
     }
 
     [[nodiscard]] value* get_value() const {
-        return reinterpret_cast<value*>(v_); // NOLINT
+        auto v_tmp = loadAcquireN(v_);
+        return reinterpret_cast<value*>(v_tmp); // NOLINT
     }
 
     const static std::size_t header_size;
@@ -222,7 +223,7 @@ public:
         const auto ptr = reinterpret_cast<uintptr_t>(new_value); // NOLINT
         storeReleaseN(v_, ptr);
         if (created_value_ptr != nullptr) {
-            auto* v_ptr = reinterpret_cast<value*>(v_); // NOLINT
+            auto* v_ptr = reinterpret_cast<value*>(ptr); // NOLINT
             *created_value_ptr = value::get_body(v_ptr);
         }
     }

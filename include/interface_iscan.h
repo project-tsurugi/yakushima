@@ -257,7 +257,7 @@ retry_fetch_lv:
         // case 2. lv_ptr != nullptr, and it is value
         // just hit start_key (excludes suffix)
         int cmp = 0;
-        std::string last_suf{};
+        std::string_view last_suf{};
         bool hit_start_key = traverse_endpoint == scan_endpoint::INCLUSIVE;
         if (auto* suf = lv_ptr->get_suffix(); suf) { // check suffix
             last_suf = traverse_key_view.substr(sizeof(key_slice_type));
