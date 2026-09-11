@@ -378,7 +378,7 @@ retry:
                 if (cmp == 0) {
                     if (auto* suf = lv.get_suffix(); suf != nullptr) {
                         if (lkt.get_key_length() <= sizeof(key_slice_type)) {
-                            goto retry; // something is wrong. maybe concurrent modification
+                            goto retry; // something is wrong. maybe concurrent modification // NOLINT
                         }
                         cmp = suf->get_suffix_sv().compare(l_key.substr(sizeof(key_slice_type)));
                         if (cmp < 0) { continue; }
