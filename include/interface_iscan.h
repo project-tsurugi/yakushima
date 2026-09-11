@@ -61,7 +61,7 @@ class iscan_context {
 // NOLINTEND(misc-non-private-member-variables-in-classes)
 
     std::deque<stack_element> stackq_;
-    std::string_view last_key_suffix; // key-suufix of last layer (non-last layer's lv is Child, so no suffix)
+    std::string_view last_key_suffix; // key-suffix of last layer (non-last layer's lv is Child, so no suffix)
 
 public:
     tree_instance *get_ti() { return ti_; }

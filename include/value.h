@@ -201,7 +201,7 @@ public:
         return create_suffix(suffix, reinterpret_cast<std::uintptr_t>(v)); // NOLINT
     }
 
-    std::string_view get_suffix_sv() {
+    [[nodiscard]] std::string_view get_suffix_sv() const {
         return {body_, len_}; // NOLINT
     }
 

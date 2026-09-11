@@ -25,7 +25,7 @@ static T loadAcquireN(T& ref) {                     // NOLINT
 
 // loadAcquireN for struct
 template<typename T, std::enable_if_t<std::is_trivially_copyable_v<T>, int> = 0>
-static T loadAcquireNS(T& ref) {                 // NOLINT
+static T loadAcquireNS(const T& ref) {           // NOLINT
     T ret; // NOLINT
     __atomic_load(&ref, &ret, __ATOMIC_ACQUIRE); // NOLINT
     return ret;

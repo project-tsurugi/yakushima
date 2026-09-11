@@ -306,7 +306,7 @@ retry_fetch_lv:
                 target_border->version_unlock();
                 goto retry_fetch_lv; // NOLINT
             }
-            // suffix is concurrently overwriten, but go
+            // suffix was modified concurrently, but continue
             suf = new_suf;
         }
 
