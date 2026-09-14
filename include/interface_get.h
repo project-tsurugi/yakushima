@@ -94,8 +94,21 @@ retry_fetch_lv:
         return status::WARN_NOT_EXIST;
     }
 
-    if (target_border->get_key_length_at(lv_pos) <= sizeof(key_slice_type)) {
-        value* vp = lv_ptr->get_value();
+    if (lv_ptr->get_lv_typetag() != link_or_value::tag::Child) {
+        value* vp{};
+        if (lv_ptr->get_lv_typetag() == link_or_value::tag::SuffixValue) {
+            lv_suffix* suf = lv_ptr->get_suffix();
+            if (traverse_key_view.substr(sizeof(key_slice_type)) != suf->get_suffix_sv()) {
+                if (checked_version != nullptr) {
+                    checked_version->first = v_at_fetch_lv;
+                    checked_version->second = target_border->get_version_ptr();
+                }
+                return status::WARN_NOT_EXIST;
+            }
+            vp = suf->get_value();
+        } else {
+            vp = lv_ptr->get_value();
+        }
         auto* v_body = static_cast<ValueType*>(value::get_body(vp));
         node_version64_body final_check = target_border->get_stable_version();
         if (final_check.get_vsplit() != v_at_fb.get_vsplit() ||
