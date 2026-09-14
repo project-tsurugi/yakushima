@@ -313,21 +313,21 @@ TEST_F(put_test, inserted_node_info) {
               put(token, st, "a", v.data(), v.size(), &created_value_ptr,
                   static_cast<value_align_type>(alignof(char)), true, &ii1));
     EXPECT_NE(ii1.modified_nvp, nullptr);
-    EXPECT_EQ(ii1.created_nvp, nullptr);
+    EXPECT_EQ(ii1.created_nvps.size(), 0);
     for (std::size_t i = 1; i < key_slice_length; i++) {
         // insert to border node
         ASSERT_EQ(status::OK,
                   put(token, st, std::to_string(i), v.data(), v.size(), &created_value_ptr,
                       static_cast<value_align_type>(alignof(char)), true, &ii2));
         EXPECT_EQ(ii2.modified_nvp, ii1.modified_nvp);
-        EXPECT_EQ(ii2.created_nvp, nullptr);
+        EXPECT_EQ(ii2.created_nvps.size(), 0);
     }
     // insert to border node (split)
     ASSERT_EQ(status::OK,
               put(token, st, "b", v.data(), v.size(), &created_value_ptr,
                   static_cast<value_align_type>(alignof(char)), true, &ii2));
     EXPECT_EQ(ii2.modified_nvp, ii1.modified_nvp);
-    EXPECT_NE(ii2.created_nvp, nullptr);
+    EXPECT_NE(ii2.created_nvps.size(), 0);
     ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
     ASSERT_EQ(leave(token), status::OK);
 }
@@ -350,7 +350,7 @@ TEST_F(put_test, inserted_node_info_deep) {
     ASSERT_EQ(ii.modified_nvp, b0->get_version_ptr());
     if (suffix_enabled) {
         // 1st put makes no layers
-        // TODO: CHECK created nodes = {}
+        ASSERT_EQ(ii.created_nvps.size(), 0);
 
         // 2nd put makes layers
         ASSERT_OK(put<char>(token, st, "12345678abcdefgh1234x", v.data(), v.size(),
@@ -363,7 +363,10 @@ TEST_F(put_test, inserted_node_info_deep) {
     ASSERT_EQ(b1->get_key_slice_at(0), base_node::key_tuple("abcdefgh").get_key_slice());
     ASSERT_EQ(b1->get_lv_at(0)->get_next_layer()->get_version_border(), true);
     auto* b2 = static_cast<border_node*>(b1->get_lv_at(0)->get_next_layer());
-    (void)b2; // TODO: CHECK created nodes = { b1, b2 }
+    ASSERT_EQ(ii.created_nvps.size(), 2);
+    std::set<node_version64*> created_nvp_set({ii.created_nvps[0].second, ii.created_nvps[1].second});
+    ASSERT_EQ(created_nvp_set.count(b1->get_version_ptr()), 1);
+    ASSERT_EQ(created_nvp_set.count(b2->get_version_ptr()), 1);
     ASSERT_EQ(ii.modified_nvp, b0->get_version_ptr());
 
     ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
