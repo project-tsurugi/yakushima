@@ -399,7 +399,12 @@ struct inserted_node_info {
 
     /// @brief register the version of new node.
     /// @attention use only before expose the node (as it could be modified by another thread)
-    void add_created_nvp(node_version64* nvp) { created_nvps.emplace_back(nvp->get_body(), nvp); }
+    void add_created_nvp(node_version64* nvp) {
+        node_version64 nv_copy{};
+        nv_copy.set_body(nvp->get_body());
+        if (nv_copy.get_locked()) { nv_copy.unlock(); }
+        created_nvps.emplace_back(nv_copy.get_body(), nvp);
+    }
 };
 
 } // namespace yakushima
