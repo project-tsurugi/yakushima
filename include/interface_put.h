@@ -37,7 +37,7 @@ put([[maybe_unused]] Token token, tree_instance* ti, std::string_view key_view,
     constexpr auto kIsInline = is_inlinable<ValueType>();
     auto* created_v_ptr = reinterpret_cast<void**>(created_value_ptr); // NOLINT
     if (inserted_node_info_ptr != nullptr) {
-        inserted_node_info_ptr->created_nvp = nullptr;
+        inserted_node_info_ptr->created_nvps.clear();
     }
 
 root_nullptr:
@@ -310,6 +310,9 @@ retry_fetch_lv:
             memcpy(&key_slice, sve.data(), sizeof(key_slice_type));
             common_prefix_border->set_key(0, key_slice, sizeof(key_slice_type) + 1);
             common_prefix_border->get_permutation().insert_rank(0, 0);
+            if (inserted_node_info_ptr != nullptr) {
+                inserted_node_info_ptr->add_created_nvp(common_prefix_border->get_version_ptr());
+            }
 
             common_prefix_border->set_parent(parent_of_b2);
             sve.remove_prefix(sizeof(key_slice_type));
@@ -329,6 +332,7 @@ retry_fetch_lv:
                 b2->compute_rank_if_insert(ktn.get_key_slice(), ktn.get_key_length()));
         if (inserted_node_info_ptr != nullptr) {
             inserted_node_info_ptr->modified_nvp = target_border->get_version_ptr();
+            inserted_node_info_ptr->add_created_nvp(b2->get_version_ptr());
         }
 
         // release old suffix
