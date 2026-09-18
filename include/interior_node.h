@@ -166,6 +166,9 @@ public:
     //void set_parent(locked_border_node* p){base_node::set_parent(reinterpret_cast<border_node*>(p));} // NOLINT
     void set_parent(locked_border_node* p){base_node::set_parent(reinterpret_cast<base_node*>(p));} // NOLINT
     void version_unlock() = delete;
+    void set_version_deleted(bool) = delete;
+    void set_version_inserting_deleting(bool) = delete;
+    void set_version_splitting(bool) = delete;
     void shift_left_base_member(std::size_t, std::size_t) = delete;
     void shift_right_base_member(std::size_t, std::size_t) = delete;
 
@@ -193,6 +196,9 @@ public:
         base_node::version_unlock();
         return static_cast<interior_node*>(this);
     }
+    void set_version_deleted(const bool tf){base_node::set_version_deleted(tf);}
+    void set_version_inserting_deleting(const bool tf){base_node::set_version_inserting_deleting(tf);}
+    void set_version_splitting(const bool tf){base_node::set_version_splitting(tf);}
     void shift_left_base_member(std::size_t start, std::size_t sz) { base_node::shift_left_base_member(start, sz); };
     void shift_right_base_member(std::size_t start, std::size_t sz) { base_node::shift_right_base_member(start, sz); };
 
