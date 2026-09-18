@@ -145,7 +145,7 @@ retry_fetch_lv:
         if (lv_ptr->get_lv_typetag() == link_or_value::tag::SuffixValue) {
             lv_suffix* suf = lv_ptr->get_suffix();
             if (traverse_key_view.substr(sizeof(key_slice_type)) != suf->get_suffix_sv()) {
-                target_border->version_unlock();
+                locked_border->version_unlock();
                 return status::OK_NOT_FOUND;
             }
         }
