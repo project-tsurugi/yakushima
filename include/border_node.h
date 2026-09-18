@@ -340,6 +340,9 @@ public:
     void set_parent(locked_interior_node* p){base_node::set_parent(reinterpret_cast<interior_node*>(p));} // NOLINT
     void set_parent(locked_border_node* p){base_node::set_parent(reinterpret_cast<border_node*>(p));} // NOLINT
     void version_unlock() = delete;
+    void set_version_deleted(bool) = delete;
+    void set_version_inserting_deleting(bool) = delete;
+    void set_version_splitting(bool) = delete;
 
 // NOLINTBEGIN(*-non-private-*)
 protected:
@@ -370,6 +373,9 @@ public:
         base_node::version_unlock();
         return static_cast<border_node*>(this);
     }
+    void set_version_deleted(const bool tf){base_node::set_version_deleted(tf);}
+    void set_version_inserting_deleting(const bool tf){base_node::set_version_inserting_deleting(tf);}
+    void set_version_splitting(const bool tf){base_node::set_version_splitting(tf);}
 
     /**
      * @pre This function is called by delete_of function.
