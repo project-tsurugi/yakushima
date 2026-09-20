@@ -12,6 +12,7 @@
 #include "kvs.h"
 
 using namespace yakushima;
+using namespace std::literals;
 
 namespace yakushima::testing {
 
@@ -312,21 +313,65 @@ TEST_F(put_test, inserted_node_info) {
               put(token, st, "a", v.data(), v.size(), &created_value_ptr,
                   static_cast<value_align_type>(alignof(char)), true, &ii1));
     EXPECT_NE(ii1.modified_nvp, nullptr);
-    EXPECT_EQ(ii1.created_nvp, nullptr);
+    EXPECT_EQ(ii1.created_nvps.size(), 0);
     for (std::size_t i = 1; i < key_slice_length; i++) {
         // insert to border node
         ASSERT_EQ(status::OK,
                   put(token, st, std::to_string(i), v.data(), v.size(), &created_value_ptr,
                       static_cast<value_align_type>(alignof(char)), true, &ii2));
         EXPECT_EQ(ii2.modified_nvp, ii1.modified_nvp);
-        EXPECT_EQ(ii2.created_nvp, nullptr);
+        EXPECT_EQ(ii2.created_nvps.size(), 0);
     }
     // insert to border node (split)
     ASSERT_EQ(status::OK,
               put(token, st, "b", v.data(), v.size(), &created_value_ptr,
                   static_cast<value_align_type>(alignof(char)), true, &ii2));
     EXPECT_EQ(ii2.modified_nvp, ii1.modified_nvp);
-    EXPECT_NE(ii2.created_nvp, nullptr);
+    EXPECT_NE(ii2.created_nvps.size(), 0);
+    ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
+    ASSERT_EQ(leave(token), status::OK);
+}
+
+// ti 1543
+TEST_F(put_test, inserted_node_info_deep) {
+    tree_instance* ti{};
+    find_storage(st, &ti);
+    Token token{};
+    ASSERT_OK(enter(token));
+
+    // test
+    auto k = "12345678abcdefgh1234"sv;
+    auto v = "v"sv;
+    ASSERT_GT(k.size(),16);
+    auto* n = ti->load_root_ptr();
+    ASSERT_TRUE(n->get_version_border());
+    auto* b0 = dynamic_cast<border_node*>(n);
+
+    inserted_node_info ii{};
+    ASSERT_OK(put<char>(token, st, k, v.data(), v.size(),
+                        nullptr, std::align_val_t{alignof(char)}, true, &ii));
+    EXPECT_EQ(ii.modified_nvp, b0->get_version_ptr());
+    if (suffix_enabled) {
+        // 1st put makes no layers
+        EXPECT_EQ(ii.created_nvps.size(), 0);
+
+        // 2nd put makes layers
+        ASSERT_OK(put<char>(token, st, std::string{k} + "x", v.data(), v.size(),
+                            nullptr, std::align_val_t{alignof(char)}, true, &ii));
+        EXPECT_EQ(ii.modified_nvp, b0->get_version_ptr());
+    }
+    ASSERT_EQ(b0->get_key_slice_at(0), base_node::key_tuple(k).get_key_slice());
+    ASSERT_EQ(b0->get_lv_at(0)->get_next_layer()->get_version_border(), true);
+    auto* b1 = static_cast<border_node*>(b0->get_lv_at(0)->get_next_layer());
+    ASSERT_EQ(b1->get_key_slice_at(0), base_node::key_tuple(k.substr(8)).get_key_slice());
+    ASSERT_EQ(b1->get_lv_at(0)->get_next_layer()->get_version_border(), true);
+    auto* b2 = static_cast<border_node*>(b1->get_lv_at(0)->get_next_layer());
+    ASSERT_EQ(ii.created_nvps.size(), 2);
+    std::set<node_version64*> created_nvp_set({ii.created_nvps[0].second, ii.created_nvps[1].second});
+    EXPECT_EQ(created_nvp_set.count(b1->get_version_ptr()), 1);
+    EXPECT_EQ(created_nvp_set.count(b2->get_version_ptr()), 1);
+    EXPECT_EQ(ii.modified_nvp, b0->get_version_ptr());
+
     ASSERT_EQ(destroy(), status::OK_DESTROY_ALL);
     ASSERT_EQ(leave(token), status::OK);
 }

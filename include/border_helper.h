@@ -150,16 +150,15 @@ static void border_split(tree_instance* ti, border_node* const border,
     new_border->set_next(border->get_next());
     new_border->set_prev(border);
 
+    // new border is initially locked
+    new_border->set_version(border->get_version());
+
     // update inserted_node_info_ptr
     if (inserted_node_info_ptr != nullptr) {
         inserted_node_info_ptr->modified_nvp = border->get_version_ptr();
-        inserted_node_info_ptr->created_nvp = new_border->get_version_ptr();
+        inserted_node_info_ptr->add_created_nvp(new_border->get_version_ptr());
     }
 
-    /**
-     * new border is initially locked
-     */
-    new_border->set_version(border->get_version());
     border->set_next(new_border);
     if (new_border->get_next() != nullptr) {
         /**
