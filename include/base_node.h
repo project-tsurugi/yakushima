@@ -279,6 +279,9 @@ public:
     set_version(const node_version64_body nv) { // this function is used.
         version_.set_body(nv);
     }
+    [[maybe_unused]] void copy_version(const base_node* from) {
+        version_.set_body(from->get_version());
+    }
 
     void set_version_border(const bool tf) { version_.atomic_set_border(tf); }
 

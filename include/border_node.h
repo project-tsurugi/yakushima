@@ -340,6 +340,7 @@ public:
     void set_parent(locked_interior_node* p){base_node::set_parent(reinterpret_cast<interior_node*>(p));} // NOLINT
     void set_parent(locked_border_node* p){base_node::set_parent(reinterpret_cast<border_node*>(p));} // NOLINT
     void version_unlock() = delete;
+    void copy_version(const border_node* from){base_node::copy_version(from);}
     void set_version_deleted(bool) = delete;
     void set_version_inserting_deleting(bool) = delete;
     void set_version_splitting(bool) = delete;
@@ -373,6 +374,8 @@ public:
         base_node::version_unlock();
         return static_cast<border_node*>(this);
     }
+    void copy_version(const border_node*) = delete; // forbid copy from lock=0
+    void copy_version(const locked_border_node* from){base_node::copy_version(from);}
     void set_version_deleted(const bool tf){base_node::set_version_deleted(tf);}
     void set_version_inserting_deleting(const bool tf){base_node::set_version_inserting_deleting(tf);}
     void set_version_splitting(const bool tf){base_node::set_version_splitting(tf);}
@@ -592,7 +595,12 @@ public:
     static new_border_node* create() { return new new_border_node(); } // NOLINT
 
     [[nodiscard]] locked_border_node* lock() { return border_node::lock(); }
+    [[nodiscard]] locked_border_node* lock_by_copy_version(const locked_border_node* from) {
+        base_node::copy_version(from);
+        return reinterpret_cast<locked_border_node*>(this); // NOLINT
+    }
     void version_unlock() = delete;
+    void copy_version(const locked_border_node*) = delete; // forbid copy from lock=1
 };
 
 static_assert(sizeof(new_border_node) == sizeof(border_node));
