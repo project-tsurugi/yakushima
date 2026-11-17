@@ -816,6 +816,87 @@ TEST_F(iscan_single_test, scan_left_check_lvsuf1) {
     ASSERT_OK(leave(token));
 }
 
+TEST_F(iscan_single_test, scan_range_in_one_lvsuf_slice) {
+    if (!suffix_enabled) { GTEST_SKIP() << "this test is for suffix-supported yakushima"; }
+    // scan in one slice range of the lv-suffix
+    auto k1 = "1234567B11"sv;
+    void* v1 = reinterpret_cast<void*>(uintptr_t(0x0000000081808080));
+    Token token{};
+    ASSERT_OK(enter(token));
+    ASSERT_OK(put(token, st, k1, &v1, sizeof(v1)));
+
+    border_node* b0;
+    {
+        tree_instance* ti{};
+        find_storage(st, &ti);
+        base_node* root = ti->load_root_ptr();
+        ASSERT_EQ(root->get_version_border(), true);
+        ASSERT_EQ(root->get_version_deleted(), false);
+        b0 = static_cast<border_node*>(root);
+        ASSERT_EQ(b0->get_key_slice_at(0), base_node::key_tuple(k1).get_key_slice());
+    }
+
+    // "1234567B00" < "1234567B01" < k1
+    tc("1234567B00", scan_endpoint::INCLUSIVE, "1234567B01", scan_endpoint::EXCLUSIVE,
+       {B{b0}});
+    tc("1234567B00", scan_endpoint::INCLUSIVE, "1234567B01", scan_endpoint::INCLUSIVE,
+       {B{b0}});
+    tc("1234567B00", scan_endpoint::EXCLUSIVE, "1234567B01", scan_endpoint::EXCLUSIVE,
+       {B{b0}});
+    tc("1234567B00", scan_endpoint::EXCLUSIVE, "1234567B01", scan_endpoint::INCLUSIVE,
+       {B{b0}});
+
+    // "1234567B00" < k1
+    tc("1234567B00", scan_endpoint::INCLUSIVE, k1, scan_endpoint::EXCLUSIVE,
+       {B{b0}});
+    tc("1234567B00", scan_endpoint::INCLUSIVE, k1, scan_endpoint::INCLUSIVE,
+       {B{b0}, v1, B{}});
+    tc("1234567B00", scan_endpoint::EXCLUSIVE, k1, scan_endpoint::EXCLUSIVE,
+       {B{b0}});
+    tc("1234567B00", scan_endpoint::EXCLUSIVE, k1, scan_endpoint::INCLUSIVE,
+       {B{b0}, v1, B{}});
+
+    // k1 < "1234567B21"
+    tc(k1, scan_endpoint::INCLUSIVE, "1234567B21", scan_endpoint::EXCLUSIVE,
+       {B{}, v1, B{b0}});
+    tc(k1, scan_endpoint::INCLUSIVE, "1234567B21", scan_endpoint::INCLUSIVE,
+       {B{}, v1, B{b0}});
+    tc(k1, scan_endpoint::EXCLUSIVE, "1234567B21", scan_endpoint::EXCLUSIVE,
+       {B{b0}});
+    tc(k1, scan_endpoint::EXCLUSIVE, "1234567B21", scan_endpoint::INCLUSIVE,
+       {B{b0}});
+
+    // "1234567B00" < k1 < "1234567B21"
+    tc("1234567B00", scan_endpoint::INCLUSIVE, "1234567B21", scan_endpoint::EXCLUSIVE,
+       {B{b0}, v1, B{b0}});
+    tc("1234567B00", scan_endpoint::INCLUSIVE, "1234567B21", scan_endpoint::INCLUSIVE,
+       {B{b0}, v1, B{b0}});
+    tc("1234567B00", scan_endpoint::EXCLUSIVE, "1234567B21", scan_endpoint::EXCLUSIVE,
+       {B{b0}, v1, B{b0}});
+    tc("1234567B00", scan_endpoint::EXCLUSIVE, "1234567B21", scan_endpoint::INCLUSIVE,
+       {B{b0}, v1, B{b0}});
+
+    // k1 < "1234567B20" < "1234567B21"
+    tc("1234567B20", scan_endpoint::INCLUSIVE, "1234567B21", scan_endpoint::EXCLUSIVE,
+       {B{b0}});
+    tc("1234567B20", scan_endpoint::INCLUSIVE, "1234567B21", scan_endpoint::INCLUSIVE,
+       {B{b0}});
+    tc("1234567B20", scan_endpoint::EXCLUSIVE, "1234567B21", scan_endpoint::EXCLUSIVE,
+       {B{b0}});
+    tc("1234567B20", scan_endpoint::EXCLUSIVE, "1234567B21", scan_endpoint::INCLUSIVE,
+       {B{b0}});
+
+    // one-point
+    tc("1234567B00", scan_endpoint::INCLUSIVE, "1234567B00", scan_endpoint::INCLUSIVE,
+       {B{b0}});
+    tc(k1, scan_endpoint::INCLUSIVE, k1, scan_endpoint::INCLUSIVE,
+       {B{}, v1, B{}});
+    tc("1234567B21", scan_endpoint::INCLUSIVE, "1234567B21", scan_endpoint::INCLUSIVE,
+       {B{b0}});
+
+    ASSERT_OK(leave(token));
+}
+
 static void iscan_scan_sub(std::map<std::string, void*> entries) {
     Token token{};
     ASSERT_OK(enter(token));

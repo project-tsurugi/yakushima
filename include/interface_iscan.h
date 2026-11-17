@@ -260,16 +260,39 @@ retry_fetch_lv:
         std::string_view last_suf{};
         bool hit_start_key = traverse_endpoint == scan_endpoint::INCLUSIVE;
         if (auto* suf = lv_ptr->get_suffix(); suf) { // check suffix
-            last_suf = traverse_key_view.substr(sizeof(key_slice_type));
-            cmp = suf->get_suffix_sv().compare(last_suf);
+            last_suf = suf->get_suffix_sv();
+            cmp = last_suf.compare(traverse_key_view.substr(sizeof(key_slice_type)));
             if (cmp == 0) {
                 // hit_start_key = (traverse_endpoint == INCLUSIVE), so no change
             } else if (right_to_left ? (cmp < 0) : (cmp > 0)) {
+                // start < key
                 hit_start_key = true;
                 if (bnv_cb(target_border->get_version_ptr(), v_at_fetch_lv)) { return status::WARN_ABORTED_BY_USER; }
             } else {
+                // key < start
                 hit_start_key = false;
             }
+            bool end_in_this_lv = cmp_to_end == 0 && key_tup == ctx->get_end_tuple(0);
+            if (end_in_this_lv) { // scan range is in this lv's slice
+                cmp = suf->get_suffix_sv().compare(ctx->get_end_suffix(0));
+                if (right_to_left ? (cmp > 0) : (cmp < 0)) {
+                    // key < end
+                } else if (cmp == 0 && ctx->get_end_point() == scan_endpoint::INCLUSIVE) {
+                    // key = end
+                } else {
+                    // end < key
+                    // always srart <= end, so start < key. already called bnv_cb
+                    return status::OK_SCAN_END;
+                }
+                if (!hit_start_key) {
+                    // key < start <= end
+                    if (bnv_cb(target_border->get_version_ptr(), v_at_fetch_lv)) {
+                        return status::WARN_ABORTED_BY_USER;
+                    }
+                    return status::OK_SCAN_END;
+                }
+            }
+            // if hit_start_key (return value) OR !end_in_this_lv (continue to outer slice), fall through
         }
         // just hit start_key
         if (hit_start_key) {
