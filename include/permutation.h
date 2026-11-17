@@ -12,6 +12,7 @@
 #include <cmath>
 #include <cstdint>
 #include <iostream>
+#include <iterator>
 #include <tuple>
 #include <vector>
 
@@ -184,7 +185,7 @@ public:
          * sort based on key_slice and key_length for dictionary order.
          * So <key_slice_type, key_length_type, ...>
          */
-        std::sort(ar.begin(), ar.begin() + cnk);
+        std::sort(ar.begin(), std::next(ar.begin(), cnk));
 
         // rearrange
         std::uint64_t new_body(0);

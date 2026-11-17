@@ -23,7 +23,7 @@ public:
     // 01: value struct
     // 10: child node -> suffix struct
     // 11: child node
-    enum tag : uintptr_t {
+    enum tag : uintptr_t { // NOLINT(*-use-enum-class)
         LeafTagBits = 0b11UL << 62U, // mask bits
 
         /// @brief Tag for indicating that the raw pointer value is stored (i.e. inlined).

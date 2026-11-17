@@ -263,8 +263,8 @@ retry_fetch_lv:
             last_suf = traverse_key_view.substr(sizeof(key_slice_type));
             cmp = suf->get_suffix_sv().compare(last_suf);
             if (cmp == 0) {
-                // no change
-            } else  if (right_to_left ? (cmp < 0) : (cmp > 0)) {
+                // hit_start_key = (traverse_endpoint == INCLUSIVE), so no change
+            } else if (right_to_left ? (cmp < 0) : (cmp > 0)) {
                 hit_start_key = true;
                 if (bnv_cb(target_border->get_version_ptr(), v_at_fetch_lv)) { return status::WARN_ABORTED_BY_USER; }
             } else {
@@ -489,7 +489,6 @@ retry_after_fb:
                     }
                 }
             } else { // reverse order
-                int cmp = kt.compare(ekt);
                 if (cmp > 0) { hit = true; }
                 else if (cmp < 0) { hit = false; }
                 else {
