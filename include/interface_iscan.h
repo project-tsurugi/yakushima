@@ -582,6 +582,10 @@ retry_after_fb:
             key_tuple child_kt = right_to_left ? key_tuple::max() : key_tuple::min();
             auto child_border_node_and_v =
                 find_border(child, child_kt.get_key_slice(), child_kt.get_key_length(), check_status);
+            if (check_status == status::WARN_RETRY_FROM_ROOT_OF_ALL) {
+                VLOG(log_debug) << "FN retry_from_root FB=" << check_status;
+                goto retry_from_root; // NOLINT
+            }
             border_node* target_border = std::get<0>(child_border_node_and_v);
             // save stack context
             ctx->stack_top().bn = bn;
