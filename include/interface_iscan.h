@@ -167,6 +167,7 @@ retry_from_root: // retry from Masstree root
 
     std::string_view traverse_key_view{start_key};
     scan_endpoint traverse_endpoint{start_point};
+    ctx->stack_clear();
     int cmp_to_end = 0;
     if (!right_to_left && traverse_endpoint == scan_endpoint::INF) {
         cmp_to_end = -1; // any point in layer-0 <= INF
