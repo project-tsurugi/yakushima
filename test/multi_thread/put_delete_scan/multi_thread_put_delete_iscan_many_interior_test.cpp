@@ -43,11 +43,14 @@ private:
 std::string test_storage_name{"1"}; // NOLINT
 std::mutex debug_mtx;               // NOLINT
 
-static std::string hexstr(const std::string& str) {
+static std::string str_for_print(std::string_view s) {
+    if (std::all_of(s.begin(), s.end(), [](unsigned char c){return std::isprint(c);})) {
+        return "'" + std::string(s) + "'";
+    }
     std::ostringstream ss{};
     ss << std::hex;
     bool first{true};
-    for (auto c : str) {
+    for (auto c : s) {
         if (first) { first = false; }
         else { ss << '-'; }
         ss << std::setw(2) << std::setfill('0')
@@ -85,19 +88,26 @@ static bool eq_inlined(char* p, const pointer& v) {
     return pointer(p) == v;
 }
 
+static std::string make_default_key(std::size_t i) {
+    if (i <= INT8_MAX) {
+        return std::string(1, i);
+    } else {
+        return std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i % INT8_MAX);
+    }
+}
+
+static std::string make_l1_key(std::size_t i) {
+    char buf[17];
+    snprintf(buf, 17, "k%015lu", i);
+    return {buf, 16};
+}
 
 template<class valtype, valtype(*value)(std::size_t), bool(*eq)(char*, const valtype&),
+	 std::string(*make_key)(std::size_t),
          bool right_to_left, bool do_shuffle = false, std::size_t repeats = 1U>
 void many_interior_comm() {
     std::size_t th_nm{std::min<std::size_t>(ary_size, std::thread::hardware_concurrency())};
     LOG(INFO) << "process " << ary_size << " nodes by " << th_nm << " threads";
-    static auto make_key = [](std::size_t i) {
-        if (i <= INT8_MAX) {
-            return std::string(1, i);
-        } else {
-            return std::string(i / INT8_MAX, INT8_MAX) + std::string(1, i % INT8_MAX);
-        }
-    };
 
     for (std::size_t h = 0; h < 1; ++h) {
         create_storage(test_storage_name);
@@ -128,7 +138,7 @@ void many_interior_comm() {
                     for (auto& i : kv) {
                         std::string k(std::get<0>(i));
                         valtype v(std::get<1>(i));
-                        VLOG(40) << "insert1 " << hexstr(k);
+                        VLOG(40) << "insert1 " << str_for_print(k);
                         status ret = put(token, test_storage_name, k, v.data(), v.size());
                         if (ret != status::OK) {
                             ASSERT_EQ(ret, status::OK);
@@ -155,7 +165,7 @@ void many_interior_comm() {
                     std::size_t check_ctr{0};
                     std::stringstream ss_chkv{};
                     for (auto&& elem : res_kv) {
-                        ss_chkv << hexstr(elem.first);
+                        ss_chkv << str_for_print(elem.first);
                         for (auto&& elem2 : kv) {
                             if (eq(std::get<1>(elem), std::get<1>(elem2))) {
                                 ++check_ctr;
@@ -168,7 +178,7 @@ void many_interior_comm() {
                     }
                     if (check_ctr != kv.size()) {
                         // to show glog thread id
-                        LOG(INFO) << "[ " << ss_chkv.str() << "] kv:[" << hexstr(make_key(kmin)) << ":" << hexstr(make_key(kmax)) << "]";
+                        LOG(INFO) << "[ " << ss_chkv.str() << "] kv:[" << str_for_print(make_key(kmin)) << ":" << str_for_print(make_key(kmax)) << "]";
                         ASSERT_EQ(check_ctr, kv.size());
                     }
                     // check success for own puts. check duplicate about key.
@@ -180,10 +190,10 @@ void many_interior_comm() {
                             LOG(INFO) << "it found duplicate. thread " << th_id;
                             std::ostringstream ss{};
                             std::string check_key2 = std::get<0>(*res_kv.begin());
-                            ss << "keys[ " << hexstr(check_key2);
+                            ss << "keys[ " << str_for_print(check_key2);
                             for (auto itr_2 = res_kv.begin() + 1; // NOLINT
                                  itr_2 != res_kv.end(); ++itr_2) {
-                                ss << " " << hexstr(std::get<0>(*itr_2));
+                                ss << " " << str_for_print(std::get<0>(*itr_2));
                                 if (check_key2 >= std::get<0>(*itr_2)) { ss << "!!"; }
                                 check_key2 = std::get<0>(*itr_2);
                             }
@@ -197,7 +207,7 @@ void many_interior_comm() {
 
                     for (auto& i : kv) {
                         std::string k(std::get<0>(i));
-                        VLOG(40) << "remove  " << hexstr(k);
+                        VLOG(40) << "remove  " << str_for_print(k);
                         status ret = remove(token, test_storage_name, k);
                         if (ret != status::OK) {
                             ASSERT_EQ(ret, status::OK);
@@ -208,7 +218,7 @@ void many_interior_comm() {
                 for (auto& i : kv) {
                     std::string k(std::get<0>(i));
                     valtype v(std::get<1>(i));
-                    VLOG(40) << "insert2 " << hexstr(k);
+                    VLOG(40) << "insert2 " << str_for_print(k);
                     status ret = put(token, test_storage_name, k, v.data(),
                                      v.size());
                     if (ret != status::OK) {
@@ -249,19 +259,23 @@ TEST_F(multi_thread_put_delete_iscan_many_interior_test, DISABLED_many_interior)
      * concurrent put/delete/scan in the state between none to many split of
      * interior.
      */
-    many_interior_comm<std::string, value_varchar, eq_varchar, false>();
+    many_interior_comm<std::string, value_varchar, eq_varchar, make_default_key, false>();
 }
 
 TEST_F(multi_thread_put_delete_iscan_many_interior_test, many_interior_inlined_value) { // NOLINT
     // inlined value version of many_interior
-    many_interior_comm<pointer, value_inlined, eq_inlined, false>();
-    many_interior_comm<pointer, value_inlined, eq_inlined, true>();
+    many_interior_comm<pointer, value_inlined, eq_inlined, make_default_key, false>();
+    many_interior_comm<pointer, value_inlined, eq_inlined, make_default_key, true>();
 }
 
-TEST_F(multi_thread_put_delete_iscan_many_interior_test, // NOLINT
-       many_interior_inlined_shuffle) {
-    many_interior_comm<pointer, value_inlined, eq_inlined, false, true>();
-    many_interior_comm<pointer, value_inlined, eq_inlined, true, true>();
+TEST_F(multi_thread_put_delete_iscan_many_interior_test, many_interior_inlined_shuffle) {
+    many_interior_comm<pointer, value_inlined, eq_inlined, make_default_key, false, true>();
+    many_interior_comm<pointer, value_inlined, eq_inlined, make_default_key, true, true>();
+}
+
+TEST_F(multi_thread_put_delete_iscan_many_interior_test, many_interior_inlined_l1key_shuffle) {
+    many_interior_comm<pointer, value_inlined, eq_inlined, make_l1_key, false, true>();
+    many_interior_comm<pointer, value_inlined, eq_inlined, make_l1_key, true, true>();
 }
 
 } // namespace yakushima::testing
