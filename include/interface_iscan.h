@@ -453,6 +453,7 @@ retry_after_fb:
             std::size_t index = perm.get_index_of_rank(0);
             auto kt = key_tuple(bn->get_key_slice_at(index), bn->get_key_length_at(index));
             if (kt > last_key) {
+                VLOG(log_debug) << "FN retry FROM_ROOT in retry_afte_fb";
                 goto retry_from_root; // NOLINT
             }
         } else {
@@ -460,6 +461,7 @@ retry_after_fb:
             std::size_t index = perm.get_index_of_rank(perm.get_cnk() - 1);
             auto kt = key_tuple(bn->get_key_slice_at(index), bn->get_key_length_at(index));
             if (kt < last_key) {
+                VLOG(log_debug) << "FN retry FROM_ROOT in retry_afte_fb";
                 goto retry_from_root; // NOLINT
             }
         }
@@ -615,11 +617,11 @@ retry_after_fb:
             if (check_status != status::OK) {
                 if (early_abort) { return status::WARN_CONCURRENT_OPERATIONS; }
                 if (check_status == status::OK_RETRY_FROM_ROOT) {
-                    VLOG(log_debug) << "FN retry FROM_ROOT hit-valuw";
+                    VLOG(log_debug) << "FN retry FROM_ROOT hit-value";
                     goto retry_from_root; // NOLINT
                 }
                 if (check_status == status::OK_RETRY_AFTER_FB) {
-                    VLOG(log_debug) << "FN retry AFTER_FB hit-valuw";
+                    VLOG(log_debug) << "FN retry AFTER_FB hit-value";
                     goto retry_after_fb; // NOLINT
                 }
             }
