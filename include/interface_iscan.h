@@ -592,7 +592,7 @@ retry_after_fb:
             // save stack context
             ctx->stack_top().bn = bn;
             ctx->stack_top().key = kt;
-            ctx->stack_top().bi.perm_rank = i+1;
+            ctx->stack_top().bi.perm_rank = i;
             // create context of next start
             if (cmp_to_end == 0) {
                 if (kt != ekt) {
