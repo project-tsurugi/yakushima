@@ -61,7 +61,7 @@ class iscan_context {
 // NOLINTEND(misc-non-private-member-variables-in-classes)
 
     std::deque<stack_element> stackq_;
-    std::string_view last_key_suffix; // key-suffix of last layer (non-last layer's lv is Child, so no suffix)
+    std::string_view last_key_suffix_; // key-suffix of last layer (non-last layer's lv is Child, so no suffix)
 
 public:
     tree_instance *get_ti() { return ti_; }
@@ -90,12 +90,12 @@ public:
             buf.append(reinterpret_cast<const char*>(&elem.key.get_key_slice()), // NOLINT
                        std::min<std::size_t>(elem.key.get_key_length(), sizeof(key_slice_type)));
         }
-        buf.append(last_key_suffix);
+        buf.append(last_key_suffix_);
         return buf;
     }
 
-    [[nodiscard]] auto get_last_key_suffix() const { return last_key_suffix; }
-    void set_last_key_suffix(std::string_view suf) { last_key_suffix = suf; }
+    [[nodiscard]] auto get_last_key_suffix() const { return last_key_suffix_; }
+    void set_last_key_suffix(std::string_view suf) { last_key_suffix_ = suf; }
 
     key_tuple get_end_tuple(int offset) {
         if (!right_to_left_ && end_point_ == scan_endpoint::INF) {
@@ -281,7 +281,7 @@ retry_fetch_lv:
                     // key = end
                 } else {
                     // end < key
-                    // always srart <= end, so start < key. already called bnv_cb
+                    // always start <= end, so start < key. already called bnv_cb
                     return status::OK_SCAN_END;
                 }
                 if (!hit_start_key) {
@@ -323,7 +323,7 @@ retry_fetch_lv:
         // this border is first node, but the key does not exist here
 
         // skip callback. will called in findnext
-        // expception: if start=end, findnext does not call cb, so need cb here
+        // exception: if start=end, findnext does not call cb, so need cb here
         if (range_is_one_point) {
             if (bnv_cb(target_border->get_version_ptr(), v_at_fetch_lv)) { return status::WARN_ABORTED_BY_USER; }
             return status::OK_SCAN_END;
