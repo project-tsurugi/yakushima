@@ -355,7 +355,6 @@ iscan_open(tree_instance* ti, std::string_view l_key, scan_endpoint l_end, std::
 // returns
 // OK : found key/value. stored value to `out`
 // OK_SCAN_END : reach end_key, return to upper layer
-// OK_SCAN_CONTINUE : done iterating border nodes in this layer, return to upper layer
 // OK_RETRY_FROM_ROOT : retry from layer root
 static status
 iscan_findnext(iscan_context* ctx,
@@ -640,7 +639,11 @@ retry_after_fb:
             // end-point is before inf (= entire-b+tree), so it might be reached end-point
             return status::OK_SCAN_END;
         }
-        return status::OK_SCAN_CONTINUE;
+        // return upto
+        ctx->stack_pop();
+        ctx->set_last_key_suffix({}); // non-stack-top entry is lv=Child, so no suffix
+        if (ctx->stack_empty()) { return status::OK_SCAN_END; }
+        goto next_layer; // NOLINT
     }
     if ((right_to_left ? to_bn->get_next() : to_bn->get_prev()) != bn) {
         goto retry_from_root; // NOLINT
@@ -725,14 +728,6 @@ iscan_next(iscan_context* ctx, void*& value,
         }
         if (rc == status::WARN_CONCURRENT_OPERATIONS || rc == status::WARN_ABORTED_BY_USER) {
             return rc;
-        }
-        if (rc == status::OK_SCAN_CONTINUE) { // TODO: stop exiting and re-entering iscan_findnext
-            // layer end
-            // return upto
-            ctx->stack_pop();
-            ctx->set_last_key_suffix({}); // non-stack-top entry is lv=Child, so no suffix
-            if (ctx->stack_empty()) { return status::OK_SCAN_END; }
-            continue;
         }
         break;
     }
