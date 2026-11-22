@@ -85,7 +85,7 @@ public:
 
     std::string full_key() {
         std::string buf{};
-        buf.reserve(stackq_.size() * sizeof(key_slice_type));
+        buf.reserve(stackq_.size() * sizeof(key_slice_type) + last_key_suffix_.size());
         for (auto&& elem : stackq_) {
             buf.append(reinterpret_cast<const char*>(&elem.key.get_key_slice()), // NOLINT
                        std::min<std::size_t>(elem.key.get_key_length(), sizeof(key_slice_type)));
@@ -208,6 +208,7 @@ retry_fetch_lv:
     std::size_t lv_pos{0}; // index, not rank
     link_or_value* lv_ptr = target_border->get_lv_of(
             key_tup.get_key_slice(), key_tup.get_key_length(), v_at_fetch_lv, lv_pos);
+    link_or_value lv = lv_ptr ? loadAcquireNS(*lv_ptr) : link_or_value{};
 
     // check
     if ((v_at_fetch_lv.get_vsplit() != v_at_fb.get_vsplit()) ||
@@ -218,15 +219,11 @@ retry_fetch_lv:
          */
         goto retry_from_root; // NOLINT
     }
-    if (lv_ptr != nullptr && lv_ptr->get_lv_typetag() == link_or_value::tag::Child) {
+    if (lv_ptr != nullptr && lv.get_lv_typetag() == link_or_value::tag::Child) {
         // case 1. lv_ptr != nullptr, and link to next-layer
         // visited this node
 
-        root = lv_ptr->get_next_layer();
-        if (root == nullptr) {
-            if (early_abort) { return status::WARN_CONCURRENT_OPERATIONS; }
-            goto retry_fetch_lv; // NOLINT
-        }
+        root = lv.get_next_layer();
 
         // recheck border version
         node_version64_body final_check = target_border->get_stable_version();
@@ -259,7 +256,7 @@ retry_fetch_lv:
         int cmp = 0;
         std::string_view last_suf{};
         bool hit_start_key = traverse_endpoint == scan_endpoint::INCLUSIVE;
-        if (auto* suf = lv_ptr->get_suffix(); suf) { // check suffix
+        if (auto* suf = lv.get_suffix(); suf) { // check suffix
             last_suf = suf->get_suffix_sv();
             cmp = last_suf.compare(traverse_key_view.substr(sizeof(key_slice_type)));
             if (cmp == 0) {
@@ -297,7 +294,7 @@ retry_fetch_lv:
         // just hit start_key
         if (hit_start_key) {
             // not visit the border, so not call cb
-            value* vp = lv_ptr->get_value();
+            value* vp = lv.get_value();
             auto* v_body = value::get_body(vp);
             node_version64_body final_check = target_border->get_stable_version();
             if (final_check.get_vsplit() != v_at_fb.get_vsplit() ||
@@ -412,7 +409,7 @@ retry_from_root:
         auto border_node_and_v =
             find_border(root, last_key.get_key_slice(), last_key.get_key_length(), check_status);
         border_node* target_border = std::get<0>(border_node_and_v);
-        if (check_status != status::OK) {
+        if (check_status == status::WARN_RETRY_FROM_ROOT_OF_ALL) {
             goto retry_from_root; // NOLINT
         }
         ctx->stack_top().bn = target_border;
@@ -449,6 +446,7 @@ retry_after_fb:
         if (check_status != status::OK) { goto retry_from_root; } // NOLINT
 
         st->bi.perm_rank = 0;
+        st->bi.v_prev = v_at_fb;
         st->bi.perm_prev.set_body(perm.get_body());
     }
 //retry:
