@@ -258,7 +258,7 @@ next_layer:
     border_node* target_border = std::get<tuple_node_index>(node_and_v);
     node_version64_body v_at_fb = std::get<tuple_v_index>(node_and_v);
     if (v_at_fb.get_deleted() && v_at_fb.get_root()) {
-        // empty masstree
+        // empty masstree; deleted root exists only in L0
         if (bnv_cb(target_border->get_version_ptr(), v_at_fb)) { return status::WARN_ABORTED_BY_USER; }
         return status::OK_SCAN_END;
     }
@@ -340,6 +340,7 @@ retry_fetch_lv:
                 } else {
                     // end < key
                     // always start <= end, so start < key. already called bnv_cb
+                    ctx->stack_clear();
                     return status::OK_SCAN_END;
                 }
                 if (!hit_start_key) {
@@ -347,6 +348,7 @@ retry_fetch_lv:
                     if (bnv_cb(target_border->get_version_ptr(), v_at_fetch_lv)) {
                         return status::WARN_ABORTED_BY_USER;
                     }
+                    ctx->stack_clear();
                     return status::OK_SCAN_END;
                 }
             }
@@ -384,6 +386,7 @@ retry_fetch_lv:
         // exception: if start=end, findnext does not call cb, so need cb here
         if (range_is_one_point) {
             if (bnv_cb(target_border->get_version_ptr(), v_at_fetch_lv)) { return status::WARN_ABORTED_BY_USER; }
+            ctx->stack_clear();
             return status::OK_SCAN_END;
         }
 
@@ -766,6 +769,7 @@ iscan_open(std::string_view storage_name,
 [[maybe_unused]] static status
 iscan_next(iscan_context* ctx, void*& value,
         const std::function<bool(node_version64*, node_version64_body)>& bnv_cb = dummycallback) {
+    if (ctx->stack_empty()) { return status::ERR_BAD_USAGE; }
     while (true) {
         auto rc = iscan_findnext(ctx, value, bnv_cb);
         if (rc == status::OK_SCAN_END) {
