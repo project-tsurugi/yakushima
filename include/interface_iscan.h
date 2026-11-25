@@ -61,7 +61,7 @@ class iscan_context {
 // NOLINTEND(misc-non-private-member-variables-in-classes)
 
     std::deque<stack_element> stackq_;
-    std::string_view last_key_suffix; // key-suffix of last layer (non-last layer's lv is Child, so no suffix)
+    std::string_view last_key_suffix_; // key-suffix of last layer (non-last layer's lv is Child, so no suffix)
 
 public:
     tree_instance *get_ti() { return ti_; }
@@ -85,17 +85,76 @@ public:
 
     std::string full_key() {
         std::string buf{};
-        buf.reserve(stackq_.size() * sizeof(key_slice_type));
+        buf.reserve(stackq_.size() * sizeof(key_slice_type) + last_key_suffix_.size());
         for (auto&& elem : stackq_) {
             buf.append(reinterpret_cast<const char*>(&elem.key.get_key_slice()), // NOLINT
                        std::min<std::size_t>(elem.key.get_key_length(), sizeof(key_slice_type)));
         }
-        buf.append(last_key_suffix);
+        buf.append(last_key_suffix_);
         return buf;
     }
 
-    [[nodiscard]] auto get_last_key_suffix() const { return last_key_suffix; }
-    void set_last_key_suffix(std::string_view suf) { last_key_suffix = suf; }
+    static void calc_supremum_of_prefix(std::string& str) {
+        for (std::size_t i = str.size(); i > 0; i--) {
+            if (static_cast<unsigned char>(str[i - 1]) != 0xffU) {
+                str[i - 1]++;
+                str.resize(i);
+                return;
+            }
+        }
+        // fail: infinity
+        str.clear();
+    }
+
+    /// @pre stackq is not empty
+    std::pair<std::string, scan_endpoint> restart_point() {
+        std::string buf{};
+        if (stackq_.empty()) {
+            LOG(ERROR) << log_location_prefix << "programming error";
+            return {"", scan_endpoint::INF};
+        }
+        buf.reserve(stackq_.size() * sizeof(key_slice_type));
+        for (std::size_t i = 0; i < stackq_.size() - 1; i++) {
+            buf.append(reinterpret_cast<const char*>(&stackq_.at(i).key.get_key_slice()), // NOLINT
+                       sizeof(key_slice_type));
+        }
+        const auto& elem = stackq_.back();
+        const key_tuple& last_kt = elem.key;
+
+        // just after down to next layer
+        if (!right_to_left_ && last_kt == key_tuple::min()) {
+            return {buf, scan_endpoint::EXCLUSIVE};
+        } else if (right_to_left_ && last_kt == key_tuple::max()) { // NOLINT(*-else-after-return)
+            calc_supremum_of_prefix(buf);
+            if (buf.empty()) {
+                return {{}, scan_endpoint::INF};
+            }
+            return {buf, scan_endpoint::EXCLUSIVE};
+        }
+
+        // suffix or just after back from child
+        if (last_kt.get_key_length() > sizeof(key_slice_type)) { // child or suffix
+            buf.append(reinterpret_cast<const char*>(&last_kt.get_key_slice()), // NOLINT
+                       sizeof(key_slice_type));
+            if (!right_to_left_) { // forward
+                calc_supremum_of_prefix(buf);
+                if (buf.empty()) {
+                    return {{}, scan_endpoint::INF}; // special value for +inf (for forward scan)
+                }
+                return {buf, scan_endpoint::INCLUSIVE};
+            } else { // reverse // NOLINT(*-else-after-return)
+                return {buf, scan_endpoint::INCLUSIVE};
+            }
+        }
+
+        // normal length key
+        buf.append(reinterpret_cast<const char*>(&last_kt.get_key_slice()), // NOLINT
+                   last_kt.get_key_length());
+        return {buf, scan_endpoint::EXCLUSIVE};
+    }
+
+    [[nodiscard]] auto get_last_key_suffix() const { return last_key_suffix_; }
+    void set_last_key_suffix(std::string_view suf) { last_key_suffix_ = suf; }
 
     key_tuple get_end_tuple(int offset) {
         if (!right_to_left_ && end_point_ == scan_endpoint::INF) {
@@ -167,6 +226,7 @@ retry_from_root: // retry from Masstree root
 
     std::string_view traverse_key_view{start_key};
     scan_endpoint traverse_endpoint{start_point};
+    ctx->stack_clear();
     int cmp_to_end = 0;
     if (!right_to_left && traverse_endpoint == scan_endpoint::INF) {
         cmp_to_end = -1; // any point in layer-0 <= INF
@@ -198,7 +258,7 @@ next_layer:
     border_node* target_border = std::get<tuple_node_index>(node_and_v);
     node_version64_body v_at_fb = std::get<tuple_v_index>(node_and_v);
     if (v_at_fb.get_deleted() && v_at_fb.get_root()) {
-        // empty masstree
+        // empty masstree; deleted root exists only in L0
         if (bnv_cb(target_border->get_version_ptr(), v_at_fb)) { return status::WARN_ABORTED_BY_USER; }
         return status::OK_SCAN_END;
     }
@@ -208,6 +268,7 @@ retry_fetch_lv:
     std::size_t lv_pos{0}; // index, not rank
     link_or_value* lv_ptr = target_border->get_lv_of(
             key_tup.get_key_slice(), key_tup.get_key_length(), v_at_fetch_lv, lv_pos);
+    link_or_value lv = lv_ptr ? loadAcquireNS(*lv_ptr) : link_or_value{};
 
     // check
     if ((v_at_fetch_lv.get_vsplit() != v_at_fb.get_vsplit()) ||
@@ -218,15 +279,11 @@ retry_fetch_lv:
          */
         goto retry_from_root; // NOLINT
     }
-    if (lv_ptr != nullptr && lv_ptr->get_lv_typetag() == link_or_value::tag::Child) {
+    if (lv_ptr != nullptr && lv.get_lv_typetag() == link_or_value::tag::Child) {
         // case 1. lv_ptr != nullptr, and link to next-layer
         // visited this node
 
-        root = lv_ptr->get_next_layer();
-        if (root == nullptr) {
-            if (early_abort) { return status::WARN_CONCURRENT_OPERATIONS; }
-            goto retry_fetch_lv; // NOLINT
-        }
+        auto* next_root = lv.get_next_layer();
 
         // recheck border version
         node_version64_body final_check = target_border->get_stable_version();
@@ -250,6 +307,7 @@ retry_fetch_lv:
                 cmp_to_end = -1;
             }
         }
+        root = next_root;
         goto next_layer; // NOLINT
     }
 
@@ -259,7 +317,7 @@ retry_fetch_lv:
         int cmp = 0;
         std::string_view last_suf{};
         bool hit_start_key = traverse_endpoint == scan_endpoint::INCLUSIVE;
-        if (auto* suf = lv_ptr->get_suffix(); suf) { // check suffix
+        if (auto* suf = lv.get_suffix(); suf) { // check suffix
             last_suf = suf->get_suffix_sv();
             cmp = last_suf.compare(traverse_key_view.substr(sizeof(key_slice_type)));
             if (cmp == 0) {
@@ -281,7 +339,8 @@ retry_fetch_lv:
                     // key = end
                 } else {
                     // end < key
-                    // always srart <= end, so start < key. already called bnv_cb
+                    // always start <= end, so start < key. already called bnv_cb
+                    ctx->stack_clear();
                     return status::OK_SCAN_END;
                 }
                 if (!hit_start_key) {
@@ -289,6 +348,7 @@ retry_fetch_lv:
                     if (bnv_cb(target_border->get_version_ptr(), v_at_fetch_lv)) {
                         return status::WARN_ABORTED_BY_USER;
                     }
+                    ctx->stack_clear();
                     return status::OK_SCAN_END;
                 }
             }
@@ -297,7 +357,7 @@ retry_fetch_lv:
         // just hit start_key
         if (hit_start_key) {
             // not visit the border, so not call cb
-            value* vp = lv_ptr->get_value();
+            value* vp = lv.get_value();
             auto* v_body = value::get_body(vp);
             node_version64_body final_check = target_border->get_stable_version();
             if (final_check.get_vsplit() != v_at_fb.get_vsplit() ||
@@ -323,9 +383,10 @@ retry_fetch_lv:
         // this border is first node, but the key does not exist here
 
         // skip callback. will called in findnext
-        // expception: if start=end, findnext does not call cb, so need cb here
+        // exception: if start=end, findnext does not call cb, so need cb here
         if (range_is_one_point) {
             if (bnv_cb(target_border->get_version_ptr(), v_at_fetch_lv)) { return status::WARN_ABORTED_BY_USER; }
+            ctx->stack_clear();
             return status::OK_SCAN_END;
         }
 
@@ -358,8 +419,7 @@ iscan_open(tree_instance* ti, std::string_view l_key, scan_endpoint l_end, std::
 // returns
 // OK : found key/value. stored value to `out`
 // OK_SCAN_END : reach end_key, return to upper layer
-// OK_SCAN_CONTINUE : done iterating border nodes in this layer, return to upper layer
-// OK_RETRY_FROM_ROOT : retry from layer root
+// WARN_RETRY_FROM_ROOT_OF_ALL : retry from masstree root
 static status
 iscan_findnext(iscan_context* ctx,
     void *&out,
@@ -382,37 +442,22 @@ retry_from_root:
         if (rv.get_deleted()) {
             // border in upper layer is modified
             // return to upper root
-            if (ctx->stack_size() == 1) { // L0
-                base_node* new_mt_root = ctx->get_ti()->load_root_ptr();
-                if (root != new_mt_root) {
-                    ctx->stack_top().layer_root = new_mt_root;
-                    goto retry_from_root; // NOLINT
-                }
-                // mt root is deleted, so scan end
-                return status::OK_SCAN_END;
-            }
-            // L1+
-            ctx->stack_pop();
-            st = &ctx->stack_top(); // sync alias
-            goto retry_from_root; // NOLINT
+
+            // XXX: currently return to masstree root
+            return status::WARN_RETRY_FROM_ROOT_OF_ALL;
         }
         if (!rv.get_root()) {
             // saved-root is now not root. split?
-            // return to border in upper layer
-            if (ctx->stack_size() == 1) { // L0
-                base_node* new_mt_root = ctx->get_ti()->load_root_ptr();
-                ctx->stack_top().layer_root = new_mt_root;
-                goto retry_from_root; // NOLINT
-            }
-            ctx->stack_pop();
-            st = &ctx->stack_top(); // sync alias
-            goto next_layer; // NOLINT // or jump to entry point of this function
+            // return to upper root (OR move to parent)
+
+            // XXX: currently return to masstree root
+            return status::WARN_RETRY_FROM_ROOT_OF_ALL;
         }
         status check_status{};
         auto border_node_and_v =
             find_border(root, last_key.get_key_slice(), last_key.get_key_length(), check_status);
         border_node* target_border = std::get<0>(border_node_and_v);
-        if (check_status != status::OK) {
+        if (check_status == status::WARN_RETRY_FROM_ROOT_OF_ALL) {
             goto retry_from_root; // NOLINT
         }
         ctx->stack_top().bn = target_border;
@@ -449,6 +494,7 @@ retry_after_fb:
         if (check_status != status::OK) { goto retry_from_root; } // NOLINT
 
         st->bi.perm_rank = 0;
+        st->bi.v_prev = v_at_fb;
         st->bi.perm_prev.set_body(perm.get_body());
     }
 //retry:
@@ -548,6 +594,9 @@ retry_after_fb:
             key_tuple child_kt = right_to_left ? key_tuple::max() : key_tuple::min();
             auto child_border_node_and_v =
                 find_border(child, child_kt.get_key_slice(), child_kt.get_key_length(), check_status);
+            if (check_status == status::WARN_RETRY_FROM_ROOT_OF_ALL) {
+                goto retry_from_root; // NOLINT
+            }
             border_node* target_border = std::get<0>(child_border_node_and_v);
             // save stack context
             ctx->stack_top().bn = bn;
@@ -642,7 +691,11 @@ retry_after_fb:
             // end-point is before inf (= entire-b+tree), so it might be reached end-point
             return status::OK_SCAN_END;
         }
-        return status::OK_SCAN_CONTINUE;
+        // return upto
+        ctx->stack_pop();
+        ctx->set_last_key_suffix({}); // non-stack-top entry is lv=Child, so no suffix
+        if (ctx->stack_empty()) { return status::OK_SCAN_END; }
+        goto next_layer; // NOLINT
     }
     if ((right_to_left ? to_bn->get_next() : to_bn->get_prev()) != bn) {
         goto retry_from_root; // NOLINT
@@ -716,6 +769,7 @@ iscan_open(std::string_view storage_name,
 [[maybe_unused]] static status
 iscan_next(iscan_context* ctx, void*& value,
         const std::function<bool(node_version64*, node_version64_body)>& bnv_cb = dummycallback) {
+    if (ctx->stack_empty()) { return status::ERR_BAD_USAGE; }
     while (true) {
         auto rc = iscan_findnext(ctx, value, bnv_cb);
         if (rc == status::OK_SCAN_END) {
@@ -728,12 +782,21 @@ iscan_next(iscan_context* ctx, void*& value,
         if (rc == status::WARN_CONCURRENT_OPERATIONS || rc == status::WARN_ABORTED_BY_USER) {
             return rc;
         }
-        if (rc == status::OK_SCAN_CONTINUE) { // TODO: stop exiting and re-entering iscan_findnext
-            // layer end
-            // return upto
-            ctx->stack_pop();
-            ctx->set_last_key_suffix({}); // non-stack-top entry is lv=Child, so no suffix
-            if (ctx->stack_empty()) { return status::OK_SCAN_END; }
+        if (rc == status::WARN_RETRY_FROM_ROOT_OF_ALL) {
+            auto [rs_key, rs_ep] = ctx->restart_point();
+            ctx->stack_clear();
+            if (rs_ep == scan_endpoint::INF && !ctx->get_right_to_left()) {
+                // special value for +inf; i.e. scan end
+                return status::OK_SCAN_END;
+            }
+            // restart_point may exceed scan range
+            auto rc_empty = ctx->get_right_to_left()
+                            ? check_empty_scan_range(ctx->get_end_key(), ctx->get_end_point(), rs_key, rs_ep)
+                            : check_empty_scan_range(rs_key, rs_ep, ctx->get_end_key(), ctx->get_end_point());
+            if (rc_empty != status::OK) { return status::OK_SCAN_END; }
+
+            auto rc_ff = iscan_findfirst(ctx, rs_key, rs_ep, value, bnv_cb);
+            if (rc_ff != status::OK_SCAN_CONTINUE) { return rc_ff; }
             continue;
         }
         break;
